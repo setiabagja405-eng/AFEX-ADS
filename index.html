@@ -44,7 +44,7 @@
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
-                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
@@ -267,7 +267,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC AUTO MINING 12 JAM -->
+    <!-- JAVASCRIPT LOGIC AUTO MINING & REFERRAL -->
     <script>
         let tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
@@ -279,13 +279,12 @@
             refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
             walletConnected: localStorage.getItem('afex_wallet_addr') || '',
             
-            // Variabel Auto-Mining 12 Jam
             isMining: localStorage.getItem('afex_is_mining') === 'true',
             miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
-            totalRewardSession: 200.00 // Total AFEX yang didapat selama 12 jam penuh
+            totalRewardSession: 200.00 
         };
 
-        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam dalam milidetik
+        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam
 
         window.addEventListener('DOMContentLoaded', () => {
             let userTg = tg.initDataUnsafe?.user;
@@ -293,13 +292,41 @@
                 document.getElementById('header-username').innerText = `@${userTg.username || userTg.first_name}`;
                 document.getElementById('header-acc').innerText = userTg.id;
             }
-            document.getElementById('ref-link-input').value = `https://t.me/BotAndaBot?start=${miningData.refCode}`;
+
+            // === VALIDASI & PENANGANAN KODE REFERRAL (START_PARAM) ===
+            let startParam = tg.initDataUnsafe?.start_param;
+            if (startParam) {
+                let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
+                if (!hasBeenReferred && startParam !== miningData.refCode) {
+                    localStorage.setItem('afex_has_been_referred', 'true');
+                    localStorage.setItem('afex_referred_by', startParam);
+                    
+                    // Berikan bonus selamat datang bagi pengguna baru yang bergabung via link referral
+                    miningData.balance += 70.00;
+                    
+                    // Simulasi penambahan jumlah referral pada local data pengundang (jika di browser yang sama / simulasi)
+                    let referrerKey = 'ref_count_' + startParam;
+                    let existingRefs = parseInt(localStorage.getItem(referrerKey)) || 0;
+                    localStorage.setItem(referrerKey, existingRefs + 1);
+                    
+                    alert(`Berhasil! Anda bergabung melalui kode undangan: ${startParam}. Bonus selamat datang +70 AFEX telah ditambahkan.`);
+                }
+            }
+
+            // Tampilkan link bot dengan format https://t.me/Fexboostbot?start=KODE
+            document.getElementById('ref-link-input').value = `https://t.me/Fexboostbot?start=${miningData.refCode}`;
+
+            // Sinkronisasi jumlah referral lokal
+            let myRefKey = 'ref_count_' + miningData.refCode;
+            let totalLocalRefs = parseInt(localStorage.getItem(myRefKey)) || miningData.refCount;
+            miningData.refCount = totalLocalRefs;
+
             if(miningData.walletConnected) {
                 document.getElementById('tw-status').innerText = miningData.walletConnected.substring(0, 10) + '...';
                 document.getElementById('tw-btn').innerText = "Edit";
             }
             updateUI();
-            setInterval(checkMiningProgress, 1000); // Periksa timer setiap detik
+            setInterval(checkMiningProgress, 1000);
         });
 
         function updateUI() {
@@ -307,19 +334,21 @@
             let totalUsd = miningData.balance * tokenPrice;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('token-usd').innerText = "$" + totalUsd.toFixed(2) + " USD";
+            document.getElementById('token-usd').innerText = "$" + totalUsd.toFixed(2) + " USDT";
             document.getElementById('wallet-total-token').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('wallet-total-usd').innerText = "$" + totalUsd.toFixed(2) + " USD";
+            document.getElementById('wallet-total-usd').innerText = "$" + totalUsd.toFixed(2) + " USDT";
             document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2) + " USDT";
             document.getElementById('total-ref-count').innerText = miningData.refCount;
 
             localStorage.setItem('afex_balance', miningData.balance);
             localStorage.setItem('afex_usdt', miningData.usdtBalance);
+            localStorage.setItem('afex_refs', miningData.refCount);
+            localStorage.setItem('afex_refcode', miningData.refCode);
             localStorage.setItem('afex_is_mining', miningData.isMining);
             localStorage.setItem('afex_mining_end', miningData.miningEndTime);
         }
 
-        // Logika Pemeriksaan Timer Auto-Mining 12 Jam
+        // Logika Timer Auto-Mining 12 Jam
         function checkMiningProgress() {
             let now = Date.now();
             let btn = document.getElementById('action-mine-btn');
@@ -332,7 +361,6 @@
                 let timeLeft = miningData.miningEndTime - now;
 
                 if (timeLeft <= 0) {
-                    // Waktu 12 jam selesai -> Siap Claim
                     miningData.isMining = false;
                     statusLabel.innerText = "Mining Completed!";
                     sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
@@ -342,7 +370,6 @@
                     btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
                     icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
                 } else {
-                    // Sedang berjalan (Countdown aktif)
                     let elapsed = TOTAL_DURATION_MS - timeLeft;
                     let currentEarned = (elapsed / TOTAL_DURATION_MS) * miningData.totalRewardSession;
                     
@@ -367,25 +394,21 @@
             }
         }
 
-        // Aksi ketika tombol ditekan (Mulai Mining atau Klaim)
         function handleMiningAction() {
             let now = Date.now();
             let btn = document.getElementById('action-mine-btn');
 
             if (btn.innerText.includes("CLAIM")) {
-                // Klaim reward hasil 12 jam
                 miningData.balance += miningData.totalRewardSession;
                 updateUI();
                 alert(`Successfully claimed +${miningData.totalRewardSession} AFEX!`);
                 
-                // Reset untuk sesi baru
                 miningData.isMining = false;
                 btn.disabled = false;
                 btn.innerText = "START 12H AUTO MINING";
                 document.getElementById('mining-status-label').innerText = "Ready to Mine";
                 document.getElementById('session-mined').innerText = "+200.00 AFEX Target";
             } else if (!miningData.isMining) {
-                // Mulai sesi baru 12 jam
                 miningData.isMining = true;
                 miningData.miningEndTime = now + TOTAL_DURATION_MS;
                 updateUI();
@@ -401,7 +424,6 @@
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Navigasi Tab Bawah
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
@@ -437,9 +459,6 @@
             setTimeout(() => {
                 miningData.balance += 25;
                 updateUI();
-                alert("Ad watched successfully! You earned +25 AFEX.");
-                btn.innerText = "Watch";
-                btn.disabled = false;
             }, 2000);
         }
 
@@ -485,7 +504,7 @@
         }
 
         function inviteFriend() {
-            const text = encodeURIComponent("Join AFEX Mining and get AFX airdrop tokens here!");
+            const text = encodeURIComponent("Join AFEX Mining and get free airdrop tokens here!");
             const url = encodeURIComponent(document.getElementById('ref-link-input').value);
             window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
         }
