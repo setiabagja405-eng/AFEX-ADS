@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right">
-                <span id="header-bnb" class="text-xs font-mono font-bold text-yellow-400">0.0000 BNB</span>
+                <span id="header-bnb" class="text-xs font-mono font-bold text-yellow-400">$0.0000 USDT</span>
             </div>
         </div>
 
@@ -44,7 +44,7 @@
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
-                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
@@ -304,11 +304,11 @@
 
         function updateUI() {
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USD";
+            document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USDT";
             document.getElementById('wallet-total-token').innerText = miningData.balance.toFixed(2) + " AFEX";
             document.getElementById('wallet-total-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USD";
-            document.getElementById('header-bnb').innerText = miningData.bnbBalance.toFixed(4) + " BNB";
-            document.getElementById('total-ref-count').innerText = miningData.refCount;
+            document.getElementById('header-bnb').innerText = miningData.bnbBalance.toFixed(4) + " ";
+            document.getElementById('total-ref-count').innerText = miningData.refCount;USDT
 
             localStorage.setItem('afex_balance', miningData.balance);
             localStorage.setItem('afex_bnb', miningData.bnbBalance);
