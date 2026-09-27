@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Adsgram SDK Script -->
+    <script src="https://sad.adsgram.ai/js/sad.js" async></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -143,6 +145,7 @@
                     <button onclick="window.open('https://x.com/AFEXNET', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
+                <!-- Iklan Adsgram Terintegrasi -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center">
@@ -191,7 +194,16 @@
                 <h1 id="wallet-total-token" class="text-2xl font-black font-mono text-yellow-400">0.00 AFEX</h1>
                 <span id="wallet-total-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
                 
-                <div class="mt-3 text-[10px] text-cyan-300 font-mono break-all bg-[#0b0f19] p-2 rounded-lg border border-gray-800">
+                <div class="mt-3 pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
+                    <span class="text-gray-400">Pool Liquidity (BEP-20):</span>
+                    <span class="text-cyan-400 font-mono font-bold">Locked ($50,000)</span>
+                </div>
+                <div class="flex justify-between items-center text-xs mt-1 mb-3">
+                    <span class="text-gray-400">Listing Price Est:</span>
+                    <span class="text-yellow-400 font-mono font-bold">300 AFEX = $0.80</span>
+                </div>
+
+                <div class="text-[10px] text-cyan-300 font-mono break-all bg-[#0b0f19] p-2 rounded-lg border border-gray-800">
                     Deposit Address: 0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685
                 </div>
 
@@ -267,7 +279,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC AUTO MINING & REFERRAL -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         let tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
@@ -286,6 +298,14 @@
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam
 
+        // Inisialisasi Adsgram Controller (Ganti "YOUR_BLOCK_ID" dengan Block ID asli Anda dari Adsgram Dashboard)
+        let adController = null;
+        try {
+            if (window.Adsgram) {
+                adController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" });
+            }
+        } catch(e) { console.log("Adsgram Init Error:", e); }
+
         window.addEventListener('DOMContentLoaded', () => {
             let userTg = tg.initDataUnsafe?.user;
             if(userTg) {
@@ -293,7 +313,7 @@
                 document.getElementById('header-acc').innerText = userTg.id;
             }
 
-            // === VALIDASI & PENANGANAN KODE REFERRAL (START_PARAM) ===
+            // === PENANGANAN KODE REFERRAL (START_PARAM) ===
             let startParam = tg.initDataUnsafe?.start_param;
             if (startParam) {
                 let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
@@ -301,22 +321,17 @@
                     localStorage.setItem('afex_has_been_referred', 'true');
                     localStorage.setItem('afex_referred_by', startParam);
                     
-                    // Berikan bonus selamat datang bagi pengguna baru yang bergabung via link referral
                     miningData.balance += 70.00;
                     
-                    // Simulasi penambahan jumlah referral pada local data pengundang (jika di browser yang sama / simulasi)
                     let referrerKey = 'ref_count_' + startParam;
                     let existingRefs = parseInt(localStorage.getItem(referrerKey)) || 0;
                     localStorage.setItem(referrerKey, existingRefs + 1);
-                    
-                    alert(`Berhasil! Anda bergabung melalui kode undangan: ${startParam}. Bonus selamat datang +70 AFEX telah ditambahkan.`);
                 }
             }
 
-            // Tampilkan link bot dengan format https://t.me/Fexboostbot?start=KODE
+            // Tautan Bot Referral https://t.me/Fexboostbot
             document.getElementById('ref-link-input').value = `https://t.me/Fexboostbot?start=${miningData.refCode}`;
 
-            // Sinkronisasi jumlah referral lokal
             let myRefKey = 'ref_count_' + miningData.refCode;
             let totalLocalRefs = parseInt(localStorage.getItem(myRefKey)) || miningData.refCount;
             miningData.refCount = totalLocalRefs;
@@ -330,7 +345,7 @@
         });
 
         function updateUI() {
-            let tokenPrice = 0.8 / 300;
+            let tokenPrice = 0.8 / 300; // 300 token = $0.80 USD
             let totalUsd = miningData.balance * tokenPrice;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
@@ -453,13 +468,35 @@
             alert(`Task Completed! You earned +${tokenReward} AFEX and +${usdtReward} USDT.`);
         }
 
+        // Fungsi Adsgram Rewarded Ads
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
-            setTimeout(() => {
-                miningData.balance += 25;
-                updateUI();
-            }, 2000);
+
+            if (adController) {
+                adController.show()
+                    .then((result) => {
+                        miningData.balance += 25;
+                        updateUI();
+                        alert("Ad watched successfully! You earned +25 AFEX.");
+                        btn.innerText = "Watch";
+                        btn.disabled = false;
+                    })
+                    .catch((err) => {
+                        alert("Ad skipped or failed to load.");
+                        btn.innerText = "Watch";
+                        btn.disabled = false;
+                    });
+            } else {
+                // Fallback simulasi jika Adsgram SDK belum dimuat/diisi Block ID
+                setTimeout(() => {
+                    miningData.balance += 25;
+                    updateUI();
+                    alert("Ad simulated successfully! You earned +25 AFEX.");
+                    btn.innerText = "Watch";
+                    btn.disabled = false;
+                }, 2000);
+            }
         }
 
         function connectWalletModal(walletName, statusId) {
