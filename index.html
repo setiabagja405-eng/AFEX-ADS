@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right">
-                <span id="header-usdt" class="text-xs font-mono font-bold text-yellow-400">$0.000 USDT</span>
+                <span id="header-usdt" class="text-xs font-mono font-bold text-yellow-400">$0.00 USDT</span>
             </div>
         </div>
 
@@ -44,7 +44,7 @@
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
-                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT</span>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
@@ -101,7 +101,7 @@
         <!-- 2. TAB 2: TASKS PAGE -->
         <div id="tab-task" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">TASKS</h2>
-            <p class="text-xs text-gray-400 mb-4">Complete tasks to earn AFEX  rewards credited instantly.</p>
+            <p class="text-xs text-gray-400 mb-4">Complete tasks to earn AFEX rewards credited instantly.</p>
             
             <div class="space-y-2.5" id="task-container">
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -111,7 +111,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.001 BNB</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.001 USDT</span></p>
                         </div>
                     </div>
                     <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank'); doTask(this, 25, 0.001)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
@@ -124,7 +124,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Join AFEX Payout</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 BNB</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 USDT</span></p>
                         </div>
                     </div>
                     <button onclick="window.open('https://t.me/AFEXPAYOUT', '_blank'); doTask(this, 25, 0.0005)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
@@ -137,7 +137,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Follow Twitter / X Page</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 BNB</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 USDT</span></p>
                         </div>
                     </div>
                     <button onclick="window.open('https://x.com/AFEXNET', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
@@ -270,11 +270,11 @@
     <!-- JAVASCRIPT LOGIC AUTO MINING 12 JAM -->
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e) {}
 
         let miningData = {
             balance: parseFloat(localStorage.getItem('afex_balance')) || 100.00,
-            bnbBalance: parseFloat(localStorage.getItem('afex_bnb')) || 0.0000,
+            usdtBalance: parseFloat(localStorage.getItem('afex_usdt')) || 0.00,
             refCount: parseInt(localStorage.getItem('afex_refs')) || 0,
             refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
             walletConnected: localStorage.getItem('afex_wallet_addr') || '',
@@ -303,15 +303,18 @@
         });
 
         function updateUI() {
+            let tokenPrice = 0.8 / 300;
+            let totalUsd = miningData.balance * tokenPrice;
+
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USDT";
+            document.getElementById('token-usd').innerText = "$" + totalUsd.toFixed(2) + " USD";
             document.getElementById('wallet-total-token').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('wallet-total-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USD";
-            document.getElementById('header-bnb').innerText = miningData.bnbBalance.toFixed(4) + " ";
-            document.getElementById('total-ref-count').innerText = miningData.refCount;USDT
+            document.getElementById('wallet-total-usd').innerText = "$" + totalUsd.toFixed(2) + " USD";
+            document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2) + " USDT";
+            document.getElementById('total-ref-count').innerText = miningData.refCount;
 
             localStorage.setItem('afex_balance', miningData.balance);
-            localStorage.setItem('afex_bnb', miningData.bnbBalance);
+            localStorage.setItem('afex_usdt', miningData.usdtBalance);
             localStorage.setItem('afex_is_mining', miningData.isMining);
             localStorage.setItem('afex_mining_end', miningData.miningEndTime);
         }
@@ -334,6 +337,7 @@
                     statusLabel.innerText = "Mining Completed!";
                     sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
                     timerCountdown.innerText = "00:00:00";
+                    btn.disabled = false;
                     btn.innerText = "CLAIM REWARD (+200 AFEX)";
                     btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
                     icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
@@ -345,17 +349,14 @@
                     statusLabel.innerText = "Mining in Progress...";
                     sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
                     timerCountdown.innerText = formatTime(timeLeft);
+                    btn.disabled = true;
                     btn.innerText = "AUTO MINING ACTIVE (12H)";
                     btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4";
-                    btn.disabled = true;
                     icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
                 }
             } else {
-                // Belum mulai atau sudah diklaim
-                btn.disabled = false;
-                if (btn.innerText.includes("CLAIM")) {
-                    // Siap klaim tapi belum diklik
-                } else {
+                if (!btn.innerText.includes("CLAIM")) {
+                    btn.disabled = false;
                     statusLabel.innerText = "Ready to Mine";
                     sessionMinedLabel.innerText = "+200.00 AFEX Target";
                     timerCountdown.innerText = "12:00:00";
@@ -378,6 +379,8 @@
                 alert(`Successfully claimed +${miningData.totalRewardSession} AFEX!`);
                 
                 // Reset untuk sesi baru
+                miningData.isMining = false;
+                btn.disabled = false;
                 btn.innerText = "START 12H AUTO MINING";
                 document.getElementById('mining-status-label').innerText = "Ready to Mine";
                 document.getElementById('session-mined').innerText = "+200.00 AFEX Target";
@@ -417,15 +420,15 @@
             alert("Success! Daily Reward +50 AFEX claimed.");
         }
 
-        function doTask(btn, tokenReward, bnbReward) {
+        function doTask(btn, tokenReward, usdtReward) {
             btn.innerText = "Done ✓";
             btn.className = "bg-green-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg";
             btn.disabled = true;
 
             miningData.balance += tokenReward;
-            miningData.bnbBalance += bnbReward;
+            miningData.usdtBalance += usdtReward;
             updateUI();
-            alert(`Task Completed! You earned +${tokenReward} AFEX and +${bnbReward} BNB.`);
+            alert(`Task Completed! You earned +${tokenReward} AFEX and +${usdtReward} USDT.`);
         }
 
         function watchAdsReward(btn) {
