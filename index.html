@@ -32,7 +32,7 @@
                 </div>
                 <div>
                     <span id="header-username" class="text-xs font-bold text-white block">@AfexMinerBot</span>
-                    <span class="text-[10px] text-gray-400">User ID: <span id="header-acc">7932838758</span></span>
+                    <span class="text-[10px] text-gray-400">User ID: <span id="header-acc">8601594529</span></span>
                 </div>
             </div>
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right">
@@ -46,7 +46,7 @@
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
-                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT</span>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
@@ -145,7 +145,6 @@
                     <button onclick="window.open('https://x.com/AFEXNET', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
-                <!-- Iklan Adsgram Terintegrasi -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center">
@@ -298,11 +297,11 @@
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam
 
-        // Inisialisasi Adsgram Controller (Ganti "YOUR_BLOCK_ID" dengan Block ID asli Anda dari Adsgram Dashboard)
+        // Inisialisasi Adsgram Controller dengan UnitID: 50441
         let adController = null;
         try {
             if (window.Adsgram) {
-                adController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" });
+                adController = window.Adsgram.init({ blockId: "50441" });
             }
         } catch(e) { console.log("Adsgram Init Error:", e); }
 
@@ -311,6 +310,8 @@
             if(userTg) {
                 document.getElementById('header-username').innerText = `@${userTg.username || userTg.first_name}`;
                 document.getElementById('header-acc').innerText = userTg.id;
+            } else {
+                document.getElementById('header-acc').innerText = "8601594529";
             }
 
             // === PENANGANAN KODE REFERRAL (START_PARAM) ===
@@ -468,7 +469,7 @@
             alert(`Task Completed! You earned +${tokenReward} AFEX and +${usdtReward} USDT.`);
         }
 
-        // Fungsi Adsgram Rewarded Ads
+        // Fungsi Adsgram Rewarded Ads dengan UnitID 50441
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
@@ -488,7 +489,6 @@
                         btn.disabled = false;
                     });
             } else {
-                // Fallback simulasi jika Adsgram SDK belum dimuat/diisi Block ID
                 setTimeout(() => {
                     miningData.balance += 25;
                     updateUI();
