@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFEX Mining - Mini App (BEP-20)</title>
+    <title>AFEX Mining - 12 Hours Auto Mine</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Telegram Web App Script -->
@@ -30,7 +30,7 @@
                 </div>
                 <div>
                     <span id="header-username" class="text-xs font-bold text-white block">@AfexMinerBot</span>
-                    <span class="text-[10px] text-gray-400">Account number: <span id="header-acc">7932838758</span></span>
+                    <span class="text-[10px] text-gray-400">Account: <span id="header-acc">7932838758</span></span>
                 </div>
             </div>
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right">
@@ -38,16 +38,17 @@
             </div>
         </div>
 
-        <!-- 1. TAB 1: TAP TO MINE (TAP) -->
+        <!-- 1. TAB 1: AUTO MINING (12 HOURS) -->
         <div id="tab-tap" class="tab-content active text-center py-2">
             <!-- Saldo Utama -->
-            <div class="mb-6">
+            <div class="mb-4">
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
-            <div onclick="claimDailyReward()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-8 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all">
+            <div onclick="claimDailyReward()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-6 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg">
                         <i class="fa-solid fa-gift"></i>
@@ -60,26 +61,29 @@
                 <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
             </div>
 
-            <!-- Lingkaran Logo / Tombol Tap Utama -->
-            <div class="relative w-52 h-52 mx-auto mb-8 flex items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle cursor-pointer active:scale-95 transition-transform" onclick="tapToMine(event)">
-                <div class="text-center">
-                    <i class="fa-solid fa-angles-up text-5xl text-yellow-400 mb-2"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest text-gray-300 block">Tap to mine</span>
+            <!-- Lingkaran Status & Tombol Auto Mine 12 Jam -->
+            <div id="mining-circle" class="relative w-52 h-52 mx-auto mb-6 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
+                <div id="mining-icon-box" class="text-center">
+                    <i id="mining-icon" class="fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse"></i>
+                    <span id="mining-status-label" class="text-xs font-bold uppercase tracking-widest text-gray-300 block">Ready to Mine</span>
+                </div>
+                <div id="mining-info-box" class="mt-2 text-center">
+                    <span id="session-mined" class="text-sm font-mono font-bold text-yellow-400 block">+0.00 AFEX</span>
                 </div>
             </div>
 
-            <!-- Energi & Timer Status Bar -->
-            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 space-y-3">
-                <div class="flex justify-between text-xs font-mono">
-                    <span class="text-yellow-400 flex items-center gap-1"><i class="fa-solid fa-bolt"></i> <span id="energy-text">1000/1000</span></span>
-                    <span class="text-gray-400 flex items-center gap-1"><i class="fa-regular fa-clock"></i> <span id="timer-text">08:59:58</span></span>
-                </div>
-                <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
-                    <div id="energy-bar" class="bg-yellow-400 h-full w-full transition-all duration-300"></div>
-                </div>
+            <!-- Tombol Utama Mulai / Klaim Auto Mining -->
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all">
+                START 12H AUTO MINING
+            </button>
+
+            <!-- Status Timer 12 Jam -->
+            <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono">
+                <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> Session Timer:</span>
+                <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
             </div>
 
-            <!-- Connect Wallet Banner di bawah tap -->
+            <!-- Connect Wallet Banner -->
             <div onclick="switchTab('wallet', document.querySelectorAll('.nav-btn')[3])" class="mt-4 bg-[#161f33] border border-gray-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-500/50">
                 <div class="flex items-center gap-2.5">
                     <div class="w-7 h-7 bg-cyan-500/20 text-cyan-400 rounded-lg flex items-center justify-center">
@@ -87,7 +91,7 @@
                     </div>
                     <div class="text-left">
                         <h4 class="text-xs font-bold text-white">Connect BEP-20 Wallet</h4>
-                        <p class="text-[10px] text-gray-400">Connect to save progress and receive BEP-20 rewards</p>
+                        <p class="text-[10px] text-gray-400">Save progress & receive rewards</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
@@ -97,10 +101,9 @@
         <!-- 2. TAB 2: TASKS PAGE -->
         <div id="tab-task" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">TASKS</h2>
-            <p class="text-xs text-gray-400 mb-4">Complete tasks to earn AFEX & BNB rewards credited instantly.</p>
+            <p class="text-xs text-gray-400 mb-4">Complete tasks to earn AFEX  rewards credited instantly.</p>
             
             <div class="space-y-2.5" id="task-container">
-                <!-- Task Item 1 -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
@@ -108,28 +111,25 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+100 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.001 BNB</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.001 BNB</span></p>
                         </div>
                     </div>
-    <title>AFEX Mining - Mini A</title>
-                    <button onclick="window.open('https://t.me/AFEXPAYOUT', '_blank'); doTask(this, 100, 0.001)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:opacity-90">Start</button>
+                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank'); doTask(this, 25, 0.001)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
-                <!-- Task Item 2 -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
                             <i class="fa-brands fa-telegram text-base"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Join Telegram Group</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+100 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 BNB</span></p>
+                            <h4 class="text-xs font-bold text-white">Join AFEX Payout</h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 BNB</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank'); doTask(this, 100, 0.0005)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:opacity-90">Start</button>
+                    <button onclick="window.open('https://t.me/AFEXPAYOUT', '_blank'); doTask(this, 25, 0.0005)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
-                <!-- Task Item 3 -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-gray-700/50 text-white rounded-xl flex items-center justify-center">
@@ -140,10 +140,9 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 BNB</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://twitter.com/AkunXKamu', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:opacity-90">Start</button>
+                    <button onclick="window.open('https://x.com/AFEXNET', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
-                <!-- Task Item 4 -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center">
@@ -154,7 +153,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX (Repeatable)</p>
                         </div>
                     </div>
-                    <button onclick="watchAdsReward(this)" class="bg-yellow-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:bg-yellow-400">Watch</button>
+                    <button onclick="watchAdsReward(this)" class="bg-yellow-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
                 </div>
             </div>
         </div>
@@ -162,7 +161,7 @@
         <!-- 3. TAB 3: REFERRAL PAGE (REFER) -->
         <div id="tab-referral" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">INVITE FRIENDS!</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4">INVITE A FRIEND <br>+300 AFEX (~$1.00) For A Successful Refer!</p>
+            <p class="text-xs text-yellow-400 font-bold mb-4">INVITE A FRIEND <br>+70 AFEX (~$1.00) For A Successful Refer!</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
                 <h4 class="text-xs font-bold text-white">How It Works</h4>
@@ -182,7 +181,7 @@
             </div>
         </div>
 
-        <!-- 4. TAB 4: WALLET PAGE (BNB BEP-20) -->
+        <!-- 4. TAB 4: WALLET PAGE (BEP-20) -->
         <div id="tab-wallet" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">BEP-20 WALLET</h2>
             <p class="text-xs text-gray-400 mb-4">Manage your assets and connect your BNB Smart Chain (BEP-20) wallet.</p>
@@ -193,7 +192,7 @@
                 <span id="wallet-total-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
                 
                 <div class="mt-3 text-[10px] text-cyan-300 font-mono break-all bg-[#0b0f19] p-2 rounded-lg border border-gray-800">
-                    Deposit/Payout Address: 0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685
+                    Deposit Address: 0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685
                 </div>
 
                 <button onclick="openWithdrawModal()" class="w-full mt-3 bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400 shadow-lg">
@@ -203,7 +202,6 @@
 
             <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Connect BEP-20 Wallets</h4>
             <div class="space-y-2.5">
-                <!-- Trust Wallet -->
                 <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-xs">TW</div>
@@ -214,7 +212,6 @@
                     </div>
                     <button onclick="connectWalletModal('Trust Wallet', 'tw-status')" id="tw-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect →</button>
                 </div>
-                <!-- Binance Web3 -->
                 <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center font-bold text-xs">BN</div>
@@ -225,7 +222,6 @@
                     </div>
                     <button onclick="connectWalletModal('Binance Web3', 'bn-status')" id="bn-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect →</button>
                 </div>
-                <!-- MetaMask -->
                 <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center font-bold text-xs">MM</div>
@@ -253,7 +249,7 @@
         </button>
         <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-arrow-up text-base mb-0.5"></i>
-            <span class="text-[10px]">Tap</span>
+            <span class="text-[10px]">Mine</span>
         </button>
         <button onclick="switchTab('wallet', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-wallet text-base mb-0.5"></i>
@@ -271,19 +267,25 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC INTERAKTIF -->
+    <!-- JAVASCRIPT LOGIC AUTO MINING 12 JAM -->
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let userData = {
+        let miningData = {
             balance: parseFloat(localStorage.getItem('afex_balance')) || 100.00,
             bnbBalance: parseFloat(localStorage.getItem('afex_bnb')) || 0.0000,
-            energy: parseInt(localStorage.getItem('afex_energy')) || 1000,
             refCount: parseInt(localStorage.getItem('afex_refs')) || 0,
             refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
-            walletConnected: localStorage.getItem('afex_wallet_addr') || ''
+            walletConnected: localStorage.getItem('afex_wallet_addr') || '',
+            
+            // Variabel Auto-Mining 12 Jam
+            isMining: localStorage.getItem('afex_is_mining') === 'true',
+            miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
+            totalRewardSession: 200.00 // Total AFEX yang didapat selama 12 jam penuh
         };
+
+        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam dalam milidetik
 
         window.addEventListener('DOMContentLoaded', () => {
             let userTg = tg.initDataUnsafe?.user;
@@ -291,30 +293,112 @@
                 document.getElementById('header-username').innerText = `@${userTg.username || userTg.first_name}`;
                 document.getElementById('header-acc').innerText = userTg.id;
             }
-            document.getElementById('ref-link-input').value = `https://t.me/BotAndaBot?start=${userData.refCode}`;
-            if(userData.walletConnected) {
-                document.getElementById('tw-status').innerText = userData.walletConnected.substring(0, 10) + '...';
+            document.getElementById('ref-link-input').value = `https://t.me/BotAndaBot?start=${miningData.refCode}`;
+            if(miningData.walletConnected) {
+                document.getElementById('tw-status').innerText = miningData.walletConnected.substring(0, 10) + '...';
                 document.getElementById('tw-btn').innerText = "Edit";
             }
             updateUI();
+            setInterval(checkMiningProgress, 1000); // Periksa timer setiap detik
         });
 
         function updateUI() {
-            document.getElementById('token-balance').innerText = userData.balance.toFixed(2) + " AFEX";
-            document.getElementById('token-usd').innerText = "$" + (userData.balance * 0.033).toFixed(2) + " USD";
-            document.getElementById('wallet-total-token').innerText = userData.balance.toFixed(2) + " AFEX";
-            document.getElementById('wallet-total-usd').innerText = "$" + (userData.balance * 0.033).toFixed(2) + " USD";
-            document.getElementById('header-bnb').innerText = userData.bnbBalance.toFixed(4) + " BNB";
-            document.getElementById('energy-text').innerText = userData.energy + "/1000";
-            document.getElementById('energy-bar').style.width = (userData.energy / 10) + "%";
-            document.getElementById('total-ref-count').innerText = userData.refCount;
+            document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
+            document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USD";
+            document.getElementById('wallet-total-token').innerText = miningData.balance.toFixed(2) + " AFEX";
+            document.getElementById('wallet-total-usd').innerText = "$" + (miningData.balance * 0.0026).toFixed(2) + " USD";
+            document.getElementById('header-bnb').innerText = miningData.bnbBalance.toFixed(4) + " BNB";
+            document.getElementById('total-ref-count').innerText = miningData.refCount;
 
-            localStorage.setItem('afex_balance', userData.balance);
-            localStorage.setItem('afex_bnb', userData.bnbBalance);
-            localStorage.setItem('afex_energy', userData.energy);
-            localStorage.setItem('afex_refs', userData.refCount);
+            localStorage.setItem('afex_balance', miningData.balance);
+            localStorage.setItem('afex_bnb', miningData.bnbBalance);
+            localStorage.setItem('afex_is_mining', miningData.isMining);
+            localStorage.setItem('afex_mining_end', miningData.miningEndTime);
         }
 
+        // Logika Pemeriksaan Timer Auto-Mining 12 Jam
+        function checkMiningProgress() {
+            let now = Date.now();
+            let btn = document.getElementById('action-mine-btn');
+            let statusLabel = document.getElementById('mining-status-label');
+            let sessionMinedLabel = document.getElementById('session-mined');
+            let timerCountdown = document.getElementById('timer-countdown');
+            let icon = document.getElementById('mining-icon');
+
+            if (miningData.isMining) {
+                let timeLeft = miningData.miningEndTime - now;
+
+                if (timeLeft <= 0) {
+                    // Waktu 12 jam selesai -> Siap Claim
+                    miningData.isMining = false;
+                    statusLabel.innerText = "Mining Completed!";
+                    sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
+                    timerCountdown.innerText = "00:00:00";
+                    btn.innerText = "CLAIM REWARD (+200 AFEX)";
+                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
+                } else {
+                    // Sedang berjalan (Countdown aktif)
+                    let elapsed = TOTAL_DURATION_MS - timeLeft;
+                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * miningData.totalRewardSession;
+                    
+                    statusLabel.innerText = "Mining in Progress...";
+                    sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
+                    timerCountdown.innerText = formatTime(timeLeft);
+                    btn.innerText = "AUTO MINING ACTIVE (12H)";
+                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4";
+                    btn.disabled = true;
+                    icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
+                }
+            } else {
+                // Belum mulai atau sudah diklaim
+                btn.disabled = false;
+                if (btn.innerText.includes("CLAIM")) {
+                    // Siap klaim tapi belum diklik
+                } else {
+                    statusLabel.innerText = "Ready to Mine";
+                    sessionMinedLabel.innerText = "+200.00 AFEX Target";
+                    timerCountdown.innerText = "12:00:00";
+                    btn.innerText = "START 12H AUTO MINING";
+                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
+                }
+            }
+        }
+
+        // Aksi ketika tombol ditekan (Mulai Mining atau Klaim)
+        function handleMiningAction() {
+            let now = Date.now();
+            let btn = document.getElementById('action-mine-btn');
+
+            if (btn.innerText.includes("CLAIM")) {
+                // Klaim reward hasil 12 jam
+                miningData.balance += miningData.totalRewardSession;
+                updateUI();
+                alert(`Successfully claimed +${miningData.totalRewardSession} AFEX!`);
+                
+                // Reset untuk sesi baru
+                btn.innerText = "START 12H AUTO MINING";
+                document.getElementById('mining-status-label').innerText = "Ready to Mine";
+                document.getElementById('session-mined').innerText = "+200.00 AFEX Target";
+            } else if (!miningData.isMining) {
+                // Mulai sesi baru 12 jam
+                miningData.isMining = true;
+                miningData.miningEndTime = now + TOTAL_DURATION_MS;
+                updateUI();
+                alert("12-Hour Auto Mining started successfully!");
+            }
+        }
+
+        function formatTime(ms) {
+            let totalSec = Math.floor(ms / 1000);
+            let hrs = Math.floor(totalSec / 3600);
+            let mins = Math.floor((totalSec % 3600) / 60);
+            let secs = totalSec % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Navigasi Tab Bawah
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
@@ -327,26 +411,8 @@
             btnElement.classList.add('text-yellow-400');
         }
 
-        function tapToMine(e) {
-            if(userData.energy > 0) {
-                userData.balance += 0.5;
-                userData.energy -= 1;
-                updateUI();
-            } else {
-                alert("Energy is empty! Please wait for automatic recovery.");
-            }
-        }
-
-        setInterval(() => {
-            if(userData.energy < 1000) {
-                userData.energy += 2;
-                if(userData.energy > 1000) userData.energy = 1000;
-                updateUI();
-            }
-        }, 1000);
-
         function claimDailyReward() {
-            userData.balance += 50;
+            miningData.balance += 50;
             updateUI();
             alert("Success! Daily Reward +50 AFEX claimed.");
         }
@@ -356,8 +422,8 @@
             btn.className = "bg-green-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg";
             btn.disabled = true;
 
-            userData.balance += tokenReward;
-            userData.bnbBalance += bnbReward;
+            miningData.balance += tokenReward;
+            miningData.bnbBalance += bnbReward;
             updateUI();
             alert(`Task Completed! You earned +${tokenReward} AFEX and +${bnbReward} BNB.`);
         }
@@ -366,7 +432,7 @@
             btn.innerText = "Loading...";
             btn.disabled = true;
             setTimeout(() => {
-                userData.balance += 25;
+                miningData.balance += 25;
                 updateUI();
                 alert("Ad watched successfully! You earned +25 AFEX.");
                 btn.innerText = "Watch";
@@ -391,7 +457,7 @@
                 alert("Invalid BNB BEP-20 wallet address! Must start with 0x."); 
                 return; 
             }
-            userData.walletConnected = addr;
+            miningData.walletConnected = addr;
             localStorage.setItem('afex_wallet_addr', addr);
             document.getElementById(statusId).innerText = addr.substring(0, 10) + '...';
             closeModal();
@@ -399,7 +465,7 @@
         }
 
         function openWithdrawModal() {
-            if(!userData.walletConnected) {
+            if(!miningData.walletConnected) {
                 alert("Please connect your BEP-20 wallet first in the Wallet menu!");
                 switchTab('wallet', document.querySelectorAll('.nav-btn')[3]);
                 closeModal();
@@ -409,14 +475,14 @@
             document.getElementById('modal-title').innerText = "Withdraw AFEX (BEP-20)";
             document.getElementById('modal-body').innerHTML = `
                 <p class="text-gray-400 text-xs mb-2">AFEX token distribution on BNB Smart Chain will begin on <b class="text-yellow-400">October 1, 2026</b>.</p>
-                <p class="text-xs text-cyan-300 font-mono mb-3 break-all">Target: ${userData.walletConnected}</p>
+                <p class="text-xs text-cyan-300 font-mono mb-3 break-all">Target: ${miningData.walletConnected}</p>
                 <button onclick="alert('Withdrawal request successfully queued to BEP-20 network!'); closeModal();" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Request Withdraw</button>
             `;
             modal.style.display = 'flex';
         }
 
         function inviteFriend() {
-            const text = encodeURIComponent("Join AFEX Mining and get free AFX airdrop tokens here!");
+            const text = encodeURIComponent("Join AFEX Mining and get AFX airdrop tokens here!");
             const url = encodeURIComponent(document.getElementById('ref-link-input').value);
             window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
         }
