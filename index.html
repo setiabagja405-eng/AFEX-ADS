@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFEX MINING - Crypto Campaign & Mini App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Telegram Web App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #090d16; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 select-none">
+
+    <!-- 1. LOADING SCREEN -->
+    <div id="loading-screen" class="fixed inset-0 bg-[#090d16] z-50 flex flex-col items-center justify-center p-6 transition-opacity duration-500">
+        <div class="w-20 h-20 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+        <h2 class="text-xl font-bold text-cyan-400 mb-2">AFEX MINING Network</h2>
+        <p id="loading-status" class="text-sm text-gray-400 text-center">Memverifikasi akun Telegram & Web Wallet...</p>
+        <div class="w-48 bg-gray-800 h-2 rounded-full mt-6 overflow-hidden">
+            <div id="loading-bar" class="bg-cyan-500 h-full w-0 transition-all duration-500"></div>
+        </div>
+    </div>
+
+    <!-- 2 & 3. LOGIN & SOCIAL VERIFICATION MODAL -->
+    <div id="login-modal" class="fixed inset-0 bg-[#090d16]/95 z-40 hidden flex flex-col justify-center p-6">
+        <div class="bg-[#131b2e] p-6 rounded-2xl border border-cyan-500/30 shadow-xl">
+            <h2 class="text-xl font-bold text-cyan-400 mb-2 text-center">Selamat Datang di AFEX MINING</h2>
+            <p class="text-xs text-gray-400 text-center mb-6">Tautkan link/username medsos Anda untuk mengaktifkan Miner ID dan bonus awal 0.1 HS gratis.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-300 block mb-1">Username Telegram Terdeteksi:</label>
+                    <input type="text" id="tg-user-input" readonly class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-3 text-sm text-cyan-300 font-mono">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-300 block mb-1">Link / Username Medsos Anda (Cth: @Channel / X):</label>
+                    <input type="text" id="social-link-input" placeholder="@Username_Anda" class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-3 text-sm text-white focus:border-cyan-500 outline-none">
+                </div>
+                <button onclick="completeLogin()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold py-3 rounded-xl shadow-lg mt-2 cursor-pointer hover:opacity-90">
+                    Selesaikan Verifikasi & Mulai Mining
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="p-4 flex-1">
+        
+        <!-- HEADER INFO -->
+        <div class="flex justify-between items-center bg-[#131b2e] p-3 rounded-xl border border-gray-800 mb-4">
+            <div>
+                <span class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold block">AFEX MINER ID</span>
+                <span id="header-uid" class="text-xs font-mono text-white font-bold">LOADING...</span>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 block">Hash Rate (Gratis 0.1 HS)</span>
+                <span id="header-hs" class="text-xs font-mono text-yellow-400 font-bold">0.10 HS/s</span>
+            </div>
+        </div>
+
+        <!-- 4. TAB 1: MINING PAGE -->
+        <div id="tab-mining" class="tab-content active text-center py-6">
+            <div class="relative w-48 h-48 mx-auto mb-6 flex items-center justify-center rounded-full bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border-4 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+                <div>
+                    <span class="text-xs text-gray-400 block mb-1">Total Saldo AFEX Mined</span>
+                    <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.000000</h1>
+                    <span class="text-[10px] text-cyan-400 mt-1 block">Min. Withdraw: 100 Token</span>
+                </div>
+            </div>
+
+            <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 mb-4 text-left">
+                <div class="flex justify-between text-xs text-gray-400 mb-2">
+                    <span>Status Mining Otomatis:</span>
+                    <span class="text-green-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Aktif</span>
+                </div>
+                <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                    <div id="mining-progress" class="bg-yellow-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>Siklus Isi (Tiap 10 Ticks)</span>
+                    <span id="tick-count">0 / 10</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-400 px-4">Penambangan AFEX berjalan otomatis berdasarkan Hash Rate Anda. Tingkatkan Hash Rate di menu Shop.</p>
+        </div>
+
+        <!-- 5. TAB 2: TASKS PAGE -->
+        <div id="tab-tasks" class="tab-content">
+            <h2 class="text-lg font-bold mb-1 text-cyan-400">Pusat Misi AFEX</h2>
+            <p class="text-xs text-gray-400 mb-4">Selesaikan misi sosial media dan tonton iklan untuk mendapatkan tambahan token.</p>
+            
+            <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 mb-4">
+                <h3 class="text-xs font-bold text-white mb-2"><i class="fa-solid fa-link text-cyan-400 mr-1"></i> Tautan Medsos Anda untuk Verifikasi</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="user-task-link" placeholder="Cth: https://t.me/username" class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-2 text-xs text-white">
+                    <button onclick="saveUserTaskLink()" class="bg-cyan-500 text-black text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">Simpan</button>
+                </div>
+                <span id="saved-link-status" class="text-[10px] text-gray-400 mt-1 block">Status: Belum ditautkan</span>
+            </div>
+
+            <div class="space-y-3">
+                <div class="bg-[#131b2e] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Join Channel Telegram AFEX</h4>
+                        <p class="text-[11px] text-gray-400">Reward: +1 Token</p>
+                    </div>
+                    <button onclick="completeTask(this, 1)" class="bg-cyan-500 text-black text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">Kerjakan</button>
+                </div>
+                <div class="bg-[#131b2e] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Follow X (Twitter) Official AFEX</h4>
+                        <p class="text-[11px] text-gray-400">Reward: +1 Token</p>
+                    </div>
+                    <button onclick="completeTask(this, 1)" class="bg-cyan-500 text-black text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">Kerjakan</button>
+                </div>
+                <div class="bg-[#131b2e] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-white"><i class="fa-solid fa-play text-yellow-400 mr-1"></i> Tonton Iklan Promosi AFEX</h4>
+                        <p class="text-[11px] text-gray-400">Reward: +2 Token (Bisa diulang)</p>
+                    </div>
+                    <button onclick="watchAdTask(this)" class="bg-yellow-400 text-black text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">Tonton</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. TAB 3: SHOP / BUY HS PAGE -->
+        <div id="tab-shop" class="tab-content">
+            <h2 class="text-lg font-bold mb-1 text-cyan-400">Toko Peningkatan Hash Rate</h2>
+            <p class="text-xs text-gray-400 mb-4">Beli Hash Rate untuk mempercepat mining. Pembayaran min $1 USDT/BNB BEP-20 masuk otomatis ke Web Wallet Anda.</p>
+            
+            <div class="space-y-3">
+                <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Boost +0.10 HS/s</h4>
+                        <p class="text-[11px] text-gray-400">Harga: $1 USDT / BNB BEP-20</p>
+                    </div>
+                    <button onclick="openDepositModal(0.10, 1)" class="bg-yellow-400 text-black text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer">
+                        Beli ($1)
+                    </button>
+                </div>
+                <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Boost +1.00 HS/s</h4>
+                        <p class="text-[11px] text-gray-400">Harga: $10 USDT / BNB BEP-20</p>
+                    </div>
+                    <button onclick="openDepositModal(1.00, 10)" class="bg-yellow-400 text-black text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer">
+                        Beli ($10)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. TAB 4: PROFILE & WEB WALLET PAGE -->
+        <div id="tab-profile" class="tab-content">
+            <h2 class="text-lg font-bold mb-1 text-cyan-400">Profil & AFEX Web Wallet</h2>
+            <p class="text-xs text-gray-400 mb-4">Kelola aset token, Hash Rate, dan saldo Web Wallet Anda.</p>
+            
+            <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 space-y-3 mb-4">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">AFEX Miner UID:</span>
+                    <span id="profile-uid" class="font-mono text-cyan-400 font-bold">-</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Total Saldo Token Mined:</span>
+                    <span id="profile-balance" class="font-mono text-yellow-400 font-bold">0.00 Token</span>
+                </div>
+                <div class="flex justify-between text-xs border-t border-gray-800 pt-2">
+                    <span class="text-gray-400">Saldo Web Wallet (USDT/BNB):</span>
+                    <span id="profile-wallet-balance" class="font-mono text-green-400 font-bold">$0.00 USDT</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Syarat Withdraw Token:</span>
+                    <span class="font-mono text-gray-300">Min. 100 Token</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="openActionModal('transfer')" class="bg-[#131b2e] border border-gray-800 py-3 rounded-xl text-center cursor-pointer hover:border-cyan-500">
+                    <i class="fa-solid fa-paper-plane text-cyan-400 mb-1 text-sm"></i>
+                    <span class="block text-[11px] text-gray-300 font-medium">Send / Kirim</span>
+                </button>
+                <button onclick="openActionModal('deposit')" class="bg-[#131b2e] border border-gray-800 py-3 rounded-xl text-center cursor-pointer hover:border-cyan-500">
+                    <i class="fa-solid fa-wallet text-green-400 mb-1 text-sm"></i>
+                    <span class="block text-[11px] text-gray-300 font-medium">Deposit</span>
+                </button>
+                <button onclick="openActionModal('swap')" class="bg-[#131b2e] border border-gray-800 py-3 rounded-xl text-center cursor-pointer hover:border-cyan-500">
+                    <i class="fa-solid fa-right-left text-yellow-400 mb-1 text-sm"></i>
+                    <span class="block text-[11px] text-gray-300 font-medium">Swap</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 8. TAB 5: REFERRAL PAGE -->
+        <div id="tab-referral" class="tab-content">
+            <h2 class="text-lg font-bold mb-1 text-cyan-400">AFEX Referral Program</h2>
+            <p class="text-xs text-gray-400 mb-4">Teman wajib aktif mining selama 3 hari berturut-turut untuk menjadi Qualified (Bonus 15 Token).</p>
+            
+            <div class="bg-[#131b2e] p-4 rounded-xl border border-gray-800 mb-4 space-y-3">
+                <span class="text-xs text-gray-400 block">Link Referral AFEX Anda:</span>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="ref-link-display" readonly class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-2 text-xs text-cyan-300 font-mono">
+                    <button onclick="copyRefLink()" class="bg-cyan-500 text-black text-xs font-bold px-3 py-2.5 rounded-lg cursor-pointer">Salin</button>
+                </div>
+                <button onclick="shareToTelegram()" class="w-full bg-[#229ED9] text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer mt-2">
+                    <i class="fa-brands fa-telegram text-sm"></i> Bagikan Langsung ke Telegram
+                </button>
+            </div>
+
+            <!-- List Referral Qualified & Unqualified -->
+            <div class="space-y-3">
+                <div class="bg-[#131b2e] p-3.5 rounded-xl border border-gray-800">
+                    <h4 class="text-xs font-bold text-green-400 mb-2 flex justify-between items-center">
+                        <span><i class="fa-solid fa-user-check mr-1"></i> Referral Qualified (&ge; 3 Hari)</span>
+                        <span id="count-qualified" class="bg-green-500/20 px-2 py-0.5 rounded text-[10px]">0 Orang</span>
+                    </h4>
+                    <div id="list-qualified" class="text-xs text-gray-400 space-y-1">
+                        <p class="italic text-[11px]">Belum ada referral qualified.</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#131b2e] p-3.5 rounded-xl border border-gray-800">
+                    <h4 class="text-xs font-bold text-yellow-500 mb-2 flex justify-between items-center">
+                        <span><i class="fa-solid fa-user-clock mr-1"></i> Referral Unqualified (Pending)</span>
+                        <span id="count-unqualified" class="bg-yellow-500/20 px-2 py-0.5 rounded text-[10px]">1 Orang</span>
+                    </h4>
+                    <div id="list-unqualified" class="text-xs text-gray-400 space-y-1">
+                        <p class="text-xs text-gray-300 flex justify-between"><span>@TemanAfexBaru</span> <span class="text-yellow-400 text-[10px]">Hari ke-1 / 3</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#131b2e] border-t border-gray-800 flex justify-around py-3 px-2 z-30">
+        <button onclick="switchTab('mining', this)" class="nav-btn text-cyan-400 flex flex-col items-center cursor-pointer">
+            <i class="fa-solid fa-pickaxe text-lg mb-0.5"></i>
+            <span class="text-[10px]">Mining</span>
+        </button>
+        <button onclick="switchTab('tasks', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer">
+            <i class="fa-solid fa-list-check text-lg mb-0.5"></i>
+            <span class="text-[10px]">Tugas</span>
+        </button>
+        <button onclick="switchTab('shop', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer">
+            <i class="fa-solid fa-shop text-lg mb-0.5"></i>
+            <span class="text-[10px]">Shop</span>
+        </button>
+        <button onclick="switchTab('profile', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer">
+            <i class="fa-solid fa-user text-lg mb-0.5"></i>
+            <span class="text-[10px]">Profil</span>
+        </button>
+        <button onclick="switchTab('referral', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer">
+            <i class="fa-solid fa-users text-lg mb-0.5"></i>
+            <span class="text-[10px]">Referral</span>
+        </button>
+    </nav>
+
+    <!-- GENERAL MODAL POPUP -->
+    <div id="general-modal" class="fixed inset-0 bg-[#090d16]/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#131b2e] w-full max-w-xs p-5 rounded-2xl border border-gray-800 text-center relative">
+            <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="modal-title" class="text-base font-bold text-cyan-400 mb-3">Menu Aksi</h3>
+            <div id="modal-body" class="text-xs text-gray-300 mb-4">Form aksi akan muncul di sini.</div>
+            <button onclick="closeModal()" class="w-full bg-gray-800 text-gray-300 text-xs py-2.5 rounded-xl font-bold cursor-pointer">Tutup</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let userData = {
+            uid: localStorage.getItem('afex_uid') || '',
+            tgName: '',
+            socialLink: localStorage.getItem('afex_social') || '',
+            balance: parseFloat(localStorage.getItem('afex_balance')) || 0.000000,
+            walletUsdt: parseFloat(localStorage.getItem('afex_wallet_usdt')) || 0.00,
+            hashRate: parseFloat(localStorage.getItem('afex_hs')) || 0.10, 
+            refCode: localStorage.getItem('afex_ref') || '',
+            referredBy: localStorage.getItem('afex_referred_by') || ''
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let startParam = tg.initDataUnsafe?.start_param || getUrlParameter('start');
+            if(startParam && !userData.referredBy) {
+                userData.referredBy = startParam;
+                localStorage.setItem('afex_referred_by', startParam);
+            }
+
+            let progress = 0;
+            const bar = document.getElementById('loading-bar');
+            const status = document.getElementById('loading-status');
+
+            const interval = setInterval(() => {
+                progress += 20;
+                bar.style.width = progress + '%';
+                if(progress === 40) status.innerText = "Memverifikasi akun Telegram AFEX...";
+                if(progress === 80) status.innerText = "Memuat Hash Rate Gratis (0.1 HS)...";
+                if(progress >= 100) {
+                    clearInterval(interval);
+                    document.getElementById('loading-screen').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.display = 'none';
+                        initAppFlow();
+                    }, 500);
+                }
+            }, 300);
+        });
+
+        function getUrlParameter(name) {
+            let results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            return results === null ? null : decodeURI(results[1]) || null;
+        }
+
+        function initAppFlow() {
+            let userTg = tg.initDataUnsafe?.user;
+            userData.tgName = userTg ? `@${userTg.username || userTg.first_name}` : `@AfexMiner_${Math.floor(Math.random()*89999 + 10000)}`;
+            
+            if(!userData.uid) {
+                userData.uid = 'AFEX-' + Math.floor(100000 + Math.random() * 900000);
+                userData.refCode = 'REF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                localStorage.setItem('afex_uid', userData.uid);
+                localStorage.setItem('afex_ref', userData.refCode);
+                
+                document.getElementById('tg-user-input').value = userData.tgName;
+                document.getElementById('login-modal').style.display = 'flex';
+            } else {
+                startAppEverything();
+            }
+        }
+
+        function completeLogin() {
+            let socialVal = document.getElementById('social-link-input').value.trim();
+            if(!socialVal) {
+                alert('Harap masukkan link / username medsos Anda terlebih dahulu!');
+                return;
+            }
+            userData.socialLink = socialVal;
+            localStorage.setItem('afex_social', socialVal);
+            document.getElementById('login-modal').style.display = 'none';
+            startAppEverything();
+        }
+
+        function startAppEverything() {
+            document.getElementById('header-uid').innerText = userData.uid;
+            document.getElementById('header-hs').innerText = userData.hashRate.toFixed(2) + ' HS/s';
+            document.getElementById('profile-uid').innerText = userData.uid;
+            
+            // Ubah 'BotAndaBot' dengan username bot Telegram asli Anda dari BotFather
+            document.getElementById('ref-link-display').value = `https://t.me/BotAndaBot?start=${userData.refCode}`;
+            
+            if(userData.socialLink) {
+                document.getElementById('user-task-link').value = userData.socialLink;
+                document.getElementById('saved-link-status').innerText = "Status: Terverifikasi & Tertaut ✓";
+                document.getElementById('saved-link-status').className = "text-[10px] text-green-400 mt-1 block";
+            }
+
+            updateUI();
+            startMiningLoop();
+        }
+
+        let tickCounter = 0;
+        function startMiningLoop() {
+            setInterval(() => {
+                const tokenPerSec = (userData.hashRate * 5) / 86400; 
+                userData.balance += tokenPerSec;
+                tickCounter++;
+                if(tickCounter > 10) tickCounter = 0;
+
+                document.getElementById('tick-count').innerText = `${tickCounter} / 10`;
+                document.getElementById('mining-progress').style.width = (tickCounter * 10) + '%';
+
+                updateUI();
+            }, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('token-balance').innerText = userData.balance.toFixed(6);
+            document.getElementById('profile-balance').innerText = userData.balance.toFixed(4) + ' Token';
+            document.getElementById('profile-wallet-balance').innerText = `$${userData.walletUsdt.toFixed(2)} USDT`;
+            localStorage.setItem('afex_balance', userData.balance);
+            localStorage.setItem('afex_wallet_usdt', userData.walletUsdt);
+            document.getElementById('header-hs').innerText = userData.hashRate.toFixed(2) + ' HS/s';
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-cyan-400');
+                btn.classList.add('text-gray-400');
+            });
+            btnElement.classList.remove('text-gray-400');
+            btnElement.classList.add('text-cyan-400');
+        }
+
+        function saveUserTaskLink() {
+            let link = document.getElementById('user-task-link').value.trim();
+            if(!link) { alert('Masukkan link yang valid!'); return; }
+            userData.socialLink = link;
+            localStorage.setItem('afex_social', link);
+            document.getElementById('saved-link-status').innerText = "Status: Berhasil Disimpan ✓";
+            document.getElementById('saved-link-status').className = "text-[10px] text-green-400 mt-1 block";
+            alert('Link medsos berhasil disimpan!');
+        }
+
+        function completeTask(buttonEl, reward) {
+            buttonEl.innerText = "Selesai ✓";
+            buttonEl.classList.remove('bg-cyan-500');
+            buttonEl.classList.add('bg-green-500', 'text-black');
+            buttonEl.disabled = true;
+
+            userData.balance += reward;
+            updateUI();
+            alert(`Berhasil! Mendapatkan +${reward} Token AFEX.`);
+        }
+
+        function watchAdTask(btn) {
+            btn.innerText = "Memuat Iklan...";
+            btn.disabled = true;
+            setTimeout(() => {
+                alert("Iklan Selesai! Anda mendapatkan +2 Token AFEX.");
+                userData.balance += 2;
+                updateUI();
+                btn.innerText = "Tonton";
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        function openDepositModal(addedHs, priceUsdt) {
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+
+            const myBnbWallet = "0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685";
+
+            title.innerText = "Pembelian Hash Rate (+" + addedHs + " HS)";
+            body.innerHTML = `
+                <p class="text-gray-300 mb-2">Kirim minimal <b class="text-yellow-400">$` + priceUsdt + ` USDT / BNB (BEP-20)</b> ke alamat dompet AFEX:</p>
+                <div class="bg-[#090d16] p-2 rounded-lg font-mono text-[10px] text-cyan-300 break-all mb-3 border border-gray-800 select-all">` + myBnbWallet + `</div>
+                <p class="text-[10px] text-gray-400 mb-4">Setelah transfer dari dompet web Anda, klik konfirmasi di bawah untuk memproses penambahan Hash Rate.</p>
+                <button onclick="confirmWalletPayment(` + addedHs + `, ` + priceUsdt + `)" class="w-full bg-green-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mb-2">
+                    Konfirmasi Pembayaran
+                </button>
+            `;
+        }
+
+        function confirmWalletPayment(addedHs, priceUsdt) {
+            alert("Memverifikasi transaksi blockchain BEP-20...");
+            setTimeout(() => {
+                userData.hashRate += addedHs;
+                userData.walletUsdt += priceUsdt;
+                localStorage.setItem('afex_hs', userData.hashRate);
+                updateUI();
+                closeModal();
+                alert("Berhasil! Hash Rate bertambah +" + addedHs + " HS/s dan saldo terupdate di Web Wallet.");
+            }, 1500);
+        }
+
+        function openActionModal(actionType) {
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+
+            if(actionType === 'transfer') {
+                title.innerText = "Kirim / Transfer Token (Min. 100)";
+                body.innerHTML = `
+                    <p class="text-[11px] text-gray-400 mb-2">Syarat Minimum Withdraw: <b class="text-yellow-400">100 Token</b></p>
+                    <input type="text" id="transfer-uid" placeholder="UID Tujuan (Cth: AFEX-XXXXXX)" class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-2.5 text-xs mb-2 text-white">
+                    <input type="number" id="transfer-amount" placeholder="Jumlah Token" class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-2.5 text-xs mb-3 text-white">
+                    <button onclick="processTransfer()" class="w-full bg-cyan-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Kirim Token</button>
+                `;
+            } else if(actionType === 'deposit') {
+                const myBnbWallet = "0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685";
+                title.innerText = "Deposit BNB BEP-20 (Min $1)";
+                body.innerHTML = `
+                    <p class="mb-2 text-gray-400 text-left">Kirim minimal $1 USDT / BNB via jaringan <b>BNB Smart Chain (BEP-20)</b>:</p>
+                    <div class="bg-[#090d16] p-2.5 rounded-lg font-mono text-[10px] text-cyan-300 break-all mb-3 border border-gray-800 select-all">` + myBnbWallet + `</div>
+                    <button onclick="alert('Alamat disalin!'); closeModal();" class="w-full bg-green-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Salin Alamat</button>
+                `;
+            } else if(actionType === 'swap') {
+                title.innerText = "Swap Token ke USDT";
+                body.innerHTML = `
+                    <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-3 text-yellow-400 text-xs font-bold">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Fitur SWAP Masih Coming Soon!
+                    </div>
+                    <p class="text-gray-400 text-xs mb-3">Fitur swap otomatis akan diaktifkan setelah token resmi listing di market.</p>
+                    <input type="number" placeholder="Jumlah Token" disabled class="w-full bg-[#090d16] border border-gray-700 rounded-lg p-2.5 text-xs mb-3 text-gray-600 cursor-not-allowed">
+                `;
+            }
+        }
+
+        function processTransfer() {
+            let amount = parseFloat(document.getElementById('transfer-amount').value);
+            if(isNaN(amount) || amount <= 0) { alert('Masukkan jumlah valid.'); return; }
+            if(userData.balance < 100) { alert('Gagal! Syarat minimum withdraw/transfer adalah 100 Token.'); return; }
+            if(userData.balance < amount) { alert('Saldo tidak mencukupi.'); return; }
+
+            userData.balance -= amount;
+            updateUI();
+            closeModal();
+            alert('Berhasil mengirim ' + amount + ' Token AFEX!');
+        }
+
+        function closeModal() {
+            document.getElementById('general-modal').style.display = 'none';
+        }
+
+        function copyRefLink() {
+            const copyText = document.getElementById("ref-link-display");
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            alert("Link referral AFEX disalin!");
+        }
+
+        function shareToTelegram() {
+            const text = encodeURIComponent("Gabung AFEX Mining dan dapatkan airdrop token gratis di sini!");
+            const url = encodeURIComponent(document.getElementById("ref-link-display").value);
+            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+        }
+    </script>
+</body>
+</html>
