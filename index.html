@@ -46,7 +46,7 @@
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
-                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT</span>
             </div>
 
             <!-- Tombol Daily Rewards Banner -->
@@ -86,7 +86,7 @@
             </div>
 
             <!-- Connect Wallet Banner -->
-            <div onclick="switchTab('wallet', document.querySelectorAll('.nav-btn')[3])" class="mt-4 bg-[#161f33] border border-gray-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-500/50">
+            <div onclick="switchTab('wallet', document.querySelectorAll('.nav-btn')[4])" class="mt-4 bg-[#161f33] border border-gray-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-cyan-500/50">
                 <div class="flex items-center gap-2.5">
                     <div class="w-7 h-7 bg-cyan-500/20 text-cyan-400 rounded-lg flex items-center justify-center">
                         <i class="fa-solid fa-wallet text-xs"></i>
@@ -183,7 +183,29 @@
             </div>
         </div>
 
-        <!-- 4. TAB 4: WALLET PAGE (BEP-20) -->
+        <!-- 4. TAB 4: SWAP PAGE (COMING SOON) -->
+        <div id="tab-swap" class="tab-content text-center py-6">
+            <div class="w-16 h-16 bg-yellow-500/20 text-yellow-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 border border-yellow-500/30">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide">TOKEN SWAP</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-6 tracking-widest uppercase">Coming Soon</p>
+            
+            <div class="bg-[#161f33] p-5 rounded-xl border border-gray-800 mb-4 space-y-3 text-left">
+                <h4 class="text-xs font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-yellow-400"></i> Decentralized Exchange Engine
+                </h4>
+                <p class="text-[11px] text-gray-400 leading-relaxed">
+                    The direct swap feature from AFEX to USDT (BEP-20) is currently under development. Stay tuned for our mainnet release and liquidity pool opening!
+                </p>
+                <div class="pt-3 border-t border-gray-800 text-[10px] text-cyan-300 font-mono flex justify-between">
+                    <span>Estimated Launch:</span>
+                    <span class="text-yellow-400 font-bold">October 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. TAB 5: WALLET PAGE (BEP-20) -->
         <div id="tab-wallet" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">BEP-20 WALLET</h2>
             <p class="text-xs text-gray-400 mb-4">Manage your assets and connect your BNB Smart Chain (BEP-20) wallet.</p>
@@ -248,7 +270,7 @@
 
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- BOTTOM NAVIGATION BAR (5 TABS) -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-30">
         <button onclick="switchTab('referral', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-users text-base mb-0.5"></i>
@@ -261,6 +283,10 @@
         <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-arrow-up text-base mb-0.5"></i>
             <span class="text-[10px]">Mine</span>
+        </button>
+        <button onclick="switchTab('swap', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-right-left text-base mb-0.5"></i>
+            <span class="text-[10px]">Swap</span>
         </button>
         <button onclick="switchTab('wallet', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-wallet text-base mb-0.5"></i>
@@ -297,7 +323,7 @@
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam
 
-        // Inisialisasi Adsgram Controller dengan UnitID: 50441
+        // Inisialisasi Adsgram Controller dengan UnitID: 50441[cite: 7]
         let adController = null;
         try {
             if (window.Adsgram) {
@@ -346,7 +372,7 @@
         });
 
         function updateUI() {
-            let tokenPrice = 0.8 / 300; // 300 token = $0.80 USD
+            let tokenPrice = 0.8 / 300; // 300 token = $0.80 USDT
             let totalUsd = miningData.balance * tokenPrice;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
@@ -469,7 +495,7 @@
             alert(`Task Completed! You earned +${tokenReward} AFEX and +${usdtReward} USDT.`);
         }
 
-        // Fungsi Adsgram Rewarded Ads dengan UnitID 50441
+        // Fungsi Adsgram Rewarded Ads (Reward hanya diberikan jika iklan benar-benar selesai ditonton)
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
@@ -477,25 +503,23 @@
             if (adController) {
                 adController.show()
                     .then((result) => {
+                        // Iklan BERHASIL ditonton sampai selesai
                         miningData.balance += 25;
                         updateUI();
-                        alert("Ad watched successfully! You earned +25 AFEX.");
+                        alert("Ad completed! You earned +25 AFEX.");
                         btn.innerText = "Watch";
                         btn.disabled = false;
                     })
                     .catch((err) => {
-                        alert("Ad skipped or failed to load.");
+                        // Iklan DITUTUP sebelum selesai atau gagal
+                        alert("Ad was skipped or failed to load. No reward given.");
                         btn.innerText = "Watch";
                         btn.disabled = false;
                     });
             } else {
-                setTimeout(() => {
-                    miningData.balance += 25;
-                    updateUI();
-                    alert("Ad simulated successfully! You earned +25 AFEX.");
-                    btn.innerText = "Watch";
-                    btn.disabled = false;
-                }, 2000);
+                alert("Adsgram SDK is not ready yet. Please open inside Telegram.");
+                btn.innerText = "Watch";
+                btn.disabled = false;
             }
         }
 
@@ -526,7 +550,7 @@
         function openWithdrawModal() {
             if(!miningData.walletConnected) {
                 alert("Please connect your BEP-20 wallet first in the Wallet menu!");
-                switchTab('wallet', document.querySelectorAll('.nav-btn')[3]);
+                switchTab('wallet', document.querySelectorAll('.nav-btn')[4]);
                 closeModal();
                 return;
             }
