@@ -512,37 +512,52 @@
             showModal("Daily Reward Claimed!", "+50 AFEX added to your balance.", "fa-gift");
         }
 
-        // Adsgram Reward Ads dengan UnitID: int-50931 (Inisialisasi Dinamis)
+        // ==========================================
+        // SISTEM ADSGRAM ANTI-ERROR (POLLING RETRY)
+        // ==========================================
+        function showAdsgramAd(blockId, onSuccess, onError) {
+            let attempts = 0;
+            function tryInit() {
+                if (window.Adsgram) {
+                    try {
+                        let adController = window.Adsgram.init({ blockId: blockId });
+                        adController.show().then(onSuccess).catch(onError);
+                    } catch(e) {
+                        onError(e);
+                    }
+                } else {
+                    attempts++;
+                    if (attempts < 15) { // Coba ulang hingga 15 kali (~6 detik)
+                        setTimeout(tryInit, 400);
+                    } else {
+                        onError("Adsgram SDK failed to load.");
+                    }
+                }
+            }
+            tryInit(); // Jalankan fungsi coba
+        }
+
+        // Tombol Iklan di Halaman Task
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
 
-            if (window.Adsgram) {
-                try {
-                    let adController = window.Adsgram.init({ blockId: "int-50931" });
-                    adController.show()
-                        .then((result) => {
-                            miningData.balance += 25;
-                            updateUI();
-                            showModal("Ad Completed", "You successfully watched the ad and earned +25 AFEX!", "fa-circle-check");
-                            btn.innerText = "Watch";
-                            btn.disabled = false;
-                        })
-                        .catch((err) => {
-                            showModal("Notice", "Ad was skipped or failed to load. No reward given.", "fa-triangle-exclamation");
-                            btn.innerText = "Watch";
-                            btn.disabled = false;
-                        });
-                } catch(e) {
-                    showModal("Notice", "Failed to initialize Adsgram ad controller.", "fa-triangle-exclamation");
+            showAdsgramAd("int-50931", 
+                (result) => {
+                    // Berhasil Nonton
+                    miningData.balance += 25;
+                    updateUI();
+                    showModal("Ad Completed", "You successfully watched the ad and earned +25 AFEX!", "fa-circle-check");
+                    btn.innerText = "Watch";
+                    btn.disabled = false;
+                },
+                (err) => {
+                    // Gagal/Skip
+                    showModal("Notice", "Ad was skipped, failed to load, or SDK not ready.", "fa-triangle-exclamation");
                     btn.innerText = "Watch";
                     btn.disabled = false;
                 }
-            } else {
-                showModal("Notice", "Adsgram SDK is still loading. Please check your connection or reopen inside Telegram.", "fa-triangle-exclamation");
-                btn.innerText = "Watch";
-                btn.disabled = false;
-            }
+            );
         }
 
         function connectWalletModal(walletName, statusId) {
@@ -626,27 +641,18 @@
             runSequentialAds(amount, totalDeduct);
         }
 
+        // Sistem 5 Iklan Beruntun dengan Anti-Error Polling
         function runSequentialAds(wdAmount, totalDeduct) {
             currentAdCount++;
             if (currentAdCount <= 5) {
-                if (window.Adsgram) {
-                    try {
-                        let adController = window.Adsgram.init({ blockId: "int-50931" });
-                        adController.show()
-                            .then((result) => {
-                                runSequentialAds(wdAmount, totalDeduct);
-                            })
-                            .catch((err) => {
-                                showModal("Withdrawal Cancelled", `Ad ${currentAdCount}/5 was skipped. Withdrawal aborted.`, "fa-triangle-exclamation");
-                            });
-                    } catch(e) {
-                        showModal("Error", "Failed to run Adsgram ad.", "fa-triangle-exclamation");
+                showAdsgramAd("int-50931",
+                    (result) => {
+                        runSequentialAds(wdAmount, totalDeduct); // Lanjut iklan berikutnya
+                    },
+                    (err) => {
+                        showModal("Withdrawal Cancelled", `Ad ${currentAdCount}/5 was skipped or failed. Withdrawal aborted.`, "fa-triangle-exclamation");
                     }
-                } else {
-                    setTimeout(() => {
-                        runSequentialAds(wdAmount, totalDeduct);
-                    }, 1000);
-                }
+                );
             } else {
                 miningData.balance -= totalDeduct;
                 updateUI();
