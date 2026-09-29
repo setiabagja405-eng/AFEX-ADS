@@ -17,7 +17,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
-        /* Modern Custom Modal Animation */
         #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
     </style>
 </head>
@@ -319,14 +318,6 @@
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; // 12 Jam
 
-        // Inisialisasi Adsgram Controller dengan UnitID: 50441[cite: 7]
-        let adController = null;
-        try {
-            if (window.Adsgram) {
-                adController = window.Adsgram.init({ blockId: "50441" });
-            }
-        } catch(e) { console.log("Adsgram Init Error:", e); }
-
         window.addEventListener('DOMContentLoaded', () => {
             let userTg = tg.initDataUnsafe?.user;
             if(userTg) {
@@ -336,7 +327,7 @@
                 document.getElementById('header-acc').innerText = "8601594529";
             }
 
-            // === PENANGANAN KODE REFERRAL (START_PARAM) YANG DIPERBAIKI ===
+            // === PENANGANAN KODE REFERRAL (START_PARAM) ===
             let startParam = tg.initDataUnsafe?.start_param;
             if (startParam) {
                 let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
@@ -344,10 +335,8 @@
                     localStorage.setItem('afex_has_been_referred', 'true');
                     localStorage.setItem('afex_referred_by', startParam);
                     
-                    // Tambah bonus ke pengguna baru
                     miningData.balance += 70.00;
                     
-                    // Simpan akumulasi referral secara permanen berdasarkan kode pengundang
                     let referrerKey = 'ref_count_' + startParam;
                     let existingRefs = parseInt(localStorage.getItem(referrerKey)) || 0;
                     localStorage.setItem(referrerKey, existingRefs + 1);
@@ -372,7 +361,7 @@
         });
 
         function updateUI() {
-            let tokenPrice = 0.8 / 300; // Harga per token (~$0.00267)
+            let tokenPrice = 0.8 / 300; 
             let totalUsd = miningData.balance * tokenPrice;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
@@ -426,7 +415,7 @@
                 miningData.usdtBalance += usdtReward;
                 updateUI();
                 showModal("Task Completed!", `You successfully earned +${tokenReward} AFEX and +${usdtReward} USDT!`, "fa-circle-check");
-            }, 4000); // Simulasi identifikasi pengecekan join/follow selama 4 detik
+            }, 4000);
         }
 
         // Timer Auto-Mining 12 Jam
@@ -523,27 +512,34 @@
             showModal("Daily Reward Claimed!", "+50 AFEX added to your balance.", "fa-gift");
         }
 
-        // Adsgram Reward Ads (Strict Mode: No reward if ads skipped)
+        // Adsgram Reward Ads dengan UnitID: int-50931 (Inisialisasi Dinamis)
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
 
-            if (adController) {
-                adController.show()
-                    .then((result) => {
-                        miningData.balance += 25;
-                        updateUI();
-                        showModal("Ad Completed", "You successfully watched the ad and earned +25 AFEX!", "fa-circle-check");
-                        btn.innerText = "Watch";
-                        btn.disabled = false;
-                    })
-                    .catch((err) => {
-                        showModal("Notice", "Ad was skipped or failed to load. No reward given.", "fa-triangle-exclamation");
-                        btn.innerText = "Watch";
-                        btn.disabled = false;
-                    });
+            if (window.Adsgram) {
+                try {
+                    let adController = window.Adsgram.init({ blockId: "int-50931" });
+                    adController.show()
+                        .then((result) => {
+                            miningData.balance += 25;
+                            updateUI();
+                            showModal("Ad Completed", "You successfully watched the ad and earned +25 AFEX!", "fa-circle-check");
+                            btn.innerText = "Watch";
+                            btn.disabled = false;
+                        })
+                        .catch((err) => {
+                            showModal("Notice", "Ad was skipped or failed to load. No reward given.", "fa-triangle-exclamation");
+                            btn.innerText = "Watch";
+                            btn.disabled = false;
+                        });
+                } catch(e) {
+                    showModal("Notice", "Failed to initialize Adsgram ad controller.", "fa-triangle-exclamation");
+                    btn.innerText = "Watch";
+                    btn.disabled = false;
+                }
             } else {
-                showModal("Notice", "Adsgram SDK not available in current environment. Please open inside Telegram.", "fa-triangle-exclamation");
+                showModal("Notice", "Adsgram SDK is still loading. Please check your connection or reopen inside Telegram.", "fa-triangle-exclamation");
                 btn.innerText = "Watch";
                 btn.disabled = false;
             }
@@ -575,7 +571,6 @@
             showModal("Success", "Wallet successfully connected!", "fa-circle-check");
         }
 
-        // Send & Receive Modals
         function openSendModal() {
             showModal("Send Tokens", "Enter recipient address and amount to transfer tokens securely.", "fa-arrow-up");
         }
@@ -585,7 +580,6 @@
             showModal("Receive Tokens", `Your deposit address:<br><span class='text-cyan-300 font-mono text-[10px] break-all'>${addr}</span>`, "fa-arrow-down");
         }
 
-        // Withdraw Modal dengan Pilihan Jaringan & Syarat Wajib 5x Iklan + Fee 40 Token + Min 300 Max 600
         function openWithdrawModal() {
             if(!miningData.walletConnected) {
                 showModal("Wallet Required", "Please connect your wallet first in the Wallet menu!", "fa-triangle-exclamation");
@@ -614,17 +608,16 @@
             `, "fa-paper-plane");
         }
 
-        // Proses Withdraw Sambil Menonton 5 Iklan Beruntun
         let currentAdCount = 0;
         function processWithdrawWithAds() {
             let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
             if (amount < 300 || amount > 600) {
-                alert("Withdrawal amount must be between 300 and 600 tokens!");
+                showModal("Invalid Amount", "Withdrawal amount must be between 300 and 600 tokens!", "fa-triangle-exclamation");
                 return;
             }
-            let totalDeduct = amount + 40; // amount + fee 40 token
+            let totalDeduct = amount + 40; 
             if (totalDeduct > miningData.balance) {
-                alert("Insufficient balance including 40 AFEX fee!");
+                showModal("Insufficient Balance", "Insufficient balance including 40 AFEX fee!", "fa-triangle-exclamation");
                 return;
             }
 
@@ -636,23 +629,25 @@
         function runSequentialAds(wdAmount, totalDeduct) {
             currentAdCount++;
             if (currentAdCount <= 5) {
-                if (adController) {
-                    adController.show()
-                        .then((result) => {
-                            // Lanjut iklan berikutnya
-                            runSequentialAds(wdAmount, totalDeduct);
-                        })
-                        .catch((err) => {
-                            showModal("Withdrawal Cancelled", `Ad ${currentAdCount}/5 was skipped. Withdrawal aborted.`, "fa-triangle-exclamation");
-                        });
+                if (window.Adsgram) {
+                    try {
+                        let adController = window.Adsgram.init({ blockId: "int-50931" });
+                        adController.show()
+                            .then((result) => {
+                                runSequentialAds(wdAmount, totalDeduct);
+                            })
+                            .catch((err) => {
+                                showModal("Withdrawal Cancelled", `Ad ${currentAdCount}/5 was skipped. Withdrawal aborted.`, "fa-triangle-exclamation");
+                            });
+                    } catch(e) {
+                        showModal("Error", "Failed to run Adsgram ad.", "fa-triangle-exclamation");
+                    }
                 } else {
-                    // Simulasi jika di luar Telegram
                     setTimeout(() => {
                         runSequentialAds(wdAmount, totalDeduct);
                     }, 1000);
                 }
             } else {
-                // Semua 5 iklan selesai ditonton
                 miningData.balance -= totalDeduct;
                 updateUI();
                 showModal("Withdrawal Success!", `Successfully requested withdrawal of ${wdAmount} tokens (Fee: 40 AFEX). Sent to your network address!`, "fa-circle-check");
