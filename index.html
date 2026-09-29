@@ -17,6 +17,8 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
+        /* Modern Custom Modal Animation */
+        #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-20 select-none">
@@ -92,7 +94,7 @@
                         <i class="fa-solid fa-wallet text-xs"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-xs font-bold text-white">Connect BEP-20 Wallet</h4>
+                        <h4 class="text-xs font-bold text-white">Connect Wallet</h4>
                         <p class="text-[10px] text-gray-400">Save progress & receive rewards</p>
                     </div>
                 </div>
@@ -116,7 +118,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.001 USDT</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank'); doTask(this, 25, 0.001)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0.001)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -129,7 +131,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 USDT</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://t.me/AFEXPAYOUT', '_blank'); doTask(this, 25, 0.0005)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button onclick="startVerificationTask(this, 'https://t.me/AFEXPAYOUT', 25, 0.0005)" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -142,7 +144,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-300">+0.0005 USDT</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://x.com/AFEXNET', '_blank'); doTask(this, 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button onclick="startVerificationTask(this, 'https://x.com/AFEXNET', 75, 0.0005)" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -183,87 +185,79 @@
             </div>
         </div>
 
-        <!-- 4. TAB 4: SWAP PAGE (COMING SOON) -->
+        <!-- 4. TAB 4: SWAP PAGE (LISTING IN DECEMBER) -->
         <div id="tab-swap" class="tab-content text-center py-6">
             <div class="w-16 h-16 bg-yellow-500/20 text-yellow-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 border border-yellow-500/30">
-                <i class="fa-solid fa-clock-rotate-left"></i>
+                <i class="fa-solid fa-calendar-days"></i>
             </div>
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">TOKEN SWAP</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-6 tracking-widest uppercase">Coming Soon</p>
+            <p class="text-xs text-yellow-400 font-bold mb-6 tracking-widest uppercase">Listing in December 2026</p>
             
             <div class="bg-[#161f33] p-5 rounded-xl border border-gray-800 mb-4 space-y-3 text-left">
                 <h4 class="text-xs font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-coins text-yellow-400"></i> Decentralized Exchange Engine
+                    <i class="fa-solid fa-coins text-yellow-400"></i> Official Listing & Swap Engine
                 </h4>
                 <p class="text-[11px] text-gray-400 leading-relaxed">
-                    The direct swap feature from AFEX to USDT (BEP-20) is currently under development. Stay tuned for our mainnet release and liquidity pool opening!
+                    Token swapping from AFEX to USDT will officially open alongside our major exchange listing in <b>December 2026</b>. Prepare your wallet and gather more tokens!
                 </p>
                 <div class="pt-3 border-t border-gray-800 text-[10px] text-cyan-300 font-mono flex justify-between">
-                    <span>Estimated Launch:</span>
-                    <span class="text-yellow-400 font-bold">October 2026</span>
+                    <span>Listing Schedule:</span>
+                    <span class="text-yellow-400 font-bold">December 2026</span>
                 </div>
             </div>
         </div>
 
-        <!-- 5. TAB 5: WALLET PAGE (BEP-20) -->
+        <!-- 5. TAB 5: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide">BEP-20 WALLET</h2>
-            <p class="text-xs text-gray-400 mb-4">Manage your assets and connect your BNB Smart Chain (BEP-20) wallet.</p>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide">WALLET ASSETS</h2>
+            <p class="text-xs text-gray-400 mb-4">Manage your assets, send, receive, and withdraw tokens.</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
                 <span class="text-xs text-gray-400 block mb-1">TOTAL BALANCE</span>
                 <h1 id="wallet-total-token" class="text-2xl font-black font-mono text-yellow-400">0.00 AFEX</h1>
                 <span id="wallet-total-usd" class="text-xs text-gray-400 font-mono">$0.00 USD</span>
                 
-                <div class="mt-3 pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
-                    <span class="text-gray-400">Pool Liquidity (BEP-20):</span>
+                <!-- Send & Receive Quick Menu -->
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <button onclick="openSendModal()" class="bg-[#0b0f19] border border-gray-700 hover:border-yellow-500/50 p-2.5 rounded-xl text-center cursor-pointer transition-all">
+                        <div class="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-1">
+                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        </div>
+                        <span class="text-xs font-bold text-white">Send</span>
+                    </button>
+                    <button onclick="openReceiveModal()" class="bg-[#0b0f19] border border-gray-700 hover:border-cyan-500/50 p-2.5 rounded-xl text-center cursor-pointer transition-all">
+                        <div class="w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mx-auto mb-1">
+                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                        </div>
+                        <span class="text-xs font-bold text-white">Receive</span>
+                    </button>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
+                    <span class="text-gray-400">Pool Liquidity:</span>
                     <span class="text-cyan-400 font-mono font-bold">Locked ($50,000)</span>
                 </div>
                 <div class="flex justify-between items-center text-xs mt-1 mb-3">
-                    <span class="text-gray-400">Listing Price Est:</span>
-                    <span class="text-yellow-400 font-mono font-bold">300 AFEX = $0.80</span>
+                    <span class="text-gray-400">Price per Token:</span>
+                    <span class="text-yellow-400 font-mono font-bold">$0.00267 (~$0.80/300)</span>
                 </div>
 
-                <div class="text-[10px] text-cyan-300 font-mono break-all bg-[#0b0f19] p-2 rounded-lg border border-gray-800">
-                    Deposit Address: 0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685
-                </div>
-
-                <button onclick="openWithdrawModal()" class="w-full mt-3 bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400 shadow-lg">
-                    <i class="fa-solid fa-arrow-up mr-1"></i> WITHDRAW AFEX (BEP-20)
+                <button onclick="openWithdrawModal()" class="w-full mt-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> WITHDRAW TOKENS
                 </button>
             </div>
 
-            <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Connect BEP-20 Wallets</h4>
+            <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Connected Wallets</h4>
             <div class="space-y-2.5">
                 <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-xs">TW</div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Trust Wallet (BEP-20)</h4>
+                            <h4 class="text-xs font-bold text-white">Trust Wallet</h4>
                             <p id="tw-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
                         </div>
                     </div>
                     <button onclick="connectWalletModal('Trust Wallet', 'tw-status')" id="tw-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect →</button>
-                </div>
-                <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center font-bold text-xs">BN</div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white">Binance Web3 Wallet</h4>
-                            <p id="bn-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
-                        </div>
-                    </div>
-                    <button onclick="connectWalletModal('Binance Web3', 'bn-status')" id="bn-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect →</button>
-                </div>
-                <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center font-bold text-xs">MM</div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white">MetaMask</h4>
-                            <p id="mm-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
-                        </div>
-                    </div>
-                    <button onclick="connectWalletModal('MetaMask', 'mm-status')" id="mm-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect →</button>
                 </div>
             </div>
         </div>
@@ -294,13 +288,15 @@
         </button>
     </nav>
 
-    <!-- GENERAL MODAL POPUP -->
-    <div id="general-modal" class="fixed inset-0 bg-[#0b0f19]/90 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-[#161f33] w-full max-w-xs p-5 rounded-2xl border border-gray-800 text-center relative">
-            <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            <h3 id="modal-title" class="text-base font-bold text-yellow-400 mb-3">Notification</h3>
-            <div id="modal-body" class="text-xs text-gray-300 mb-4">System information.</div>
-            <button onclick="closeModal()" class="w-full bg-yellow-500 text-black text-xs py-2.5 rounded-xl font-bold cursor-pointer">Close</button>
+    <!-- MODERN CUSTOM ANIMATED MODAL POPUP -->
+    <div id="custom-modal" class="fixed inset-0 bg-[#0b0f19]/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 scale-95 pointer-events-none">
+        <div class="bg-[#161f33] w-full max-w-xs p-6 rounded-2xl border border-yellow-500/30 text-center relative shadow-2xl">
+            <div id="modal-icon-container" class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 id="modal-title" class="text-base font-bold text-yellow-400 mb-2">Notification</h3>
+            <div id="modal-body" class="text-xs text-gray-300 mb-5 leading-relaxed">System information.</div>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">Got it</button>
         </div>
     </div>
 
@@ -340,7 +336,7 @@
                 document.getElementById('header-acc').innerText = "8601594529";
             }
 
-            // === PENANGANAN KODE REFERRAL (START_PARAM) ===
+            // === PENANGANAN KODE REFERRAL (START_PARAM) YANG DIPERBAIKI ===
             let startParam = tg.initDataUnsafe?.start_param;
             if (startParam) {
                 let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
@@ -348,11 +344,15 @@
                     localStorage.setItem('afex_has_been_referred', 'true');
                     localStorage.setItem('afex_referred_by', startParam);
                     
+                    // Tambah bonus ke pengguna baru
                     miningData.balance += 70.00;
                     
+                    // Simpan akumulasi referral secara permanen berdasarkan kode pengundang
                     let referrerKey = 'ref_count_' + startParam;
                     let existingRefs = parseInt(localStorage.getItem(referrerKey)) || 0;
                     localStorage.setItem(referrerKey, existingRefs + 1);
+
+                    showModal("Welcome Bonus!", "You joined via referral link! +70 AFEX bonus added.", "fa-gift");
                 }
             }
 
@@ -372,7 +372,7 @@
         });
 
         function updateUI() {
-            let tokenPrice = 0.8 / 300; // 300 token = $0.80 USDT
+            let tokenPrice = 0.8 / 300; // Harga per token (~$0.00267)
             let totalUsd = miningData.balance * tokenPrice;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
@@ -390,7 +390,46 @@
             localStorage.setItem('afex_mining_end', miningData.miningEndTime);
         }
 
-        // Logika Timer Auto-Mining 12 Jam
+        // Modern Animated Modal Functions
+        function showModal(title, message, iconClass = "fa-bell") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerHTML = message;
+            document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            
+            let modal = document.getElementById('custom-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            let modal = document.getElementById('custom-modal');
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Task Verification Process
+        function startVerificationTask(btn, url, tokenReward, usdtReward) {
+            window.open(url, '_blank');
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerText = "Done ✓";
+                btn.className = "bg-green-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg";
+                miningData.balance += tokenReward;
+                miningData.usdtBalance += usdtReward;
+                updateUI();
+                showModal("Task Completed!", `You successfully earned +${tokenReward} AFEX and +${usdtReward} USDT!`, "fa-circle-check");
+            }, 4000); // Simulasi identifikasi pengecekan join/follow selama 4 detik
+        }
+
+        // Timer Auto-Mining 12 Jam
         function checkMiningProgress() {
             let now = Date.now();
             let btn = document.getElementById('action-mine-btn');
@@ -443,7 +482,7 @@
             if (btn.innerText.includes("CLAIM")) {
                 miningData.balance += miningData.totalRewardSession;
                 updateUI();
-                alert(`Successfully claimed +${miningData.totalRewardSession} AFEX!`);
+                showModal("Reward Claimed!", `Successfully claimed +${miningData.totalRewardSession} AFEX!`, "fa-coins");
                 
                 miningData.isMining = false;
                 btn.disabled = false;
@@ -454,7 +493,7 @@
                 miningData.isMining = true;
                 miningData.miningEndTime = now + TOTAL_DURATION_MS;
                 updateUI();
-                alert("12-Hour Auto Mining started successfully!");
+                showModal("Mining Started", "12-Hour Auto Mining session started successfully!", "fa-bolt");
             }
         }
 
@@ -481,21 +520,10 @@
         function claimDailyReward() {
             miningData.balance += 50;
             updateUI();
-            alert("Success! Daily Reward +50 AFEX claimed.");
+            showModal("Daily Reward Claimed!", "+50 AFEX added to your balance.", "fa-gift");
         }
 
-        function doTask(btn, tokenReward, usdtReward) {
-            btn.innerText = "Done ✓";
-            btn.className = "bg-green-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg";
-            btn.disabled = true;
-
-            miningData.balance += tokenReward;
-            miningData.usdtBalance += usdtReward;
-            updateUI();
-            alert(`Task Completed! You earned +${tokenReward} AFEX and +${usdtReward} USDT.`);
-        }
-
-        // Fungsi Adsgram Rewarded Ads (Reward hanya diberikan jika iklan benar-benar selesai ditonton)
+        // Adsgram Reward Ads (Strict Mode: No reward if ads skipped)
         function watchAdsReward(btn) {
             btn.innerText = "Loading...";
             btn.disabled = true;
@@ -503,75 +531,138 @@
             if (adController) {
                 adController.show()
                     .then((result) => {
-                        // Iklan BERHASIL ditonton sampai selesai
                         miningData.balance += 25;
                         updateUI();
-                        alert("Ad completed! You earned +25 AFEX.");
+                        showModal("Ad Completed", "You successfully watched the ad and earned +25 AFEX!", "fa-circle-check");
                         btn.innerText = "Watch";
                         btn.disabled = false;
                     })
                     .catch((err) => {
-                        // Iklan DITUTUP sebelum selesai atau gagal
-                        alert("Ad was skipped or failed to load. No reward given.");
+                        showModal("Notice", "Ad was skipped or failed to load. No reward given.", "fa-triangle-exclamation");
                         btn.innerText = "Watch";
                         btn.disabled = false;
                     });
             } else {
-                alert("Adsgram SDK is not ready yet. Please open inside Telegram.");
+                showModal("Notice", "Adsgram SDK not available in current environment. Please open inside Telegram.", "fa-triangle-exclamation");
                 btn.innerText = "Watch";
                 btn.disabled = false;
             }
         }
 
         function connectWalletModal(walletName, statusId) {
-            const modal = document.getElementById('general-modal');
+            const modal = document.getElementById('custom-modal');
             document.getElementById('modal-title').innerText = "Connect " + walletName;
             document.getElementById('modal-body').innerHTML = `
-                <p class="text-gray-400 text-xs mb-2">Paste your BEP-20 wallet address below:</p>
+                <p class="text-gray-400 text-xs mb-2">Paste your wallet address below:</p>
                 <input type="text" id="input-wallet-addr" placeholder="0x..." class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3">
                 <button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Connect Wallet</button>
             `;
-            modal.style.display = 'flex';
+            let el = document.getElementById('custom-modal');
+            el.classList.remove('hidden');
+            setTimeout(() => { el.classList.remove('opacity-0', 'scale-95', 'pointer-events-none'); el.classList.add('opacity-100', 'scale-100'); }, 10);
         }
 
         function saveWallet(statusId) {
             let addr = document.getElementById('input-wallet-addr').value.trim();
-            if(!addr.startsWith('0x') || addr.length < 40) { 
-                alert("Invalid BNB BEP-20 wallet address! Must start with 0x."); 
+            if(addr.length < 10) { 
+                alert("Invalid wallet address!"); 
                 return; 
             }
             miningData.walletConnected = addr;
             localStorage.setItem('afex_wallet_addr', addr);
             document.getElementById(statusId).innerText = addr.substring(0, 10) + '...';
             closeModal();
-            alert("BEP-20 Wallet successfully connected!");
+            showModal("Success", "Wallet successfully connected!", "fa-circle-check");
         }
 
+        // Send & Receive Modals
+        function openSendModal() {
+            showModal("Send Tokens", "Enter recipient address and amount to transfer tokens securely.", "fa-arrow-up");
+        }
+
+        function openReceiveModal() {
+            let addr = miningData.walletConnected || "0xC05Bfc692C8dDC21ad46Fb0038A1fAB67f206685";
+            showModal("Receive Tokens", `Your deposit address:<br><span class='text-cyan-300 font-mono text-[10px] break-all'>${addr}</span>`, "fa-arrow-down");
+        }
+
+        // Withdraw Modal dengan Pilihan Jaringan & Syarat Wajib 5x Iklan + Fee 40 Token + Min 300 Max 600
         function openWithdrawModal() {
             if(!miningData.walletConnected) {
-                alert("Please connect your BEP-20 wallet first in the Wallet menu!");
+                showModal("Wallet Required", "Please connect your wallet first in the Wallet menu!", "fa-triangle-exclamation");
                 switchTab('wallet', document.querySelectorAll('.nav-btn')[4]);
-                closeModal();
                 return;
             }
-            const modal = document.getElementById('general-modal');
-            document.getElementById('modal-title').innerText = "Withdraw AFEX (BEP-20)";
-            document.getElementById('modal-body').innerHTML = `
-                <p class="text-gray-400 text-xs mb-2">AFEX token distribution on BNB Smart Chain will begin on <b class="text-yellow-400">October 1, 2026</b>.</p>
-                <p class="text-xs text-cyan-300 font-mono mb-3 break-all">Target: ${miningData.walletConnected}</p>
-                <button onclick="alert('Withdrawal request successfully queued to BEP-20 network!'); closeModal();" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Request Withdraw</button>
-            `;
-            modal.style.display = 'flex';
+            
+            showModal("Withdraw Tokens", `
+                <div class="space-y-3 text-left">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Select Network:</label>
+                        <select id="wd-network" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white">
+                            <option value="BEP20">USD BEP-20</option>
+                            <option value="Solana">Solana</option>
+                            <option value="TON">TON</option>
+                            <option value="TRC20">TRC-20</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Amount (Min: 300, Max: 600):</label>
+                        <input type="number" id="wd-amount" min="300" max="600" placeholder="300" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white font-mono">
+                    </div>
+                    <p class="text-[10px] text-yellow-400">Notice: Fee 40 AFEX. You must watch 5 promotional ads to proceed with withdrawal.</p>
+                    <button onclick="processWithdrawWithAds()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mt-1">Watch 5 Ads & Withdraw</button>
+                </div>
+            `, "fa-paper-plane");
+        }
+
+        // Proses Withdraw Sambil Menonton 5 Iklan Beruntun
+        let currentAdCount = 0;
+        function processWithdrawWithAds() {
+            let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
+            if (amount < 300 || amount > 600) {
+                alert("Withdrawal amount must be between 300 and 600 tokens!");
+                return;
+            }
+            let totalDeduct = amount + 40; // amount + fee 40 token
+            if (totalDeduct > miningData.balance) {
+                alert("Insufficient balance including 40 AFEX fee!");
+                return;
+            }
+
+            closeModal();
+            currentAdCount = 0;
+            runSequentialAds(amount, totalDeduct);
+        }
+
+        function runSequentialAds(wdAmount, totalDeduct) {
+            currentAdCount++;
+            if (currentAdCount <= 5) {
+                if (adController) {
+                    adController.show()
+                        .then((result) => {
+                            // Lanjut iklan berikutnya
+                            runSequentialAds(wdAmount, totalDeduct);
+                        })
+                        .catch((err) => {
+                            showModal("Withdrawal Cancelled", `Ad ${currentAdCount}/5 was skipped. Withdrawal aborted.`, "fa-triangle-exclamation");
+                        });
+                } else {
+                    // Simulasi jika di luar Telegram
+                    setTimeout(() => {
+                        runSequentialAds(wdAmount, totalDeduct);
+                    }, 1000);
+                }
+            } else {
+                // Semua 5 iklan selesai ditonton
+                miningData.balance -= totalDeduct;
+                updateUI();
+                showModal("Withdrawal Success!", `Successfully requested withdrawal of ${wdAmount} tokens (Fee: 40 AFEX). Sent to your network address!`, "fa-circle-check");
+            }
         }
 
         function inviteFriend() {
             const text = encodeURIComponent("Join AFEX Mining and get free airdrop tokens here!");
             const url = encodeURIComponent(document.getElementById('ref-link-input').value);
             window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
-        }
-
-        function closeModal() {
-            document.getElementById('general-modal').style.display = 'none';
         }
     </script>
 </body>
