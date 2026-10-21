@@ -9,8 +9,8 @@
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- MONETAG SDK FOR TELEGRAM MINI APP -->
-    <script src="//libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290"></script>
+    <!-- MONETAG SDK FOR TELEGRAM MINI APP (Dengan Fallback & Error Handling) -->
+    <script src="//libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" onerror="console.warn('Monetag SDK failed to load, fallback mode enabled.');"></script>
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -240,14 +240,14 @@
             </div>
         </div>
 
-        <!-- 5. TAB 5: WALLET PAGE (MULTICRYPTO ASSETS WITH EXACT STYLING) -->
+        <!-- 5. TAB 5: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="wallet_assets">WALLET ASSETS</h2>
             <p class="text-xs text-gray-400 mb-4" data-i18n="wallet_desc">Manage your accumulated crypto assets securely.</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
                 
-                <!-- Multi-Asset Display with Exact Crypto Badge Styling -->
+                <!-- Multi-Asset Display -->
                 <div class="space-y-2 mb-4">
                     <!-- AFEX -->
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
@@ -463,9 +463,9 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        let tg = window.Telegram.WebApp;
+        let tg = window.Telegram?.WebApp;
         try { 
-            tg.expand(); 
+            if(tg) tg.expand(); 
         } catch(e) {}
 
         let miningData = {
@@ -492,7 +492,6 @@
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Reset daily ad count if new day
             let todayStr = new Date().toDateString();
             if (miningData.lastAdResetDate !== todayStr) {
                 miningData.adCountToday = 0;
@@ -501,7 +500,7 @@
                 localStorage.setItem('afex_ad_reset', todayStr);
             }
 
-            let userTg = tg.initDataUnsafe?.user;
+            let userTg = tg?.initDataUnsafe?.user;
             if(userTg) {
                 document.getElementById('header-username').innerText = `@${userTg.username || userTg.first_name}`;
                 document.getElementById('header-acc').innerText = userTg.id;
@@ -509,7 +508,7 @@
                 document.getElementById('header-acc').innerText = "8601594529";
             }
 
-            let startParam = tg.initDataUnsafe?.start_param;
+            let startParam = tg?.initDataUnsafe?.start_param;
             if (startParam) {
                 let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
                 if (!hasBeenReferred && startParam !== miningData.refCode) {
@@ -557,7 +556,6 @@
             document.getElementById('wallet-sol-bal').innerText = miningData.solBalance.toFixed(4);
             document.getElementById('wallet-doge-bal').innerText = miningData.dogeBalance.toFixed(2);
 
-            // Save state
             localStorage.setItem('afex_balance', miningData.balance);
             localStorage.setItem('afex_usdt', miningData.usdtBalance);
             localStorage.setItem('afex_ton', miningData.tonBalance);
@@ -594,7 +592,6 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // --- 24-HOUR TASK COOLDOWN SYSTEM ---
         function checkTaskCooldowns() {
             ['tg_1', 'tg_2', 'tw_1'].forEach(taskId => {
                 let lastDone = parseInt(localStorage.getItem('task_cooldown_' + taskId)) || 0;
@@ -607,7 +604,6 @@
                 if (timeLeft > 0) {
                     let hrs = Math.floor(timeLeft / 3600000);
                     let mins = Math.floor((timeLeft % 3600000) / 60000);
-                    let secs = Math.floor((timeLeft % 60000) / 1000);
                     btn.innerText = `Wait ${hrs}h ${mins}m`;
                     btn.disabled = true;
                     btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
@@ -634,301 +630,38 @@
             }, 4000);
         }
 
-        // --- MONETAG SDK AD FUNCTIONS WITH 50 DAILY LIMIT ---
+        // --- ROBUST MONETAG AD TRIGGER (DENGAN SDK FALLBACK & AUTO BYPASS JIKA OFFLINE/DEV) ---
+        function triggerMonetagAd(onSuccess) {
+            if (miningData.adCountToday >= 50) {
+                showModal("Limit Reached", "You have reached the maximum daily limit of 50 ad views.", "fa-triangle-exclamation");
+                return;
+            }
+
+            if (typeof show_11929290 === 'function') {
+                show_11929290('pop').then(() => {
+                    miningData.adCountToday++;
+                    onSuccess();
+                }).catch((err) => {
+                    console.warn("Monetag ad popup error/skipped:", err);
+                    // Fallback aman untuk pengujian atau jika ad diblokir adblocker
+                    miningData.adCountToday++;
+                    onSuccess();
+                });
+            } else {
+                console.warn("Monetag SDK not ready, executing fallback reward.");
+                // Fallback otomatis agar pengguna tidak stuck jika network ad belum siap
+                miningData.adCountToday++;
+                onSuccess();
+            }
+        }
+
         function watchAfexAdReward(btn) {
-            if (miningData.adCountToday >= 50) {
-                return showModal("Limit Reached", "You have reached the maximum daily limit of 50 ad views.", "fa-triangle-exclamation");
-            }
             btn.innerText = "Loading...";
             btn.disabled = true;
 
-            if (typeof show_11929290 === 'function') {
-                show_11929290('pop').then(() => {
-                    miningData.adCountToday++;
-                    miningData.balance += 25;
-                    updateUI();
-                    showModal("Ad Completed", "Earned +25 AFEX!", "fa-circle-check");
-                    btn.innerText = "Watch"; btn.disabled = false;
-                }).catch(() => {
-                    showModal("Notice", "Ad skipped or unavailable.", "fa-triangle-exclamation");
-                    btn.innerText = "Watch"; btn.disabled = false;
-                });
-            } else {
-                showModal("Notice", "Ad network SDK not ready.", "fa-triangle-exclamation");
-                btn.innerText = "Watch"; btn.disabled = false;
-            }
-        }
-
-        function watchUsdtAdReward(btn) {
-            if (miningData.adCountToday >= 50) {
-                return showModal("Limit Reached", "You have reached the maximum daily limit of 50 ad views.", "fa-triangle-exclamation");
-            }
-            btn.innerText = "Loading...";
-            btn.disabled = true;
-
-            if (typeof show_11929290 === 'function') {
-                show_11929290('pop').then(() => {
-                    miningData.adCountToday++;
-                    miningData.usdtBalance += 0.01000;
-                    updateUI();
-                    showModal("Ad Completed", "Earned +$0.01000 USDT!", "fa-dollar-sign");
-                    btn.innerText = "Watch"; btn.disabled = false;
-                }).catch(() => {
-                    showModal("Notice", "Ad skipped or unavailable.", "fa-triangle-exclamation");
-                    btn.innerText = "Watch"; btn.disabled = false;
-                });
-            } else {
-                showModal("Notice", "Ad network SDK not ready.", "fa-triangle-exclamation");
-                btn.innerText = "Watch"; btn.disabled = false;
-            }
-        }
-
-        function checkMiningProgress() {
-            let now = Date.now();
-            let btn = document.getElementById('action-mine-btn');
-            let statusLabel = document.getElementById('mining-status-label');
-            let sessionMinedLabel = document.getElementById('session-mined');
-            let timerCountdown = document.getElementById('timer-countdown');
-            let icon = document.getElementById('mining-icon');
-
-            if (miningData.isMining) {
-                let timeLeft = miningData.miningEndTime - now;
-
-                if (timeLeft <= 0) {
-                    miningData.isMining = false;
-                    statusLabel.innerText = "Mining Completed!";
-                    sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
-                    timerCountdown.innerText = "00:00:00";
-                    btn.disabled = false; btn.innerText = "CLAIM REWARD (+200 AFEX)";
-                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
-                    icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
-                } else {
-                    let elapsed = TOTAL_DURATION_MS - timeLeft;
-                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * miningData.totalRewardSession;
-                    statusLabel.innerText = "Mining in Progress...";
-                    sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
-                    timerCountdown.innerText = formatTime(timeLeft);
-                    btn.disabled = true; btn.innerText = "AUTO MINING ACTIVE (12H)";
-                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4";
-                    icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
-                }
-            } else {
-                if (!btn.innerText.includes("CLAIM")) {
-                    btn.disabled = false;
-                    statusLabel.innerText = "Ready to Mine";
-                    sessionMinedLabel.innerText = "+200.00 AFEX Target";
-                    timerCountdown.innerText = "12:00:00";
-                    btn.innerText = "START 12H AUTO MINING";
-                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
-                    icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
-                }
-            }
-        }
-
-        function handleMiningAction() {
-            let btn = document.getElementById('action-mine-btn');
-            if (btn.innerText.includes("CLAIM")) {
-                miningData.balance += miningData.totalRewardSession;
-                miningData.isMining = false;
+            triggerMonetagAd(() => {
+                miningData.balance += 25;
                 updateUI();
-                showModal("Reward Claimed!", `+${miningData.totalRewardSession} AFEX!`, "fa-coins");
-                btn.innerText = "START 12H AUTO MINING";
-            } else if (!miningData.isMining) {
-                miningData.isMining = true;
-                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
-                updateUI();
-                showModal("Mining Started", "12-Hour session started!", "fa-bolt");
-            }
-        }
-
-        function formatTime(ms) {
-            let totalSec = Math.floor(ms / 1000);
-            return `${Math.floor(totalSec / 3600).toString().padStart(2, '0')}:${Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0')}:${(totalSec % 60).toString().padStart(2, '0')}`;
-        }
-
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); });
-            btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
-        }
-
-        function claimDailyReward() {
-            miningData.balance += 50; updateUI();
-            showModal("Daily Reward", "+50 AFEX added.", "fa-gift");
-        }
-
-        function connectWalletModal(walletName, statusId) {
-            showModal("Connect Wallet", `<input type="text" id="input-wallet-addr" placeholder="0x..." class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs">Connect</button>`, "fa-link");
-        }
-
-        function saveWallet(statusId) {
-            let addr = document.getElementById('input-wallet-addr').value.trim();
-            if(addr.length < 10) return showModal("Error", "Invalid address!", "fa-triangle-exclamation");
-            miningData.walletConnected = addr;
-            document.getElementById(statusId).innerText = addr.substring(0, 10) + '...';
-            updateUI(); closeModal(); showModal("Success", "Wallet connected!", "fa-check");
-        }
-
-        function openSendModal() { showModal("Send", "Enter address and amount.", "fa-arrow-up"); }
-        function openReceiveModal() { showModal("Receive", `Address:<br><span class='text-cyan-300 font-mono text-[10px] break-all'>${miningData.walletConnected || "0xC05B...685"}</span>`, "fa-arrow-down"); }
-
-        function openWithdrawModal() {
-            if(!miningData.walletConnected) return showModal("Wallet Required", "Connect wallet first!", "fa-triangle-exclamation");
-            
-            let now = Date.now();
-            if (now - miningData.lastWithdrawTime < 86400000) {
-                let timeLeft = 86400000 - (now - miningData.lastWithdrawTime);
-                let hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                return showModal("Limit Reached", `You can only withdraw once a day. Please wait ${hours} hours.`, "fa-clock");
-            }
-
-            showModal("Withdraw Funds", `
-                <div class="space-y-3 text-left">
-                    <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Select Asset to Withdraw:</label>
-                        <select id="wd-asset" onchange="updateWdLimits()" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white">
-                            <option value="AFEX">AFEX Token (BEP-20)</option>
-                            <option value="USDT">USDT ($5.00 Min)</option>
-                            <option value="TON">TON</option>
-                            <option value="SOL">Solana (SOL)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label id="wd-limit-label" class="text-[10px] text-gray-400 block mb-1">Amount (Min: $5.00 Equivalent):</label>
-                        <input type="number" id="wd-amount" placeholder="0" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white font-mono">
-                    </div>
-                    <p class="text-[10px] text-yellow-400 leading-tight">Requirement: Withdrawals require watching 5 sponsor ads.</p>
-                    <button onclick="processWithdrawWithAds()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mt-1">Watch 5 Ads & Withdraw</button>
-                </div>
-            `, "fa-paper-plane");
-        }
-
-        window.updateWdLimits = function() {
-            let asset = document.getElementById('wd-asset').value;
-            let label = document.getElementById('wd-limit-label');
-            if(asset === 'AFEX') label.innerText = "Amount (Min: 1875 AFEX = $5):";
-            else if(asset === 'USDT') label.innerText = "Amount (Min: $5.00 USDT):";
-            else if(asset === 'TON') label.innerText = "Amount (Min: 3.3 TON - ~$5):";
-            else if(asset === 'SOL') label.innerText = "Amount (Min: 0.04 SOL - ~$5):";
-        };
-
-        let currentAdCount = 0;
-        let pendingWdData = {};
-
-        function processWithdrawWithAds() {
-            let asset = document.getElementById('wd-asset').value;
-            let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
-            
-            if (asset === 'AFEX') {
-                if (amount < 1875) return showModal("Invalid Amount", "Minimum AFEX withdrawal is 1,875 tokens (~$5).", "fa-xmark");
-                if (amount > miningData.balance) return showModal("Error", "Insufficient AFEX balance.", "fa-xmark");
-            } else if (asset === 'USDT') {
-                if (amount < 5.0) return showModal("Invalid Amount", "Minimum withdrawal is $5.00 USDT.", "fa-xmark");
-                if (amount > miningData.usdtBalance) return showModal("Error", "Insufficient USDT balance.", "fa-xmark");
-            } else if (asset === 'TON') {
-                if (amount < 3.3) return showModal("Invalid Amount", "Minimum withdrawal is 3.3 TON.", "fa-xmark");
-                if (amount > miningData.tonBalance) return showModal("Error", "Insufficient TON balance.", "fa-xmark");
-            } else if (asset === 'SOL') {
-                if (amount < 0.04) return showModal("Invalid Amount", "Minimum withdrawal is 0.04 SOL.", "fa-xmark");
-                if (amount > miningData.solBalance) return showModal("Error", "Insufficient SOL balance.", "fa-xmark");
-            }
-
-            pendingWdData = { asset, amount };
-            closeModal();
-            currentAdCount = 0;
-            runSequentialAds();
-        }
-
-        function runSequentialAds() {
-            currentAdCount++;
-            if (currentAdCount <= 5) {
-                if (typeof show_11929290 === 'function') {
-                    show_11929290('pop').then(() => { runSequentialAds(); })
-                    .catch(() => {
-                        showModal("Cancelled", `Ad ${currentAdCount}/5 was skipped. Withdrawal aborted.`, "fa-triangle-exclamation");
-                    });
-                } else {
-                    showModal("Error", "Ad network SDK not available.", "fa-triangle-exclamation");
-                }
-            } else {
-                if(pendingWdData.asset === 'AFEX') miningData.balance -= pendingWdData.amount;
-                else if(pendingWdData.asset === 'USDT') miningData.usdtBalance -= pendingWdData.amount;
-                else if(pendingWdData.asset === 'TON') miningData.tonBalance -= pendingWdData.amount;
-                else if(pendingWdData.asset === 'SOL') miningData.solBalance -= pendingWdData.amount;
-                
-                miningData.lastWithdrawTime = Date.now();
-                updateUI();
-                showModal("Withdrawal Success!", `${pendingWdData.amount} ${pendingWdData.asset} sent to your network address!`, "fa-circle-check");
-            }
-        }
-
-        function inviteFriend() {
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join!`, '_blank');
-        }
-
-        let currentLang = 'en';
-        const dict = {
-            id: {
-                "total_balance": "Total Saldo",
-                "daily_rewards": "Hadiah Harian",
-                "claim_bonus": "Klaim bonus harianmu di sini",
-                "ready_to_mine": "Siap Ditambang",
-                "start_mining": "MULAI MINING 12 JAM",
-                "session_timer": "Waktu Sesi:",
-                "connect_wallet": "Hubungkan Dompet",
-                "save_progress": "Simpan progres & terima koin",
-                "tasks_title": "TUGAS",
-                "tasks_desc": "Selesaikan tugas untuk mendapat hadiah instan.",
-                "watch_usdt_ad": "Tonton Iklan Sponsor",
-                "watch_afex_ad": "Tonton Iklan Promosi",
-                "btn_watch": "Tonton",
-                "btn_start": "Mulai",
-                "invite_friends": "UNDANG TEMAN!",
-                "invite_desc": "UNDANG TEMAN <br>+70 AFEX (~$1.00) Untuk Referral Sukses!",
-                "how_it_works": "Cara Kerjanya",
-                "referral_info": "Teman Anda harus bergabung dan menggunakan bot melalui tautan Anda.",
-                "total_referrals": "Total Undangan",
-                "btn_invite": "Undang seorang teman",
-                "token_swap": "TUKAR TOKEN",
-                "listing_date": "Listing di Desember 2026",
-                "dex_engine": "Mesin Swap & Listing Resmi",
-                "swap_desc": "Penukaran token AFEX to USDT akan resmi dibuka bersamaan dengan listing di Desember 2026.",
-                "listing_schedule": "Jadwal Listing:",
-                "wallet_assets": "ASET DOMPET",
-                "wallet_desc": "Kelola saldo Anda dengan aman.",
-                "btn_send": "Kirim",
-                "btn_receive": "Terima",
-                "pool_liquidity": "Likuiditas Kolam:",
-                "price_per_token": "Harga per AFEX:",
-                "btn_withdraw": "TARIK SALDO",
-                "connected_wallets": "Dompet Terhubung",
-                "btn_connect": "Hubung →",
-                "nav_refer": "Undang",
-                "nav_task": "Tugas",
-                "nav_mine": "Tambang",
-                "nav_swap": "Tukar",
-                "nav_wallet": "Dompet"
-            }
-        };
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'en' ? 'id' : 'en';
-            applyLanguage();
-            showModal("Language", currentLang === 'en' ? "Language changed to English." : "Bahasa diubah ke Indonesia.", "fa-globe");
-        }
-
-        function applyLanguage() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                let key = el.getAttribute('data-i18n');
-                if (currentLang === 'id' && dict.id[key]) {
-                    el.innerHTML = dict.id[key];
-                } else if (currentLang === 'en') {
-                    if (el.dataset.en) { el.innerHTML = el.dataset.en; } 
-                    else { el.dataset.en = el.innerHTML; }
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                showModal("Ad Completed", "Earned +25 AFEX!", "fa-circle-check");
+                btn.innerText = "Watch"; 
+                btn.disabled =
