@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFEX Mining - 12 Hours Auto Mine</title>
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <!-- MONETAG SDK FOR TELEGRAM MINI APP (In-App Interstitial) -->
-    <!-- Iklan otomatis berjalan di background -->
     <script src="https://libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" data-auto="2/0.1/30/5/0"></script>
     
     <!-- FontAwesome Icons -->
@@ -38,7 +37,6 @@
                     </svg>
                 </div>
                 <div>
-                    <!-- Fallback aman jika username tidak ditemukan -->
                     <span id="header-username" class="text-xs font-bold text-white block">Loading...</span>
                     <span class="text-[10px] text-gray-400">User ID: <span id="header-acc">8601594529</span></span>
                 </div>
@@ -102,7 +100,7 @@
             
             <div class="space-y-2.5" id="task-container">
                 
-                <!-- Watch Ad Task Baru -->
+                <!-- Watch Ad Task (0.01 USDT) -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between shadow-lg border-yellow-500/30">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center">
@@ -110,12 +108,13 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Watch Ad</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.001 USDT</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
                         </div>
                     </div>
                     <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
                 </div>
 
+                <!-- Social Tasks -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between mt-4">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
@@ -123,10 +122,24 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX</p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.001 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-tg-1" onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0, 'tg_1')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <!-- (btn, url, tokenReward, usdtReward, taskId) -->
+                    <button id="task-tg-1" onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0.001, 'tg_1')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                </div>
+
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
+                            <i class="fa-brands fa-telegram text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Join AFEX Payout</h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.0005 USDT</span></p>
+                        </div>
+                    </div>
+                    <button id="task-tg-2" onclick="startVerificationTask(this, 'https://t.me/AFEXPAYOUT', 25, 0.0005, 'tg_2')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -136,10 +149,10 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Follow Twitter / X</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX</p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.0005 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-tw-1" onclick="startVerificationTask(this, 'https://x.com/AFEXNET', 75, 0, 'tw_1')" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button id="task-tw-1" onclick="startVerificationTask(this, 'https://x.com/AFEXNET', 75, 0.0005, 'tw_1')" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
                 </div>
             </div>
         </div>
@@ -168,16 +181,16 @@
         </div>
 
         <!-- 4. TAB 4: SWAP PAGE -->
-        <div id="tab-swap" class="tab-content text-center relative z-20">
+        <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide">TOKEN SWAP</h2>
             <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase">Listing in December 2026</p>
             
             <!-- SWAP BOX -->
-            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-6 text-left">
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-6 text-left shadow-lg">
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
                         <span>From</span>
-                        <span>Balance: <span id="swap-bal-afex">0.00</span> AFEX</span>
+                        <span>Balance: <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <input type="number" id="swap-input-afex" oninput="calcSwap()" placeholder="0" class="w-2/3 bg-transparent text-lg font-bold text-white outline-none">
@@ -270,7 +283,7 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center text-xs mt-1 mb-3">
+                <div class="flex justify-between items-center text-xs mt-1 mb-3 border-t border-gray-800 pt-3">
                     <span class="text-gray-400">Price per AFEX:</span>
                     <span class="text-yellow-400 font-mono font-bold">$0.0001</span>
                 </div>
@@ -367,7 +380,7 @@
     </nav>
 
     <!-- MODERN CUSTOM ANIMATED MODAL POPUP -->
-    <div id="custom-modal" class="fixed inset-0 bg-[#0b0f19]/80 backdrop-blur-sm z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none">
+    <div id="custom-modal" class="fixed inset-0 bg-[#0b0f19]/80 backdrop-blur-sm z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
         <div class="bg-[#161f33] w-full max-w-xs p-6 rounded-2xl border border-yellow-500/30 text-center relative shadow-2xl pointer-events-auto">
             <div id="modal-icon-container" class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
                 <i class="fa-solid fa-bell"></i>
@@ -400,7 +413,7 @@
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
         
-        // Aturan Baru: Kelipatan 3
+        // Aturan: Kelipatan 3
         const CHECKIN_REWARDS = [
             { day: 1, afex: 3 },
             { day: 2, afex: 6 },
@@ -417,7 +430,7 @@
             let userTg = tg?.initDataUnsafe?.user;
             let userIdStr = userTg ? userTg.id.toString() : "8601594529";
             
-            // Perbaikan agar tidak error jika tidak ada username
+            // Keamanan username
             let displayName = "Guest User";
             if(userTg) {
                 if(userTg.username) {
@@ -437,12 +450,12 @@
             setInterval(checkMiningProgress, 1000);
             setInterval(checkTaskCooldowns, 1000);
             
-            // Inisialisasi Chart
+            // Inisialisasi Chart untuk Tab Swap
             initLiveChart();
         });
 
         function updateUI() {
-            let totalUsdEst = miningData.balance * 0.0001 + miningData.usdtBalance; // 1 AFEX = 0.0001
+            let totalUsdEst = (miningData.balance * 0.0001) + miningData.usdtBalance; // 1 AFEX = 0.0001
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
             document.getElementById('token-usd').innerText = "$" + totalUsdEst.toFixed(4) + " USDT (Est)";
@@ -453,6 +466,7 @@
             document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-ton-bal').innerText = miningData.tonBalance.toFixed(4);
             
+            // Update balance di menu Swap
             document.getElementById('swap-bal-afex').innerText = miningData.balance.toFixed(2);
 
             let canCheckIn = isCheckInAvailable();
@@ -576,10 +590,10 @@
 
         // --- TASK SYSTEM ---
         function checkTaskCooldowns() {
-            ['tg_1', 'tg_2', 'tw_1'].forEach(taskId => {
+            ['tg_1', 'tg_2', 'tw_1', 'ad_1'].forEach(taskId => {
                 let lastDone = parseInt(localStorage.getItem('task_cooldown_' + taskId)) || 0;
                 let now = Date.now();
-                let btnId = taskId === 'tg_1' ? 'task-tg-1' : (taskId === 'tg_2' ? 'task-tg-2' : 'task-tw-1');
+                let btnId = taskId === 'tg_1' ? 'task-tg-1' : (taskId === 'tg_2' ? 'task-tg-2' : (taskId === 'tw_1' ? 'task-tw-1' : 'task-ad'));
                 let btn = document.getElementById(btnId);
                 if (!btn) return;
 
@@ -591,9 +605,15 @@
                     btn.disabled = true;
                     btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
                 } else {
-                    btn.innerText = "Start";
+                    btn.innerText = taskId === 'ad_1' ? "Watch" : "Start";
                     btn.disabled = false;
-                    btn.className = taskId === 'tw_1' ? "bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" : "bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
+                    if(taskId === 'ad_1') {
+                        btn.className = "bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
+                    } else if(taskId === 'tw_1') {
+                        btn.className = "bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
+                    } else {
+                        btn.className = "bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
+                    }
                 }
             });
         }
@@ -608,31 +628,33 @@
                 miningData.balance += tokenReward;
                 miningData.usdtBalance += usdtReward;
                 updateUI();
-                showModal("Task Completed!", `Earned +${tokenReward} AFEX!`, "fa-circle-check");
+                showModal("Task Completed!", `Earned +${tokenReward} AFEX & +${usdtReward} USDT!`, "fa-circle-check");
                 checkTaskCooldowns();
             }, 4000);
         }
 
-        // --- WATCH AD TASK ---
+        // --- WATCH AD TASK (0.01 USDT) ---
         function startAdTask(btn) {
             if(typeof show_11929290 === 'function') {
                 btn.innerText = "Loading...";
                 btn.disabled = true;
+                
                 show_11929290().then(() => {
+                    // Reward setelah sukses nonton iklan
+                    localStorage.setItem('task_cooldown_ad_1', Date.now());
                     miningData.balance += 15;
-                    miningData.usdtBalance += 0.001;
+                    miningData.usdtBalance += 0.01;
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.001 USDT added to your balance.", "fa-circle-check");
-                    btn.innerText = "Watch";
-                    btn.disabled = false;
+                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added to your balance.", "fa-circle-check");
+                    checkTaskCooldowns();
                 }).catch(err => {
                     console.error("Ad error:", err);
-                    showModal("Failed", "No ads available right now. Please try again later.", "fa-triangle-exclamation");
+                    showModal("Ads Not Ready", "Please wait a moment or try again later.", "fa-triangle-exclamation");
                     btn.innerText = "Watch";
                     btn.disabled = false;
                 });
             } else {
-                showModal("Error", "Ad SDK is not loaded properly.", "fa-triangle-exclamation");
+                showModal("System Error", "Ad system is currently unavailable.", "fa-triangle-exclamation");
             }
         }
 
@@ -722,15 +744,13 @@
         }
 
         function attemptSwap() {
-            // Berdasarkan instruksi, tampilkan notifikasi pop-up berbahasa Inggris saat klik tombol swap
             showModal("Swap Locked", "Swap will be locked until the official token listing time.", "fa-lock");
         }
 
         function initLiveChart() {
             let canvas = document.getElementById('priceChart');
+            if(!canvas) return;
             let ctx = canvas.getContext('2d');
-            
-            // Generate array untuk simulasi 20 titik harga berawal dari 0.0001
             let priceHistory = Array(20).fill(0.000100);
 
             function drawChart() {
@@ -741,7 +761,7 @@
                 let max = Math.max(...priceHistory);
                 let min = Math.min(...priceHistory);
                 let range = max - min;
-                if(range === 0) range = 0.000001; // Cegah error divide by zero
+                if(range === 0) range = 0.000001; 
 
                 ctx.beginPath();
                 ctx.strokeStyle = '#4ade80'; // Tailwind green-400
@@ -749,7 +769,6 @@
 
                 for(let i = 0; i < priceHistory.length; i++) {
                     let x = (i / (priceHistory.length - 1)) * width;
-                    // Y axis terbalik
                     let y = height - ((priceHistory[i] - min) / range) * (height - 10) - 5;
                     
                     if(i === 0) ctx.moveTo(x, y);
@@ -757,20 +776,17 @@
                 }
                 ctx.stroke();
 
-                // Fill area grafiknya (gradien)
                 ctx.lineTo(width, height);
                 ctx.lineTo(0, height);
-                ctx.fillStyle = "rgba(74, 222, 128, 0.1)"; // Transparent green
+                ctx.fillStyle = "rgba(74, 222, 128, 0.1)"; 
                 ctx.fill();
             }
 
-            // Update chart setiap 2 detik (simulasi pasar fluktuatif minimal)
             setInterval(() => {
                 let lastPrice = priceHistory[priceHistory.length - 1];
                 let fluctuation = (Math.random() - 0.5) * 0.000002;
                 let newPrice = lastPrice + fluctuation;
                 
-                // Batasi agar harga tetap di kisaran 0.0001
                 if(newPrice < 0.000095) newPrice = 0.000096;
                 if(newPrice > 0.000105) newPrice = 0.000104;
 
@@ -781,13 +797,12 @@
                 drawChart();
             }, 2000);
 
-            // Draw awal
             drawChart();
         }
 
         // --- WALLET & WITHDRAW ---
         function connectWalletModal(walletName, statusId) {
-            showModal("Connect " + walletName, `<input type="text" id="input-wallet-addr" placeholder="Enter your Wallet Address (0x... atau UQ...)" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Connect Wallet</button>`, "fa-link");
+            showModal("Connect " + walletName, `<input type="text" id="input-wallet-addr" placeholder="Enter ${walletName} Address" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Connect Wallet</button>`, "fa-link");
         }
 
         function saveWallet(statusId) {
@@ -831,7 +846,7 @@
             let asset = document.getElementById('wd-asset').value;
             let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
             
-            // Limitasi Penarikan Sesuai Permintaan
+            // Limitasi Penarikan
             if (asset === 'AFEX' && amount < 500) return showModal("Minimum Limit", "Minimum withdraw is 500 AFEX.", "fa-xmark");
             if (asset === 'USDT' && amount < 3.0) return showModal("Minimum Limit", "Minimum withdraw is $3.00 USDT.", "fa-xmark");
             if (asset === 'TON' && amount < 3.0) return showModal("Minimum Limit", "Minimum withdraw is 3.00 TON.", "fa-xmark");
@@ -852,7 +867,6 @@
         }
 
         function inviteFriend() {
-            // Gunakan API Telegram untuk share agar tampil cantik
             window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank');
         }
     </script>
