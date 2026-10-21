@@ -22,7 +22,7 @@
         #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-20 select-none relative">
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative select-none">
 
     <!-- MAIN CONTAINER -->
     <div class="p-4 flex-1">
@@ -42,7 +42,7 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleLanguage()" class="bg-[#161f33] w-8 h-8 rounded-xl border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white hover:border-yellow-500 transition-all" title="Toggle Language">
+                <button onclick="toggleLanguage()" class="bg-[#161f33] w-8 h-8 rounded-xl border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white hover:border-yellow-500 transition-all cursor-pointer" title="Toggle Language">
                     <i class="fa-solid fa-globe text-xs"></i>
                 </button>
                 <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
@@ -85,7 +85,7 @@
             </div>
 
             <!-- Auto Mining Button -->
-            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all" data-i18n="start_mining">
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative" data-i18n="start_mining">
                 START 12H AUTO MINING
             </button>
 
@@ -116,7 +116,6 @@
             <p class="text-xs text-gray-400 mb-4" data-i18n="tasks_desc">Complete tasks to earn rewards credited instantly.</p>
             
             <div class="space-y-2.5" id="task-container">
-                <!-- Social Tasks -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
@@ -293,7 +292,7 @@
     </div>
 
     <!-- BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-30">
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-40">
         <button onclick="switchTab('referral', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-users text-base mb-0.5"></i>
             <span class="text-[10px]" data-i18n="nav_refer">Refer</span>
@@ -331,20 +330,25 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         let tg = window.Telegram?.WebApp;
-        try { if(tg) { tg.expand(); tg.ready(); } } catch(e) {}
+        try { 
+            if(tg) { 
+                tg.expand(); 
+                tg.ready(); 
+            } 
+        } catch(e) {}
 
         let miningData = {
             balance: parseFloat(localStorage.getItem('afex_balance')) || 100.00,
             usdtBalance: parseFloat(localStorage.getItem('afex_usdt')) || 1.20,
             tonBalance: parseFloat(localStorage.getItem('afex_ton')) || 0.00,
             refCount: parseInt(localStorage.getItem('afex_refs')) || 0,
+            refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
             walletConnected: localStorage.getItem('afex_wallet_addr') || '',
             isMining: localStorage.getItem('afex_is_mining') === 'true',
             miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
             lastWithdrawTime: parseInt(localStorage.getItem('afex_last_wd')) || 0,
             totalRewardSession: 200.00,
             
-            // Check-in Data
             checkInDay: parseInt(localStorage.getItem('afex_checkin_day')) || 0,
             lastCheckInTime: parseInt(localStorage.getItem('afex_last_checkin')) || 0
         };
@@ -372,6 +376,8 @@
             } else {
                 document.getElementById('header-acc').innerText = userIdStr;
             }
+
+            document.getElementById('ref-link-input').value = `https://t.me/AfexMinerBot?start=${miningData.refCode}`;
 
             updateUI();
             checkTaskCooldowns();
@@ -431,7 +437,7 @@
             localStorage.setItem('afex_last_checkin', miningData.lastCheckInTime);
         }
 
-        // --- DAILY CHECK-IN SYSTEM (24H COOLDOWN & 7-DAY GRID) ---
+        // --- DAILY CHECK-IN SYSTEM ---
         function isCheckInAvailable() {
             let now = Date.now();
             let last = miningData.lastCheckInTime;
@@ -516,16 +522,13 @@
             document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
             
             let modal = document.getElementById('custom-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                modal.classList.add('opacity-100', 'scale-100');
-            }, 10);
+            modal.classList.remove('hidden', 'opacity-0', 'scale-95', 'pointer-events-none');
+            modal.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
         }
 
         function closeModal() {
             let modal = document.getElementById('custom-modal');
-            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
             modal.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
@@ -584,8 +587,9 @@
                     statusLabel.innerText = "Mining Completed!";
                     sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
                     timerCountdown.innerText = "00:00:00";
-                    btn.disabled = false; btn.innerText = "CLAIM REWARD (+200 AFEX)";
-                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    btn.disabled = false; 
+                    btn.innerText = "CLAIM REWARD (+200 AFEX)";
+                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
                     icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
                 } else {
                     let elapsed = TOTAL_DURATION_MS - timeLeft;
@@ -593,8 +597,9 @@
                     statusLabel.innerText = "Mining in Progress...";
                     sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
                     timerCountdown.innerText = formatTime(timeLeft);
-                    btn.disabled = true; btn.innerText = "AUTO MINING ACTIVE (12H)";
-                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4";
+                    btn.disabled = true; 
+                    btn.innerText = "AUTO MINING ACTIVE (12H)";
+                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4 z-10 relative";
                     icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
                 }
             } else {
@@ -604,7 +609,7 @@
                     sessionMinedLabel.innerText = "+200.00 AFEX Target";
                     timerCountdown.innerText = "12:00:00";
                     btn.innerText = "START 12H AUTO MINING";
-                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
                     icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
                 }
             }
@@ -639,7 +644,7 @@
         }
 
         function connectWalletModal(walletName, statusId) {
-            showModal("Connect Wallet", `<input type="text" id="input-wallet-addr" placeholder="0x..." class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs">Connect</button>`, "fa-link");
+            showModal("Connect Wallet", `<input type="text" id="input-wallet-addr" placeholder="0x..." class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer">Connect</button>`, "fa-link");
         }
 
         function saveWallet(statusId) {
