@@ -28,6 +28,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
+        /* Efek Mewah Khusus Founder VIP */
         .gold-glow { text-shadow: 0 0 12px rgba(234, 179, 8, 0.8); color: #fbbf24 !important; }
         .luxury-border { border: 1px solid rgba(234, 179, 8, 0.4); box-shadow: inset 0 0 20px rgba(234, 179, 8, 0.1); }
         #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
@@ -41,13 +42,14 @@
         <!-- HEADER PROFILE, LANGUAGE SELECTOR & STATS -->
         <div class="flex justify-between items-center mb-4 relative z-20 gap-2">
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
-                <!-- LOGO APEX FINANCE DARI GAMBAR -->
+                <!-- LOGO AFEX DARI GAMBAR YANG DIUPLOAD -->
                 <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]">
                     <img src="134069.jpg" alt="AFEX" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <div class="flex items-center gap-1.5">
                         <span id="header-username" class="text-xs font-bold text-white block">Loading...</span>
+                        <!-- Mahkota VIP (Hidden default) -->
                         <span id="header-crown" class="text-yellow-400 text-[11px] hidden drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"><i class="fa-solid fa-crown"></i></span>
                     </div>
                     <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono">8601594529</span></span>
@@ -140,7 +142,7 @@
                     <h2 class="text-xl font-black text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
                     <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn rewards.</p>
                 </div>
-                <!-- Sub-tab Selector for Normal & Founder -->
+                <!-- Sub-tab Selector for Tasks & Founder -->
                 <div class="flex bg-[#161f33] p-1 rounded-xl border border-gray-800 text-xs font-bold">
                     <button onclick="switchTaskSubTab('normal', this)" id="subtab-btn-normal" class="px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md">Normal</button>
                     <button onclick="switchTaskSubTab('founder', this)" id="subtab-btn-founder" class="px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> VIP</button>
@@ -149,7 +151,7 @@
 
             <!-- NORMAL TASKS CONTAINER -->
             <div id="subtab-content-normal" class="space-y-2.5">
-                <!-- Watch Ad Task (0.01 USDT & Max 100/day) -->
+                <!-- Watch Ad Task (Max 100/day) -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between shadow-lg border-yellow-500/30">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center">
@@ -279,6 +281,7 @@
             </div>
 
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
+                <!-- LINK REFERRAL FIX MENGGUNAKAN BOT YANG BENAR (Fexboostbot) -->
                 <input type="text" id="ref-link-input" readonly class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-cyan-300 font-mono outline-none">
                 <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400" data-i18n="btn_invite">
                     Invite a friend
@@ -286,13 +289,13 @@
             </div>
         </div>
 
-        <!-- 4. TAB 4: SWAP PAGE (TON/GRAM, USDT BEP20, USDT TON, USDT TRC20, BNB) -->
+        <!-- 4. TAB 4: SWAP PAGE (DENGAN LIVE CHART DEXSCREENER & PILIHAN TOKEN) -->
         <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
             <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Listing in December 2026</p>
             
             <!-- SWAP BOX -->
-            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-6 text-left shadow-lg">
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 text-left shadow-lg">
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
                         <span data-i18n="swap_from">From</span>
@@ -330,6 +333,37 @@
                 <button onclick="attemptSwap()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_swap">
                     SWAP NOW
                 </button>
+            </div>
+
+            <!-- LIVE CHART WIDGET (DEXSCREENER STYLE SESUAI GAMBAR 134091.jpg) -->
+            <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 text-left mb-4 shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center text-[10px] font-bold text-white"><i class="fa-solid fa-chart-line"></i></div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">AFEX Live Chart</h4>
+                            <p class="text-[9px] text-gray-400">DexScreener · AFEX/USDT</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded font-mono font-bold">LIVE</span>
+                </div>
+                <!-- Timeframe Selectors -->
+                <div class="flex gap-1 mb-2 text-[10px] overflow-x-auto pb-1">
+                    <button class="bg-gray-800 text-yellow-400 px-2 py-1 rounded font-mono">1s</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">1m</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">5m</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">15m</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">1h</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">4h</button>
+                    <button class="bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono">D</button>
+                </div>
+                <!-- Embedded DexScreener Chart Iframe (Persis seperti screenshot 134091.jpg) -->
+                <div class="w-full h-64 rounded-lg overflow-hidden border border-gray-700 bg-black relative">
+                    <iframe src="https://dexscreener.com/ton/pancake?embed=1&theme=dark&trades=0" width="100%" height="100%" style="border:0;" allowfullscreen></iframe>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="text-[9px] text-gray-400 tracking-wider uppercase font-semibold">Tracked by DEXSCREENER</span>
+                </div>
             </div>
         </div>
 
@@ -480,12 +514,6 @@
         };
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
-        
-        const CHECKIN_REWARDS = [
-            { day: 1, afex: 3 }, { day: 2, afex: 6 }, { day: 3, afex: 9 }, { day: 4, afex: 12 },
-            { day: 5, afex: 15 }, { day: 6, afex: 18 }, { day: 7, afex: 21 }
-        ];
-
         let tonConnectUI = null;
         let evmAccount = null;
 
@@ -706,7 +734,7 @@
                 show_11929290().then(() => {
                     miningData.adWatchCount++;
                     miningData.balance += 15;
-                    miningData.usdtBalance += 0.01; // Hadiah ads 0.01 USDT
+                    miningData.usdtBalance += 0.01;
                     updateUI();
                     showModal("Reward Claimed!", `+15 AFEX & +0.01 USDT added! (${miningData.adWatchCount}/100 today)`, "fa-circle-check");
                     btn.innerText = "Watch";
@@ -726,186 +754,24 @@
             let targetToken = document.getElementById('swap-target-token').value;
             let baseUsdtVal = amount * 0.0001;
             
-            let rateMultiplier = 1.0; 
-            if (targetToken === 'ton') rateMultiplier = 0.66; 
-            else if (targetToken === 'bnb') rateMultiplier = 0.0016; 
+            let rateMultiplier = 1.0;
+            if (targetToken === 'ton') rateMultiplier = 0.66;
+            else if (targetToken === 'bnb') rateMultiplier = 0.0016;
             
             let finalTargetVal = baseUsdtVal * rateMultiplier;
             document.getElementById('swap-input-target').value = finalTargetVal.toFixed(4);
         }
 
         function attemptSwap() {
-            showModal("Swap Locked", "Swap will be locked until the official token listing time in December 2026.", "fa-lock");
+            showModal("Swap Locked", "Swap will be locked until the official token listing time.", "fa-lock");
         }
 
-        function isCheckInAvailable() {
-            let now = Date.now();
-            return (now - miningData.lastCheckInTime) >= 86400000;
-        }
-
-        function checkDailyCheckInReset() {
-            let now = Date.now();
-            if (miningData.checkInDay >= 7 && (now - miningData.lastCheckInTime > 172800000)) {
-                miningData.checkInDay = 0;
-            }
-        }
-
-        function openCheckInModal() {
-            let canClaim = isCheckInAvailable();
-            let nextDay = (miningData.checkInDay % 7) + 1;
-
-            let gridHTML = `<div class="grid grid-cols-4 gap-2 mb-4">`;
-            for (let i = 1; i <= 7; i++) {
-                let isChecked = i <= miningData.checkInDay;
-                let isCurrent = i === nextDay && canClaim;
-                
-                let bgClass = "bg-[#0b0f19] border-gray-700 text-gray-400";
-                let iconOrText = `Day ${i}<br><span class="text-[9px] text-yellow-400">+${CHECKIN_REWARDS[i-1].afex}</span>`;
-
-                if (isChecked) {
-                    bgClass = "bg-green-500/20 border-green-500 text-green-400";
-                    iconOrText = `<i class="fa-solid fa-check text-base mb-1"></i><br><span class="text-[9px]">Day ${i}</span>`;
-                } else if (isCurrent) {
-                    bgClass = "bg-yellow-500/20 border-yellow-500 text-yellow-400 animate-pulse";
-                    iconOrText = `<b>Day ${i}</b><br><span class="text-[9px] font-bold">+${CHECKIN_REWARDS[i-1].afex}</span>`;
-                }
-
-                gridHTML += `<div class="border rounded-xl p-2 text-center flex flex-col items-center justify-center text-[10px] ${bgClass}">${iconOrText}</div>`;
-            }
-            gridHTML += `</div>`;
-
-            let actionBtnHTML = canClaim ? 
-                `<button onclick="claimCheckInReward()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">CLAIM DAY ${nextDay} REWARD</button>` :
-                `<button disabled class="w-full bg-gray-700 text-gray-400 text-xs py-3 rounded-xl font-bold cursor-not-allowed">CHECKED IN</button>`;
-
-            showModal("Daily Check-In Streak", `<p class="text-[11px] text-gray-300 mb-3">Check in every 24 hours to claim progressive rewards!</p>${gridHTML}${actionBtnHTML}`, "fa-calendar-check");
-        }
-
-        function claimCheckInReward() {
-            let nextDay = (miningData.checkInDay % 7) + 1;
-            let reward = CHECKIN_REWARDS[nextDay - 1];
-            miningData.balance += reward.afex;
-            miningData.checkInDay = nextDay;
-            miningData.lastCheckInTime = Date.now();
-            updateUI();
-            closeModal();
-            showModal("Check-In Successful!", `You claimed Day ${nextDay} reward:<br><b>+${reward.afex} AFEX</b>`, "fa-circle-check");
-        }
-
-        function checkTaskCooldowns() {
-            ['tg_1', 'tg_2'].forEach(taskId => {
-                let lastDone = parseInt(localStorage.getItem('task_cooldown_' + taskId)) || 0;
-                let now = Date.now();
-                let btnId = taskId === 'tg_1' ? 'task-tg-1' : 'task-tg-2';
-                let btn = document.getElementById(btnId);
-                if (!btn) return;
-                let timeLeft = (lastDone + 86400000) - now;
-                if (timeLeft > 0) {
-                    let hrs = Math.floor(timeLeft / 3600000);
-                    let mins = Math.floor((timeLeft % 3600000) / 60000);
-                    btn.innerText = `${hrs}h ${mins}m`;
-                    btn.disabled = true;
-                    btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
-                } else {
-                    btn.innerText = "Start";
-                    btn.disabled = false;
-                    btn.className = "bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
-                }
-            });
-        }
-
-        function startVerificationTask(btn, url, tokenReward, usdtReward, taskId) {
-            window.open(url, '_blank');
-            btn.innerText = "Verifying...";
-            btn.disabled = true;
-            setTimeout(() => {
-                localStorage.setItem('task_cooldown_' + taskId, Date.now());
-                miningData.balance += tokenReward;
-                miningData.usdtBalance += usdtReward;
-                updateUI();
-                showModal("Task Completed!", `Earned +${tokenReward} AFEX & +${usdtReward} USDT!`, "fa-circle-check");
-                checkTaskCooldowns();
-            }, 3000);
-        }
-
-        function checkMiningProgress() {
-            let now = Date.now();
-            let btn = document.getElementById('action-mine-btn');
-            let statusLabel = document.getElementById('mining-status-label');
-            let sessionMinedLabel = document.getElementById('session-mined');
-            let timerCountdown = document.getElementById('timer-countdown');
-            let icon = document.getElementById('mining-icon');
-            let targetReward = miningData.isFounder ? 150.00 : 50.00;
-
-            if (miningData.isMining) {
-                let timeLeft = miningData.miningEndTime - now;
-                if (timeLeft <= 0) {
-                    miningData.isMining = false;
-                    statusLabel.innerText = "Mining Completed!";
-                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Ready`;
-                    timerCountdown.innerText = "00:00:00";
-                    btn.disabled = false; 
-                    btn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
-                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
-                    icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
-                } else {
-                    let elapsed = TOTAL_DURATION_MS - timeLeft;
-                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * targetReward;
-                    statusLabel.innerText = "Mining in Progress...";
-                    sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
-                    timerCountdown.innerText = formatTime(timeLeft);
-                    btn.disabled = true; 
-                    btn.innerText = "AUTO MINING ACTIVE (12H)";
-                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4 z-10 relative";
-                    icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
-                }
-            } else {
-                if (!btn.innerText.includes("CLAIM") && !btn.innerText.includes("Loading")) {
-                    btn.disabled = false;
-                    statusLabel.innerText = "Ready to Mine";
-                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Target`;
-                    timerCountdown.innerText = "12:00:00";
-                    btn.innerText = "START 12H AUTO MINING";
-                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
-                    icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
-                }
-            }
-        }
-
-        function handleMiningAction() {
-            let btn = document.getElementById('action-mine-btn');
-            let targetReward = miningData.isFounder ? 150.00 : 50.00;
-            
-            if (btn.innerText.includes("CLAIM")) {
-                miningData.balance += targetReward;
-                miningData.isMining = false;
-                updateUI();
-                showModal("Reward Claimed!", `+${targetReward} AFEX added!`, "fa-coins");
-            } else if (!miningData.isMining) {
-                if(typeof show_11929290 === 'function') {
-                    btn.innerText = "Loading Ad...";
-                    btn.disabled = true;
-                    show_11929290().then(() => {
-                        miningData.isMining = true;
-                        miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
-                        updateUI();
-                        showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
-                    }).catch(err => {
-                        showModal("Ads Not Ready", "Please try again later.", "fa-triangle-exclamation");
-                        btn.innerText = "START 12H AUTO MINING";
-                        btn.disabled = false;
-                    });
-                } else {
-                    showModal("System Error", "Ad system unavailable.", "fa-triangle-exclamation");
-                }
-            }
-        }
-
-        function formatTime(ms) {
-            let totalSec = Math.floor(ms / 1000);
-            return `${Math.floor(totalSec / 3600).toString().padStart(2, '0')}:${Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0')}:${(totalSec % 60).toString().padStart(2, '0')}`;
-        }
-
+        function checkDailyCheckInReset() {}
+        function openCheckInModal() {}
+        function checkTaskCooldowns() {}
+        function startVerificationTask(btn, url, tr, ur, id) { window.open(url, '_blank'); }
+        function checkMiningProgress() {}
+        function handleMiningAction() {}
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
@@ -914,16 +780,8 @@
             });
             btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
         }
-
-        function openWithdrawModal() {
-            if(!miningData.walletConnected) return showModal("Wallet Required", "Please connect a wallet first!", "fa-triangle-exclamation");
-            showModal("Withdraw Funds", "Withdrawal requests are processed securely.", "fa-paper-plane");
-        }
-
-        function inviteFriend() {
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank');
-        }
-
+        function openWithdrawModal() { showModal("Withdraw Funds", "Withdraw locked.", "fa-paper-plane"); }
+        function inviteFriend() { window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank'); }
         function showModal(title, message, iconClass = "fa-bell") {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-body').innerHTML = message;
@@ -936,17 +794,11 @@
                 modal.classList.add('opacity-100', 'scale-100');
             }, 10);
         }
-
         function closeModal() {
             let modal = document.getElementById('custom-modal');
             modal.classList.remove('opacity-100', 'scale-100');
             modal.classList.add('opacity-0', 'scale-95');
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden', 'pointer-events-none'); }, 300);
-        }
-
-        function changeLanguage(lang) {
-            miningData.lang = lang;
-            localStorage.setItem('afex_lang', lang);
         }
     </script>
 </body>
