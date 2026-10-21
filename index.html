@@ -379,22 +379,26 @@
             setInterval(checkTaskCooldowns, 1000);
             applyLanguage();
 
-            // --- INISIALISASI OTOMATIS IN-APP INTERSTITIAL MONETAG ---
-            if (typeof show_11929290 === 'function' && !window.adsSdkFailed) {
-                show_11929290({
-                    type: 'inApp',
-                    inAppSettings: {
-                        frequency: 2,
-                        capping: 0.1,
-                        interval: 30,
-                        timeout: 5,
-                        everyPage: false
-                    }
-                }).then(() => {
-                    console.log("In-App Interstitial scheduled successfully.");
-                }).catch((err) => {
-                    console.warn("In-App Interstitial initialization error:", err);
-                });
+            // --- INISIALISASI AMAN IN-APP INTERSTITIAL MONETAG ---
+            try {
+                if (typeof show_11929290 === 'function' && !window.adsSdkFailed) {
+                    show_11929290({
+                        type: 'inApp',
+                        inAppSettings: {
+                            frequency: 2,
+                            capping: 0.1,
+                            interval: 30,
+                            timeout: 5,
+                            everyPage: false
+                        }
+                    }).then(() => {
+                        console.log("In-App Interstitial scheduled successfully.");
+                    }).catch((err) => {
+                        console.warn("In-App Interstitial initialization error:", err);
+                    });
+                }
+            } catch (e) {
+                console.warn("Ad SDK initialization skipped:", e);
             }
         });
 
