@@ -9,8 +9,8 @@
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- MONETAG SDK FOR TELEGRAM MINI APP (Dengan Fallback & Error Handling) -->
-    <script src="//libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" onerror="console.warn('Monetag SDK failed to load, fallback mode enabled.');"></script>
+    <!-- MONETAG SDK FOR TELEGRAM MINI APP (In-App Interstitial) -->
+    <script src="//libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" onerror="window.adsSdkFailed = true;"></script>
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,7 +30,6 @@
         <!-- HEADER PROFILE & STATS -->
         <div class="flex justify-between items-center mb-6">
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
-                <!-- AFEX Brand Logo Avatar -->
                 <div class="w-7 h-7 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-black shadow-md overflow-hidden p-0.5">
                     <svg viewBox="0 0 100 100" class="w-full h-full fill-current">
                         <polygon points="50,15 85,85 65,85 50,45 35,85 15,85" fill="#0b0f19"/>
@@ -43,7 +42,6 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <!-- Language Switcher Button -->
                 <button onclick="toggleLanguage()" class="bg-[#161f33] w-8 h-8 rounded-xl border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white hover:border-yellow-500 transition-all" title="Toggle Language">
                     <i class="fa-solid fa-globe text-xs"></i>
                 </button>
@@ -53,24 +51,23 @@
             </div>
         </div>
 
-        <!-- 1. TAB 1: AUTO MINING (12 HOURS) -->
+        <!-- 1. TAB 1: AUTO MINING & DAILY CHECK-IN -->
         <div id="tab-tap" class="tab-content active text-center py-2">
-            <!-- Main Balance -->
             <div class="mb-4">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
 
-            <!-- Daily Rewards Banner -->
-            <div onclick="claimDailyReward()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-6 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all">
+            <!-- Daily Check-In Banner -->
+            <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3.5 rounded-xl mb-6 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-gift"></i>
+                        <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-xs font-bold text-white" data-i18n="daily_rewards">Daily Rewards</h4>
-                        <p class="text-[10px] text-gray-400" data-i18n="claim_bonus">Claim your daily bonus here</p>
+                        <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
+                        <p class="text-[10px] text-yellow-400 font-mono" id="checkin-banner-status">Claim 7-Day Streak Rewards</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
@@ -116,44 +113,10 @@
         <!-- 2. TAB 2: TASKS PAGE -->
         <div id="tab-task" class="tab-content">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
-            <p class="text-xs text-gray-400 mb-1" data-i18n="tasks_desc">Complete tasks to earn rewards credited instantly.</p>
-            <div class="mb-4 text-[10px] text-yellow-400 font-mono">
-                Daily Ad Limit: <span id="ad-counter-display">50</span>/50 remaining
-            </div>
+            <p class="text-xs text-gray-400 mb-4" data-i18n="tasks_desc">Complete tasks to earn rewards credited instantly.</p>
             
             <div class="space-y-2.5" id="task-container">
-                
-                <!-- USDT AD TASK -->
-                <div class="bg-gradient-to-r from-[#161f33] to-[#0d1624] p-3 rounded-xl border border-green-500/30 flex items-center justify-between relative overflow-hidden">
-                    <div class="flex items-center gap-3 relative z-10">
-                        <div class="w-9 h-9 bg-[#26A17B]/20 text-[#26A17B] rounded-full flex items-center justify-center font-bold text-xs">
-                            ₮
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white" data-i18n="watch_usdt_ad">Watch Sponsor Ad</h4>
-                            <p class="text-[10px] text-green-400 font-mono font-bold">+0.01000 USDT</p>
-                        </div>
-                    </div>
-                    <button id="task-btn-usdt" onclick="watchUsdtAdReward(this)" class="bg-green-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:bg-green-400 relative z-10" data-i18n="btn_watch">Watch</button>
-                </div>
-
-                <!-- AFEX Ad Task -->
-                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center p-1.5">
-                            <svg viewBox="0 0 100 100" class="w-full h-full fill-current text-yellow-400">
-                                <polygon points="50,15 85,85 65,85 50,45 35,85 15,85"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white" data-i18n="watch_afex_ad">Watch Promotional Ads</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX</p>
-                        </div>
-                    </div>
-                    <button id="task-btn-afex" onclick="watchAfexAdReward(this)" class="bg-yellow-500 text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer hover:bg-yellow-400" data-i18n="btn_watch">Watch</button>
-                </div>
-
-                <!-- Social Tasks with 24h Cooldown -->
+                <!-- Social Tasks -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
@@ -246,8 +209,6 @@
             <p class="text-xs text-gray-400 mb-4" data-i18n="wallet_desc">Manage your accumulated crypto assets securely.</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
-                
-                <!-- Multi-Asset Display -->
                 <div class="space-y-2 mb-4">
                     <!-- AFEX -->
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
@@ -268,9 +229,7 @@
                     <!-- USDT -->
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#26A17B] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                ₮
-                            </div>
+                            <div class="w-8 h-8 bg-[#26A17B] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">₮</div>
                             <div>
                                 <span class="text-xs font-bold text-white block">USDT</span>
                                 <span class="text-[10px] text-gray-400">1 USDT = $1.00</span>
@@ -282,9 +241,7 @@
                     <!-- TON -->
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#0098EA] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                💎
-                            </div>
+                            <div class="w-8 h-8 bg-[#0098EA] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">💎</div>
                             <div>
                                 <span class="text-xs font-bold text-white block">TON</span>
                                 <span class="text-[10px] text-gray-400">1 TON = $1.51</span>
@@ -292,104 +249,15 @@
                         </div>
                         <span id="wallet-ton-bal" class="font-mono text-cyan-400 font-bold text-sm">0.00</span>
                     </div>
-
-                    <!-- USDC -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#2775CA] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                $
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">USDC</span>
-                                <span class="text-[10px] text-gray-400">1 USDC = $1.00</span>
-                            </div>
-                        </div>
-                        <span id="wallet-usdc-bal" class="font-mono text-blue-400 font-bold text-sm">0.00</span>
-                    </div>
-
-                    <!-- BTC -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#F7931A] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                ₿
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">BTC</span>
-                                <span class="text-[10px] text-gray-400">1 BTC = $84,616</span>
-                            </div>
-                        </div>
-                        <span id="wallet-btc-bal" class="font-mono text-orange-400 font-bold text-sm">0.00</span>
-                    </div>
-
-                    <!-- ETH -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#627EEA] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                Ξ
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">ETH</span>
-                                <span class="text-[10px] text-gray-400">1 ETH = $2,680</span>
-                            </div>
-                        </div>
-                        <span id="wallet-eth-bal" class="font-mono text-indigo-400 font-bold text-sm">0.00</span>
-                    </div>
-
-                    <!-- BNB -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#F3BA2F] rounded-full flex items-center justify-center font-bold text-black text-xs shadow-md">
-                                B
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">BNB</span>
-                                <span class="text-[10px] text-gray-400">1 BNB = $772</span>
-                            </div>
-                        </div>
-                        <span id="wallet-bnb-bal" class="font-mono text-yellow-500 font-bold text-sm">0.00</span>
-                    </div>
-
-                    <!-- SOL -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#9945FF] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                S
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">SOL</span>
-                                <span class="text-[10px] text-gray-400">1 SOL = $119.36</span>
-                            </div>
-                        </div>
-                        <span id="wallet-sol-bal" class="font-mono text-purple-400 font-bold text-sm">0.00</span>
-                    </div>
-
-                    <!-- DOGE -->
-                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 bg-[#C2A633] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">
-                                🐕
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-white block">DOGE</span>
-                                <span class="text-[10px] text-gray-400">1 DOGE = $0.094</span>
-                            </div>
-                        </div>
-                        <span id="wallet-doge-bal" class="font-mono text-amber-300 font-bold text-sm">0.00</span>
-                    </div>
                 </div>
                 
-                <!-- Send & Receive Quick Menu -->
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="openSendModal()" class="bg-[#0b0f19] border border-gray-700 hover:border-yellow-500/50 p-2.5 rounded-xl text-center cursor-pointer transition-all">
-                        <div class="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-1">
-                            <i class="fa-solid fa-arrow-up text-xs"></i>
-                        </div>
+                        <div class="w-8 h-8 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-1"><i class="fa-solid fa-arrow-up text-xs"></i></div>
                         <span class="text-xs font-bold text-white" data-i18n="btn_send">Send</span>
                     </button>
                     <button onclick="openReceiveModal()" class="bg-[#0b0f19] border border-gray-700 hover:border-cyan-500/50 p-2.5 rounded-xl text-center cursor-pointer transition-all">
-                        <div class="w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mx-auto mb-1">
-                            <i class="fa-solid fa-arrow-down text-xs"></i>
-                        </div>
+                        <div class="w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mx-auto mb-1"><i class="fa-solid fa-arrow-down text-xs"></i></div>
                         <span class="text-xs font-bold text-white" data-i18n="btn_receive">Receive</span>
                     </button>
                 </div>
@@ -400,7 +268,7 @@
                 </div>
                 <div class="flex justify-between items-center text-xs mt-1 mb-3">
                     <span class="text-gray-400" data-i18n="price_per_token">Price per AFEX:</span>
-                    <span class="text-yellow-400 font-mono font-bold">$0.00267 (~$0.80/300)</span>
+                    <span class="text-yellow-400 font-mono font-bold">$0.00267</span>
                 </div>
 
                 <button onclick="openWithdrawModal()" class="w-full mt-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_withdraw">
@@ -422,7 +290,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- BOTTOM NAVIGATION BAR -->
@@ -464,76 +331,71 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         let tg = window.Telegram?.WebApp;
-        try { 
-            if(tg) tg.expand(); 
-        } catch(e) {}
+        try { if(tg) { tg.expand(); tg.ready(); } } catch(e) {}
 
         let miningData = {
             balance: parseFloat(localStorage.getItem('afex_balance')) || 100.00,
             usdtBalance: parseFloat(localStorage.getItem('afex_usdt')) || 1.20,
             tonBalance: parseFloat(localStorage.getItem('afex_ton')) || 0.00,
-            usdcBalance: parseFloat(localStorage.getItem('afex_usdc')) || 0.00,
-            btcBalance: parseFloat(localStorage.getItem('afex_btc')) || 0.00,
-            ethBalance: parseFloat(localStorage.getItem('afex_eth')) || 0.00,
-            bnbBalance: parseFloat(localStorage.getItem('afex_bnb')) || 0.00,
-            solBalance: parseFloat(localStorage.getItem('afex_sol')) || 0.00,
-            dogeBalance: parseFloat(localStorage.getItem('afex_doge')) || 0.00,
             refCount: parseInt(localStorage.getItem('afex_refs')) || 0,
-            refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
             walletConnected: localStorage.getItem('afex_wallet_addr') || '',
             isMining: localStorage.getItem('afex_is_mining') === 'true',
             miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
             lastWithdrawTime: parseInt(localStorage.getItem('afex_last_wd')) || 0,
             totalRewardSession: 200.00,
-            adCountToday: parseInt(localStorage.getItem('afex_ad_count')) || 0,
-            lastAdResetDate: localStorage.getItem('afex_ad_reset') || new Date().toDateString()
+            
+            // Check-in Data
+            checkInDay: parseInt(localStorage.getItem('afex_checkin_day')) || 0,
+            lastCheckInTime: parseInt(localStorage.getItem('afex_last_checkin')) || 0
         };
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
+        const CHECKIN_REWARDS = [
+            { day: 1, afex: 25, usdt: 0 },
+            { day: 2, afex: 50, usdt: 0 },
+            { day: 3, afex: 75, usdt: 0.001 },
+            { day: 4, afex: 100, usdt: 0 },
+            { day: 5, afex: 150, usdt: 0.002 },
+            { day: 6, afex: 200, usdt: 0 },
+            { day: 7, afex: 350, usdt: 0.005 }
+        ];
 
         window.addEventListener('DOMContentLoaded', () => {
-            let todayStr = new Date().toDateString();
-            if (miningData.lastAdResetDate !== todayStr) {
-                miningData.adCountToday = 0;
-                miningData.lastAdResetDate = todayStr;
-                localStorage.setItem('afex_ad_count', 0);
-                localStorage.setItem('afex_ad_reset', todayStr);
-            }
+            checkDailyCheckInReset();
 
             let userTg = tg?.initDataUnsafe?.user;
+            let userIdStr = userTg ? userTg.id.toString() : "8601594529";
+
             if(userTg) {
                 document.getElementById('header-username').innerText = `@${userTg.username || userTg.first_name}`;
-                document.getElementById('header-acc').innerText = userTg.id;
+                document.getElementById('header-acc').innerText = userIdStr;
             } else {
-                document.getElementById('header-acc').innerText = "8601594529";
+                document.getElementById('header-acc').innerText = userIdStr;
             }
 
-            let startParam = tg?.initDataUnsafe?.start_param;
-            if (startParam) {
-                let hasBeenReferred = localStorage.getItem('afex_has_been_referred');
-                if (!hasBeenReferred && startParam !== miningData.refCode) {
-                    localStorage.setItem('afex_has_been_referred', 'true');
-                    miningData.balance += 70.00;
-                    let referrerKey = 'ref_count_' + startParam;
-                    let existingRefs = parseInt(localStorage.getItem(referrerKey)) || 0;
-                    localStorage.setItem(referrerKey, existingRefs + 1);
-                    showModal("Welcome Bonus!", "You joined via referral link! +70 AFEX bonus added.", "fa-gift");
-                }
-            }
-
-            document.getElementById('ref-link-input').value = `https://t.me/Fexboostbot?start=${miningData.refCode}`;
-            miningData.refCount = parseInt(localStorage.getItem('ref_count_' + miningData.refCode)) || miningData.refCount;
-
-            if(miningData.walletConnected) {
-                document.getElementById('tw-status').innerText = miningData.walletConnected.substring(0, 10) + '...';
-                document.getElementById('tw-btn').innerText = "Edit";
-            }
-            
             updateUI();
             checkTaskCooldowns();
             setInterval(checkMiningProgress, 1000);
             setInterval(checkTaskCooldowns, 1000);
             applyLanguage();
+
+            // --- INISIALISASI OTOMATIS IN-APP INTERSTITIAL MONETAG ---
+            if (typeof show_11929290 === 'function' && !window.adsSdkFailed) {
+                show_11929290({
+                    type: 'inApp',
+                    inAppSettings: {
+                        frequency: 2,
+                        capping: 0.1,
+                        interval: 30,
+                        timeout: 5,
+                        everyPage: false
+                    }
+                }).then(() => {
+                    console.log("In-App Interstitial scheduled successfully.");
+                }).catch((err) => {
+                    console.warn("In-App Interstitial initialization error:", err);
+                });
+            }
         });
 
         function updateUI() {
@@ -543,33 +405,105 @@
             document.getElementById('token-usd').innerText = "$" + totalUsdEst.toFixed(2) + " USDT (Est)";
             document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2) + " USDT";
             document.getElementById('total-ref-count').innerText = miningData.refCount;
-            document.getElementById('ad-counter-display').innerText = (50 - miningData.adCountToday);
 
-            // Wallet Balances
             document.getElementById('wallet-afex-bal').innerText = miningData.balance.toFixed(2);
             document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-ton-bal').innerText = miningData.tonBalance.toFixed(4);
-            document.getElementById('wallet-usdc-bal').innerText = "$" + miningData.usdcBalance.toFixed(2);
-            document.getElementById('wallet-btc-bal').innerText = miningData.btcBalance.toFixed(6);
-            document.getElementById('wallet-eth-bal').innerText = miningData.ethBalance.toFixed(4);
-            document.getElementById('wallet-bnb-bal').innerText = miningData.bnbBalance.toFixed(4);
-            document.getElementById('wallet-sol-bal').innerText = miningData.solBalance.toFixed(4);
-            document.getElementById('wallet-doge-bal').innerText = miningData.dogeBalance.toFixed(2);
+
+            let canCheckIn = isCheckInAvailable();
+            if (canCheckIn) {
+                document.getElementById('checkin-banner-status').innerText = "Ready to Claim Today's Reward!";
+            } else {
+                document.getElementById('checkin-banner-status').innerText = "Checked in! Next in 24h";
+            }
 
             localStorage.setItem('afex_balance', miningData.balance);
             localStorage.setItem('afex_usdt', miningData.usdtBalance);
             localStorage.setItem('afex_ton', miningData.tonBalance);
-            localStorage.setItem('afex_usdc', miningData.usdcBalance);
-            localStorage.setItem('afex_btc', miningData.btcBalance);
-            localStorage.setItem('afex_eth', miningData.ethBalance);
-            localStorage.setItem('afex_bnb', miningData.bnbBalance);
-            localStorage.setItem('afex_sol', miningData.solBalance);
-            localStorage.setItem('afex_doge', miningData.dogeBalance);
             localStorage.setItem('afex_refs', miningData.refCount);
             localStorage.setItem('afex_is_mining', miningData.isMining);
             localStorage.setItem('afex_mining_end', miningData.miningEndTime);
-            localStorage.setItem('afex_last_wd', miningData.lastWithdrawTime);
-            localStorage.setItem('afex_ad_count', miningData.adCountToday);
+            localStorage.setItem('afex_checkin_day', miningData.checkInDay);
+            localStorage.setItem('afex_last_checkin', miningData.lastCheckInTime);
+        }
+
+        // --- DAILY CHECK-IN SYSTEM (24H COOLDOWN & 7-DAY GRID) ---
+        function isCheckInAvailable() {
+            let now = Date.now();
+            let last = miningData.lastCheckInTime;
+            return (now - last) >= 86400000;
+        }
+
+        function checkDailyCheckInReset() {
+            let now = Date.now();
+            if (miningData.checkInDay >= 7 && (now - miningData.lastCheckInTime > 172800000)) {
+                miningData.checkInDay = 0;
+            }
+        }
+
+        function openCheckInModal() {
+            let canClaim = isCheckInAvailable();
+            let nextDay = (miningData.checkInDay % 7) + 1;
+
+            let gridHTML = `<div class="grid grid-cols-4 gap-2 mb-4">`;
+            for (let i = 1; i <= 7; i++) {
+                let isChecked = i <= miningData.checkInDay;
+                let isCurrent = i === nextDay && canClaim;
+                
+                let bgClass = "bg-[#0b0f19] border-gray-700 text-gray-400";
+                let iconOrText = `Day ${i}<br><span class="text-[9px] text-yellow-400">+${CHECKIN_REWARDS[i-1].afex}</span>`;
+
+                if (isChecked) {
+                    bgClass = "bg-green-500/20 border-green-500 text-green-400";
+                    iconOrText = `<i class="fa-solid fa-check text-base mb-1"></i><br><span class="text-[9px]">Day ${i}</span>`;
+                } else if (isCurrent) {
+                    bgClass = "bg-yellow-500/20 border-yellow-500 text-yellow-400 animate-pulse";
+                    iconOrText = `<b>Day ${i}</b><br><span class="text-[9px] font-bold">+${CHECKIN_REWARDS[i-1].afex}</span>`;
+                }
+
+                gridHTML += `
+                    <div class="border rounded-xl p-2 text-center flex flex-col items-center justify-center text-[10px] ${bgClass}">
+                        ${iconOrText}
+                    </div>
+                `;
+            }
+            gridHTML += `
+                <div class="border border-dashed border-gray-700 rounded-xl p-2 text-center flex flex-col items-center justify-center text-[10px] bg-[#0b0f19] text-gray-500">
+                    <i class="fa-solid fa-trophy text-sm mb-1"></i>
+                    <span>Streak</span>
+                </div>
+            </div>`;
+
+            let actionBtnHTML = "";
+            if (canClaim) {
+                actionBtnHTML = `<button onclick="claimCheckInReward()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">CLAIM DAY ${nextDay} REWARD</button>`;
+            } else {
+                let timeLeft = 86400000 - (Date.now() - miningData.lastCheckInTime);
+                let hrs = Math.floor(timeLeft / 3600000);
+                let mins = Math.floor((timeLeft % 3600000) / 60000);
+                actionBtnHTML = `<button disabled class="w-full bg-gray-700 text-gray-400 text-xs py-3 rounded-xl font-bold cursor-not-allowed">CHECKED IN (Next in ${hrs}h ${mins}m)</button>`;
+            }
+
+            showModal("Daily Check-In Streak", `
+                <p class="text-[11px] text-gray-300 mb-3">Check in every 24 hours to claim progressive daily rewards!</p>
+                ${gridHTML}
+                ${actionBtnHTML}
+            `, "fa-calendar-check");
+        }
+
+        function claimCheckInReward() {
+            let nextDay = (miningData.checkInDay % 7) + 1;
+            let reward = CHECKIN_REWARDS[nextDay - 1];
+
+            miningData.balance += reward.afex;
+            if(reward.usdt > 0) miningData.usdtBalance += reward.usdt;
+
+            miningData.checkInDay = nextDay;
+            miningData.lastCheckInTime = Date.now();
+            updateUI();
+
+            closeModal();
+            showModal("Check-In Successful!", `You claimed Day ${nextDay} reward:<br><b>+${reward.afex} AFEX</b> ${reward.usdt > 0 ? `& <b>+$${reward.usdt} USDT</b>` : ''}`, "fa-circle-check");
         }
 
         function showModal(title, message, iconClass = "fa-bell") {
@@ -608,7 +542,7 @@
                     btn.disabled = true;
                     btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
                 } else {
-                    btn.innerText = currentLang === 'id' ? "Mulai" : "Start";
+                    btn.innerText = "Start";
                     btn.disabled = false;
                     btn.className = taskId === 'tw_1' ? "bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" : "bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
                 }
@@ -617,7 +551,7 @@
 
         function startVerificationTask(btn, url, tokenReward, usdtReward, taskId) {
             window.open(url, '_blank');
-            btn.innerText = currentLang === 'id' ? "Memeriksa..." : "Verifying...";
+            btn.innerText = "Verifying...";
             btn.disabled = true;
 
             setTimeout(() => {
@@ -630,38 +564,192 @@
             }, 4000);
         }
 
-        // --- ROBUST MONETAG AD TRIGGER (DENGAN SDK FALLBACK & AUTO BYPASS JIKA OFFLINE/DEV) ---
-        function triggerMonetagAd(onSuccess) {
-            if (miningData.adCountToday >= 50) {
-                showModal("Limit Reached", "You have reached the maximum daily limit of 50 ad views.", "fa-triangle-exclamation");
-                return;
-            }
+        function checkMiningProgress() {
+            let now = Date.now();
+            let btn = document.getElementById('action-mine-btn');
+            let statusLabel = document.getElementById('mining-status-label');
+            let sessionMinedLabel = document.getElementById('session-mined');
+            let timerCountdown = document.getElementById('timer-countdown');
+            let icon = document.getElementById('mining-icon');
 
-            if (typeof show_11929290 === 'function') {
-                show_11929290('pop').then(() => {
-                    miningData.adCountToday++;
-                    onSuccess();
-                }).catch((err) => {
-                    console.warn("Monetag ad popup error/skipped:", err);
-                    // Fallback aman untuk pengujian atau jika ad diblokir adblocker
-                    miningData.adCountToday++;
-                    onSuccess();
-                });
+            if (miningData.isMining) {
+                let timeLeft = miningData.miningEndTime - now;
+
+                if (timeLeft <= 0) {
+                    miningData.isMining = false;
+                    statusLabel.innerText = "Mining Completed!";
+                    sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
+                    timerCountdown.innerText = "00:00:00";
+                    btn.disabled = false; btn.innerText = "CLAIM REWARD (+200 AFEX)";
+                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
+                } else {
+                    let elapsed = TOTAL_DURATION_MS - timeLeft;
+                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * miningData.totalRewardSession;
+                    statusLabel.innerText = "Mining in Progress...";
+                    sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
+                    timerCountdown.innerText = formatTime(timeLeft);
+                    btn.disabled = true; btn.innerText = "AUTO MINING ACTIVE (12H)";
+                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4";
+                    icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
+                }
             } else {
-                console.warn("Monetag SDK not ready, executing fallback reward.");
-                // Fallback otomatis agar pengguna tidak stuck jika network ad belum siap
-                miningData.adCountToday++;
-                onSuccess();
+                if (!btn.innerText.includes("CLAIM")) {
+                    btn.disabled = false;
+                    statusLabel.innerText = "Ready to Mine";
+                    sessionMinedLabel.innerText = "+200.00 AFEX Target";
+                    timerCountdown.innerText = "12:00:00";
+                    btn.innerText = "START 12H AUTO MINING";
+                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all";
+                    icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
+                }
             }
         }
 
-        function watchAfexAdReward(btn) {
-            btn.innerText = "Loading...";
-            btn.disabled = true;
-
-            triggerMonetagAd(() => {
-                miningData.balance += 25;
+        function handleMiningAction() {
+            let btn = document.getElementById('action-mine-btn');
+            if (btn.innerText.includes("CLAIM")) {
+                miningData.balance += miningData.totalRewardSession;
+                miningData.isMining = false;
                 updateUI();
-                showModal("Ad Completed", "Earned +25 AFEX!", "fa-circle-check");
-                btn.innerText = "Watch"; 
-                btn.disabled =
+                showModal("Reward Claimed!", `+${miningData.totalRewardSession} AFEX!`, "fa-coins");
+                btn.innerText = "START 12H AUTO MINING";
+            } else if (!miningData.isMining) {
+                miningData.isMining = true;
+                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+                updateUI();
+                showModal("Mining Started", "12-Hour session started!", "fa-bolt");
+            }
+        }
+
+        function formatTime(ms) {
+            let totalSec = Math.floor(ms / 1000);
+            return `${Math.floor(totalSec / 3600).toString().padStart(2, '0')}:${Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0')}:${(totalSec % 60).toString().padStart(2, '0')}`;
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); });
+            btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
+        }
+
+        function connectWalletModal(walletName, statusId) {
+            showModal("Connect Wallet", `<input type="text" id="input-wallet-addr" placeholder="0x..." class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-white mb-3"><button onclick="saveWallet('${statusId}')" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs">Connect</button>`, "fa-link");
+        }
+
+        function saveWallet(statusId) {
+            let addr = document.getElementById('input-wallet-addr').value.trim();
+            if(addr.length < 10) return showModal("Error", "Invalid address!", "fa-triangle-exclamation");
+            miningData.walletConnected = addr;
+            document.getElementById(statusId).innerText = addr.substring(0, 10) + '...';
+            updateUI(); closeModal(); showModal("Success", "Wallet connected!", "fa-check");
+        }
+
+        function openSendModal() { showModal("Send", "Enter address and amount.", "fa-arrow-up"); }
+        function openReceiveModal() { showModal("Receive", `Address:<br><span class='text-cyan-300 font-mono text-[10px] break-all'>${miningData.walletConnected || "0xC05B...685"}</span>`, "fa-arrow-down"); }
+
+        function openWithdrawModal() {
+            if(!miningData.walletConnected) return showModal("Wallet Required", "Connect wallet first!", "fa-triangle-exclamation");
+            let now = Date.now();
+            if (now - miningData.lastWithdrawTime < 86400000) {
+                let timeLeft = 86400000 - (now - miningData.lastWithdrawTime);
+                let hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                return showModal("Limit Reached", `You can only withdraw once a day. Please wait ${hours} hours.`, "fa-clock");
+            }
+            showModal("Withdraw Funds", `
+                <div class="space-y-3 text-left">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Select Asset:</label>
+                        <select id="wd-asset" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white">
+                            <option value="AFEX">AFEX Token (Min 1,875)</option>
+                            <option value="USDT">USDT (Min $5.00)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Amount:</label>
+                        <input type="number" id="wd-amount" placeholder="0" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white font-mono">
+                    </div>
+                    <button onclick="processWithdrawDirect()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mt-1">Withdraw Now</button>
+                </div>
+            `, "fa-paper-plane");
+        }
+
+        function processWithdrawDirect() {
+            let asset = document.getElementById('wd-asset').value;
+            let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
+            if (asset === 'AFEX' && amount < 1875) return showModal("Error", "Minimum AFEX is 1,875.", "fa-xmark");
+            if (asset === 'USDT' && amount < 5.0) return showModal("Error", "Minimum USDT is $5.00.", "fa-xmark");
+
+            if(asset === 'AFEX') miningData.balance -= amount;
+            else miningData.usdtBalance -= amount;
+            miningData.lastWithdrawTime = Date.now();
+            updateUI();
+            closeModal();
+            showModal("Withdrawal Success!", `${amount} ${asset} sent to your wallet!`, "fa-circle-check");
+        }
+
+        function inviteFriend() {
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join!`, '_blank');
+        }
+
+        let currentLang = 'en';
+        const dict = {
+            id: {
+                "total_balance": "Total Saldo",
+                "daily_checkin": "Check-in Harian",
+                "ready_to_mine": "Siap Ditambang",
+                "start_mining": "MULAI MINING 12 JAM",
+                "session_timer": "Waktu Sesi:",
+                "connect_wallet": "Hubungkan Dompet",
+                "save_progress": "Simpan progres & terima koin",
+                "tasks_title": "TUGAS",
+                "tasks_desc": "Selesaikan tugas untuk hadiah instan.",
+                "invite_friends": "UNDANG TEMAN!",
+                "invite_desc": "UNDANG TEMAN <br>+70 AFEX (~$1.00)",
+                "how_it_works": "Cara Kerjanya",
+                "referral_info": "Teman Anda harus bergabung via tautan.",
+                "total_referrals": "Total Undangan",
+                "btn_invite": "Undang teman",
+                "token_swap": "TUKAR TOKEN",
+                "listing_date": "Listing di Desember 2026",
+                "dex_engine": "Mesin Swap & Listing",
+                "swap_desc": "Penukaran token dibuka saat listing Desember 2026.",
+                "listing_schedule": "Jadwal Listing:",
+                "wallet_assets": "ASET DOMPET",
+                "wallet_desc": "Kelola aset Anda.",
+                "btn_send": "Kirim",
+                "btn_receive": "Terima",
+                "pool_liquidity": "Likuiditas:",
+                "price_per_token": "Harga AFEX:",
+                "btn_withdraw": "TARIK SALDO",
+                "connected_wallets": "Dompet Terhubung",
+                "btn_connect": "Hubung →",
+                "nav_refer": "Undang",
+                "nav_task": "Tugas",
+                "nav_mine": "Tambang",
+                "nav_swap": "Tukar",
+                "nav_wallet": "Dompet"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'id' : 'en';
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                let key = el.getAttribute('data-i18n');
+                if (currentLang === 'id' && dict.id[key]) {
+                    el.innerHTML = dict.id[key];
+                } else if (currentLang === 'en' && el.dataset.en) {
+                    el.innerHTML = el.dataset.en;
+                } else if (currentLang === 'en') {
+                    el.dataset.en = el.innerHTML;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
