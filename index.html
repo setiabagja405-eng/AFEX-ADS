@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFEX Mining - 12 Hours Auto Mine</title>
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <!-- MONETAG SDK FOR TELEGRAM MINI APP (In-App Interstitial) -->
     <script src="https://libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" data-auto="2/0.1/30/5/0"></script>
+    
+    <!-- VERCEL ANALYTICS INTEGRATION -->
+    <script type="module">
+        import { inject } from 'https://cdn.jsdelivr.net/npm/@vercel/analytics/+esm';
+        inject();
+    </script>
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,8 +35,8 @@
     <!-- MAIN CONTAINER -->
     <div class="p-4 flex-1 z-10 relative">
         
-        <!-- HEADER PROFILE & STATS -->
-        <div class="flex justify-between items-center mb-6 relative z-20">
+        <!-- HEADER PROFILE, LANGUAGE SELECTOR & STATS -->
+        <div class="flex justify-between items-center mb-4 relative z-20 gap-2">
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
                 <div class="w-7 h-7 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-black shadow-md overflow-hidden p-0.5">
                     <svg viewBox="0 0 100 100" class="w-full h-full fill-current">
@@ -41,29 +49,60 @@
                     <span class="text-[10px] text-gray-400">User ID: <span id="header-acc">8601594529</span></span>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
-                    <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$0.00 USDT</span>
+
+            <div class="flex items-center gap-2">
+                <!-- Language Selector -->
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#161f33] border border-gray-800 text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
+                    <option value="en">🇬🇧 EN</option>
+                    <option value="fr">🇫🇷 FR</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="hi">🇮🇳 HI</option>
+                    <option value="ar">🇸🇦 AR</option>
+                    <option value="th">🇹🇭 TH</option>
+                    <option value="vi">🇻🇳 VI</option>
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="ja">🇯🇵 JA</option>
+                </select>
+
+                <div class="bg-[#161f33] px-2.5 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
+                    <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$0.00</span>
                 </div>
             </div>
         </div>
 
+        <!-- FOUNDER VIP BANNER -->
+        <div id="founder-banner" onclick="openFounderModal()" class="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] border border-yellow-500/40 p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-yellow-500 text-black rounded-xl flex items-center justify-center text-sm font-black shadow-md">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div class="text-left">
+                    <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+                        <span>FOUNDER VIP PASS</span> 
+                        <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">UPGRADE</span>
+                    </h4>
+                    <p class="text-[10px] text-gray-300" id="founder-banner-desc">Get 150 AFEX/12h + Exclusive Tasks!</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-yellow-400"></i>
+        </div>
+
         <!-- 1. TAB 1: AUTO MINING & DAILY CHECK-IN -->
-        <div id="tab-tap" class="tab-content active text-center py-2 relative z-20">
-            <div class="mb-4">
-                <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Total Balance</span>
+        <div id="tab-tap" class="tab-content active text-center py-1 relative z-20">
+            <div class="mb-3">
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight">0.00 AFEX</h1>
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
 
             <!-- Daily Check-In Banner -->
-            <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3.5 rounded-xl mb-6 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
+            <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg">
+                    <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-base">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-xs font-bold text-white">Daily Check-in</h4>
+                        <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
                         <p class="text-[10px] text-yellow-400 font-mono" id="checkin-banner-status">Claim 7-Day Streak Rewards</p>
                     </div>
                 </div>
@@ -71,35 +110,49 @@
             </div>
 
             <!-- Mining Circle -->
-            <div id="mining-circle" class="relative w-52 h-52 mx-auto mb-6 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
+            <div id="mining-circle" class="relative w-48 h-48 mx-auto mb-4 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
                 <div id="mining-icon-box" class="text-center">
-                    <i id="mining-icon" class="fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse"></i>
-                    <span id="mining-status-label" class="text-xs font-bold uppercase tracking-widest text-gray-300 block">Ready to Mine</span>
+                    <i id="mining-icon" class="fa-solid fa-bolt text-3xl text-yellow-400 mb-1.5 animate-pulse"></i>
+                    <span id="mining-status-label" class="text-[11px] font-bold uppercase tracking-widest text-gray-300 block" data-i18n="ready_to_mine">Ready to Mine</span>
                 </div>
-                <div id="mining-info-box" class="mt-2 text-center">
-                    <span id="session-mined" class="text-sm font-mono font-bold text-yellow-400 block">+0.00 AFEX</span>
+                <div id="mining-info-box" class="mt-1 text-center">
+                    <span id="session-mined" class="text-xs font-mono font-bold text-yellow-400 block">+0.00 AFEX</span>
                 </div>
             </div>
 
             <!-- Auto Mining Button -->
-            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative">
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-lg cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative">
                 START 12H AUTO MINING
             </button>
 
             <!-- 12 Hours Status Timer -->
-            <div class="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-4">
-                <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span>Session Timer:</span></span>
+            <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+                <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span data-i18n="session_timer">Session Timer:</span></span>
                 <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
             </div>
         </div>
 
         <!-- 2. TAB 2: TASKS PAGE -->
         <div id="tab-task" class="tab-content relative z-20">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide">TASKS</h2>
-            <p class="text-xs text-gray-400 mb-4">Complete tasks to earn rewards credited instantly.</p>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
+            <p class="text-xs text-gray-400 mb-4" data-i18n="tasks_desc">Complete tasks to earn rewards credited instantly.</p>
             
             <div class="space-y-2.5" id="task-container">
                 
+                <!-- Founder Exclusive Task (Hanya muncul jika Founder) -->
+                <div id="founder-task-card" class="bg-[#161f33] p-3 rounded-xl border border-yellow-500/50 hidden items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-crown text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-yellow-400">Founder VIP Reward</h4>
+                            <p class="text-[10px] text-yellow-300 font-mono">+100 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.05 USDT</span></p>
+                        </div>
+                    </div>
+                    <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Claim</button>
+                </div>
+
                 <!-- Watch Ad Task (0.01 USDT) -->
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between shadow-lg border-yellow-500/30">
                     <div class="flex items-center gap-3">
@@ -107,11 +160,11 @@
                             <i class="fa-solid fa-play text-base"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Watch Ad</h4>
+                            <h4 class="text-xs font-bold text-white" data-i18n="task_watch_ad">Watch Ad</h4>
                             <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
+                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
                 </div>
 
                 <!-- Social Tasks -->
@@ -125,8 +178,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.001 USDT</span></p>
                         </div>
                     </div>
-                    <!-- (btn, url, tokenReward, usdtReward, taskId) -->
-                    <button id="task-tg-1" onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0.001, 'tg_1')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button id="task-tg-1" onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0.001, 'tg_1')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -139,7 +191,7 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.0005 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-tg-2" onclick="startVerificationTask(this, 'https://t.me/AFEXPAYOUT', 25, 0.0005, 'tg_2')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button id="task-tg-2" onclick="startVerificationTask(this, 'https://t.me/AFEXPAYOUT', 25, 0.0005, 'tg_2')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -152,29 +204,29 @@
                             <p class="text-[10px] text-yellow-400 font-mono">+75 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.0005 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-tw-1" onclick="startVerificationTask(this, 'https://x.com/AFEXNET', 75, 0.0005, 'tw_1')" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button id="task-tw-1" onclick="startVerificationTask(this, 'https://x.com/AFEXNET', 75, 0.0005, 'tw_1')" class="bg-white text-black text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
                 </div>
             </div>
         </div>
 
         <!-- 3. TAB 3: REFERRAL PAGE -->
         <div id="tab-referral" class="tab-content relative z-20">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide">INVITE FRIENDS!</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4">INVITE A FRIEND <br>+70 AFEX (~$1.00) For A Successful Refer!</p>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="ref_title">INVITE FRIENDS!</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-4" data-i18n="ref_subtitle">INVITE A FRIEND <br>+70 AFEX (~$1.00) For A Successful Refer!</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
-                <h4 class="text-xs font-bold text-white">How It Works</h4>
-                <p class="text-[11px] text-gray-400">For a successful referral, your friend must join and start using the app through your link.</p>
+                <h4 class="text-xs font-bold text-white" data-i18n="how_it_works">How It Works</h4>
+                <p class="text-[11px] text-gray-400" data-i18n="ref_desc">For a successful referral, your friend must join and start using the app through your link.</p>
             </div>
 
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
-                <span class="text-xs text-gray-400 block mb-1">Total Referrals</span>
+                <span class="text-xs text-gray-400 block mb-1" data-i18n="total_refs">Total Referrals</span>
                 <h3 id="total-ref-count" class="text-2xl font-black text-white font-mono">0</h3>
             </div>
 
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
                 <input type="text" id="ref-link-input" readonly class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-cyan-300 font-mono outline-none">
-                <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400">
+                <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400" data-i18n="btn_invite">
                     Invite a friend
                 </button>
             </div>
@@ -182,14 +234,14 @@
 
         <!-- 4. TAB 4: SWAP PAGE -->
         <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide">TOKEN SWAP</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase">Listing in December 2026</p>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Listing in December 2026</p>
             
             <!-- SWAP BOX -->
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-6 text-left shadow-lg">
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                        <span>From</span>
+                        <span data-i18n="swap_from">From</span>
                         <span>Balance: <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
                     </div>
                     <div class="flex justify-between items-center">
@@ -206,7 +258,7 @@
 
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-4 mt-1">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                        <span>To (Estimated)</span>
+                        <span data-i18n="swap_to">To (Estimated)</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <input type="number" id="swap-input-usdt" readonly placeholder="0" class="w-2/3 bg-transparent text-lg font-bold text-green-400 outline-none">
@@ -214,7 +266,7 @@
                     </div>
                 </div>
 
-                <button onclick="attemptSwap()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg">
+                <button onclick="attemptSwap()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_swap">
                     SWAP NOW
                 </button>
             </div>
@@ -223,7 +275,7 @@
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 text-left">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="fa-solid fa-chart-line text-green-400"></i>
-                    <h4 class="text-xs font-bold text-white">Live Price (AFEX/USDT)</h4>
+                    <h4 class="text-xs font-bold text-white" data-i18n="live_price">Live Price (AFEX/USDT)</h4>
                 </div>
                 <div class="flex justify-between items-end mb-3">
                     <span class="text-2xl font-mono text-green-400 font-bold" id="live-price">$0.000100</span>
@@ -237,8 +289,8 @@
 
         <!-- 5. TAB 5: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide">WALLET ASSETS</h2>
-            <p class="text-xs text-gray-400 mb-4">Manage your accumulated crypto assets securely.</p>
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="wallet_title">WALLET ASSETS</h2>
+            <p class="text-xs text-gray-400 mb-4" data-i18n="wallet_desc">Manage your accumulated crypto assets securely.</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
                 <div class="space-y-2 mb-4">
@@ -284,27 +336,26 @@
                 </div>
 
                 <div class="flex justify-between items-center text-xs mt-1 mb-3 border-t border-gray-800 pt-3">
-                    <span class="text-gray-400">Price per AFEX:</span>
+                    <span class="text-gray-400" data-i18n="price_per_afex">Price per AFEX:</span>
                     <span class="text-yellow-400 font-mono font-bold">$0.0001</span>
                 </div>
 
-                <button onclick="openWithdrawModal()" class="w-full mt-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg">
+                <button onclick="openWithdrawModal()" class="w-full mt-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_withdraw">
                     <i class="fa-solid fa-paper-plane mr-1"></i> WITHDRAW FUNDS
                 </button>
             </div>
 
-            <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Connect Wallet</h4>
+            <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider" data-i18n="connect_wallet">Connect Wallet</h4>
             <div class="space-y-2.5">
-                
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-[#F3BA2F]/20 text-[#F3BA2F] rounded-full flex items-center justify-center font-bold text-[10px]">BNB</div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Binance</h4>
-                            <p id="binance-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                            <p id="binance-status" class="text-[10px] text-gray-400 font-mono" data-i18n="not_connected">Not Connected</p>
                         </div>
                     </div>
-                    <button onclick="connectWalletModal('Binance', 'binance-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                    <button onclick="connectWalletModal('Binance', 'binance-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer" data-i18n="btn_connect">Connect</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -312,10 +363,10 @@
                         <div class="w-8 h-8 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-[10px]">TW</div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Trust Wallet</h4>
-                            <p id="tw-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                            <p id="tw-status" class="text-[10px] text-gray-400 font-mono" data-i18n="not_connected">Not Connected</p>
                         </div>
                     </div>
-                    <button onclick="connectWalletModal('Trust Wallet', 'tw-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                    <button onclick="connectWalletModal('Trust Wallet', 'tw-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer" data-i18n="btn_connect">Connect</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -323,10 +374,10 @@
                         <div class="w-8 h-8 bg-[#F6851B]/20 text-[#F6851B] rounded-full flex items-center justify-center font-bold text-[10px]">MM</div>
                         <div>
                             <h4 class="text-xs font-bold text-white">MetaMask</h4>
-                            <p id="mm-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                            <p id="mm-status" class="text-[10px] text-gray-400 font-mono" data-i18n="not_connected">Not Connected</p>
                         </div>
                     </div>
-                    <button onclick="connectWalletModal('MetaMask', 'mm-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                    <button onclick="connectWalletModal('MetaMask', 'mm-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer" data-i18n="btn_connect">Connect</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -334,10 +385,10 @@
                         <div class="w-8 h-8 bg-[#24A1DE]/20 text-[#24A1DE] rounded-full flex items-center justify-center font-bold text-[10px]">TG</div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Telegram Wallet</h4>
-                            <p id="tgw-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                            <p id="tgw-status" class="text-[10px] text-gray-400 font-mono" data-i18n="not_connected">Not Connected</p>
                         </div>
                     </div>
-                    <button onclick="connectWalletModal('Telegram Wallet', 'tgw-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                    <button onclick="connectWalletModal('Telegram Wallet', 'tgw-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer" data-i18n="btn_connect">Connect</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
@@ -345,12 +396,11 @@
                         <div class="w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center font-bold text-[10px]">TK</div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Tonkeeper</h4>
-                            <p id="tk-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                            <p id="tk-status" class="text-[10px] text-gray-400 font-mono" data-i18n="not_connected">Not Connected</p>
                         </div>
                     </div>
-                    <button onclick="connectWalletModal('Tonkeeper', 'tk-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                    <button onclick="connectWalletModal('Tonkeeper', 'tk-status')" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer" data-i18n="btn_connect">Connect</button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -359,23 +409,23 @@
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-50">
         <button onclick="switchTab('referral', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-users text-base mb-0.5 pointer-events-none"></i>
-            <span class="text-[10px] pointer-events-none">Refer</span>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_refer">Refer</span>
         </button>
         <button onclick="switchTab('task', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-list-check text-base mb-0.5 pointer-events-none"></i>
-            <span class="text-[10px] pointer-events-none">Task</span>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_task">Task</span>
         </button>
         <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-arrow-up text-base mb-0.5 pointer-events-none"></i>
-            <span class="text-[10px] pointer-events-none">Mine</span>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_mine">Mine</span>
         </button>
         <button onclick="switchTab('swap', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-right-left text-base mb-0.5 pointer-events-none"></i>
-            <span class="text-[10px] pointer-events-none">Swap</span>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_swap">Swap</span>
         </button>
         <button onclick="switchTab('wallet', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-wallet text-base mb-0.5 pointer-events-none"></i>
-            <span class="text-[10px] pointer-events-none">Wallet</span>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_wallet">Wallet</span>
         </button>
     </nav>
 
@@ -406,14 +456,16 @@
             isMining: localStorage.getItem('afex_is_mining') === 'true',
             miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
             lastWithdrawTime: parseInt(localStorage.getItem('afex_last_wd')) || 0,
-            totalRewardSession: 200.00,
+            isFounder: localStorage.getItem('afex_is_founder') === 'true',
+            founderTaskClaimed: localStorage.getItem('afex_founder_claimed') === 'true',
             checkInDay: parseInt(localStorage.getItem('afex_checkin_day')) || 0,
-            lastCheckInTime: parseInt(localStorage.getItem('afex_last_checkin')) || 0
+            lastCheckInTime: parseInt(localStorage.getItem('afex_last_checkin')) || 0,
+            lang: localStorage.getItem('afex_lang') || 'en'
         };
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
         
-        // Aturan: Kelipatan 3
+        // Reward Check-In (Kelipatan 3: 3, 6, 9, 12, 15, 18, 21)
         const CHECKIN_REWARDS = [
             { day: 1, afex: 3 },
             { day: 2, afex: 6 },
@@ -424,13 +476,333 @@
             { day: 7, afex: 21 }
         ];
 
+        // TRANSLATIONS DICTIONARY
+        const TRANSLATIONS = {
+            en: {
+                total_balance: "Total Balance",
+                daily_checkin: "Daily Check-in",
+                ready_to_mine: "Ready to Mine",
+                session_timer: "Session Timer:",
+                tasks_title: "TASKS",
+                tasks_desc: "Complete tasks to earn rewards credited instantly.",
+                task_watch_ad: "Watch Ad",
+                btn_watch: "Watch",
+                btn_start: "Start",
+                ref_title: "INVITE FRIENDS!",
+                ref_subtitle: "INVITE A FRIEND <br>+70 AFEX (~$1.00) For A Successful Refer!",
+                how_it_works: "How It Works",
+                ref_desc: "For a successful referral, your friend must join and start using the app through your link.",
+                total_refs: "Total Referrals",
+                btn_invite: "Invite a friend",
+                swap_title: "TOKEN SWAP",
+                swap_subtitle: "Listing in December 2026",
+                swap_from: "From",
+                swap_to: "To (Estimated)",
+                btn_swap: "SWAP NOW",
+                live_price: "Live Price (AFEX/USDT)",
+                wallet_title: "WALLET ASSETS",
+                wallet_desc: "Manage your accumulated crypto assets securely.",
+                price_per_afex: "Price per AFEX:",
+                btn_withdraw: "WITHDRAW FUNDS",
+                connect_wallet: "Connect Wallet",
+                not_connected: "Not Connected",
+                btn_connect: "Connect",
+                nav_refer: "Refer",
+                nav_task: "Task",
+                nav_mine: "Mine",
+                nav_swap: "Swap",
+                nav_wallet: "Wallet"
+            },
+            fr: {
+                total_balance: "Solde Total",
+                daily_checkin: "Enregistrement Quotidien",
+                ready_to_mine: "Prêt à Miner",
+                session_timer: "Minuteur:",
+                tasks_title: "TACHES",
+                tasks_desc: "Complétez les tâches pour gagner des récompenses.",
+                task_watch_ad: "Regarder une Pub",
+                btn_watch: "Regarder",
+                btn_start: "Commencer",
+                ref_title: "INVITER DES AMIS !",
+                ref_subtitle: "INVITEZ UN AMI <br>+70 AFEX pour chaque parrainage !",
+                how_it_works: "Comment ça marche",
+                ref_desc: "Votre ami doit rejoindre l'application via votre lien.",
+                total_refs: "Total des Parrainages",
+                btn_invite: "Inviter un ami",
+                swap_title: "ÉCHANGE DE JETON",
+                swap_subtitle: "Cotation en Décembre 2026",
+                swap_from: "De",
+                swap_to: "Vers (Estimé)",
+                btn_swap: "ÉCHANGER",
+                live_price: "Prix en Direct (AFEX/USDT)",
+                wallet_title: "ACTIFS DU PORTEFEUILLE",
+                wallet_desc: "Gérez vos cryptos en toute sécurité.",
+                price_per_afex: "Prix par AFEX :",
+                btn_withdraw: "RETIRER DES FONDS",
+                connect_wallet: "Connecter le Portefeuille",
+                not_connected: "Non Connecté",
+                btn_connect: "Connecter",
+                nav_refer: "Parrain",
+                nav_task: "Tâches",
+                nav_mine: "Miner",
+                nav_swap: "Échange",
+                nav_wallet: "Portefeuille"
+            },
+            de: {
+                total_balance: "Gesamtsaldo",
+                daily_checkin: "Täglicher Check-in",
+                ready_to_mine: "Bereit zum Minen",
+                session_timer: "Sitzungs-Timer:",
+                tasks_title: "AUFGABEN",
+                tasks_desc: "Erfülle Aufgaben, um sofort Belohnungen zu erhalten.",
+                task_watch_ad: "Werbung ansehen",
+                btn_watch: "Ansehen",
+                btn_start: "Starten",
+                ref_title: "FREUNDE EINLADEN!",
+                ref_subtitle: "LADE EINEN FREUND EIN <br>+70 AFEX für jeden Erfolg!",
+                how_it_works: "Wie es funktioniert",
+                ref_desc: "Dein Freund muss über deinen Link beitreten.",
+                total_refs: "Gesamte Empfehlungen",
+                btn_invite: "Freund einladen",
+                swap_title: "TOKEN-TAUSCH",
+                swap_subtitle: "Listung im Dezember 2026",
+                swap_from: "Von",
+                swap_to: "Zu (Geschätzt)",
+                btn_swap: "JETZT TAUSCHEN",
+                live_price: "Live-Preis (AFEX/USDT)",
+                wallet_title: "WALLET-VERMÖGEN",
+                wallet_desc: "Verwalte deine Krypto-Assets sicher.",
+                price_per_afex: "Preis pro AFEX:",
+                btn_withdraw: "GUTHABEN ABHEBEN",
+                connect_wallet: "Wallet Verbinden",
+                not_connected: "Nicht verbunden",
+                btn_connect: "Verbinden",
+                nav_refer: "Freunde",
+                nav_task: "Aufgaben",
+                nav_mine: "Minen",
+                nav_swap: "Tausch",
+                nav_wallet: "Wallet"
+            },
+            hi: {
+                total_balance: "कुल शेष राशि",
+                daily_checkin: "दैनिक चेक-इन",
+                ready_to_mine: "माइन करने के लिए तैयार",
+                session_timer: "सत्र टाइमर:",
+                tasks_title: "कार्य",
+                tasks_desc: "पुरस्कार अर्जित करने के लिए कार्य पूरे करें।",
+                task_watch_ad: "विज्ञापन देखें",
+                btn_watch: "देखें",
+                btn_start: "शुरू करें",
+                ref_title: "दोस्तों को आमंत्रित करें!",
+                ref_subtitle: "एक मित्र को आमंत्रित करें <br>+70 AFEX प्राप्त करें!",
+                how_it_works: "यह कैसे काम करता है",
+                ref_desc: "आपके मित्र को आपके लिंक से जुड़ना होगा।",
+                total_refs: "कुल रेफ़रल",
+                btn_invite: "मित्र को आमंत्रित करें",
+                swap_title: "टोकन स्वैप",
+                swap_subtitle: "दिसंबर 2026 में लिस्टिंग",
+                swap_from: "से",
+                swap_to: "तक (अनुमानित)",
+                btn_swap: "स्वैप करें",
+                live_price: "लाइव मूल्य (AFEX/USDT)",
+                wallet_title: "वॉलेट संपत्ति",
+                wallet_desc: "अपनी संपत्ति सुरक्षित रूप से प्रबंधित करें।",
+                price_per_afex: "प्रति AFEX मूल्य:",
+                btn_withdraw: "धन निकालें",
+                connect_wallet: "वॉलेट कनेक्ट करें",
+                not_connected: "कनेक्ट नहीं है",
+                btn_connect: "कनेक्ट",
+                nav_refer: "रेफर",
+                nav_task: "टास्क",
+                nav_mine: "माइन",
+                nav_swap: "स्वैप",
+                nav_wallet: "वॉलेट"
+            },
+            ar: {
+                total_balance: "الرصيد الإجمالي",
+                daily_checkin: "تسجيل الدخول اليومي",
+                ready_to_mine: "جاهز للتعدين",
+                session_timer: "مؤقت الجلسة:",
+                tasks_title: "المهام",
+                tasks_desc: "أكمل المهام لكسب المكافآت فوراً.",
+                task_watch_ad: "مشاهدة إعلان",
+                btn_watch: "مشاهدة",
+                btn_start: "بدء",
+                ref_title: "ادعُ أصدقاءك!",
+                ref_subtitle: "ادعُ صديقاً واحصل على <br>+70 AFEX لكل إحالة ناجحة!",
+                how_it_works: "كيف تعمل",
+                ref_desc: "يجب أن ينضم صديقك عبر رابط الدعوة الخاص بك.",
+                total_refs: "إجمالي الإحالات",
+                btn_invite: "دعوة صديق",
+                swap_title: "مبادلة الرموز",
+                swap_subtitle: "الإدراج في ديسمبر 2026",
+                swap_from: "من",
+                swap_to: "إلى (تقديري)",
+                btn_swap: "تبديل الآن",
+                live_price: "السعر المباشر (AFEX/USDT)",
+                wallet_title: "أصول المحفظة",
+                wallet_desc: "إدارة أصول العملات المشفرة بأمان.",
+                price_per_afex: "سعر AFEX الواحد:",
+                btn_withdraw: "سحب الأموال",
+                connect_wallet: "ربط المحفظة",
+                not_connected: "غير متصل",
+                btn_connect: "ربط",
+                nav_refer: "الإحالة",
+                nav_task: "المهام",
+                nav_mine: "التعدين",
+                nav_swap: "المبادلة",
+                nav_wallet: "المحفظة"
+            },
+            th: {
+                total_balance: "ยอดคงเหลือทั้งหมด",
+                daily_checkin: "เช็คอินรายวัน",
+                ready_to_mine: "พร้อมขุด",
+                session_timer: "เวลาเซสชัน:",
+                tasks_title: "ภารกิจ",
+                tasks_desc: "ทำภารกิจให้สำเร็จเพื่อรับรางวัลทันที",
+                task_watch_ad: "ดูโฆษณา",
+                btn_watch: "ดู",
+                btn_start: "เริ่ม",
+                ref_title: "เชิญเพื่อน!",
+                ref_subtitle: "เชิญเพื่อน <br>+70 AFEX สำหรับการแนะนำที่สำเร็จ!",
+                how_it_works: "วิธีใช้งาน",
+                ref_desc: "เพื่อนของคุณต้องเข้าร่วมผ่านลิงก์ของคุณ",
+                total_refs: "จำนวนเพื่อนที่เชิญ",
+                btn_invite: "เชิญเพื่อน",
+                swap_title: "แลกเปลี่ยนโทเค็น",
+                swap_subtitle: "ลิสต์ในเดือนธันวาคม 2026",
+                swap_from: "จาก",
+                swap_to: "ถึง (โดยประมาณ)",
+                btn_swap: "แลกเปลี่ยนทันที",
+                live_price: "ราคาสด (AFEX/USDT)",
+                wallet_title: "สินทรัพย์ในกระเป๋า",
+                wallet_desc: "จัดการสินทรัพย์คริปโตของคุณอย่างปลอดภัย",
+                price_per_afex: "ราคาต่อ AFEX:",
+                btn_withdraw: "ถอนเงิน",
+                connect_wallet: "เชื่อมต่อกระเป๋า",
+                not_connected: "ยังไม่เชื่อมต่อ",
+                btn_connect: "เชื่อมต่อ",
+                nav_refer: "เพื่อน",
+                nav_task: "ภารกิจ",
+                nav_mine: "ขุด",
+                nav_swap: "แลก",
+                nav_wallet: "กระเป๋า"
+            },
+            vi: {
+                total_balance: "Tổng số dư",
+                daily_checkin: "Điểm danh hàng ngày",
+                ready_to_mine: "Sẵn sàng đào",
+                session_timer: "Bộ hẹn giờ:",
+                tasks_title: "NHIỆM VỤ",
+                tasks_desc: "Hoàn thành nhiệm vụ để nhận thưởng ngay lập tức.",
+                task_watch_ad: "Xem quảng cáo",
+                btn_watch: "Xem",
+                btn_start: "Bắt đầu",
+                ref_title: "MỜI BẠN BÈ!",
+                ref_subtitle: "Mời bạn bè <br>+70 AFEX cho mỗi lượt giới thiệu thành công!",
+                how_it_works: "Cách hoạt động",
+                ref_desc: "Bạn bè của bạn phải tham gia qua liên kết của bạn.",
+                total_refs: "Tổng số giới thiệu",
+                btn_invite: "Mời bạn bè",
+                swap_title: "HOÁN ĐỔI TOKEN",
+                swap_subtitle: "Niêm yết vào tháng 12 năm 2026",
+                swap_from: "Từ",
+                swap_to: "Đến (Ước tính)",
+                btn_swap: "HOÁN ĐỔI NGAY",
+                live_price: "Giá trực tiếp (AFEX/USDT)",
+                wallet_title: "TÀI SẢN VÍ",
+                wallet_desc: "Quản lý tài sản tiền điện tử của bạn một cách an toàn.",
+                price_per_afex: "Giá mỗi AFEX:",
+                btn_withdraw: "RÚT TIỀN",
+                connect_wallet: "Kết nối ví",
+                not_connected: "Chưa kết nối",
+                btn_connect: "Kết nối",
+                nav_refer: "Giới thiệu",
+                nav_task: "Nhiệm vụ",
+                nav_mine: "Đào",
+                nav_swap: "Đổi",
+                nav_wallet: "Ví"
+            },
+            es: {
+                total_balance: "Balance Total",
+                daily_checkin: "Registro Diario",
+                ready_to_mine: "Listo para Minar",
+                session_timer: "Temporizador:",
+                tasks_title: "TAREAS",
+                tasks_desc: "Completa tareas para ganar recompensas al instante.",
+                task_watch_ad: "Ver Anuncio",
+                btn_watch: "Ver",
+                btn_start: "Iniciar",
+                ref_title: "¡INVITA AMIGOS!",
+                ref_subtitle: "¡Invita a un amigo <br>+70 AFEX por referir!",
+                how_it_works: "Cómo Funciona",
+                ref_desc: "Tu amigo debe unirse usando tu enlace.",
+                total_refs: "Referidos Totales",
+                btn_invite: "Invitar amigo",
+                swap_title: "INTERCAMBIO",
+                swap_subtitle: "Listado en Diciembre 2026",
+                swap_from: "De",
+                swap_to: "A (Estimado)",
+                btn_swap: "INTERCAMBIAR",
+                live_price: "Precio en Vivo (AFEX/USDT)",
+                wallet_title: "ACTIVOS DE CARTERA",
+                wallet_desc: "Gestiona tus criptoactivos de forma segura.",
+                price_per_afex: "Precio por AFEX:",
+                btn_withdraw: "RETIRAR FONDOS",
+                connect_wallet: "Conectar Billetera",
+                not_connected: "No Conectado",
+                btn_connect: "Conectar",
+                nav_refer: "Referidos",
+                nav_task: "Tareas",
+                nav_mine: "Minar",
+                nav_swap: "Swap",
+                nav_wallet: "Billetera"
+            },
+            ja: {
+                total_balance: "総残高",
+                daily_checkin: "デイリーチェックイン",
+                ready_to_mine: "マイニング準備完了",
+                session_timer: "セッションタイマー:",
+                tasks_title: "タスク",
+                tasks_desc: "タスクを完了して報酬を即座に獲得しましょう。",
+                task_watch_ad: "広告を見る",
+                btn_watch: "見る",
+                btn_start: "開始",
+                ref_title: "友達を招待しよう！",
+                ref_subtitle: "友達を招待すると <br>+70 AFEX 獲得！",
+                how_it_works: "仕組み",
+                ref_desc: "友達があなたのリンクから参加する必要があります。",
+                total_refs: "総紹介数",
+                btn_invite: "友達を招待",
+                swap_title: "トークンスワップ",
+                swap_subtitle: "2026年12月上場予定",
+                swap_from: "差出人",
+                swap_to: "受取人 (推定)",
+                btn_swap: "今すぐスワップ",
+                live_price: "ライブ価格 (AFEX/USDT)",
+                wallet_title: "ウォレット資産",
+                wallet_desc: "暗号資産を安全に管理します。",
+                price_per_afex: "1 AFEX あたりの価格:",
+                btn_withdraw: "出金する",
+                connect_wallet: "ウォレット接続",
+                not_connected: "未接続",
+                btn_connect: "接続",
+                nav_refer: "友達",
+                nav_task: "タスク",
+                nav_mine: "マイニング",
+                nav_swap: "スワップ",
+                nav_wallet: "ウォレット"
+            }
+        };
+
         window.addEventListener('DOMContentLoaded', () => {
             checkDailyCheckInReset();
+            document.getElementById('lang-select').value = miningData.lang;
+            applyTranslations(miningData.lang);
 
             let userTg = tg?.initDataUnsafe?.user;
             let userIdStr = userTg ? userTg.id.toString() : "8601594529";
             
-            // Keamanan username
             let displayName = "Guest User";
             if(userTg) {
                 if(userTg.username) {
@@ -442,7 +814,6 @@
             
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
-
             document.getElementById('ref-link-input').value = `https://t.me/AfexMinerBot?start=${miningData.refCode}`;
 
             updateUI();
@@ -450,30 +821,45 @@
             setInterval(checkMiningProgress, 1000);
             setInterval(checkTaskCooldowns, 1000);
             
-            // Inisialisasi Chart untuk Tab Swap
             initLiveChart();
+            updateFounderUI();
         });
 
+        function changeLanguage(langCode) {
+            miningData.lang = langCode;
+            localStorage.setItem('afex_lang', langCode);
+            applyTranslations(langCode);
+        }
+
+        function applyTranslations(lang) {
+            let dict = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                let key = el.getAttribute('data-i18n');
+                if(dict[key]) {
+                    el.innerHTML = dict[key];
+                }
+            });
+        }
+
         function updateUI() {
-            let totalUsdEst = (miningData.balance * 0.0001) + miningData.usdtBalance; // 1 AFEX = 0.0001
+            let totalUsdEst = (miningData.balance * 0.0001) + miningData.usdtBalance;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
             document.getElementById('token-usd').innerText = "$" + totalUsdEst.toFixed(4) + " USDT (Est)";
-            document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2) + " USDT";
+            document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('total-ref-count').innerText = miningData.refCount;
 
             document.getElementById('wallet-afex-bal').innerText = miningData.balance.toFixed(2);
             document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-ton-bal').innerText = miningData.tonBalance.toFixed(4);
             
-            // Update balance di menu Swap
             document.getElementById('swap-bal-afex').innerText = miningData.balance.toFixed(2);
 
             let canCheckIn = isCheckInAvailable();
             if (canCheckIn) {
-                document.getElementById('checkin-banner-status').innerText = "Ready to Claim Today's Reward!";
+                document.getElementById('checkin-banner-status').innerText = miningData.lang === 'id' ? "Siap Klaim Reward Hari Ini!" : "Ready to Claim Today's Reward!";
             } else {
-                document.getElementById('checkin-banner-status').innerText = "Checked in! Next in 24h";
+                document.getElementById('checkin-banner-status').innerText = miningData.lang === 'id' ? "Sudah Check-in! Lanjut 24 jam lagi" : "Checked in! Next in 24h";
             }
 
             localStorage.setItem('afex_balance', miningData.balance);
@@ -484,6 +870,75 @@
             localStorage.setItem('afex_mining_end', miningData.miningEndTime);
             localStorage.setItem('afex_checkin_day', miningData.checkInDay);
             localStorage.setItem('afex_last_checkin', miningData.lastCheckInTime);
+            localStorage.setItem('afex_is_founder', miningData.isFounder);
+            localStorage.setItem('afex_founder_claimed', miningData.founderTaskClaimed);
+        }
+
+        // --- FOUNDER VIP SYSTEM ---
+        function updateFounderUI() {
+            let badge = document.getElementById('founder-status-badge');
+            let bannerDesc = document.getElementById('founder-banner-desc');
+            let founderTaskCard = document.getElementById('founder-task-card');
+
+            if(miningData.isFounder) {
+                badge.innerText = "VIP ACTIVE";
+                badge.className = "bg-green-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
+                bannerDesc.innerText = "150 AFEX/12h Mining Enabled + VIP Access";
+                founderTaskCard.classList.remove('hidden');
+                founderTaskCard.classList.add('flex');
+            } else {
+                badge.innerText = "UPGRADE $5";
+                badge.className = "bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
+                bannerDesc.innerText = "Get 150 AFEX/12h + Exclusive Tasks!";
+                founderTaskCard.classList.remove('flex');
+                founderTaskCard.classList.add('hidden');
+            }
+        }
+
+        function openFounderModal() {
+            if(miningData.isFounder) {
+                showModal("Founder VIP Active", "You are a VIP Founder! You enjoy 150 AFEX per 12h mining rewards and exclusive daily tasks.", "fa-crown");
+            } else {
+                showModal("Upgrade to Founder VIP ($5.00)", `
+                    <div class="space-y-3 text-left">
+                        <p class="text-[11px] text-gray-300">Unlock maximum mining speed and exclusive perks:</p>
+                        <ul class="text-[10px] space-y-1.5 text-yellow-400">
+                            <li><i class="fa-solid fa-check mr-1.5 text-green-400"></i><b>150 AFEX</b> per 12h session (Non-founder: 50 AFEX)</li>
+                            <li><i class="fa-solid fa-check mr-1.5 text-green-400"></i>Exclusive VIP Daily Tasks & Rewards</li>
+                            <li><i class="fa-solid fa-check mr-1.5 text-green-400"></i>Priority Gas Fee & Fast Withdrawals</li>
+                        </ul>
+                        <button onclick="purchaseFounderVIP()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-95">
+                            ACTIVATE FOUNDER PASS ($5.00)
+                        </button>
+                    </div>
+                `, "fa-crown");
+            }
+        }
+
+        function purchaseFounderVIP() {
+            if(miningData.usdtBalance < 5.00) {
+                return showModal("Insufficient USDT", "You need at least $5.00 USDT balance to purchase Founder VIP.", "fa-triangle-exclamation");
+            }
+            miningData.usdtBalance -= 5.00;
+            miningData.isFounder = true;
+            updateUI();
+            updateFounderUI();
+            closeModal();
+            showModal("Welcome Founder VIP!", "Successfully upgraded! Your mining rate is now 150 AFEX per 12 hours.", "fa-circle-check");
+        }
+
+        function claimFounderTask(btn) {
+            if(miningData.founderTaskClaimed) {
+                return showModal("Already Claimed", "You have already claimed your founder bonus for today.", "fa-clock");
+            }
+            miningData.balance += 100;
+            miningData.usdtBalance += 0.05;
+            miningData.founderTaskClaimed = true;
+            btn.innerText = "Claimed";
+            btn.disabled = true;
+            btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
+            updateUI();
+            showModal("Bonus Claimed!", "Received +100 AFEX & +0.05 USDT founder reward!", "fa-circle-check");
         }
 
         // --- DAILY CHECK-IN SYSTEM ---
@@ -633,14 +1088,13 @@
             }, 4000);
         }
 
-        // --- WATCH AD TASK (0.01 USDT) ---
+        // --- WATCH AD TASK (0.01 USDT REWARD) ---
         function startAdTask(btn) {
             if(typeof show_11929290 === 'function') {
                 btn.innerText = "Loading...";
                 btn.disabled = true;
                 
                 show_11929290().then(() => {
-                    // Reward setelah sukses nonton iklan
                     localStorage.setItem('task_cooldown_ad_1', Date.now());
                     miningData.balance += 15;
                     miningData.usdtBalance += 0.01;
@@ -658,7 +1112,7 @@
             }
         }
 
-        // --- MINING SYSTEM ---
+        // --- MINING SYSTEM (2x ADS REQUIRED + FOUNDER REWARD RATE) ---
         function checkMiningProgress() {
             let now = Date.now();
             let btn = document.getElementById('action-mine-btn');
@@ -667,21 +1121,23 @@
             let timerCountdown = document.getElementById('timer-countdown');
             let icon = document.getElementById('mining-icon');
 
+            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+
             if (miningData.isMining) {
                 let timeLeft = miningData.miningEndTime - now;
 
                 if (timeLeft <= 0) {
                     miningData.isMining = false;
                     statusLabel.innerText = "Mining Completed!";
-                    sessionMinedLabel.innerText = `+${miningData.totalRewardSession.toFixed(2)} AFEX Ready`;
+                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Ready`;
                     timerCountdown.innerText = "00:00:00";
                     btn.disabled = false; 
-                    btn.innerText = "CLAIM REWARD (+200 AFEX)";
+                    btn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
                     btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
                     icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
                 } else {
                     let elapsed = TOTAL_DURATION_MS - timeLeft;
-                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * miningData.totalRewardSession;
+                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * targetReward;
                     statusLabel.innerText = "Mining in Progress...";
                     sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
                     timerCountdown.innerText = formatTime(timeLeft);
@@ -691,12 +1147,19 @@
                     icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
                 }
             } else {
-                if (!btn.innerText.includes("CLAIM")) {
+                if (!btn.innerText.includes("CLAIM") && !btn.innerText.includes("Loading")) {
                     btn.disabled = false;
                     statusLabel.innerText = "Ready to Mine";
-                    sessionMinedLabel.innerText = "+200.00 AFEX Target";
+                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Target`;
                     timerCountdown.innerText = "12:00:00";
-                    btn.innerText = "START 12H AUTO MINING";
+                    
+                    let currentAds = parseInt(localStorage.getItem('afex_ads_mining')) || 0;
+                    if (currentAds > 0) {
+                        btn.innerText = `WATCH AD TO START (${currentAds}/2)`;
+                    } else {
+                        btn.innerText = "START 12H AUTO MINING";
+                    }
+
                     btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
                     icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
                 }
@@ -705,17 +1168,49 @@
 
         function handleMiningAction() {
             let btn = document.getElementById('action-mine-btn');
+            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+            
             if (btn.innerText.includes("CLAIM")) {
-                miningData.balance += miningData.totalRewardSession;
+                miningData.balance += targetReward;
                 miningData.isMining = false;
                 updateUI();
-                showModal("Reward Claimed!", `+${miningData.totalRewardSession} AFEX!`, "fa-coins");
-                btn.innerText = "START 12H AUTO MINING";
+                showModal("Reward Claimed!", `+${targetReward} AFEX!`, "fa-coins");
+                
+                let currentAds = parseInt(localStorage.getItem('afex_ads_mining')) || 0;
+                btn.innerText = currentAds > 0 ? `WATCH AD TO START (${currentAds}/2)` : "START 12H AUTO MINING";
+                
             } else if (!miningData.isMining) {
-                miningData.isMining = true;
-                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
-                updateUI();
-                showModal("Mining Started", "12-Hour session started!", "fa-bolt");
+                if(typeof show_11929290 === 'function') {
+                    btn.innerText = "Loading Ad...";
+                    btn.disabled = true;
+                    
+                    show_11929290().then(() => {
+                        let currentAds = parseInt(localStorage.getItem('afex_ads_mining')) || 0;
+                        currentAds++;
+                        
+                        if (currentAds >= 2) {
+                            localStorage.setItem('afex_ads_mining', 0);
+                            miningData.isMining = true;
+                            miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+                            updateUI();
+                            showModal("Mining Started", "You watched 2 ads successfully! 12-Hour session started.", "fa-bolt");
+                        } else {
+                            localStorage.setItem('afex_ads_mining', currentAds);
+                            showModal("Requirement", `Ad watched (${currentAds}/2). Please click start again and watch 1 more ad to begin mining.`, "fa-play");
+                            btn.innerText = `WATCH AD TO START (${currentAds}/2)`;
+                            btn.disabled = false;
+                        }
+                    }).catch(err => {
+                        console.error("Ad error:", err);
+                        showModal("Ads Not Ready", "Please wait a moment or try again later.", "fa-triangle-exclamation");
+                        
+                        let currentAds = parseInt(localStorage.getItem('afex_ads_mining')) || 0;
+                        btn.innerText = currentAds > 0 ? `WATCH AD TO START (${currentAds}/2)` : "START 12H AUTO MINING";
+                        btn.disabled = false;
+                    });
+                } else {
+                    showModal("System Error", "Ad system is currently unavailable.", "fa-triangle-exclamation");
+                }
             }
         }
 
@@ -740,7 +1235,7 @@
         // --- SWAP & CHART ---
         function calcSwap() {
             let amount = parseFloat(document.getElementById('swap-input-afex').value) || 0;
-            document.getElementById('swap-input-usdt').value = (amount * 0.0001).toFixed(4); // 1 AFEX = 0.0001 USDT
+            document.getElementById('swap-input-usdt').value = (amount * 0.0001).toFixed(4);
         }
 
         function attemptSwap() {
@@ -764,7 +1259,7 @@
                 if(range === 0) range = 0.000001; 
 
                 ctx.beginPath();
-                ctx.strokeStyle = '#4ade80'; // Tailwind green-400
+                ctx.strokeStyle = '#4ade80';
                 ctx.lineWidth = 2;
 
                 for(let i = 0; i < priceHistory.length; i++) {
@@ -815,6 +1310,26 @@
             showModal("Success", "Wallet connected successfully!", "fa-check");
         }
 
+        // --- WITHDRAW LOGIC (WITH 5% FEE CALCULATION) ---
+        let currentWdAsset = 'AFEX';
+        
+        function updateGasFeeDisplay() {
+            let amountInput = document.getElementById('wd-amount');
+            if(!amountInput) return;
+            
+            let amount = parseFloat(amountInput.value) || 0;
+            let fee = amount * 0.05;
+            let receive = amount - fee;
+            
+            document.getElementById('wd-fee-display').innerText = fee.toFixed(2) + " " + currentWdAsset;
+            document.getElementById('wd-receive-display').innerText = receive.toFixed(2) + " " + currentWdAsset;
+        }
+
+        function changeWdAsset() {
+            currentWdAsset = document.getElementById('wd-asset').value;
+            updateGasFeeDisplay();
+        }
+
         function openWithdrawModal() {
             if(!miningData.walletConnected) return showModal("Wallet Required", "Please connect a wallet first from the list below!", "fa-triangle-exclamation");
             let now = Date.now();
@@ -823,11 +1338,14 @@
                 let hours = Math.floor(timeLeft / (1000 * 60 * 60));
                 return showModal("Limit Reached", `You can only withdraw once a day. Please wait ${hours} hours.`, "fa-clock");
             }
+            
+            currentWdAsset = 'AFEX';
+
             showModal("Withdraw Funds", `
                 <div class="space-y-3 text-left">
                     <div>
                         <label class="text-[10px] text-gray-400 block mb-1">Select Asset:</label>
-                        <select id="wd-asset" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white outline-none">
+                        <select id="wd-asset" onchange="changeWdAsset()" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white outline-none">
                             <option value="AFEX">AFEX Token (Min 500)</option>
                             <option value="USDT">USDT (Min $3.00)</option>
                             <option value="TON">TON (Min 3.00)</option>
@@ -835,9 +1353,21 @@
                     </div>
                     <div>
                         <label class="text-[10px] text-gray-400 block mb-1">Amount:</label>
-                        <input type="number" id="wd-amount" placeholder="0" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white font-mono outline-none">
+                        <input type="number" id="wd-amount" oninput="updateGasFeeDisplay()" placeholder="0" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2 text-xs text-white font-mono outline-none">
                     </div>
-                    <button onclick="processWithdrawDirect()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mt-1">Submit Request</button>
+                    
+                    <div class="bg-[#0b0f19] p-2.5 rounded-lg border border-gray-700 text-[10px]">
+                        <div class="flex justify-between text-gray-400 mb-1">
+                            <span>Gas Fee (5%):</span>
+                            <span id="wd-fee-display" class="font-mono text-red-400">0.00 AFEX</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-white border-t border-gray-800 pt-1">
+                            <span>You will receive:</span>
+                            <span id="wd-receive-display" class="font-mono text-green-400">0.00 AFEX</span>
+                        </div>
+                    </div>
+
+                    <button onclick="processWithdrawDirect()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer mt-1 hover:bg-yellow-400">Submit Request</button>
                 </div>
             `, "fa-paper-plane");
         }
@@ -846,12 +1376,10 @@
             let asset = document.getElementById('wd-asset').value;
             let amount = parseFloat(document.getElementById('wd-amount').value) || 0;
             
-            // Limitasi Penarikan
             if (asset === 'AFEX' && amount < 500) return showModal("Minimum Limit", "Minimum withdraw is 500 AFEX.", "fa-xmark");
             if (asset === 'USDT' && amount < 3.0) return showModal("Minimum Limit", "Minimum withdraw is $3.00 USDT.", "fa-xmark");
             if (asset === 'TON' && amount < 3.0) return showModal("Minimum Limit", "Minimum withdraw is 3.00 TON.", "fa-xmark");
 
-            // Cek saldo cukup
             if(asset === 'AFEX' && amount > miningData.balance) return showModal("Insufficient", "Not enough AFEX.", "fa-xmark");
             if(asset === 'USDT' && amount > miningData.usdtBalance) return showModal("Insufficient", "Not enough USDT.", "fa-xmark");
             if(asset === 'TON' && amount > miningData.tonBalance) return showModal("Insufficient", "Not enough TON.", "fa-xmark");
@@ -860,10 +1388,12 @@
             else if(asset === 'USDT') miningData.usdtBalance -= amount;
             else if(asset === 'TON') miningData.tonBalance -= amount;
 
+            let receiveAmount = amount * 0.95;
+            
             miningData.lastWithdrawTime = Date.now();
             updateUI();
             closeModal();
-            showModal("Withdrawal Processed", `Request to withdraw ${amount} ${asset} sent successfully to your wallet!`, "fa-circle-check");
+            showModal("Withdrawal Processed", `Request to withdraw ${receiveAmount.toFixed(2)} ${asset} (after 5% gas fee) sent successfully to your wallet!`, "fa-circle-check");
         }
 
         function inviteFriend() {
