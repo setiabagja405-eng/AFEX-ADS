@@ -1,287 +1,953 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Home, Gift, Trophy, Wallet, Settings, 
-  AlertTriangle, Copy, Activity, ShieldAlert, Zap, 
-  CheckCircle2, XCircle, PlayCircle, Crown, Lock, ArrowDown, Clock, Users, ArrowRightLeft, Send 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFEX Mining - 12 Hours Auto Mine</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Telegram Web App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- MONETAG SDK FOR TELEGRAM MINI APP (In-App Interstitial) -->
+    <script src="https://libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" data-auto="2/0.1/30/5/0"></script>
+    
+    <!-- Ethers.js CDN for EVM Wallets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
 
-// 1. FOUNDER WALLETS (Sesuai referensi sumber[cite: 5])
-const FOUNDER_WALLETS = { 
-  BSC: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9", 
-  ETH: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9", 
-  TRC20: "TDNNUubgz77612C6jC9YiAiQYX9oeF7Rz1", 
-  TON: "UQDE6M-6i_q2MXyxG4ZAA4G0OSoNVVWb_7ugCCrK48ILusAI" 
-};
+    <!-- TON Connect UI SDK -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
-// 5. TRANSLATIONS (ID & EN FIXED - Sesuai sumber[cite: 5])
-const i18n = { 
-  en: { 
-    home: "Home", campaign: "Campaign", leaderboard: "Rank", wallet: "Wallet", 
-    miningActive: "Mining Active", miningStopped: "Mining Stopped", tier: "Tier", balance: "Balance", 
-    watchAd: "Watch Ad", adReward: "Reward: $0.005 / Ad", pointReward: "1 Ad = 1 Point", referral: "Referral Link", 
-    copy: "Copy Link", copied: "Copied!", giveawayTitle: "USDT & iPhone Giveaway!", 
-    giveawayDesc: "Collect points by watching ads. Top users win!", topMiners: "Top 10 Miners", points: "pts", 
-    connectEVM: "Connect EVM (BSC/ETH)", connectTON: "Connect TonKeeper", connected: "Connected", 
-    withdraw: "Withdraw", asset: "Asset", network: "Network", address: "Wallet Address", amount: "Amount", 
-    autoWD: "Auto-Withdraw $0.10 (1x Only)", standardWD: "Standard Withdraw", reqNotMet: "Requirement Not Met", 
-    wrongNetwork: "AFEX only available on BSC", txHash: "TxHash / Receipt", adBlockTitle: "Ad Blocker Detected", 
-    adBlockDesc: "Please disable AdGuard or any Ad Blocker to continue mining and watching ads.", understand: "I Understand", 
-    startMining: "Start Mining", stopMining: "Stop Mining", adPlaying: "Ad is playing...", closeAd: "Close Ad & Get Reward", 
-    chartMissing: "Loading Chart Data..." 
-  }, 
-  id: { 
-    home: "Beranda", campaign: "Kampanye", leaderboard: "Peringkat", wallet: "Dompet", 
-    miningActive: "Penambangan Aktif", miningStopped: "Penambangan Berhenti", tier: "Tier", balance: "Saldo", 
-    watchAd: "Tonton Iklan", adReward: "Hadiah: $0.005 / Iklan", pointReward: "1 Iklan = 1 Poin", referral: "Tautan Rujukan", 
-    copy: "Salin Tautan", copied: "Tersalin!", giveawayTitle: "Bagi-Bagi USDT & iPhone!", 
-    giveawayDesc: "Kumpulkan poin dengan menonton iklan. Pengguna teratas menang!", topMiners: "Top 10 Penambang", points: "pts", 
-    connectEVM: "Hubungkan EVM (BSC/ETH)", connectTON: "Hubungkan TonKeeper", connected: "Terhubung", 
-    withdraw: "Tarik", asset: "Aset", network: "Jaringan", address: "Alamat Dompet", amount: "Jumlah", 
-    autoWD: "Tarik Otomatis $0.10 (1x Saja)", standardWD: "Tarik Standar", reqNotMet: "Syarat Tidak Terpenuhi", 
-    wrongNetwork: "AFEX hanya tersedia di BSC", txHash: "TxHash / Bukti Transaksi", adBlockTitle: "AdBlocker Terdeteksi", 
-    adBlockDesc: "Harap nonaktifkan AdGuard atau pemblokir iklan untuk melanjutkan.", understand: "Saya Mengerti", 
-    startMining: "Mulai Mining", stopMining: "Berhenti Mining", adPlaying: "Iklan sedang diputar...", closeAd: "Tutup & Ambil Reward", 
-    chartMissing: "Memuat Data Grafik..." 
-  } 
-};
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
+        .gold-glow { text-shadow: 0 0 12px rgba(234, 179, 8, 0.8); color: #fbbf24 !important; }
+        .luxury-border { border: 1px solid rgba(234, 179, 8, 0.4); box-shadow: inset 0 0 20px rgba(234, 179, 8, 0.1); }
+        #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative select-none">
 
-export default function App() {
-  const userIdStr = "8601594529";
-  const [lang, setLang] = useState(localStorage.getItem(`afex_lang_${userIdStr}`) || 'id');
-  const t = i18n[lang];
-
-  const [activeTab, setActiveTab] = useState('home');
-  const [balance, setBalance] = useState(parseFloat(localStorage.getItem(`afex_balance_${userIdStr}`)) || 100.00);
-  const [usdtBalance, setUsdtBalance] = useState(parseFloat(localStorage.getItem(`afex_usdt_${userIdStr}`)) || 1.20);
-  const [points, setPoints] = useState(parseInt(localStorage.getItem(`afex_points_${userIdStr}`)) || 0);
-  const [isFounder, setIsFounder] = useState(localStorage.getItem(`afex_is_founder_${userIdStr}`) === 'true');
-  const [isMining, setIsMining] = useState(localStorage.getItem(`afex_is_mining_${userIdStr}`) === 'true');
-  const [miningEndTime, setMiningEndTime] = useState(parseInt(localStorage.getItem(`afex_mining_end_${userIdStr}`)) || 0);
-  const [adWatchCount, setAdWatchCount] = useState(parseInt(localStorage.getItem(`afex_ad_count_${userIdStr}`)) || 0);
-  
-  // Wallet / Withdrawal Form
-  const [wdAsset, setWdAsset] = useState('usdt');
-  const [wdNetwork, setWdNetwork] = useState('bsc');
-  const [wdAmount, setWdAmount] = useState('');
-  const [wdTxHash, setWdTxHash] = useState('');
-  const [founderInputTx, setFounderInputTx] = useState('');
-  const [modal, setModal] = useState({ show: false, title: '', message: '' });
-
-  // Sync LocalStorage
-  useEffect(() => {
-    localStorage.setItem(`afex_balance_${userIdStr}`, balance);
-    localStorage.setItem(`afex_usdt_${userIdStr}`, usdtBalance);
-    localStorage.setItem(`afex_points_${userIdStr}`, points);
-    localStorage.setItem(`afex_is_founder_${userIdStr}`, isFounder);
-    localStorage.setItem(`afex_is_mining_${userIdStr}`, isMining);
-    localStorage.setItem(`afex_mining_end_${userIdStr}`, miningEndTime);
-    localStorage.setItem(`afex_ad_count_${userIdStr}`, adWatchCount);
-    localStorage.setItem(`afex_lang_${userIdStr}`, lang);
-  }, [balance, usdtBalance, points, isFounder, isMining, miningEndTime, adWatchCount, lang]);
-
-  // Mining Timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isMining && Date.now() >= miningEndTime) {
-        const reward = isFounder ? 150 : 100;
-        setBalance(prev => prev + reward);
-        setIsMining(false);
-        setMiningEndTime(0);
-        setModal({ show: true, title: "Mining Selesai!", message: `Berhasil mengklaim +${reward} AFEX!` });
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isMining, miningEndTime, isFounder]);
-
-  const handleMiningAction = () => {
-    if (!isMining) {
-      setIsMining(true);
-      setMiningEndTime(Date.now() + 12 * 3600 * 1000);
-    }
-  };
-
-  const watchAd = () => {
-    setAdWatchCount(prev => prev + 1);
-    setBalance(prev => prev + 15);
-    setUsdtBalance(prev => prev + 0.005); // Tier 3 reward $0.005[cite: 5]
-    setPoints(prev => prev + 1); // 1 Ad = 1 Point[cite: 5]
-    setModal({ show: true, title: "Reward Diklaim!", message: "+15 AFEX, +$0.005 USDT & +1 Poin Kampanye!" });
-  };
-
-  const verifyFounderVIP = () => {
-    if (!founderInputTx || founderInputTx.length < 6) {
-      return alert("Masukkan TxHash pembayaran $5 yang valid!");
-    }
-    setIsFounder(true);
-    setModal({ show: true, title: "VIP Aktif!", message: "Pembayaran terverifikasi otomatis melalui TxHash. Selamat menikmati akses VIP!" });
-  };
-
-  const handleWithdraw = () => {
-    if (wdAsset === 'afex' && wdNetwork !== 'bsc') {
-      return setModal({ show: true, title: t.wrongNetwork, message: t.wrongNetwork });
-    }
-    if (!wdTxHash) {
-      return setModal({ show: true, title: t.txHash, message: "Harap masukkan TxHash bukti pengiriman." });
-    }
-    setModal({ show: true, title: t.withdraw, message: `Permintaan penarikan ${wdAsset.toUpperCase()} via ${wdNetwork.toUpperCase()} berhasil diproses otomatis.` });
-  };
-
-  return (
-    <div className="max-w-md mx-auto min-h-screen bg-[#0b0f19] text-white flex flex-col justify-between pb-24 select-none font-sans">
-      {/* HEADER */}
-      <div className="p-4 flex justify-between items-center bg-[#161f33] border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-black shadow-md">
-            {isFounder ? <Crown size={16} /> : "AF"}
-          </div>
-          <div>
-            <span className="text-xs font-bold block">@{userIdStr}</span>
-            <span className="text-[10px] text-yellow-400">ID: {userIdStr}</span>
-          </div>
-        </div>
-        <select value={lang} onChange={(e) => setLang(e.target.value)} className="bg-[#0b0f19] text-yellow-400 text-xs p-1.5 rounded-lg border border-gray-700 font-bold cursor-pointer">
-          <option value="id">🇮🇩 ID</option>
-          <option value="en">🇬🇧 EN</option>
-        </select>
-      </div>
-
-      {/* MAIN CONTAINER CONTENT */}
-      <div className="p-4 flex-1 space-y-4">
-        {activeTab === 'home' && (
-          <div className="text-center space-y-4">
-            <div>
-              <span className="text-xs text-gray-400">{t.balance}</span>
-              <h1 className="text-3xl font-black text-yellow-400 font-mono">{balance.toFixed(2)} AFEX</h1>
-              <span className="text-xs text-gray-400">${(balance * 0.0001 + usdtBalance).toFixed(4)} USDT (Est)</span>
+    <!-- MAIN CONTAINER -->
+    <div class="p-4 flex-1 z-10 relative">
+        
+        <!-- HEADER PROFILE, LANGUAGE SELECTOR & STATS -->
+        <div class="flex justify-between items-center mb-4 relative z-20 gap-2">
+            <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
+                <!-- LOGO APEX FINANCE DARI GAMBAR -->
+                <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]">
+                    <img src="134069.jpg" alt="AFEX" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="header-username" class="text-xs font-bold text-white block">Loading...</span>
+                        <span id="header-crown" class="text-yellow-400 text-[11px] hidden drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"><i class="fa-solid fa-crown"></i></span>
+                    </div>
+                    <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono">8601594529</span></span>
+                </div>
             </div>
 
-            {/* FOUNDER VIP PASS PROMO BANNER */}
-            {!isFounder && (
-              <div className="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] border border-yellow-500/40 p-3 rounded-xl text-left space-y-2">
-                <div className="flex items-center gap-2">
-                  <Crown className="text-yellow-400" size={18} />
-                  <span className="text-xs font-bold text-yellow-400">UPGRADE FOUNDER VIP ($5)</span>
+            <div class="flex items-center gap-2">
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#161f33] border border-gray-800 text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
+                    <option value="en">🇬🇧 EN</option>
+                    <option value="fr">🇫🇷 FR</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="hi">🇮🇳 HI</option>
+                    <option value="ar">🇸🇦 AR</option>
+                    <option value="th">🇹🇭 TH</option>
+                    <option value="vi">🇻🇳 VI</option>
+                </select>
+
+                <div class="bg-[#161f33] px-2.5 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
+                    <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$0.00</span>
                 </div>
-                <p className="text-[10px] text-gray-300">Kirim $5 ke salah satu dompet resmi Founder:</p>
-                <div className="bg-black/50 p-2 rounded text-[9px] font-mono text-cyan-300 space-y-0.5">
-                  <p>BSC/ETH: {FOUNDER_WALLETS.BSC.slice(0, 10)}...</p>
-                  <p>TRC20: {FOUNDER_WALLETS.TRC20}</p>
+            </div>
+        </div>
+
+        <!-- FOUNDER VIP BANNER -->
+        <div id="founder-banner" onclick="openFounderModal()" class="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] luxury-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-yellow-500 text-black rounded-xl flex items-center justify-center text-sm font-black shadow-md">
+                    <i class="fa-solid fa-crown"></i>
                 </div>
-                <input 
-                  type="text" 
-                  placeholder="Masukkan TxHash Pembayaran..." 
-                  value={founderInputTx} 
-                  onChange={(e) => setFounderInputTx(e.target.value)}
-                  className="w-full bg-[#0b0f19] border border-gray-700 text-xs p-2 rounded text-white font-mono"
-                />
-                <button onClick={verifyFounderVIP} className="w-full bg-yellow-500 text-black font-bold text-xs py-2 rounded-lg">
-                  Verifikasi TxHash VIP
+                <div class="text-left">
+                    <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+                        <span>FOUNDER VIP PASS</span> 
+                        <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">UPGRADE</span>
+                    </h4>
+                    <p class="text-[10px] text-gray-300" id="founder-banner-desc">Get 150 AFEX/12h + Luxury Tasks!</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-yellow-400"></i>
+        </div>
+
+        <!-- 1. TAB 1: AUTO MINING & DAILY CHECK-IN -->
+        <div id="tab-tap" class="tab-content active text-center py-1 relative z-20">
+            <div class="mb-3">
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
+                <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight drop-shadow-md">0.00 AFEX</h1>
+                <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
+            </div>
+
+            <!-- Daily Check-In Banner -->
+            <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-base">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
+                        <p class="text-[10px] text-yellow-400 font-mono" id="checkin-banner-status">Claim 7-Day Streak Rewards</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+            </div>
+
+            <!-- Mining Circle -->
+            <div id="mining-circle" class="relative w-48 h-48 mx-auto mb-4 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
+                <div id="mining-icon-box" class="text-center">
+                    <i id="mining-icon" class="fa-solid fa-bolt text-3xl text-yellow-400 mb-1.5 animate-pulse drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]"></i>
+                    <span id="mining-status-label" class="text-[11px] font-bold uppercase tracking-widest text-gray-300 block" data-i18n="ready_to_mine">Ready to Mine</span>
+                </div>
+                <div id="mining-info-box" class="mt-1 text-center">
+                    <span id="session-mined" class="text-xs font-mono font-bold text-yellow-400 block">+0.00 AFEX</span>
+                </div>
+            </div>
+
+            <!-- Auto Mining Button -->
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative">
+                START 12H AUTO MINING
+            </button>
+
+            <!-- 12 Hours Status Timer -->
+            <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+                <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span data-i18n="session_timer">Session Timer:</span></span>
+                <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
+            </div>
+        </div>
+
+        <!-- 2. TAB 2: TASKS PAGE -->
+        <div id="tab-task" class="tab-content relative z-20">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h2 class="text-xl font-black text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
+                    <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn rewards.</p>
+                </div>
+                <!-- Sub-tab Selector for Normal & Founder -->
+                <div class="flex bg-[#161f33] p-1 rounded-xl border border-gray-800 text-xs font-bold">
+                    <button onclick="switchTaskSubTab('normal', this)" id="subtab-btn-normal" class="px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md">Normal</button>
+                    <button onclick="switchTaskSubTab('founder', this)" id="subtab-btn-founder" class="px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> VIP</button>
+                </div>
+            </div>
+
+            <!-- NORMAL TASKS CONTAINER -->
+            <div id="subtab-content-normal" class="space-y-2.5">
+                <!-- Watch Ad Task (0.01 USDT & Max 100/day) -->
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between shadow-lg border-yellow-500/30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-play text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Watch Ad <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
+                        </div>
+                    </div>
+                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
+                </div>
+
+                <!-- Social Tasks -->
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
+                            <i class="fa-brands fa-telegram text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.001 USDT</span></p>
+                        </div>
+                    </div>
+                    <button id="task-tg-1" onclick="startVerificationTask(this, 'https://t.me/+EGutCOoOgb4yNWQ9', 25, 0.001, 'tg_1')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                </div>
+
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center">
+                            <i class="fa-brands fa-telegram text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Join AFEX Payout</h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.0005 USDT</span></p>
+                        </div>
+                    </div>
+                    <button id="task-tg-2" onclick="startVerificationTask(this, 'https://t.me/AFEXPAYOUT', 25, 0.0005, 'tg_2')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                </div>
+            </div>
+
+            <!-- FOUNDER LUXURY EXCLUSIVE TAB CONTENT -->
+            <div id="subtab-content-founder" class="space-y-3 relative hidden">
+                <!-- Wrapper dengan efek blur jika belum founder -->
+                <div id="founder-tab-wrapper" class="space-y-3 transition-all duration-300">
+                    <!-- Luxury Founder Header Card -->
+                    <div class="bg-gradient-to-br from-amber-900/80 via-[#0b0f19] to-yellow-600/40 p-4 rounded-2xl luxury-border shadow-2xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-yellow-500/10 text-8xl font-black pointer-events-none">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-12 h-12 bg-gradient-to-tr from-yellow-300 to-amber-600 text-black rounded-full flex items-center justify-center text-xl font-black shadow-[0_0_15px_rgba(234,179,8,0.6)]">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-yellow-400 tracking-widest uppercase gold-glow">VIP Elite Hub</h3>
+                                <p class="text-[10px] text-gray-300">Exclusive high-tier rewards & multipliers.</p>
+                            </div>
+                        </div>
+                        <div class="bg-black/50 p-3 rounded-xl border border-yellow-500/20 flex justify-between items-center text-xs backdrop-blur-sm">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block">Status Member:</span>
+                                <span class="text-yellow-400 font-bold uppercase tracking-wider" id="founder-tier-label">VIP Founder Active</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-gray-400 block">Mining Multiplier:</span>
+                                <span class="text-green-400 font-bold font-mono">150 AFEX / 12H</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Founder Exclusive Tasks -->
+                    <div class="bg-[#161f33] p-3.5 rounded-xl luxury-border flex items-center justify-between shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]">
+                                <i class="fa-solid fa-gem"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-yellow-400">Founder Daily Dividend</h4>
+                                <p class="text-[10px] text-yellow-200/80 font-mono">+100 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.05 USDT</span></p>
+                            </div>
+                        </div>
+                        <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer shadow-lg hover:scale-105 transition-transform">Claim</button>
+                    </div>
+
+                    <div class="bg-[#161f33] p-3.5 rounded-xl luxury-border flex items-center justify-between shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]">
+                                <i class="fa-solid fa-bolt-lightning"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-yellow-400">Priority Node Booster</h4>
+                                <p class="text-[10px] text-yellow-200/80 font-mono">+250 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.10 USDT</span></p>
+                            </div>
+                        </div>
+                        <button onclick="claimFounderNodeBonus(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer shadow-lg hover:scale-105 transition-transform">Boost</button>
+                    </div>
+                </div>
+
+                <!-- Overlay Gembok & Blur jika belum Founder -->
+                <div id="founder-lock-overlay" class="absolute inset-0 bg-[#0b0f19]/80 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center text-center p-6 z-30 hidden">
+                    <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center text-3xl mb-3 border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)] animate-pulse">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 class="text-base font-black text-yellow-400 mb-1 tracking-widest uppercase">VIP Locked</h3>
+                    <p class="text-[11px] text-gray-300 mb-5 leading-relaxed">Upgrade to Founder VIP Pass ($5.00) to unlock this luxury elite tab, get a gold crown, and double your mining yield.</p>
+                    <button onclick="openFounderModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 px-6 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.5)] cursor-pointer hover:scale-105 transition-transform">
+                        UNLOCK VIP ($5.00)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. TAB 3: REFERRAL PAGE -->
+        <div id="tab-referral" class="tab-content relative z-20">
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="ref_title">INVITE FRIENDS!</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-4" data-i18n="ref_subtitle">INVITE A FRIEND <br>+70 AFEX (~$1.00) For A Successful Refer!</p>
+            
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
+                <h4 class="text-xs font-bold text-white" data-i18n="how_it_works">How It Works</h4>
+                <p class="text-[11px] text-gray-400" data-i18n="ref_desc">For a successful referral, your friend must join and start using the app through your link.</p>
+            </div>
+
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
+                <span class="text-xs text-gray-400 block mb-1" data-i18n="total_refs">Total Referrals</span>
+                <h3 id="total-ref-count" class="text-2xl font-black text-white font-mono">0</h3>
+            </div>
+
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
+                <input type="text" id="ref-link-input" readonly class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-cyan-300 font-mono outline-none">
+                <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:bg-yellow-400" data-i18n="btn_invite">
+                    Invite a friend
                 </button>
-              </div>
-            )}
-
-            <div className="w-44 h-44 mx-auto rounded-full border-4 border-yellow-500/30 flex flex-col items-center justify-center bg-gradient-to-b from-[#161f33] to-[#0b0f19] shadow-[0_0_30px_rgba(234,179,8,0.2)]">
-              <Zap className="text-yellow-400 animate-pulse" size={36} />
-              <span className="text-xs font-bold mt-2">{isMining ? t.miningActive : t.startMining}</span>
             </div>
-
-            <button onClick={handleMiningAction} className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-lg">
-              {isMining ? "Penambangan Berjalan..." : t.startMining}
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'campaign' && (
-          <div className="space-y-3">
-            <h2 className="text-base font-bold text-yellow-400">{t.giveawayTitle}</h2>
-            <p className="text-xs text-gray-300">{t.giveawayDesc}</p>
-            <div className="bg-[#161f33] p-3.5 rounded-xl border border-gray-800 flex justify-between items-center">
-              <span className="text-xs">Poin Kampanye Anda:</span>
-              <span className="font-mono text-yellow-400 font-bold text-sm">{points} {t.points}</span>
-            </div>
-            <button onClick={watchAd} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
-              <PlayCircle size={16} /> {t.watchAd} ({adWatchCount}/100)
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'leaderboard' && (
-          <div className="space-y-3">
-            <h2 className="text-base font-bold text-yellow-400">{t.topMiners}</h2>
-            <div className="bg-[#161f33] rounded-xl border border-gray-800 divide-y divide-gray-800 text-xs">
-              {[
-                { rank: 1, name: "@cryptoking", pts: points + 540 },
-                { rank: 2, name: "@bagja_dev", pts: points },
-                { rank: 3, name: "@sultan_ton", pts: 320 },
-                { rank: 4, name: "@fex_whale", pts: 210 },
-                { rank: 5, name: "@airdrop_master", pts: 150 }
-              ].map((item, idx) => (
-                <div key={idx} className="p-3 flex justify-between items-center">
-                  <span className="font-bold text-yellow-400">#{item.rank} {item.name}</span>
-                  <span className="font-mono text-cyan-300">{item.pts} {t.points}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'wallet' && (
-          <div className="space-y-3 text-xs">
-            <div className="bg-[#161f33] p-4 rounded-xl border border-gray-800 space-y-3">
-              <h3 className="font-bold text-yellow-400">Gateway Penarikan</h3>
-              <div>
-                <label className="text-[10px] text-gray-400 block mb-1">{t.asset}</label>
-                <select value={wdAsset} onChange={(e) => setWdAsset(e.target.value)} className="w-full bg-[#0b0f19] p-2 rounded-lg border border-gray-700 text-white">
-                  <option value="usdt">USDT</option>
-                  <option value="afex">AFEX (Wajib BSC)</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-gray-400 block mb-1">{t.network}</label>
-                <select value={wdNetwork} onChange={(e) => setWdNetwork(e.target.value)} className="w-full bg-[#0b0f19] p-2 rounded-lg border border-gray-700 text-white">
-                  <option value="bsc">BSC (BEP-20)</option>
-                  <option value="ton">TON</option>
-                  <option value="trc20">TRC-20</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-gray-400 block mb-1">{t.txHash}</label>
-                <input type="text" placeholder="Masukkan TxHash transaksi..." value={wdTxHash} onChange={(e) => setWdTxHash(e.target.value)} className="w-full bg-[#0b0f19] p-2 rounded-lg border border-gray-700 text-cyan-300 font-mono" />
-              </div>
-              <button onClick={handleWithdraw} className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl shadow-lg">
-                {t.withdraw} (Auto Payment)
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 z-50">
-        <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center ${activeTab === 'home' ? 'text-yellow-400' : 'text-gray-400'}`}>
-          <Home size={18} /><span className="text-[10px]">{t.home}</span>
-        </button>
-        <button onClick={() => setActiveTab('campaign')} className={`flex flex-col items-center ${activeTab === 'campaign' ? 'text-yellow-400' : 'text-gray-400'}`}>
-          <Gift size={18} /><span className="text-[10px]">{t.campaign}</span>
-        </button>
-        <button onClick={() => setActiveTab('leaderboard')} className={`flex flex-col items-center ${activeTab === 'leaderboard' ? 'text-yellow-400' : 'text-gray-400'}`}>
-          <Trophy size={18} /><span className="text-[10px]">{t.leaderboard}</span>
-        </button>
-        <button onClick={() => setActiveTab('wallet')} className={`flex flex-col items-center ${activeTab === 'wallet' ? 'text-yellow-400' : 'text-gray-400'}`}>
-          <Wallet size={18} /><span className="text-[10px]">{t.wallet}</span>
-        </button>
-      </nav>
-
-      {/* MODAL POPUP */}
-      {modal.show && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#161f33] p-5 rounded-2xl border border-yellow-500/40 text-center max-w-xs w-full space-y-3 shadow-2xl">
-            <h3 className="text-sm font-bold text-yellow-400">{modal.title}</h3>
-            <p className="text-xs text-gray-300">{modal.message}</p>
-            <button onClick={() => setModal({ show: false, title: '', message: '' })} className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black py-2.5 rounded-xl font-bold text-xs shadow-lg">OK</button>
-          </div>
         </div>
-      )}
+
+        <!-- 4. TAB 4: SWAP PAGE (TON/GRAM, USDT BEP20, USDT TON, USDT TRC20, BNB) -->
+        <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Listing in December 2026</p>
+            
+            <!-- SWAP BOX -->
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-6 text-left shadow-lg">
+                <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+                        <span data-i18n="swap_from">From</span>
+                        <span>Balance: <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <input type="number" id="swap-input-afex" oninput="calcSwap()" placeholder="0" class="w-2/3 bg-transparent text-lg font-bold text-white outline-none">
+                        <span class="font-bold text-yellow-400">AFEX</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-center -my-3 relative z-10">
+                    <div class="bg-[#161f33] p-1.5 rounded-full border border-gray-700">
+                        <i class="fa-solid fa-arrow-down text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-4 mt-1">
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+                        <span>To (Destination Token)</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2">
+                        <input type="number" id="swap-input-target" readonly placeholder="0" class="w-1/2 bg-transparent text-lg font-bold text-green-400 outline-none">
+                        <!-- Dropdown Pilihan Token Tujuan Swap Lengkap -->
+                        <select id="swap-target-token" onchange="calcSwap()" class="bg-[#161f33] border border-gray-700 text-yellow-400 text-[11px] rounded-lg px-2 py-2 outline-none font-bold w-1/2 cursor-pointer">
+                            <option value="usdt_bep20">USDT (BEP-20)</option>
+                            <option value="usdt_ton">USDT (TON)</option>
+                            <option value="usdt_trc20">USDT (TRC-20)</option>
+                            <option value="ton">TON / GRAM</option>
+                            <option value="bnb">BNB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="attemptSwap()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_swap">
+                    SWAP NOW
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. TAB 5: WALLET PAGE -->
+        <div id="tab-wallet" class="tab-content relative z-20">
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="wallet_title">WALLET ASSETS</h2>
+            <p class="text-xs text-gray-400 mb-4" data-i18n="wallet_desc">Manage your accumulated crypto assets securely.</p>
+            
+            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
+                <div class="space-y-2 mb-4">
+                    <!-- AFEX -->
+                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs border border-yellow-500 overflow-hidden">
+                                <img src="134069.jpg" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-white block">AFEX</span>
+                                <span class="text-[10px] text-gray-400">1 AFEX = $0.0001</span>
+                            </div>
+                        </div>
+                        <span id="wallet-afex-bal" class="font-mono text-yellow-400 font-bold text-sm">0.00</span>
+                    </div>
+
+                    <!-- USDT -->
+                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-[#26A17B] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">₮</div>
+                            <div>
+                                <span class="text-xs font-bold text-white block">USDT</span>
+                                <span class="text-[10px] text-gray-400">1 USDT = $1.00</span>
+                            </div>
+                        </div>
+                        <span id="wallet-usdt-bal" class="font-mono text-green-400 font-bold text-sm">$0.00</span>
+                    </div>
+
+                    <!-- TON -->
+                    <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-[#0098EA] rounded-full flex items-center justify-center font-bold text-white text-xs shadow-md">💎</div>
+                            <div>
+                                <span class="text-xs font-bold text-white block">TON</span>
+                                <span class="text-[10px] text-gray-400">1 TON = $1.51</span>
+                            </div>
+                        </div>
+                        <span id="wallet-ton-bal" class="font-mono text-cyan-400 font-bold text-sm">0.00</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs mt-1 mb-3 border-t border-gray-800 pt-3">
+                    <span class="text-gray-400" data-i18n="price_per_afex">Price per AFEX:</span>
+                    <span class="text-yellow-400 font-mono font-bold">$0.0001</span>
+                </div>
+
+                <button onclick="openWithdrawModal()" class="w-full mt-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer hover:opacity-90 shadow-lg" data-i18n="btn_withdraw">
+                    <i class="fa-solid fa-paper-plane mr-1"></i> WITHDRAW FUNDS
+                </button>
+            </div>
+
+            <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider" data-i18n="connect_wallet">Connect Wallet</h4>
+            <div class="space-y-2.5">
+                <!-- TonConnect Widget -->
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center font-bold text-[10px]">TK</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">Tonkeeper (TON)</h4>
+                            <p id="tk-status" class="text-[10px] text-gray-400 font-mono">Not Connected</p>
+                        </div>
+                    </div>
+                    <div id="ton-connect-button"></div>
+                </div>
+
+                <!-- EVM Widget -->
+                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-[#F3BA2F]/20 text-[#F3BA2F] rounded-full flex items-center justify-center font-bold text-[10px]">EVM</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">EVM Wallets</h4>
+                            <p id="evm-status" class="text-[10px] text-gray-400 font-mono">MetaMask / BNB / Trust</p>
+                        </div>
+                    </div>
+                    <button onclick="connectEVMWallet()" id="evm-connect-btn" class="text-xs font-bold text-yellow-400 hover:underline cursor-pointer">Connect</button>
+                </div>
+            </div>
+        </div>
     </div>
-  );
-}
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-50">
+        <button onclick="switchTab('referral', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-users text-base mb-0.5 pointer-events-none"></i>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_refer">Refer</span>
+        </button>
+        <button onclick="switchTab('task', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-list-check text-base mb-0.5 pointer-events-none"></i>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_task">Task</span>
+        </button>
+        <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-arrow-up text-base mb-0.5 pointer-events-none"></i>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_mine">Mine</span>
+        </button>
+        <button onclick="switchTab('swap', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-right-left text-base mb-0.5 pointer-events-none"></i>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_swap">Swap</span>
+        </button>
+        <button onclick="switchTab('wallet', this)" class="nav-btn text-gray-400 flex flex-col items-center cursor-pointer transition-all">
+            <i class="fa-solid fa-wallet text-base mb-0.5 pointer-events-none"></i>
+            <span class="text-[10px] pointer-events-none" data-i18n="nav_wallet">Wallet</span>
+        </button>
+    </nav>
+
+    <!-- MODERN CUSTOM ANIMATED MODAL POPUP -->
+    <div id="custom-modal" class="fixed inset-0 bg-[#0b0f19]/80 backdrop-blur-sm z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
+        <div class="bg-[#161f33] w-full max-w-xs p-6 rounded-2xl border border-yellow-500/30 text-center relative shadow-2xl pointer-events-auto">
+            <div id="modal-icon-container" class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 id="modal-title" class="text-base font-bold text-yellow-400 mb-2">Notification</h3>
+            <div id="modal-body" class="text-xs text-gray-300 mb-5 leading-relaxed">System information.</div>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">OK</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let tg = window.Telegram?.WebApp;
+        try { if(tg) { tg.expand(); tg.ready(); } } catch(e) {}
+
+        let miningData = {
+            balance: parseFloat(localStorage.getItem('afex_balance')) || 100.00,
+            usdtBalance: parseFloat(localStorage.getItem('afex_usdt')) || 1.20,
+            tonBalance: parseFloat(localStorage.getItem('afex_ton')) || 0.00,
+            refCount: parseInt(localStorage.getItem('afex_refs')) || 0,
+            refCode: localStorage.getItem('afex_refcode') || 'AFEX-' + Math.floor(100000 + Math.random() * 900000),
+            walletConnected: localStorage.getItem('afex_wallet_addr') || '',
+            isMining: localStorage.getItem('afex_is_mining') === 'true',
+            miningEndTime: parseInt(localStorage.getItem('afex_mining_end')) || 0,
+            lastWithdrawTime: parseInt(localStorage.getItem('afex_last_wd')) || 0,
+            isFounder: localStorage.getItem('afex_is_founder') === 'true',
+            founderTaskClaimed: localStorage.getItem('afex_founder_claimed') === 'true',
+            founderNodeClaimed: localStorage.getItem('afex_founder_node_claimed') === 'true',
+            checkInDay: parseInt(localStorage.getItem('afex_checkin_day')) || 0,
+            lastCheckInTime: parseInt(localStorage.getItem('afex_last_checkin')) || 0,
+            lang: localStorage.getItem('afex_lang') || 'en',
+            adWatchCount: parseInt(localStorage.getItem('afex_ad_count')) || 0,
+            adLastDate: localStorage.getItem('afex_ad_date') || ''
+        };
+
+        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000; 
+        
+        const CHECKIN_REWARDS = [
+            { day: 1, afex: 3 }, { day: 2, afex: 6 }, { day: 3, afex: 9 }, { day: 4, afex: 12 },
+            { day: 5, afex: 15 }, { day: 6, afex: 18 }, { day: 7, afex: 21 }
+        ];
+
+        let tonConnectUI = null;
+        let evmAccount = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkDailyCheckInReset();
+            checkAdLimitReset();
+            document.getElementById('lang-select').value = miningData.lang;
+
+            let userTg = tg?.initDataUnsafe?.user;
+            let userIdStr = userTg ? userTg.id.toString() : "8601594529";
+            let displayName = "Guest User";
+            
+            if(userTg) {
+                if(userTg.username) {
+                    displayName = `@${userTg.username}`;
+                } else if(userTg.first_name) {
+                    displayName = userTg.first_name;
+                } else if(userTg.last_name) {
+                    displayName = userTg.last_name;
+                }
+            }
+            
+            document.getElementById('header-username').innerText = displayName;
+            document.getElementById('header-acc').innerText = userIdStr;
+            document.getElementById('ref-link-input').value = `https://t.me/Fexboostbot?start=${miningData.refCode}`;
+
+            updateUI();
+            checkTaskCooldowns();
+            setInterval(checkMiningProgress, 1000);
+            setInterval(checkTaskCooldowns, 1000);
+            updateFounderUI();
+
+            try {
+                tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                    manifestUrl: 'https://afex-ads.vercel.app/tonconnect-manifest.json',
+                    buttonRootId: 'ton-connect-button'
+                });
+                tonConnectUI.onStatusChange(wallet => {
+                    if (wallet) {
+                        const rawAddress = wallet.account.address;
+                        miningData.walletConnected = rawAddress;
+                        document.getElementById('tk-status').innerText = `${rawAddress.slice(0, 4)}...${rawAddress.slice(-4)}`;
+                        localStorage.setItem('afex_wallet_addr', rawAddress);
+                    } else {
+                        document.getElementById('tk-status').innerText = "Not Connected";
+                    }
+                });
+            } catch (e) { console.error("TonConnect error:", e); }
+        });
+
+        async function connectEVMWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    const accounts = await provider.send('eth_requestAccounts', []);
+                    evmAccount = accounts[0];
+                    miningData.walletConnected = evmAccount;
+                    document.getElementById('evm-status').innerText = `${evmAccount.slice(0, 4)}...${evmAccount.slice(-4)}`;
+                    document.getElementById('evm-connect-btn').innerText = "Connected";
+                    localStorage.setItem('afex_wallet_addr', evmAccount);
+                    showModal("Success", "EVM Wallet connected successfully!", "fa-check");
+                } catch (err) {
+                    showModal("Connection Cancelled", "User rejected the EVM connection request.", "fa-triangle-exclamation");
+                }
+            } else {
+                showModal("Wallet Not Found", "EVM Wallet not detected in this browser.", "fa-triangle-exclamation");
+            }
+        }
+
+        function updateUI() {
+            let totalUsdEst = (miningData.balance * 0.0001) + miningData.usdtBalance;
+
+            document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
+            document.getElementById('token-usd').innerText = "$" + totalUsdEst.toFixed(4) + " USDT (Est)";
+            document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
+            document.getElementById('total-ref-count').innerText = miningData.refCount;
+            document.getElementById('wallet-afex-bal').innerText = miningData.balance.toFixed(2);
+            document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
+            document.getElementById('wallet-ton-bal').innerText = miningData.tonBalance.toFixed(4);
+            document.getElementById('swap-bal-afex').innerText = miningData.balance.toFixed(2);
+            document.getElementById('ad-counter-badge').innerText = `${miningData.adWatchCount}/100`;
+
+            localStorage.setItem('afex_balance', miningData.balance);
+            localStorage.setItem('afex_usdt', miningData.usdtBalance);
+            localStorage.setItem('afex_refs', miningData.refCount);
+            localStorage.setItem('afex_is_mining', miningData.isMining);
+            localStorage.setItem('afex_mining_end', miningData.miningEndTime);
+            localStorage.setItem('afex_is_founder', miningData.isFounder);
+            localStorage.setItem('afex_founder_claimed', miningData.founderTaskClaimed);
+            localStorage.setItem('afex_founder_node_claimed', miningData.founderNodeClaimed);
+            localStorage.setItem('afex_ad_count', miningData.adWatchCount);
+            localStorage.setItem('afex_ad_date', miningData.adLastDate);
+        }
+
+        function switchTaskSubTab(type, btnEl) {
+            let normalBtn = document.getElementById('subtab-btn-normal');
+            let founderBtn = document.getElementById('subtab-btn-founder');
+            let normalContent = document.getElementById('subtab-content-normal');
+            let founderContent = document.getElementById('subtab-content-founder');
+
+            if(type === 'normal') {
+                normalBtn.className = "px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md";
+                founderBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1";
+                normalContent.classList.remove('hidden');
+                founderContent.classList.add('hidden');
+            } else {
+                founderBtn.className = "px-3 py-1.5 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black transition-all flex items-center gap-1 shadow-md";
+                normalBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 transition-all";
+                founderContent.classList.remove('hidden');
+                normalContent.classList.add('hidden');
+            }
+        }
+
+        function updateFounderUI() {
+            let badge = document.getElementById('founder-status-badge');
+            let bannerDesc = document.getElementById('founder-banner-desc');
+            let crownIcon = document.getElementById('header-crown');
+            let userIdSpan = document.getElementById('header-acc');
+            let founderLockOverlay = document.getElementById('founder-lock-overlay');
+            let founderTierLabel = document.getElementById('founder-tier-label');
+
+            if(miningData.isFounder) {
+                badge.innerText = "VIP ACTIVE";
+                badge.className = "bg-green-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
+                bannerDesc.innerText = "150 AFEX/12h Mining Enabled + VIP Access";
+                crownIcon.classList.remove('hidden');
+                userIdSpan.className = "font-mono font-bold gold-glow";
+                founderLockOverlay.classList.add('hidden');
+                founderTierLabel.innerText = "VIP Founder Active (Level 1)";
+            } else {
+                badge.innerText = "UPGRADE $5";
+                badge.className = "bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
+                bannerDesc.innerText = "Get 150 AFEX/12h + Luxury Tasks!";
+                crownIcon.classList.add('hidden');
+                userIdSpan.className = "font-mono text-gray-400";
+                founderLockOverlay.classList.remove('hidden');
+                founderTierLabel.innerText = "Locked (Upgrade Required)";
+            }
+        }
+
+        function openFounderModal() {
+            if(miningData.isFounder) {
+                showModal("Founder VIP Active", "You are a VIP Founder! Enjoying 150 AFEX per 12h mining rewards and elite luxury tasks.", "fa-crown");
+            } else {
+                showModal("Upgrade to Founder VIP ($5.00)", `
+                    <div class="space-y-3 text-left">
+                        <p class="text-[11px] text-gray-300">Unlock maximum mining speed and exclusive luxury features:</p>
+                        <ul class="text-[10px] space-y-1.5 text-yellow-400">
+                            <li><i class="fa-solid fa-check mr-1.5 text-green-400"></i><b>150 AFEX</b> per 12h session</li>
+                            <li><i class="fa-solid fa-check mr-1.5 text-green-400"></i>Exclusive Luxury VIP Task Tab (Gold Crown Status)</li>
+                        </ul>
+                        <button onclick="purchaseFounderVIP()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-95">
+                            ACTIVATE FOUNDER PASS ($5.00)
+                        </button>
+                    </div>
+                `, "fa-crown");
+            }
+        }
+
+        function purchaseFounderVIP() {
+            if(miningData.usdtBalance < 5.00) {
+                return showModal("Insufficient USDT", "You need at least $5.00 USDT balance to purchase Founder VIP.", "fa-triangle-exclamation");
+            }
+            miningData.usdtBalance -= 5.00;
+            miningData.isFounder = true;
+            updateUI();
+            updateFounderUI();
+            closeModal();
+            showModal("Welcome Founder VIP!", "Successfully upgraded! Your profile now shines with a golden crown and VIP access is unlocked.", "fa-circle-check");
+        }
+
+        function claimFounderTask(btn) {
+            if(!miningData.isFounder) return openFounderModal();
+            if(miningData.founderTaskClaimed) return showModal("Already Claimed", "Already claimed today.", "fa-clock");
+            miningData.balance += 100;
+            miningData.usdtBalance += 0.05;
+            miningData.founderTaskClaimed = true;
+            btn.innerText = "Claimed";
+            btn.disabled = true;
+            btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-xl cursor-not-allowed";
+            updateUI();
+            showModal("Bonus Claimed!", "Received +100 AFEX & +0.05 USDT founder dividend!", "fa-circle-check");
+        }
+
+        function claimFounderNodeBonus(btn) {
+            if(!miningData.isFounder) return openFounderModal();
+            if(miningData.founderNodeClaimed) return showModal("Already Claimed", "Already claimed today.", "fa-clock");
+            miningData.balance += 250;
+            miningData.usdtBalance += 0.10;
+            miningData.founderNodeClaimed = true;
+            btn.innerText = "Boosted";
+            btn.disabled = true;
+            btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-2 rounded-xl cursor-not-allowed";
+            updateUI();
+            showModal("Node Boosted!", "Received +250 AFEX & +0.10 USDT node reward!", "fa-circle-check");
+        }
+
+        function checkAdLimitReset() {
+            let todayStr = new Date().toDateString();
+            if (miningData.adLastDate !== todayStr) {
+                miningData.adWatchCount = 0;
+                miningData.adLastDate = todayStr;
+                localStorage.setItem('afex_ad_count', 0);
+                localStorage.setItem('afex_ad_date', todayStr);
+            }
+        }
+
+        function startAdTask(btn) {
+            checkAdLimitReset();
+            if (miningData.adWatchCount >= 100) {
+                return showModal("Daily Limit Reached", "You have reached the maximum limit of watching 100 ads per day. Please come back tomorrow!", "fa-triangle-exclamation");
+            }
+
+            if(typeof show_11929290 === 'function') {
+                btn.innerText = "Loading...";
+                btn.disabled = true;
+                
+                show_11929290().then(() => {
+                    miningData.adWatchCount++;
+                    miningData.balance += 15;
+                    miningData.usdtBalance += 0.01; // Hadiah ads 0.01 USDT
+                    updateUI();
+                    showModal("Reward Claimed!", `+15 AFEX & +0.01 USDT added! (${miningData.adWatchCount}/100 today)`, "fa-circle-check");
+                    btn.innerText = "Watch";
+                    btn.disabled = false;
+                }).catch(err => {
+                    showModal("Ads Not Ready", "Please wait a moment or try again later.", "fa-triangle-exclamation");
+                    btn.innerText = "Watch";
+                    btn.disabled = false;
+                });
+            } else {
+                showModal("System Error", "Ad system is currently unavailable.", "fa-triangle-exclamation");
+            }
+        }
+
+        function calcSwap() {
+            let amount = parseFloat(document.getElementById('swap-input-afex').value) || 0;
+            let targetToken = document.getElementById('swap-target-token').value;
+            let baseUsdtVal = amount * 0.0001;
+            
+            let rateMultiplier = 1.0; 
+            if (targetToken === 'ton') rateMultiplier = 0.66; 
+            else if (targetToken === 'bnb') rateMultiplier = 0.0016; 
+            
+            let finalTargetVal = baseUsdtVal * rateMultiplier;
+            document.getElementById('swap-input-target').value = finalTargetVal.toFixed(4);
+        }
+
+        function attemptSwap() {
+            showModal("Swap Locked", "Swap will be locked until the official token listing time in December 2026.", "fa-lock");
+        }
+
+        function isCheckInAvailable() {
+            let now = Date.now();
+            return (now - miningData.lastCheckInTime) >= 86400000;
+        }
+
+        function checkDailyCheckInReset() {
+            let now = Date.now();
+            if (miningData.checkInDay >= 7 && (now - miningData.lastCheckInTime > 172800000)) {
+                miningData.checkInDay = 0;
+            }
+        }
+
+        function openCheckInModal() {
+            let canClaim = isCheckInAvailable();
+            let nextDay = (miningData.checkInDay % 7) + 1;
+
+            let gridHTML = `<div class="grid grid-cols-4 gap-2 mb-4">`;
+            for (let i = 1; i <= 7; i++) {
+                let isChecked = i <= miningData.checkInDay;
+                let isCurrent = i === nextDay && canClaim;
+                
+                let bgClass = "bg-[#0b0f19] border-gray-700 text-gray-400";
+                let iconOrText = `Day ${i}<br><span class="text-[9px] text-yellow-400">+${CHECKIN_REWARDS[i-1].afex}</span>`;
+
+                if (isChecked) {
+                    bgClass = "bg-green-500/20 border-green-500 text-green-400";
+                    iconOrText = `<i class="fa-solid fa-check text-base mb-1"></i><br><span class="text-[9px]">Day ${i}</span>`;
+                } else if (isCurrent) {
+                    bgClass = "bg-yellow-500/20 border-yellow-500 text-yellow-400 animate-pulse";
+                    iconOrText = `<b>Day ${i}</b><br><span class="text-[9px] font-bold">+${CHECKIN_REWARDS[i-1].afex}</span>`;
+                }
+
+                gridHTML += `<div class="border rounded-xl p-2 text-center flex flex-col items-center justify-center text-[10px] ${bgClass}">${iconOrText}</div>`;
+            }
+            gridHTML += `</div>`;
+
+            let actionBtnHTML = canClaim ? 
+                `<button onclick="claimCheckInReward()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">CLAIM DAY ${nextDay} REWARD</button>` :
+                `<button disabled class="w-full bg-gray-700 text-gray-400 text-xs py-3 rounded-xl font-bold cursor-not-allowed">CHECKED IN</button>`;
+
+            showModal("Daily Check-In Streak", `<p class="text-[11px] text-gray-300 mb-3">Check in every 24 hours to claim progressive rewards!</p>${gridHTML}${actionBtnHTML}`, "fa-calendar-check");
+        }
+
+        function claimCheckInReward() {
+            let nextDay = (miningData.checkInDay % 7) + 1;
+            let reward = CHECKIN_REWARDS[nextDay - 1];
+            miningData.balance += reward.afex;
+            miningData.checkInDay = nextDay;
+            miningData.lastCheckInTime = Date.now();
+            updateUI();
+            closeModal();
+            showModal("Check-In Successful!", `You claimed Day ${nextDay} reward:<br><b>+${reward.afex} AFEX</b>`, "fa-circle-check");
+        }
+
+        function checkTaskCooldowns() {
+            ['tg_1', 'tg_2'].forEach(taskId => {
+                let lastDone = parseInt(localStorage.getItem('task_cooldown_' + taskId)) || 0;
+                let now = Date.now();
+                let btnId = taskId === 'tg_1' ? 'task-tg-1' : 'task-tg-2';
+                let btn = document.getElementById(btnId);
+                if (!btn) return;
+                let timeLeft = (lastDone + 86400000) - now;
+                if (timeLeft > 0) {
+                    let hrs = Math.floor(timeLeft / 3600000);
+                    let mins = Math.floor((timeLeft % 3600000) / 60000);
+                    btn.innerText = `${hrs}h ${mins}m`;
+                    btn.disabled = true;
+                    btn.className = "bg-gray-700 text-gray-400 text-xs font-bold px-4 py-1.5 rounded-lg cursor-not-allowed";
+                } else {
+                    btn.innerText = "Start";
+                    btn.disabled = false;
+                    btn.className = "bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer";
+                }
+            });
+        }
+
+        function startVerificationTask(btn, url, tokenReward, usdtReward, taskId) {
+            window.open(url, '_blank');
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+            setTimeout(() => {
+                localStorage.setItem('task_cooldown_' + taskId, Date.now());
+                miningData.balance += tokenReward;
+                miningData.usdtBalance += usdtReward;
+                updateUI();
+                showModal("Task Completed!", `Earned +${tokenReward} AFEX & +${usdtReward} USDT!`, "fa-circle-check");
+                checkTaskCooldowns();
+            }, 3000);
+        }
+
+        function checkMiningProgress() {
+            let now = Date.now();
+            let btn = document.getElementById('action-mine-btn');
+            let statusLabel = document.getElementById('mining-status-label');
+            let sessionMinedLabel = document.getElementById('session-mined');
+            let timerCountdown = document.getElementById('timer-countdown');
+            let icon = document.getElementById('mining-icon');
+            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+
+            if (miningData.isMining) {
+                let timeLeft = miningData.miningEndTime - now;
+                if (timeLeft <= 0) {
+                    miningData.isMining = false;
+                    statusLabel.innerText = "Mining Completed!";
+                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Ready`;
+                    timerCountdown.innerText = "00:00:00";
+                    btn.disabled = false; 
+                    btn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
+                    btn.className = "w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
+                    icon.className = "fa-solid fa-circle-check text-4xl text-green-400 mb-2";
+                } else {
+                    let elapsed = TOTAL_DURATION_MS - timeLeft;
+                    let currentEarned = (elapsed / TOTAL_DURATION_MS) * targetReward;
+                    statusLabel.innerText = "Mining in Progress...";
+                    sessionMinedLabel.innerText = `+${currentEarned.toFixed(2)} AFEX`;
+                    timerCountdown.innerText = formatTime(timeLeft);
+                    btn.disabled = true; 
+                    btn.innerText = "AUTO MINING ACTIVE (12H)";
+                    btn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3.5 rounded-xl text-sm cursor-not-allowed mb-4 z-10 relative";
+                    icon.className = "fa-solid fa-spinner fa-spin text-4xl text-yellow-400 mb-2";
+                }
+            } else {
+                if (!btn.innerText.includes("CLAIM") && !btn.innerText.includes("Loading")) {
+                    btn.disabled = false;
+                    statusLabel.innerText = "Ready to Mine";
+                    sessionMinedLabel.innerText = `+${targetReward.toFixed(2)} AFEX Target`;
+                    timerCountdown.innerText = "12:00:00";
+                    btn.innerText = "START 12H AUTO MINING";
+                    btn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3.5 rounded-xl text-sm shadow-lg cursor-pointer hover:opacity-90 mb-4 transition-all z-10 relative";
+                    icon.className = "fa-solid fa-bolt text-4xl text-yellow-400 mb-2 animate-pulse";
+                }
+            }
+        }
+
+        function handleMiningAction() {
+            let btn = document.getElementById('action-mine-btn');
+            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+            
+            if (btn.innerText.includes("CLAIM")) {
+                miningData.balance += targetReward;
+                miningData.isMining = false;
+                updateUI();
+                showModal("Reward Claimed!", `+${targetReward} AFEX added!`, "fa-coins");
+            } else if (!miningData.isMining) {
+                if(typeof show_11929290 === 'function') {
+                    btn.innerText = "Loading Ad...";
+                    btn.disabled = true;
+                    show_11929290().then(() => {
+                        miningData.isMining = true;
+                        miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+                        updateUI();
+                        showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
+                    }).catch(err => {
+                        showModal("Ads Not Ready", "Please try again later.", "fa-triangle-exclamation");
+                        btn.innerText = "START 12H AUTO MINING";
+                        btn.disabled = false;
+                    });
+                } else {
+                    showModal("System Error", "Ad system unavailable.", "fa-triangle-exclamation");
+                }
+            }
+        }
+
+        function formatTime(ms) {
+            let totalSec = Math.floor(ms / 1000);
+            return `${Math.floor(totalSec / 3600).toString().padStart(2, '0')}:${Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0')}:${(totalSec % 60).toString().padStart(2, '0')}`;
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => { 
+                btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); 
+            });
+            btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
+        }
+
+        function openWithdrawModal() {
+            if(!miningData.walletConnected) return showModal("Wallet Required", "Please connect a wallet first!", "fa-triangle-exclamation");
+            showModal("Withdraw Funds", "Withdrawal requests are processed securely.", "fa-paper-plane");
+        }
+
+        function inviteFriend() {
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank');
+        }
+
+        function showModal(title, message, iconClass = "fa-bell") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerHTML = message;
+            document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            let modal = document.getElementById('custom-modal');
+            modal.classList.remove('hidden', 'pointer-events-none');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'scale-95');
+                modal.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            let modal = document.getElementById('custom-modal');
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden', 'pointer-events-none'); }, 300);
+        }
+
+        function changeLanguage(lang) {
+            miningData.lang = lang;
+            localStorage.setItem('afex_lang', lang);
+        }
+    </script>
+</body>
+</html>
