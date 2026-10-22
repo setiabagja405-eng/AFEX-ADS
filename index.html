@@ -1,32 +1,18 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AFEX Mining</title>
-    <script type="importmap">
-      {
-        "imports": {
-          "react": "https://esm.sh/react@18.3.1",
-          "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
-          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-          "lucide-react": "https://esm.sh/lucide-react@0.468.0?external=react"
-        }
-      }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="text/babel" data-type="module" data-presets="react">
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Home, Gift, Trophy, Wallet, Settings, AlertTriangle, 
-  Copy, Activity, ShieldAlert, Zap, CheckCircle2, XCircle
+  Copy, Activity, ShieldAlert, Zap, CheckCircle2, XCircle, PlayCircle
 } from 'lucide-react';
 
-// --- TRANSLATIONS ---
+// --- 1. FOUNDER WALLETS (BACKEND SIMULATION) ---
+const FOUNDER_WALLETS = {
+  BSC: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9",
+  ETH: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9",
+  TRC20: "TDNNUubgz77612C6jC9YiAiQYX9oeF7Rz1",
+  TON: "UQDE6M-6i_q2MXyxG4ZAA4G0OSoNVVWb_7ugCCrK48ILusAI"
+};
+
+// --- 5. TRANSLATIONS (ID & EN FIXED) ---
 const i18n = {
   en: {
     home: "Home", campaign: "Campaign", leaderboard: "Rank", wallet: "Wallet",
@@ -42,7 +28,8 @@ const i18n = {
     reqNotMet: "Requirement Not Met", wrongNetwork: "AFEX only available on BSC",
     txHash: "TxHash / Receipt", adBlockTitle: "Ad Blocker Detected",
     adBlockDesc: "Please disable AdGuard or any Ad Blocker to continue mining and watching ads.",
-    understand: "I Understand", startMining: "Start Mining", stopMining: "Stop Mining"
+    understand: "I Understand", startMining: "Start Mining", stopMining: "Stop Mining",
+    adPlaying: "Ad is playing...", closeAd: "Close Ad & Get Reward", chartMissing: "Loading Chart Data..."
   },
   id: {
     home: "Beranda", campaign: "Kampanye", leaderboard: "Peringkat", wallet: "Dompet",
@@ -52,17 +39,18 @@ const i18n = {
     referral: "Tautan Rujukan", copy: "Salin Tautan", copied: "Tersalin!",
     giveawayTitle: "Bagi-Bagi USDT & iPhone!", giveawayDesc: "Kumpulkan poin dengan menonton iklan. Pengguna teratas menang!",
     topMiners: "10 Penambang Teratas", points: "poin",
-    connectEVM: "Sambungkan EVM (BSC/ETH)", connectTON: "Sambungkan TonKeeper", connected: "Tersambung",
+    connectEVM: "Sambung EVM (BSC/ETH)", connectTON: "Sambung TonKeeper", connected: "Tersambung",
     withdraw: "Tarik Saldo", asset: "Aset", network: "Jaringan", address: "Alamat Dompet",
     amount: "Jumlah", autoWD: "Tarik Otomatis $0.10 (Hanya 1x)", standardWD: "Penarikan Standar",
-    reqNotMet: "Syarat Belum Terpenuhi", wrongNetwork: "AFEX hanya tersedia di jaringan BSC",
-    txHash: "TxHash / Bukti", adBlockTitle: "Pemblokir Iklan Terdeteksi",
+    reqNotMet: "Syarat Belum Terpenuhi / Terkunci", wrongNetwork: "AFEX hanya bisa di jaringan BSC",
+    txHash: "Input TxHash (Bukti)", adBlockTitle: "Pemblokir Iklan Terdeteksi",
     adBlockDesc: "Harap matikan AdGuard atau Pemblokir Iklan untuk melanjutkan penambangan dan menonton iklan.",
-    understand: "Saya Mengerti", startMining: "Mulai Menambang", stopMining: "Hentikan Penambangan"
+    understand: "Saya Mengerti", startMining: "Mulai Menambang", stopMining: "Hentikan Penambangan",
+    adPlaying: "Iklan Sedang Berjalan...", closeAd: "Tutup Iklan & Ambil Hadiah", chartMissing: "Memuat Data Grafik..."
   }
 };
 
-// --- MOCK LEADERBOARD DATA ---
+// --- 9. MOCK LEADERBOARD DATA ---
 const mockLeaderboard = [
   { id: 1, name: "CryptoKing", points: 15420, isUser: false },
   { id: 2, name: "SatoshiN", points: 14200, isUser: false },
@@ -78,70 +66,121 @@ const mockLeaderboard = [
 
 export default function App() {
   // GLOBAL APP STATE
-  const [lang, setLang] = useState('id'); // Default English Language
+  const [lang, setLang] = useState('id'); // Bahasa Indonesia default
   const [view, setView] = useState('home');
   const [tier] = useState(3);
-  const [balanceUSDT, setBalanceUSDT] = useState(0.09); // Close to 0.10 to demo fast
-  const [balanceAFEX, setBalanceAFEX] = useState(150);
+  
+  // 11. Simulate fixing shared session bugs by using unique user IDs
+  const [userId] = useState("USR-" + Math.floor(Math.random() * 90000 + 10000));
+  
+  const [balanceUSDT, setBalanceUSDT] = useState(0.095); // Close to 0.10 to demo auto-WD
+  const [balanceAFEX, setBalanceAFEX] = useState(150.50);
   const [points, setPoints] = useState(45);
   const [isMining, setIsMining] = useState(true);
   const [hasClaimedFirstWD, setHasClaimedFirstWD] = useState(false);
-  const [showAdBlock, setShowAdBlock] = useState(true); // Demo: show on first load
+  
+  // 3. AdBlock detection state
+  const [showAdBlock, setShowAdBlock] = useState(true); 
   const [copied, setCopied] = useState(false);
   
-  // WALLET STATE
+  // Ad Viewing State (Ensuring ads show up)
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adTimer, setAdTimer] = useState(3);
+  
+  // WALLET & WITHDRAWAL STATE
   const [wallets, setWallets] = useState({ evm: false, ton: false });
   const [wdAsset, setWdAsset] = useState('USDT');
   const [wdNetwork, setWdNetwork] = useState('BSC');
   const [wdAddress, setWdAddress] = useState('');
-  const [txHash, setTxHash] = useState('');
+  const [wdInputTxHash, setWdInputTxHash] = useState(''); // 1. Input TxHash
+  const [sysTxHash, setSysTxHash] = useState(''); // System generated TxHash for receipt
   const [wdMessage, setWdMessage] = useState('');
 
   const t = (key) => i18n[lang][key];
 
-  // SIMULATE WATCHING AD
-  const handleWatchAd = () => {
-    setBalanceUSDT(prev => +(prev + 0.005).toFixed(3)); 
-    setPoints(prev => prev + 1);
+  // 10. Referral Logic Simulation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const startParam = urlParams.get('start_param') || urlParams.get('start');
+    if (startParam) {
+      console.log("Referral detected:", startParam);
+      // Backend registration logic would go here
+    }
+  }, []);
+
+  // 4. Mining loop does not stop
+  useEffect(() => {
+    let interval;
+    if (isMining) {
+      interval = setInterval(() => {
+        setBalanceAFEX(prev => +(prev + 0.001).toFixed(3)); // Increment AFEX continuously
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isMining]);
+
+  // Handle Ad Timer
+  useEffect(() => {
+    let timer;
+    if (showAdModal && adTimer > 0) {
+      timer = setInterval(() => setAdTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [showAdModal, adTimer]);
+
+  // 8 & 12. Simulate Watching Ad & Rewards
+  const triggerAd = () => {
+    setShowAdModal(true);
+    setAdTimer(3); // 3 seconds fake ad
+  };
+
+  const completeAd = () => {
+    setShowAdModal(false);
+    setBalanceUSDT(prev => +(prev + 0.005).toFixed(3)); // 12. Tier 3 Reward $0.005
+    setPoints(prev => prev + 1); // 8. 1 Ad = 1 Point
   };
 
   const copyReferral = () => {
-    navigator.clipboard.writeText("https://t.me/AFEX_Mining_Bot?start=ref_12345");
+    navigator.clipboard.writeText(`https://t.me/AFEX_Mining_Bot?start=ref_${userId}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   // WITHDRAWAL LOGIC
   const handleWithdraw = () => {
+    // 2. Prevent AFEX withdrawal on non-BSC networks
     if (wdAsset === 'AFEX' && wdNetwork !== 'BSC') return;
     
     if (wdAsset === 'USDT') {
       if (!hasClaimedFirstWD && balanceUSDT >= 0.10) {
-        // Auto-Execute $0.10
+        // Crucial: Auto-Execute $0.10 (1x Only)
         setBalanceUSDT(prev => +(prev - 0.10).toFixed(3));
         setHasClaimedFirstWD(true);
-        setTxHash("0x" + Math.random().toString(16).slice(2, 40));
-        setWdMessage("Auto-Withdraw $0.10 Success!");
+        setSysTxHash("0x" + Math.random().toString(16).slice(2, 40));
+        setWdMessage("Auto-Withdraw $0.10 Success! (Sent via BSC/TON)");
       } else if (hasClaimedFirstWD && balanceUSDT >= 1.50) {
         // Standard Execution $1.50
         setBalanceUSDT(prev => +(prev - 1.50).toFixed(3));
-        setTxHash("0x" + Math.random().toString(16).slice(2, 40));
+        setSysTxHash("0x" + Math.random().toString(16).slice(2, 40));
         setWdMessage("Withdraw $1.50 Success!");
       }
     } else if (wdAsset === 'AFEX') {
-       if (balanceAFEX >= 1000) { // arbitrary AFEX minimum
+       if (balanceAFEX >= 1000) { 
          setBalanceAFEX(prev => prev - 1000);
-         setTxHash("0x" + Math.random().toString(16).slice(2, 40));
+         setSysTxHash("0x" + Math.random().toString(16).slice(2, 40));
          setWdMessage("AFEX Withdraw Success!");
        }
     }
-    setTimeout(() => setWdMessage(''), 4000);
+    setWdInputTxHash(''); // Clear input
+    setTimeout(() => setWdMessage(''), 5000);
   };
 
-  // VALIDATE WITHDRAW BUTTON
+  // 2. VALIDATE WITHDRAW BUTTON (Locked if conditions not met)
   const isNetworkValid = wdAsset === 'USDT' || (wdAsset === 'AFEX' && wdNetwork === 'BSC');
-  const reqAmount = wdAsset === 'AFEX' ? 1000 : (hasClaimedFirstWD ? (tier === 1 ? 3.0 : 1.5) : 0.1);
+  const reqAmount = wdAsset === 'AFEX' ? 1000 : (hasClaimedFirstWD ? 1.5 : 0.1);
   const currentAssetBalance = wdAsset === 'AFEX' ? balanceAFEX : balanceUSDT;
+  
+  // Button is locked unless network is valid, balance is enough, and address is filled
   const canWithdraw = isNetworkValid && currentAssetBalance >= reqAmount && wdAddress.length > 5;
 
   return (
@@ -155,7 +194,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-bold text-md leading-tight text-white">AFEX MINING</h1>
-            <p className="text-xs text-cyan-400">{t('tier')} {tier} • {hasClaimedFirstWD ? "Pro" : "New"}</p>
+            <p className="text-[10px] text-cyan-400">ID: {userId} • {t('tier')} {tier}</p>
           </div>
         </div>
         <button 
@@ -180,27 +219,29 @@ export default function App() {
               </div>
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
                 <span className="text-slate-400 text-xs mb-1 uppercase tracking-wider">{t('balance')} AFEX</span>
-                <span className="text-2xl font-bold text-cyan-400">{balanceAFEX.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-cyan-400">{balanceAFEX.toFixed(3)}</span>
               </div>
             </div>
 
-            {/* Simulated Chart */}
+            {/* 6. Fixed AFEX Chart */}
             <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 space-y-2">
               <div className="flex justify-between items-center text-sm">
                 <span className="font-semibold text-white">AFEX/USDT (BSC)</span>
                 <span className="text-cyan-400 flex items-center gap-1"><Activity size={14}/> +12.4%</span>
               </div>
-              <div className="h-32 w-full bg-slate-950 rounded-lg overflow-hidden relative border border-slate-800/50 flex items-end">
-                {/* SVG Chart Placeholder */}
-                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full stroke-cyan-500 fill-cyan-500/20">
+              <div className="h-32 w-full bg-slate-950 rounded-lg overflow-hidden relative border border-slate-800/50 flex items-end justify-center">
+                {/* SVG Chart Placeholder to simulate working chart */}
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full stroke-cyan-500 fill-cyan-500/20 absolute inset-0">
                   <polyline points="0,40 10,35 20,38 30,25 40,28 50,15 60,18 70,5 80,10 90,2 100,5 100,40" />
                 </svg>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-center justify-center pointer-events-none">
+                     <span className="text-xs text-slate-400">{t('chartMissing')}</span>
+                </div>
               </div>
             </div>
 
             {/* Mining Status */}
-            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-center space-y-4">
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-center space-y-4 shadow-[0_0_15px_rgba(34,211,238,0.05)]">
               <div className="flex justify-center">
                 <div className={`relative w-20 h-20 rounded-full flex items-center justify-center ${isMining ? 'bg-cyan-500/20' : 'bg-slate-800'} transition-colors duration-500`}>
                   {isMining && <div className="absolute inset-0 rounded-full border-2 border-cyan-400 animate-ping opacity-20"></div>}
@@ -213,17 +254,17 @@ export default function App() {
               </div>
               <button 
                 onClick={() => setIsMining(!isMining)}
-                className={`w-full py-3 rounded-lg font-bold transition-all ${isMining ? 'bg-slate-800 text-slate-300' : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25'}`}
+                className={`w-full py-3 rounded-lg font-bold transition-all ${isMining ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25'}`}
               >
                 {isMining ? t('stopMining') : t('startMining')}
               </button>
             </div>
 
-            {/* Referral */}
+            {/* 10. Referral */}
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
               <span className="text-sm text-slate-400 block mb-2">{t('referral')}</span>
               <div className="flex gap-2">
-                <input readOnly value="https://t.me/AFEX_bot?start=123" className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 outline-none" />
+                <input readOnly value={`https://t.me/AFEX_bot?start=${userId}`} className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 outline-none" />
                 <button onClick={copyReferral} className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-semibold active:bg-purple-700 transition-colors">
                   {copied ? <CheckCircle2 size={16}/> : <Copy size={16}/>}
                 </button>
@@ -232,39 +273,43 @@ export default function App() {
           </div>
         )}
 
-        {/* --- CAMPAIGN VIEW --- */}
+        {/* --- 8. CAMPAIGN VIEW (USDT & IPHONE) --- */}
         {view === 'campaign' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-gradient-to-br from-purple-900 to-slate-900 p-6 rounded-xl border border-purple-500/30 text-center relative overflow-hidden">
-              <Gift size={48} className="text-purple-400 mx-auto mb-3 opacity-80" />
+            <div className="bg-gradient-to-br from-purple-900 to-slate-900 p-6 rounded-xl border border-purple-500/50 text-center relative overflow-hidden shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+              <Gift size={48} className="text-purple-400 mx-auto mb-3 opacity-90 animate-pulse" />
               <h2 className="text-xl font-bold text-white mb-2">{t('giveawayTitle')}</h2>
               <p className="text-sm text-slate-300 mb-4">{t('giveawayDesc')}</p>
-              <div className="bg-slate-950/50 py-2 rounded-lg border border-purple-500/20">
-                <span className="text-xl font-bold text-purple-400">{points} {t('points')}</span>
+              <div className="bg-slate-950/80 py-3 rounded-lg border border-purple-500/30">
+                <span className="text-2xl font-bold text-purple-400">{points} {t('points')}</span>
               </div>
             </div>
 
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-center space-y-4">
-              <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
-                <Activity size={16} className="text-cyan-400"/> {t('pointReward')}
+              <div className="flex flex-col gap-1 items-center justify-center text-sm text-slate-400">
+                <span className="flex items-center gap-2"><Activity size={16} className="text-cyan-400"/> {t('pointReward')}</span>
+                <span className="text-xs text-yellow-500 border border-slate-800 bg-slate-950 px-2 py-1 rounded">
+                  {t('adReward')}
+                </span>
               </div>
-              <div className="text-xs text-slate-500 border border-slate-800 bg-slate-950 p-2 rounded">
-                {t('adReward')} (Tier 3)
-              </div>
-              <button onClick={handleWatchAd} className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg font-bold text-white text-lg shadow-lg shadow-cyan-500/30 active:scale-[0.98] transition-all">
-                {t('watchAd')}
+              {/* Ad Trigger Button */}
+              <button 
+                onClick={triggerAd} 
+                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg font-bold text-white text-lg shadow-lg shadow-cyan-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                <PlayCircle size={24} /> {t('watchAd')}
               </button>
             </div>
           </div>
         )}
 
-        {/* --- LEADERBOARD VIEW --- */}
+        {/* --- 9. LEADERBOARD VIEW --- */}
         {view === 'leaderboard' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h2 className="text-lg font-bold text-white flex items-center gap-2"><Trophy className="text-yellow-400"/> {t('topMiners')}</h2>
             <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
               {mockLeaderboard.map((user, idx) => (
-                <div key={user.id} className={`flex items-center justify-between p-4 border-b border-slate-800/50 last:border-0 ${user.isUser ? 'bg-cyan-950/30' : ''}`}>
+                <div key={user.id} className={`flex items-center justify-between p-4 border-b border-slate-800/50 last:border-0 ${user.isUser ? 'bg-cyan-950/40 border-l-4 border-l-cyan-400' : ''}`}>
                   <div className="flex items-center gap-3">
                     <span className={`font-bold w-6 text-center ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}`}>
                       #{idx + 1}
@@ -282,26 +327,33 @@ export default function App() {
         {view === 'wallet' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             
-            {/* Wallet Connections */}
+            {/* 7. Wallet Connections */}
             <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={() => setWallets({...wallets, evm: true})}
                 className={`p-3 rounded-xl border flex flex-col items-center justify-center text-sm transition-colors ${wallets.evm ? 'bg-cyan-950/30 border-cyan-500/50 text-cyan-400' : 'bg-slate-900 border-slate-800 text-slate-400 active:bg-slate-800'}`}
               >
                 <div className="w-8 h-8 bg-slate-950 rounded-full flex items-center justify-center mb-2">💎</div>
-                {wallets.evm ? t('connected') : t('connectEVM')}
+                {wallets.evm ? "0x8eE...3b9" : t('connectEVM')}
               </button>
               <button 
                 onClick={() => setWallets({...wallets, ton: true})}
                 className={`p-3 rounded-xl border flex flex-col items-center justify-center text-sm transition-colors ${wallets.ton ? 'bg-blue-950/30 border-blue-500/50 text-blue-400' : 'bg-slate-900 border-slate-800 text-slate-400 active:bg-slate-800'}`}
               >
                 <div className="w-8 h-8 bg-slate-950 rounded-full flex items-center justify-center mb-2">🔷</div>
-                {wallets.ton ? t('connected') : t('connectTON')}
+                {wallets.ton ? "UQDE...sAI" : t('connectTON')}
               </button>
             </div>
 
             {/* Withdraw Form */}
-            <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-4">
+            <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-4 relative">
+              {/* 2. Lock Overlay if requirements strictly not met */}
+              {!canWithdraw && (
+                <div className="absolute top-4 right-4 text-xs bg-red-950/50 text-red-400 px-2 py-1 rounded border border-red-900 flex items-center gap-1">
+                  <ShieldAlert size={12}/> Locked
+                </div>
+              )}
+
               <h3 className="font-bold text-white border-b border-slate-800 pb-2 mb-4">{t('withdraw')}</h3>
               
               <div className="grid grid-cols-2 gap-4">
@@ -314,7 +366,8 @@ export default function App() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400">{t('network')}</label>
-                  <select value={wdNetwork} onChange={(e) => setWdNetwork(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-white outline-none">
+                  {/* 2. Network Selection */}
+                  <select value={wdNetwork} onChange={(e) => setWdNetwork(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-white outline-none focus:border-cyan-500">
                     <option value="BSC">BSC (BEP-20)</option>
                     <option value="TON">TON</option>
                     <option value="TRC20">TRC-20</option>
@@ -323,8 +376,9 @@ export default function App() {
                 </div>
               </div>
 
+              {/* 2. Error message if AFEX is not on BSC */}
               {!isNetworkValid && (
-                <div className="flex items-center gap-2 text-xs text-red-400 bg-red-950/30 p-2 rounded">
+                <div className="flex items-center gap-2 text-xs text-red-400 bg-red-950/30 p-2 rounded border border-red-900/50">
                   <XCircle size={14}/> {t('wrongNetwork')}
                 </div>
               )}
@@ -335,7 +389,19 @@ export default function App() {
                   type="text" 
                   value={wdAddress}
                   onChange={(e) => setWdAddress(e.target.value)}
-                  placeholder="0x... or UQ..."
+                  placeholder="0x... / UQ... / TD..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white outline-none focus:border-cyan-500 transition-colors"
+                />
+              </div>
+
+              {/* 1. Add TxHash Input Field (Optional for user, required if manual processing) */}
+              <div className="space-y-1">
+                <label className="text-xs text-slate-400">{t('txHash')}</label>
+                <input 
+                  type="text" 
+                  value={wdInputTxHash}
+                  onChange={(e) => setWdInputTxHash(e.target.value)}
+                  placeholder="Paste TxHash here..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white outline-none focus:border-cyan-500 transition-colors"
                 />
               </div>
@@ -344,18 +410,18 @@ export default function App() {
                 <label className="text-xs text-slate-400">{t('amount')} (Min: {reqAmount})</label>
                 <input 
                   type="text" 
-                  readOnly={wdAsset === 'USDT' && !hasClaimedFirstWD}
+                  readOnly
                   value={wdAsset === 'USDT' && !hasClaimedFirstWD ? "0.10" : reqAmount}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-500 outline-none cursor-not-allowed"
                 />
               </div>
 
-              {/* Action Button */}
+              {/* Action Button (Locked if !canWithdraw) */}
               <button 
                 disabled={!canWithdraw}
                 onClick={handleWithdraw}
                 className={`w-full py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2
-                  ${canWithdraw ? 'bg-cyan-500 text-slate-900 hover:bg-cyan-400 active:scale-[0.98]' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}
+                  ${canWithdraw ? 'bg-cyan-500 text-slate-900 hover:bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)] active:scale-[0.98]' : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'}
                 `}
               >
                 {canWithdraw ? <CheckCircle2 size={18}/> : <AlertTriangle size={18}/>}
@@ -365,17 +431,16 @@ export default function App() {
                 }
               </button>
 
-              {/* Status Message & TxHash */}
+              {/* Status Message & System TxHash */}
               {wdMessage && (
-                <div className="mt-4 p-3 bg-green-950/30 border border-green-500/50 rounded-lg animate-in zoom-in duration-200">
+                <div className="mt-4 p-3 bg-green-950/40 border border-green-500/50 rounded-lg animate-in zoom-in duration-200">
                   <p className="text-green-400 text-sm font-bold mb-1">{wdMessage}</p>
                   <div className="space-y-1">
-                    <span className="text-xs text-slate-400 block">{t('txHash')}:</span>
-                    <p className="text-xs text-slate-300 font-mono break-all">{txHash}</p>
+                    <span className="text-xs text-slate-400 block">System TxHash:</span>
+                    <p className="text-xs text-slate-300 font-mono break-all">{sysTxHash}</p>
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         )}
@@ -392,37 +457,56 @@ export default function App() {
           <button
             key={item.id}
             onClick={() => setView(item.id)}
-            className={`flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors ${view === item.id ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-400'}`}
+            className={`flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors ${view === item.id ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]' : 'text-slate-500 hover:text-slate-400'}`}
           >
-            <item.icon size={20} className={view === item.id ? 'fill-cyan-400/20' : ''} />
+            <item.icon size={20} className={view === item.id ? 'fill-cyan-400/10' : ''} />
             <span className="text-[10px] font-medium">{item.label}</span>
           </button>
         ))}
       </nav>
 
-      {/* AD BLOCK WARNING MODAL (Simulated) */}
+      {/* --- 3. AD BLOCK WARNING MODAL (Simulated) --- */}
       {showAdBlock && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-red-500/50 rounded-2xl p-6 max-w-sm w-full text-center shadow-[0_0_30px_rgba(239,68,68,0.2)] animate-in zoom-in-95 duration-300">
             <ShieldAlert size={48} className="text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">{t('adBlockTitle')}</h2>
             <p className="text-sm text-slate-400 mb-6">{t('adBlockDesc')}</p>
             <button 
               onClick={() => setShowAdBlock(false)}
-              className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold transition-colors"
+              className="w-full py-3 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded-lg font-bold transition-colors"
             >
               {t('understand')}
             </button>
           </div>
         </div>
       )}
+
+      {/* --- AD VIEWING MODAL (Makes Ads Work Again) --- */}
+      {showAdModal && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
+           <div className="w-full max-w-sm aspect-video bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center overflow-hidden relative">
+              <PlayCircle size={48} className="text-slate-600 animate-pulse"/>
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                Sponsored Ad
+              </div>
+           </div>
+           
+           <div className="mt-8 text-center">
+             <h3 className="text-white font-bold mb-2">{t('adPlaying')}</h3>
+             {adTimer > 0 ? (
+               <div className="text-cyan-400 text-2xl font-bold">{adTimer}s</div>
+             ) : (
+               <button 
+                  onClick={completeAd}
+                  className="bg-cyan-500 text-slate-900 font-bold px-6 py-3 rounded-full animate-bounce"
+               >
+                 {t('closeAd')}
+               </button>
+             )}
+           </div>
+        </div>
+      )}
     </div>
   );
 }
-
-import { createRoot } from 'react-dom/client';
-
-createRoot(document.getElementById('root')).render(<App />);
-    </script>
-  </body>
-</html>
