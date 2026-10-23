@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFEX Mining - 12 Hours Auto Mine</title>
+    <title>AFEX Mining - Gold Edition</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,30 +11,28 @@
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- MONETAG SDK FOR TELEGRAM MINI APP (In-App Interstitial) -->
+    <!-- MONETAG SDK FOR TELEGRAM MINI APP -->
     <script src="https://libtl.com/sdk.js" data-zone="11929290" data-sdk="show_11929290" data-auto="2/0.1/30/5/0"></script>
     
-    <!-- Ethers.js CDN for EVM Wallets -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
-
-    <!-- TON Connect UI SDK -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background 0.3s, color 0.3s; }
-        body.light-mode { background-color: #f3f4f6; color: #111827; }
-        body.light-mode .bg-[#161f33] { background-color: #ffffff; color: #111827; border-color: #e5e7eb; }
-        body.light-mode .bg-[#0b0f19] { background-color: #f9fafb; color: #111827; border-color: #e5e7eb; }
-        body.light-mode text-white { color: #111827; }
+        body { background-color: #080c14; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
-        .gold-glow { text-shadow: 0 0 12px rgba(234, 179, 8, 0.8); color: #fbbf24 !important; }
-        .luxury-border { border: 1px solid rgba(234, 179, 8, 0.4); box-shadow: inset 0 0 20px rgba(234, 179, 8, 0.1); }
-        #custom-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+        
+        /* Custom Transparent Scrollbar (Panah Nerawang) */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(234, 179, 8, 0.25); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(234, 179, 8, 0.5); }
+        ::-webkit-scrollbar-button { background: transparent; height: 10px; }
+
+        .glow-circle { box-shadow: 0 0 45px rgba(234, 179, 8, 0.2); }
+        .gold-glow { text-shadow: 0 0 10px rgba(234, 179, 8, 0.8); color: #fbbf24 !important; }
+        .gold-border { border: 1px solid rgba(234, 179, 8, 0.35); }
+        .gold-card-bg { background: linear-gradient(135deg, rgba(22, 31, 51, 0.95) 0%, rgba(35, 26, 9, 0.6) 100%); }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative select-none">
@@ -42,47 +40,40 @@
     <!-- MAIN CONTAINER -->
     <div class="p-4 flex-1 z-10 relative">
         
-        <!-- HEADER PROFILE, LANGUAGE SELECTOR & STATS -->
+        <!-- HEADER PROFILE & STATS -->
         <div class="flex justify-between items-center mb-4 relative z-20 gap-2">
-            <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
+            <div class="bg-[#121927] px-3 py-1.5 rounded-xl gold-border flex items-center gap-2">
                 <div class="relative">
-                    <div id="header-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden drop-shadow-[0_0_4px_rgba(234,179,8,0.9)]"><i class="fa-solid fa-crown"></i></div>
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)] bg-cyan-400 text-black font-bold text-xs">
+                    <div id="header-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden"><i class="fa-solid fa-crown"></i></div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-2 border-yellow-500 bg-amber-500 text-black font-black text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
                         <span id="header-avatar-letter">C</span>
                     </div>
                 </div>
                 <div>
-                    <div class="flex items-center gap-1.5">
-                        <span id="header-username" class="text-xs font-bold text-white block">Carmelo</span>
-                    </div>
-                    <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono">8821716544</span></span>
+                    <span id="header-username" class="text-xs font-bold text-white block">Carmelo</span>
+                    <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono text-yellow-500">8821716544</span></span>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <!-- SWITCH BAHASA LENGKAP -->
-                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#161f33] border border-gray-800 text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
+                <!-- MULTI LANGUAGE SELECTOR -->
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#121927] gold-border text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
                     <option value="en">🇬🇧 English</option>
                     <option value="id">🇮🇩 Indonesia</option>
                     <option value="hi">🇮🇳 India</option>
-                    <option value="th">🇹🇭 Thailand</option>
-                    <option value="vi">🇻🇳 Vietnam</option>
                     <option value="zh">🇨🇳 China</option>
                     <option value="ja">🇯🇵 Japan</option>
-                    <option value="ko">🇰🇷 Korea</option>
-                    <option value="fr">🇫🇷 French</option>
-                    <option value="de">🇩🇪 German</option>
                     <option value="ar">🇸🇦 Arabic</option>
                 </select>
 
-                <div class="bg-[#161f33] px-2.5 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
+                <div class="bg-[#121927] px-2.5 py-1.5 rounded-xl gold-border text-right flex items-center">
                     <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$1.20</span>
                 </div>
             </div>
         </div>
 
         <!-- FOUNDER VIP BANNER -->
-        <div id="founder-banner" onclick="handleFounderClick()" class="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] luxury-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
+        <div id="founder-banner" onclick="handleFounderClick()" class="gold-card-bg gold-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-yellow-500 text-black rounded-xl flex items-center justify-center text-sm font-black shadow-md">
                     <i class="fa-solid fa-crown"></i>
@@ -90,17 +81,17 @@
                 <div class="text-left">
                     <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
                         <span data-i18n="vip_pass">FOUNDER VIP PASS</span> 
-                        <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">LOCKED</span>
+                        <span class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-black">LOCKED</span>
                     </h4>
-                    <p id="founder-countdown-text" class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5">
-                        Founder tersedia dalam 45 hari 00 jam
+                    <p id="founder-countdown-text" class="text-[10px] text-yellow-300/80 font-mono font-bold mt-0.5">
+                        Founder available in 45 days 00 hours
                     </p>
                 </div>
             </div>
             <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
         </div>
 
-        <!-- 1. TAB 1: AUTO MINING (HOME) -->
+        <!-- 1. TAB 1: HOME / AUTO MINING -->
         <div id="tab-tap" class="tab-content active text-center py-1 relative z-20">
             <div class="mb-3">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">TOTAL BALANCE</span>
@@ -109,21 +100,21 @@
             </div>
 
             <!-- DAILY CHECK-IN -->
-            <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
+            <div onclick="openCheckInModal()" class="bg-[#121927] gold-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-500 transition-all shadow-md">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-base">
+                    <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-xl flex items-center justify-center text-base">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <div class="text-left">
-                        <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
-                        <p class="text-[10px] text-yellow-400 font-mono">Claim Streak Rewards (Day 1 - 7)</p>
+                        <h4 class="text-xs font-bold text-white" data-i18n="checkin_title">Daily Check-in</h4>
+                        <p id="checkin-status-sub" class="text-[10px] text-yellow-400 font-mono">Claim Streak Rewards (Day 1 - 7)</p>
                     </div>
                 </div>
-                <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
             </div>
 
             <!-- MINING CIRCLE -->
-            <div id="mining-circle" class="relative w-48 h-48 mx-auto mb-4 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
+            <div id="mining-circle" class="relative w-48 h-48 mx-auto mb-4 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#121927] to-[#080c14] border-4 border-yellow-500/40 glow-circle">
                 <div id="mining-icon-box" class="text-center">
                     <i id="mining-icon" class="fa-solid fa-bolt text-3xl text-yellow-400 mb-1.5 animate-pulse drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]"></i>
                     <span id="mining-status-label" class="text-[11px] font-bold uppercase tracking-widest text-gray-300 block" data-i18n="ready_to_mine">Ready to Mine</span>
@@ -134,12 +125,12 @@
             </div>
 
             <!-- AUTO MINING BUTTON -->
-            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative" data-i18n="btn_start_mine">
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative" data-i18n="btn_start_mine">
                 START 12H AUTO MINING
             </button>
 
             <!-- 12 HOURS STATUS TIMER -->
-            <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+            <div class="bg-[#121927] p-3 rounded-xl gold-border flex justify-between items-center text-xs font-mono mb-2">
                 <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span data-i18n="session_timer">Session Timer:</span></span>
                 <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
             </div>
@@ -150,72 +141,36 @@
             <div class="flex justify-between items-center mb-3">
                 <div>
                     <h2 class="text-xl font-black text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
-                    <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn rewards.</p>
+                    <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn points & rewards.</p>
                 </div>
-                <div class="flex bg-[#161f33] p-1 rounded-xl border border-gray-800 text-xs font-bold">
-                    <button onclick="switchTaskSubTab('normal', this)" id="subtab-btn-normal" class="px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md" data-i18n="subtab_normal">Normal</button>
-                    <button onclick="switchTaskSubTab('founder', this)" id="subtab-btn-founder" class="px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> VIP</button>
+                <div class="bg-[#121927] px-3 py-1.5 rounded-xl gold-border text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-star"></i> <span id="user-points-badge" class="font-mono">0 Pts</span>
                 </div>
             </div>
 
-            <!-- NORMAL TASKS -->
-            <div id="subtab-content-normal" class="space-y-2.5">
-                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between shadow-lg border-yellow-500/30">
+            <div class="space-y-2.5">
+                <div class="bg-[#121927] p-3 rounded-xl gold-border flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center">
+                        <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-xl flex items-center justify-center">
                             <i class="fa-solid fa-play text-base"></i>
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Watch Ad</span> <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span> <span class="text-gray-500">|</span> <span class="text-yellow-300">+1 Pt</span></p>
                         </div>
                     </div>
-                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
+                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
                 </div>
 
-                <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
+                <div class="bg-[#121927] p-3 rounded-xl gold-border flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><i class="fa-brands fa-telegram text-base"></i></div>
+                        <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-xl flex items-center justify-center"><i class="fa-brands fa-telegram text-base"></i></div>
                         <div>
                             <h4 class="text-xs font-bold text-white" data-i18n="task_join_tg">Join Telegram Channel</h4>
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
-                </div>
-            </div>
-
-            <!-- VIP TASKS -->
-            <div id="subtab-content-founder" class="space-y-3 relative hidden">
-                <div class="bg-gradient-to-br from-amber-900/80 via-[#0b0f19] to-yellow-600/40 p-4 rounded-2xl luxury-border shadow-2xl">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-12 h-12 bg-gradient-to-tr from-yellow-300 to-amber-600 text-black rounded-full flex items-center justify-center text-xl font-black shadow-[0_0_15px_rgba(234,179,8,0.6)]">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-yellow-400 tracking-widest uppercase gold-glow" data-i18n="vip_hub_title">VIP Elite Hub</h3>
-                            <p class="text-[10px] text-gray-300" data-i18n="vip_hub_desc">Exclusive high-tier rewards & multipliers.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-[#161f33] p-3.5 rounded-xl luxury-border flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-gem"></i></div>
-                        <div>
-                            <h4 class="text-xs font-bold text-yellow-400" data-i18n="founder_dividend">Founder Daily Dividend</h4>
-                            <p class="text-[10px] text-yellow-200/80 font-mono">+150 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
-                        </div>
-                    </div>
-                    <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer" data-i18n="btn_claim">Claim</button>
-                </div>
-
-                <!-- Overlay Gembok VIP -->
-                <div id="founder-lock-overlay" class="absolute inset-0 bg-[#0b0f19]/80 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center text-center p-6 z-30 hidden">
-                    <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center text-3xl mb-3 border border-yellow-500/50 animate-pulse"><i class="fa-solid fa-lock"></i></div>
-                    <h3 class="text-base font-black text-yellow-400 mb-1" data-i18n="vip_locked">VIP Locked</h3>
-                    <p id="overlay-countdown-text" class="text-[11px] text-gray-300 mb-4">Founder tersedia dalam 45 hari</p>
-                    <button onclick="handleFounderClick()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 px-6 rounded-xl text-xs cursor-pointer" data-i18n="btn_unlock_vip">CLOSE</button>
+                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank')" class="bg-yellow-500 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
                 </div>
             </div>
         </div>
@@ -225,13 +180,13 @@
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
             <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase animate-pulse" data-i18n="swap_subtitle">Coming Soon</p>
             
-            <div class="bg-[#161f33] p-6 rounded-2xl border border-yellow-500/30 text-center space-y-4 shadow-xl">
+            <div class="bg-[#121927] p-6 rounded-2xl gold-border text-center space-y-4 shadow-xl">
                 <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-yellow-500/40">
                     <i class="fa-solid fa-right-left"></i>
                 </div>
-                <h3 class="text-sm font-bold text-white">AFEX Token Swap Exchange</h3>
-                <p class="text-xs text-gray-400 leading-relaxed">Tukar token AFEX Anda ke USDT atau TON secara instan dengan likuiditas terdesentralisasi.</p>
-                <button onclick="showModal('Swap Info', 'Fitur Swap aktif otomatis saat Mainnet.', 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer">
+                <h3 class="text-sm font-bold text-white" data-i18n="swap_heading">AFEX Token Swap Exchange</h3>
+                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_desc">Swap AFEX tokens instantly to USDT or TON with liquidity pool estimates.</p>
+                <button onclick="showModal('Swap Info', 'Fitur Swap akan aktif pada fase Mainnet.', 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer">
                     START SWAP
                 </button>
             </div>
@@ -239,84 +194,78 @@
 
         <!-- 4. TAB 4: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
-            <!-- ULTRA WALLET HEADER CARD -->
-            <div class="bg-gradient-to-br from-indigo-900/60 via-[#161f33] to-purple-900/50 p-5 rounded-2xl border border-purple-500/30 text-center mb-4 shadow-xl relative overflow-hidden">
-                <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-2 text-white text-xs"><i class="fa-solid fa-wallet"></i></div>
+            <!-- ULTRA WALLET HEADER CARD (Gradasi Hitam-Gold Elegan) -->
+            <div class="bg-gradient-to-br from-[#121927] via-amber-950/40 to-black p-5 rounded-2xl gold-border text-center mb-4 shadow-xl relative overflow-hidden">
+                <div class="w-8 h-8 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center justify-center mx-auto mb-2 text-yellow-400 text-xs"><i class="fa-solid fa-wallet"></i></div>
                 <span class="text-[10px] text-gray-400 uppercase tracking-widest block" data-i18n="total_balance">TOTAL BALANCE</span>
-                <h2 id="wallet-total-bal-usd" class="text-2xl font-black font-mono text-white mb-3">$1.20</h2>
-                <button onclick="openWithdrawModal()" class="bg-[#161f33]/80 hover:bg-[#161f33] border border-purple-400/40 text-white font-bold text-xs py-2 px-5 rounded-full shadow-md transition-all">
-                    <i class="fa-solid fa-paper-plane mr-1 text-purple-400"></i> Withdraw
+                <h2 id="wallet-total-bal-usd" class="text-2xl font-black font-mono text-yellow-400 mb-3">$1.20</h2>
+                <button onclick="openWithdrawModal()" class="bg-[#121927] hover:bg-black border border-yellow-500/40 text-yellow-400 font-bold text-xs py-2 px-6 rounded-full shadow-md transition-all">
+                    <i class="fa-solid fa-paper-plane mr-1 text-yellow-400"></i> Withdraw
                 </button>
             </div>
 
             <!-- ACTION BUTTONS GRID -->
             <div class="grid grid-cols-2 gap-2 mb-4">
-                <div onclick="openConnectWalletModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex items-center justify-between">
+                <div onclick="openConnectWalletModal()" class="bg-[#121927] gold-border p-3 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-link"></i></div>
-                        <div class="text-left"><span class="text-[11px] font-bold text-white block">Hubungkan Dompet</span><span class="text-[9px] text-gray-400">BSC, TON, ETH, TRC</span></div>
+                        <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-link"></i></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="connect_wallet">Hubungkan Dompet</span><span class="text-[9px] text-gray-400">BSC, TON, ETH, TRC</span></div>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
-                <div onclick="openWithdrawModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex items-center justify-between">
+                <div onclick="openWithdrawModal()" class="bg-[#121927] gold-border p-3 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-paper-plane"></i></div>
-                        <div class="text-left"><span class="text-[11px] font-bold text-white block">Withdraw</span><span class="text-[9px] text-gray-400">Instant Payouts</span></div>
+                        <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="withdraw">Withdraw</span><span class="text-[9px] text-gray-400">Instant Payouts</span></div>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
             </div>
 
-            <!-- TRANSACTION HISTORY & WITHDRAW HISTORY -->
-            <div class="space-y-2 mb-4">
-                <div onclick="openHistoryModal()" class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-purple-500/50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                        <span class="text-xs font-bold text-white">Transaction History</span>
+            <!-- ALL ASSETS & TOKEN BALANCES -->
+            <div class="bg-[#121927] p-3.5 rounded-xl gold-border mb-4 space-y-2">
+                <h4 class="text-xs font-bold text-yellow-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-coins"></i> Your Token Balances</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                        <span class="text-gray-300 font-bold">AFEX:</span> <span id="bal-afex" class="text-yellow-400 font-bold">100.00</span>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                </div>
-
-                <div onclick="openWdHistoryModal()" class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-purple-500/50 transition-all">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
-                        <span class="text-xs font-bold text-white">Withdraw History</span>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                        <span class="text-gray-300 font-bold">USDT:</span> <span id="bal-usdt" class="text-green-400 font-bold">$1.20</span>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                        <span class="text-gray-300 font-bold">TON:</span> <span id="bal-ton" class="text-cyan-400 font-bold">0.00</span>
+                    </div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                        <span class="text-gray-300 font-bold">ETH:</span> <span id="bal-eth" class="text-purple-400 font-bold">0.000</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- PORTFOLIO LIVE CHART ESTIMATION -->
-            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
-                <h4 class="text-xs font-bold text-gray-400 mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-chart-line"></i> PORTFOLIO LIVE CHART</span>
-                    <span class="text-green-400 font-mono text-[10px] animate-pulse">● Live Tracking</span>
-                </h4>
-                <div class="flex items-center justify-between bg-[#0b0f19] p-3 rounded-lg border border-gray-800 mb-2">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-black font-bold text-xs">₮</div>
-                        <div><span class="text-xs font-bold text-white block">USDT</span><span class="text-[10px] text-gray-400">Est. Market Value</span></div>
-                    </div>
-                    <span id="wallet-usdt-bal" class="font-mono text-green-400 font-bold text-sm">$1.20</span>
+            <!-- LIVE CHART SIMULATION (Est. Liquidity 0.001) -->
+            <div class="bg-[#121927] p-4 rounded-xl gold-border mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> AFEX Live Chart</h4>
+                    <span class="text-[10px] text-gray-400 font-mono">Est. Liq: <strong class="text-green-400">0.001</strong></span>
                 </div>
-                <div class="flex items-center justify-between bg-[#0b0f19] p-3 rounded-lg border border-gray-800">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-xs">⚡</div>
-                        <div><span class="text-xs font-bold text-white block">AFEX Token</span><span class="text-[10px] text-gray-400">Price: $0.0001</span></div>
-                    </div>
-                    <span id="wallet-afex-est" class="font-mono text-yellow-400 font-bold text-sm">$0.00</span>
+                <!-- SVG Live Chart -->
+                <div class="w-full h-28 bg-[#080c14] rounded-lg p-2 border border-gray-800 flex items-end">
+                    <svg class="w-full h-full overflow-visible" viewBox="0 0 100 40">
+                        <path d="M 0,35 Q 15,20 30,28 T 60,15 T 80,22 T 100,5" fill="none" stroke="#EAB308" stroke-width="2" />
+                        <circle cx="100" cy="5" r="3" fill="#22C55E" class="animate-ping" />
+                        <circle cx="100" cy="5" r="2" fill="#EAB308" />
+                    </svg>
                 </div>
             </div>
         </div>
 
         <!-- 5. TAB 5: PROFILE PAGE -->
         <div id="tab-profile" class="tab-content relative z-25 space-y-3 pb-6">
-            <!-- Header User Card with Light/Dark Switch -->
-            <div class="bg-[#161f33] p-4 rounded-2xl border border-gray-800 flex items-center justify-between shadow-lg">
+            <!-- Header User Card -->
+            <div class="bg-[#121927] p-4 rounded-2xl gold-border flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
                     <div class="relative">
-                        <div id="profile-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden drop-shadow-[0_0_4px_rgba(234,179,8,0.9)]"><i class="fa-solid fa-crown"></i></div>
-                        <div class="w-12 h-12 rounded-full bg-cyan-400 text-black font-black flex items-center justify-center text-xl shadow-md">
+                        <div id="profile-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden"><i class="fa-solid fa-crown"></i></div>
+                        <div class="w-12 h-12 rounded-full bg-amber-500 text-black font-black flex items-center justify-center text-xl shadow-md border-2 border-yellow-400">
                             <span id="profile-avatar-initial">C</span>
                         </div>
                     </div>
@@ -325,18 +274,18 @@
                         <p id="profile-username" class="text-xs text-gray-400 font-mono">@Carmelohand32</p>
                     </div>
                 </div>
-                <button onclick="toggleLightDarkMode()" class="w-9 h-9 bg-[#0b0f19] border border-gray-700 rounded-xl flex items-center justify-center text-yellow-400 cursor-pointer shadow">
-                    <i id="theme-icon" class="fa-solid fa-moon text-xs"></i>
-                </button>
+                <div class="w-9 h-9 bg-[#080c14] border border-gray-800 rounded-xl flex items-center justify-center text-yellow-400">
+                    <i class="fa-solid fa-moon text-xs"></i>
+                </div>
             </div>
 
-            <!-- UID Section -->
-            <div class="bg-[#161f33] p-4 rounded-2xl border border-gray-800 flex items-center justify-between shadow-lg">
+            <!-- YOUR UID SECTION -->
+            <div class="bg-[#121927] p-4 rounded-2xl gold-border flex items-center justify-between shadow-lg">
                 <div>
                     <span class="text-[10px] text-gray-400 tracking-wider block uppercase">YOUR UID</span>
                     <span id="profile-uid" class="text-base font-mono font-bold text-white tracking-widest">8821716544</span>
                 </div>
-                <button onclick="copyUID()" class="w-9 h-9 bg-[#0b0f19] border border-gray-700 rounded-xl flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                <button onclick="copyUID()" class="w-9 h-9 bg-[#080c14] border border-gray-800 rounded-xl flex items-center justify-center text-yellow-400 hover:text-white cursor-pointer">
                     <i class="fa-regular fa-copy"></i>
                 </button>
             </div>
@@ -344,25 +293,25 @@
             <!-- SECURITY & KYC -->
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">SECURITY & KYC</span>
-                <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
-                    <div onclick="openSecurityModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
+                    <div onclick="openLockedFeature('A2F Security', 'A2F Security akan tersedia dalam 15 hari.')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Security & 2FA (Phone & Email)</h4><p class="text-[10px] text-gray-400">Verifikasi Nomor & Email akun</p></div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
-                    <div onclick="openFaceVerificationModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-face-smile"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Verifikasi Wajah (Face Scan)</h4><p id="face-countdown-lbl" class="text-[10px] text-yellow-400 font-mono">Terkunci (20 hari lagi)</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">A2F Security (Phone & Email)</h4><p class="text-[10px] text-yellow-400 font-mono">Locked (15 days left)</p></div>
                         </div>
                         <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
-                    <div onclick="openIdVerificationModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openLockedFeature('Face Recognition', 'Face Recognition akan tersedia dalam 20 hari.')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-id-card"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Verifikasi Identitas (ID Card / Passport)</h4><p id="id-countdown-lbl" class="text-[10px] text-yellow-400 font-mono">Terkunci (40 hari lagi)</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-face-smile"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Face Recognition (Face Scan)</h4><p class="text-[10px] text-yellow-400 font-mono">Locked (20 days left)</p></div>
+                        </div>
+                        <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
+                    </div>
+                    <div onclick="openLockedFeature('Identity Verification', 'Identity Verification akan tersedia dalam 40 hari.')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-id-card"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Identity Verification (ID/Passport)</h4><p class="text-[10px] text-yellow-400 font-mono">Locked (40 days left)</p></div>
                         </div>
                         <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
@@ -372,71 +321,57 @@
             <!-- COMMUNITY & REFERRAL -->
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">COMMUNITY</span>
-                <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
+                <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
                     <div onclick="openInviteModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-user-plus"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Invite Friends</h4><p class="text-[10px] text-gray-400">Cek status undangan & syarat eligible (100 ads)</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-user-plus"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Invite Friends</h4><p class="text-[10px] text-gray-400" data-i18n="invite_sub">Invite and Get Reward</p></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openContestsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Contests & Leaderboard</h4><p class="text-[10px] text-gray-400">Poin, Hadiah USDT & iPhone (Realtime)</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-trophy"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Contests & Leaderboard</h4><p class="text-[10px] text-gray-400" data-i18n="contest_sub">Get Reward</p></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openPayoutsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-circle-check"></i></div>
                             <div><h4 class="text-xs font-bold text-white">Proof of Payouts</h4><p class="text-[10px] text-gray-400">Live withdraw global users</p></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- PREFERENCES -->
-            <div class="space-y-1">
-                <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">PREFERENCES</span>
-                <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden shadow-lg">
-                    <div onclick="showModal('Notifications', 'Semua pemberitahuan sistem aktif.', 'fa-bell')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-bell"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Notifications</h4><p class="text-[10px] text-gray-400">Choose what we DM you about</p></div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ABOUT -->
+            <!-- ABOUT & PRIVACY -->
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">ABOUT</span>
-                <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
+                <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
                     <div onclick="openAboutModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-circle-info"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">About AFEX Token</h4><p class="text-[10px] text-gray-400">Tentang proyek & ekosistem AFEX</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-circle-info"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">About AFEX Token</h4></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openPrivacyModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-shield-cat"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Privacy Policy</h4><p class="text-[10px] text-gray-400">Kebijakan privasi & keamanan data</p></div>
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-cat"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Privacy Policy</h4></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                 </div>
             </div>
-            <div class="text-center pt-2"><span class="text-[10px] text-gray-500 font-mono">Afex v1.0</span></div>
+            <div class="text-center pt-2"><span class="text-[10px] text-yellow-500 font-mono font-bold">Afex v1.0</span></div>
         </div>
     </div>
 
     <!-- BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#161f33] border-t border-gray-800 flex justify-around py-3 px-2 z-50">
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#121927] border-t gold-border flex justify-around py-3 px-2 z-50">
         <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
             <i class="fa-solid fa-house text-base mb-0.5 pointer-events-none"></i>
             <span class="text-[10px] pointer-events-none" data-i18n="nav_mine">Home</span>
@@ -459,15 +394,15 @@
         </button>
     </nav>
 
-    <!-- MODERN CUSTOM ANIMATED MODAL POPUP -->
-    <div id="custom-modal" class="fixed inset-0 bg-[#0b0f19]/80 backdrop-blur-sm z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
-        <div class="bg-[#161f33] w-full max-w-xs p-6 rounded-2xl border border-yellow-500/30 text-center relative shadow-2xl pointer-events-auto">
-            <div id="modal-icon-container" class="w-12 h-12 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-[0_0_10px_rgba(234,179,8,0.3)]">
+    <!-- CUSTOM ANIMATED MODAL POPUP -->
+    <div id="custom-modal" class="fixed inset-0 bg-[#080c14]/85 backdrop-blur-md z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
+        <div class="bg-[#121927] w-full max-w-xs p-6 rounded-2xl gold-border text-center relative shadow-2xl pointer-events-auto">
+            <div id="modal-icon-container" class="w-12 h-12 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-[0_0_10px_rgba(234,179,8,0.3)]">
                 <i class="fa-solid fa-bell"></i>
             </div>
             <h3 id="modal-title" class="text-base font-bold text-yellow-400 mb-2">Notification</h3>
             <div id="modal-body" class="text-xs text-gray-300 mb-5 leading-relaxed">System information.</div>
-            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-bold cursor-pointer shadow-lg hover:opacity-90">OK</button>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-black cursor-pointer shadow-lg hover:opacity-90">OK</button>
         </div>
     </div>
 
@@ -479,59 +414,47 @@
         let userTg = tg?.initDataUnsafe?.user;
         let userIdStr = userTg ? userTg.id.toString() : "8821716544";
         let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "Carmelo";
-        let userHandle = userTg?.username ? `@${userTg.username}` : "@Carmelohand32";
-
-        const BACKEND_URL = "https://sharp-guests-wash.loca.lt/api";
 
         const i18n = {
             en: { 
-                total_balance: "TOTAL BALANCE", daily_checkin: "Daily Check-in", ready_to_mine: "Ready to Mine", 
-                session_timer: "Session Timer:", tasks_title: "TASKS", tasks_desc: "Complete tasks to earn rewards.", 
-                ref_title: "INVITE FRIENDS!", swap_title: "TOKEN SWAP", swap_subtitle: "Coming Soon", 
-                wallet_title: "WALLET ASSETS", wallet_desc: "Manage your crypto assets.", 
+                total_balance: "TOTAL BALANCE", checkin_title: "Daily Check-in", ready_to_mine: "Ready to Mine", 
+                session_timer: "Session Timer:", tasks_title: "TASKS", tasks_desc: "Complete tasks to earn points & rewards.", 
+                swap_title: "TOKEN SWAP", swap_subtitle: "Coming Soon", swap_heading: "AFEX Token Swap Exchange",
+                swap_desc: "Swap AFEX tokens instantly to USDT or TON with liquidity pool estimates.",
+                connect_wallet: "Connect Wallet", withdraw: "Withdraw",
                 nav_mine: "Home", nav_task: "Task", nav_swap: "Swap", nav_wallet: "Wallet", nav_profile: "Profile", 
-                vip_pass: "FOUNDER VIP PASS", kyc_status: "KYC Status", verify_now: "Verify Now", history_title: "History", 
-                btn_start_mine: "START 12H AUTO MINING", subtab_normal: "Normal", task_watch_ad: "Watch Ad", btn_watch: "Watch", 
-                task_join_tg: "Join Telegram Channel", btn_start: "Start", vip_hub_title: "VIP Elite Hub", founder_dividend: "Founder Daily Dividend",
-                btn_claim: "Claim", vip_locked: "VIP Locked", btn_unlock_vip: "CLOSE"
+                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "START 12H AUTO MINING", task_watch_ad: "Watch Ad", btn_watch: "Watch", 
+                task_join_tg: "Join Telegram Channel", btn_start: "Start", invite_sub: "Invite and Get Reward", contest_sub: "Get Reward"
             },
             id: { 
-                total_balance: "TOTAL SALDO", daily_checkin: "Absen Harian", ready_to_mine: "Siap Mining", 
-                session_timer: "Waktu Sesi:", tasks_title: "MISI & TUGAS", tasks_desc: "Selesaikan misi untuk mendapatkan reward.", 
-                ref_title: "UNDANG TEMAN!", swap_title: "TUKAR TOKEN", swap_subtitle: "Segera Hadir", 
-                wallet_title: "ASET DOMPET", wallet_desc: "Kelola aset kripto Anda.", 
+                total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", ready_to_mine: "Siap Mining", 
+                session_timer: "Waktu Sesi:", tasks_title: "MISI & TUGAS", tasks_desc: "Selesaikan misi untuk poin & hadiah.", 
+                swap_title: "TUKAR TOKEN", swap_subtitle: "Segera Hadir", swap_heading: "Bursa Tukar Token AFEX",
+                swap_desc: "Tukar token AFEX secara instan ke USDT atau TON dengan estimasi likuiditas.",
+                connect_wallet: "Hubungkan Dompet", withdraw: "Penarikan",
                 nav_mine: "Beranda", nav_task: "Misi", nav_swap: "Swap", nav_wallet: "Dompet", nav_profile: "Profil", 
-                vip_pass: "FOUNDER VIP PASS", kyc_status: "Status KYC", verify_now: "Verifikasi Sekarang", history_title: "Riwayat", 
-                btn_start_mine: "MULAI MINING OTOMATIS 12JAM", subtab_normal: "Normal", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
-                task_join_tg: "Gabung Channel Telegram", btn_start: "Mulai", vip_hub_title: "VIP Elite Hub", founder_dividend: "Dividen Harian Founder",
-                btn_claim: "Klaim", vip_locked: "VIP Terkunci", btn_unlock_vip: "TUTUP"
+                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "MULAI MINING OTOMATIS 12JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
+                task_join_tg: "Gabung Channel Telegram", btn_start: "Mulai", invite_sub: "Invite and Get Reward", contest_sub: "Get Reward"
             }
         };
 
         let miningData = {
             balance: 100.00,
             usdtBalance: 1.20,
+            tonBalance: 0.00,
+            ethBalance: 0.000,
             availableWdAfex: 50.00,
-            refCount: 3,
+            userPoints: 0,
             refCode: `AFEX-${userIdStr}`,
             isMining: false,
             miningEndTime: 0,
-            isFounder: false,
-            adWatchCount: 0,
             checkInDay: 1,
+            lastCheckInTime: 0,
             checkedDays: [],
             connectedWallets: { bsc: "", ton: "", eth: "", trc: "" },
             referrals: [
                 { username: "@crypto_boy", adsWatched: 100, eligible: true },
-                { username: "@sultan_id", adsWatched: 45, eligible: false },
-                { username: "@airdrop_hunter", adsWatched: 100, eligible: true }
-            ],
-            history: [
-                { type: 'DEPOSIT', desc: 'Received +1.20 USDT via BSC', time: '23/10/2026 21:00' },
-                { type: 'MINING', desc: 'Claimed +50.00 AFEX', time: '22/10/2026 15:30' }
-            ],
-            withdrawHistory: [
-                { type: 'WITHDRAW', desc: 'WD 10 USDT (SUCCESS)', time: '20/10/2026 12:00' }
+                { username: "@sultan_id", adsWatched: 45, eligible: false }
             ]
         };
 
@@ -539,10 +462,7 @@
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
             document.getElementById('profile-display-name').innerText = displayName;
-            document.getElementById('profile-username').innerText = userHandle;
             document.getElementById('profile-uid').innerText = userIdStr;
-            document.getElementById('profile-avatar-initial').innerText = displayName.charAt(0).toUpperCase();
-            document.getElementById('header-avatar-letter').innerText = displayName.charAt(0).toUpperCase();
 
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
@@ -550,52 +470,16 @@
 
             startTimerInterval();
             startFounderCountdown();
-            startVerificationCountdowns();
         });
 
-        // 45 Hari Hitung Mundur Founder VIP & Verifikasi Wajah/Identitas
         function startFounderCountdown() {
             let targetTime = Date.now() + (45 * 24 * 60 * 60 * 1000);
-            let faceTarget = Date.now() + (20 * 24 * 60 * 60 * 1000);
-            let idTarget = Date.now() + (40 * 24 * 60 * 60 * 1000);
-
             setInterval(() => {
-                let now = Date.now();
-                
-                // Founder
-                let diff = targetTime - now; if(diff < 0) diff = 0;
+                let diff = targetTime - Date.now(); if(diff < 0) diff = 0;
                 let d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                let text = `Founder tersedia dalam ${d} hari ${h} jam`;
-                document.getElementById('founder-countdown-text').innerText = text;
-                let overlayText = document.getElementById('overlay-countdown-text');
-                if(overlayText) overlayText.innerText = text;
-
-                // Face verification 20 days
-                let fDiff = faceTarget - now; if(fDiff < 0) fDiff = 0;
-                let fd = Math.floor(fDiff / (1000 * 60 * 60 * 24));
-                let flbl = document.getElementById('face-countdown-lbl');
-                if(flbl) flbl.innerText = `Terkunci (${fd} hari lagi)`;
-
-                // ID verification 40 days
-                let iDiff = idTarget - now; if(iDiff < 0) iDiff = 0;
-                let id = Math.floor(iDiff / (1000 * 60 * 60 * 24));
-                let ilbl = document.getElementById('id-countdown-lbl');
-                if(ilbl) ilbl.innerText = `Terkunci (${id} hari lagi)`;
+                document.getElementById('founder-countdown-text').innerText = `Founder available in ${d} days ${h} hours`;
             }, 1000);
-        }
-
-        function startVerificationCountdowns() {}
-
-        function toggleLightDarkMode() {
-            let body = document.body;
-            let icon = document.getElementById('theme-icon');
-            body.classList.toggle('light-mode');
-            if(body.classList.contains('light-mode')) {
-                icon.className = "fa-solid fa-sun text-xs";
-            } else {
-                icon.className = "fa-solid fa-moon text-xs";
-            }
         }
 
         function changeLanguage(langCode) {
@@ -611,330 +495,179 @@
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
             document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0001).toFixed(4) + " USDT (Est)";
             document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
-            document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
+            document.getElementById('bal-afex').innerText = miningData.balance.toFixed(2);
+            document.getElementById('bal-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-total-bal-usd').innerText = "$" + miningData.usdtBalance.toFixed(2);
-            document.getElementById('wallet-afex-est').innerText = "$" + (miningData.balance * 0.0001).toFixed(4);
+            document.getElementById('user-points-badge').innerText = `${miningData.userPoints} Pts`;
         }
 
-        // CONNECT WALLET MODAL WITH LED LIGHTS
-        function openConnectWalletModal() {
-            let networks = [
-                { id: 'bsc', name: 'BSC (BEP-20)', icon: 'fa-cube' },
-                { id: 'ton', name: 'TON Network', icon: 'fa-gem' },
-                { id: 'eth', name: 'Ethereum (ETH)', icon: 'fa-ethereum' },
-                { id: 'trc', name: 'TRON (TRC-20)', icon: 'fa-bolt' }
-            ];
+        /* CHECK-IN HARIAN DENGAN PENDING 24 JAM */
+        function openCheckInModal() {
+            let now = Date.now();
+            let hoursPassed = (now - miningData.lastCheckInTime) / (1000 * 60 * 60);
 
-            let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Hubungkan alamat dompet untuk masing-masing jaringan agar bisa melakukan penarikan instan.</p>`;
-            
-            networks.forEach(net => {
-                let connectedAddr = miningData.connectedWallets[net.id];
-                let isConn = connectedAddr !== "";
-                let ledColor = isConn ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]";
-                
-                html += `<div class="bg-[#0b0f19] border border-gray-800 p-3 rounded-xl space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-white flex items-center gap-2"><i class="fa-solid ${net.icon} text-yellow-400"></i> ${net.name}</span>
-                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full ${ledColor}"></span> <span class="text-[10px] text-gray-400">${isConn ? 'Terhubung' : 'Terputus'}</span></div>
-                    </div>`;
-                if(isConn) {
-                    html += `<div class="flex items-center justify-between text-[10px] font-mono text-cyan-300 bg-black/40 p-1.5 rounded">
-                        <span class="truncate max-w-[180px]">${connectedAddr}</span>
-                        <button onclick="disconnectWallet('${net.id}')" class="text-red-400 font-bold ml-2 hover:underline">Putuskan</button>
-                    </div>`;
-                } else {
-                    html += `<div class="flex gap-2">
-                        <input type="text" id="wallet-input-${net.id}" placeholder="Masukkan alamat ${net.id.toUpperCase()}..." class="w-full bg-[#161f33] border border-gray-700 rounded p-1.5 text-[10px] text-white outline-none font-mono">
-                        <button onclick="connectWallet('${net.id}')" class="bg-yellow-500 text-black font-bold px-3 py-1 rounded text-[10px] cursor-pointer">Hubungkan</button>
-                    </div>`;
-                }
-                html += `</div>`;
-            });
-            html += `</div>`;
-            showModal("Kelola Alamat Dompet", html, "fa-link");
+            if(miningData.lastCheckInTime > 0 && hoursPassed < 24) {
+                return showModal("Daily Check-in", "Sudah check-in hari ini, silahkan kembali besok.", "fa-calendar-check");
+            }
+
+            let rewards = [10, 20, 35, 50, 75, 100, 150];
+            let day = miningData.checkInDay;
+            let rewardAmt = rewards[day - 1] || 150;
+
+            miningData.balance += rewardAmt;
+            miningData.lastCheckInTime = Date.now();
+            miningData.checkedDays.push(day);
+            if(miningData.checkInDay < 7) miningData.checkInDay++;
+
+            updateUI();
+            showModal("Check-in Success!", `Berhasil check-in Hari ke-${day} (+${rewardAmt} AFEX)!`, "fa-circle-check");
         }
 
-        function connectWallet(net) {
-            let val = document.getElementById(`wallet-input-${net}`).value.trim();
-            if(!val) return alert("Masukkan alamat dompet yang valid!");
-            
-            // Validasi format alamat
-            if(net === 'bsc' && !val.startsWith('0x')) return alert("Alamat BSC harus diawali '0x'!");
-            if(net === 'ton' && val.length < 10) return alert("Alamat TON tidak valid!");
-            if(net === 'eth' && !val.startsWith('0x')) return alert("Alamat ETH harus diawali '0x'!");
-            if(net === 'trc' && !val.startsWith('T')) return alert("Alamat TRC-20 harus diawali 'T'!");
-
-            miningData.connectedWallets[net] = val;
-            openConnectWalletModal();
+        /* LOCK POPUP HARIAN */
+        function openLockedFeature(title, textMsg) {
+            showModal(`${title} Locked`, textMsg, "fa-lock");
         }
 
-        function disconnectWallet(net) {
-            miningData.connectedWallets[net] = "";
-            openConnectWalletModal();
-        }
-
-        // WITHDRAW MODAL WITH AUTOMATIC 2% FEE & MINIMUMS
+        /* WITHDRAW VERIFICATION & LOCK TO BSC FOR AFEX */
         function openWithdrawModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Aset</label>
-                    <select id="wd-asset" onchange="updateWdLimits()" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                    <label class="text-[10px] text-gray-400 block mb-1">Select Asset</label>
+                    <select id="wd-asset" onchange="updateWdAssetNetwork()" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none">
                         <option value="usdt">USDT</option>
-                        <option value="afex">AFEX Token (Khusus BSC)</option>
+                        <option value="afex">AFEX Token</option>
                         <option value="ton">TON</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Dompet Terhubung</label>
-                    <select id="wd-wallet-select" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none font-mono">
-                        <!-- Opsi terisi dinamis -->
+                    <label class="text-[10px] text-gray-400 block mb-1">Network</label>
+                    <select id="wd-network" disabled class="w-full bg-[#080c14] border border-gray-800 text-yellow-400 rounded p-2 text-xs outline-none font-mono">
+                        <option value="bsc">BSC (BEP-20) Locked</option>
                     </select>
                 </div>
                 <div>
-                    <label id="wd-limit-label" class="text-[10px] text-yellow-400 block mb-1">Min. WD: 5 USDT (Fee Otomatis 2%)</label>
-                    <input type="number" id="wd-amount" placeholder="0.00" oninput="calculateWdFee()" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none font-mono">
+                    <label id="wd-limit-label" class="text-[10px] text-yellow-400 block mb-1">Min. WD: 500 AFEX</label>
+                    <input type="number" id="wd-amount" placeholder="Enter amount..." class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-mono">
                 </div>
-                <div class="bg-black/30 p-2.5 rounded border border-gray-800 text-[11px] font-mono space-y-1">
-                    <div class="flex justify-between text-gray-400"><span>Jumlah Diminta:</span> <span id="calc-req">0.00</span></div>
-                    <div class="flex justify-between text-yellow-400"><span>Fee Potongan (2%):</span> <span id="calc-fee">0.00</span></div>
-                    <div class="flex justify-between text-green-400 font-bold border-t border-gray-800 pt-1"><span>Diterima Bersih:</span> <span id="calc-net">0.00</span></div>
-                </div>
-                <button onclick="executeWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    KONFIRMASI WITHDRAW
+                <button onclick="executeWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
+                    CONFIRM WITHDRAW
                 </button>
             </div>`;
             showModal("Withdrawal Portal", html, "fa-paper-plane");
-            
-            setTimeout(() => {
-                updateWdLimits();
-            }, 100);
         }
 
-        function updateWdLimits() {
+        function updateWdAssetNetwork() {
             let asset = document.getElementById('wd-asset').value;
             let lbl = document.getElementById('wd-limit-label');
-            let select = document.getElementById('wd-wallet-select');
-            
-            let allowedNet = asset === 'afex' ? 'bsc' : (asset === 'usdt' ? 'bsc' : asset);
-            select.innerHTML = "";
-            
-            for(let net in miningData.connectedWallets) {
-                let addr = miningData.connectedWallets[net];
-                if(addr) {
-                    select.innerHTML += `<option value="${net}">${net.toUpperCase()}: ${addr.slice(0,6)}...${addr.slice(-4)}</option>`;
-                }
-            }
-            if(select.innerHTML === "") {
-                select.innerHTML = `<option value="">-- Belum ada dompet terhubung --</option>`;
-            }
-
-            if(asset === 'usdt') lbl.innerText = "Min. WD: 5 USDT (Fee Otomatis 2%)";
-            else if(asset === 'afex') lbl.innerText = "Min. WD: 500 AFEX (Khusus Jaringan BSC, Fee 2%)";
-            else if(asset === 'ton') lbl.innerText = "Min. WD: 1.5 TON (Fee Otomatis 2%)";
-        }
-
-        function calculateWdFee() {
-            let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
-            let fee = amt * 0.02;
-            let net = amt - fee;
-            document.getElementById('calc-req').innerText = amt.toFixed(2);
-            document.getElementById('calc-fee').innerText = fee.toFixed(2);
-            document.getElementById('calc-net').innerText = net.toFixed(2);
+            if(asset === 'afex') lbl.innerText = "Min. WD: 500 AFEX";
+            else if(asset === 'usdt') lbl.innerText = "Min. WD: 5 USDT";
+            else if(asset === 'ton') lbl.innerText = "Min. WD: 1.5 TON";
         }
 
         function executeWithdraw() {
             let asset = document.getElementById('wd-asset').value;
             let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
-            let walletKey = document.getElementById('wd-wallet-select').value;
-            
-            if(!walletKey || miningData.connectedWallets[walletKey] === "") {
-                return alert("Pilih atau hubungkan alamat dompet yang benar sesuai jaringan!");
+            let minVal = asset === 'afex' ? 500 : (asset === 'ton' ? 1.5 : 5);
+
+            if(amt < minVal) {
+                closeModal();
+                return showModal("Saldo Kurang", "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", "fa-circle-exclamation");
             }
 
-            let minWd = asset === 'afex' ? 500 : (asset === 'ton' ? 1.5 : 5);
-            if(amt < minWd) return alert(`Minimum penarikan adalah ${minWd} ${asset.toUpperCase()}`);
+            if(asset === 'afex' && miningData.balance < amt) {
+                closeModal();
+                return showModal("Saldo Kurang", "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", "fa-circle-exclamation");
+            }
 
-            let netAmt = amt * 0.98;
-            if(asset === 'usdt' && miningData.usdtBalance < amt) return alert("Saldo USDT tidak mencukupi!");
-            if(asset === 'afex' && miningData.availableWdAfex < amt) return alert("Saldo AFEX tersedia tidak mencukupi!");
-
-            if(asset === 'usdt') miningData.usdtBalance -= amt;
-            if(asset === 'afex') miningData.availableWdAfex -= amt;
-
-            miningData.withdrawHistory.unshift({ type: 'WITHDRAW', desc: `WD ${amt} ${asset.toUpperCase()} (Net: ${netAmt.toFixed(2)}) SUCCESS`, time: new Date().toLocaleString() });
+            miningData.balance -= amt;
             updateUI();
             closeModal();
-            showModal("Withdraw Berhasil", `Penarikan ${amt} ${asset.toUpperCase()} berhasil diproses setelah dipotong fee 2%.`, "fa-circle-check");
+            showModal("Withdraw Processed", `Penarikan sebesar ${amt} ${asset.toUpperCase()} berhasil dikirim!`, "fa-circle-check");
         }
 
-        // INVITE FRIENDS PAGE MODAL
+        /* CONNECT WALLET MODAL */
+        function openConnectWalletModal() {
+            showModal("Connect Wallet", "Sistem pendaftaran dompet instan aktif.", "fa-link");
+        }
+
+        /* INVITE FRIENDS MODAL */
         function openInviteModal() {
             let html = `<div class="space-y-3 text-left text-xs">
-                <div class="bg-[#0b0f19] p-3 rounded-xl border border-gray-800">
-                    <span class="text-[10px] text-gray-400 block">Link Referral Anda</span>
-                    <input type="text" readonly value="https://t.me/Fexboostbot?start=${miningData.refCode}" class="w-full bg-[#161f33] text-cyan-300 font-mono text-[10px] p-1.5 rounded mt-1 outline-none">
+                <div class="bg-[#080c14] p-2.5 rounded gold-border">
+                    <span class="text-[10px] text-gray-400 block">Your Referral Link</span>
+                    <input type="text" readonly value="https://t.me/Fexboostbot?start=${miningData.refCode}" class="w-full bg-[#121927] text-yellow-400 font-mono text-[10px] p-1.5 rounded mt-1 outline-none">
                 </div>
-                <h4 class="font-bold text-yellow-400">Daftar Undangan Teman (${miningData.referrals.length})</h4>
-                <div class="space-y-2 max-h-40 overflow-y-auto pr-1">`;
-            
+                <h4 class="font-bold text-yellow-400">Invited Users (${miningData.referrals.length})</h4>
+                <div class="space-y-2 max-h-36 overflow-y-auto pr-1">`;
             miningData.referrals.forEach(ref => {
-                let statusBadge = ref.eligible ? '<span class="text-green-400 font-bold bg-green-500/20 px-2 py-0.5 rounded">Valid</span>' : '<span class="text-red-400 font-bold bg-red-500/20 px-2 py-0.5 rounded">Tidak Valid</span>';
-                html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded flex justify-between items-center">
-                    <div><span class="text-white font-bold">${ref.username}</span><p class="text-[9px] text-gray-400">Nonton Iklan: ${ref.adsWatched}/100</p></div>
-                    <div>${statusBadge}</div>
+                html += `<div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                    <span class="text-white font-bold">${ref.username}</span>
+                    <span class="${ref.eligible ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'} text-[10px] font-bold px-2 py-0.5 rounded">${ref.eligible ? 'Valid' : 'Tidak Valid'}</span>
                 </div>`;
             });
-            html += `</div><p class="text-[10px] text-gray-400">*Syarat eligible: Undangan harus menyelesaikan minimal 100 tonton iklan.</p></div>`;
-            showModal("Invite Friends & Eligibility", html, "fa-user-plus");
+            html += `</div></div>`;
+            showModal("Invite and Get Reward", html, "fa-user-plus");
         }
 
-        // CONTESTS & LEADERBOARD REALTIME MODAL
+        /* CONTESTS MODAL */
         function openContestsModal() {
             let html = `<div class="space-y-3 text-left text-xs">
-                <div class="bg-gradient-to-r from-amber-500/20 to-purple-600/20 p-3 rounded-xl border border-yellow-500/30 text-center">
-                    <h4 class="font-bold text-yellow-400">Global Leaderboard (Realtime)</h4>
-                    <p class="text-[10px] text-gray-300">Menang hadiah utama iPhone & Pool USDT!</p>
+                <div class="bg-gradient-to-r from-yellow-500/10 to-amber-500/20 p-2.5 rounded gold-border text-center">
+                    <h4 class="font-bold text-yellow-400">Live Global Contest</h4>
+                    <p class="text-[10px] text-gray-300">Win USDT & iPhone!</p>
                 </div>
-                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-yellow-400 font-bold">#1 @crypto_king</span><span class="font-mono text-green-400">14,250 Pts</span></div>
-                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-gray-300 font-bold">#2 @sultan_ton</span><span class="font-mono text-green-400">11,900 Pts</span></div>
-                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-gray-300 font-bold">#3 @carmelo (Anda)</span><span class="font-mono text-green-400">8,450 Pts</span></div>
+                <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span class="text-yellow-400 font-bold">#1 @crypto_king</span><span class="font-mono text-green-400">140 Pts</span></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span class="text-gray-300 font-bold">#2 @sultan_ton</span><span class="font-mono text-green-400">95 Pts</span></div>
                 </div>
             </div>`;
-            showModal("Contests & Leaderboard", html, "fa-trophy");
+            showModal("Get Reward", html, "fa-trophy");
         }
 
-        // LIVE PAYOUTS MODAL
+        /* PAYOUTS MODAL */
         function openPayoutsModal() {
-            let html = `<div class="space-y-2 max-h-50 overflow-y-auto text-left text-xs pr-1">
-                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@whale_99 withdrew <strong class="text-yellow-400">500 USDT</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
-                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@ton_master withdrew <strong class="text-yellow-400">12.5 TON</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
-                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@crypto_girl withdrew <strong class="text-yellow-400">1,500 AFEX</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
+            let html = `<div class="space-y-2 text-left text-xs">
+                <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>@whale_99 withdrew <strong class="text-yellow-400">500 AFEX</strong></span><span class="text-green-400">SUCCESS</span></div>
             </div>`;
-            showModal("Proof of Payouts (Live)", html, "fa-circle-check");
+            showModal("Proof of Payouts", html, "fa-circle-check");
         }
 
-        // ABOUT & PRIVACY POLICY MODALS
         function openAboutModal() {
-            let html = `<div class="space-y-2 text-left text-xs text-gray-300 leading-relaxed">
-                <p><strong>AFEX Token</strong> adalah aset utilitas generasi berikutnya yang dirancang khusus untuk ekosistem Telegram Mini App dan penambangan terdesentralisasi kecepatan tinggi.</p>
-                <p>Dengan infrastruktur multichain (BSC, TON, ETH, TRC), AFEX menjembatani kemudahan penambangan seluler dengan likuiditas keuangan global yang aman dan transparan.</p>
-            </div>`;
-            showModal("About AFEX Token", html, "fa-circle-info");
+            showModal("About AFEX Token", "AFEX Token adalah aset penambangan Web3 terdesentralisasi berbasis Telegram Mini App.", "fa-circle-info");
         }
 
         function openPrivacyModal() {
-            let html = `<div class="space-y-2 text-left text-xs text-gray-300 leading-relaxed">
-                <p>Kami sangat menjaga privasi dan keamanan data Anda. Seluruh informasi akun Telegram, nomor, email, serta alamat dompet terenkripsi dengan standar industri modern.</p>
-                <p>Data Anda tidak akan pernah dibagikan kepada pihak ketiga tanpa izin eksplisit.</p>
-            </div>`;
-            showModal("Privacy Policy", html, "fa-shield-cat");
-        }
-
-        function openHistoryModal() {
-            let html = `<div class="space-y-2 max-h-60 overflow-y-auto text-left text-[11px] pr-1">`;
-            miningData.history.forEach(item => {
-                html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded-lg flex justify-between items-center">
-                    <div><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-purple-400">${item.type}</span><p class="text-white mt-1">${item.desc}</p></div>
-                    <span class="text-[9px] text-gray-500 font-mono">${item.time}</span>
-                </div>`;
-            });
-            html += `</div>`;
-            showModal("Transaction History", html, "fa-clock-rotate-left");
-        }
-
-        function openWdHistoryModal() {
-            let html = `<div class="space-y-2 max-h-60 overflow-y-auto text-left text-[11px] pr-1">`;
-            miningData.withdrawHistory.forEach(item => {
-                html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded-lg flex justify-between items-center">
-                    <div><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-green-400">${item.type}</span><p class="text-white mt-1">${item.desc}</p></div>
-                    <span class="text-[9px] text-gray-500 font-mono">${item.time}</span>
-                </div>`;
-            });
-            html += `</div>`;
-            showModal("Withdraw History", html, "fa-arrow-up-from-bracket");
-        }
-
-        function openSecurityModal() {
-            let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Hubungkan dan verifikasi nomor telepon serta email Anda untuk keamanan 2FA akun.</p>
-                <input type="text" placeholder="Nomor Telepon (+62...)" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
-                <input type="email" placeholder="Alamat Email..." class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
-                <button onclick="showModal('Berhasil', 'Verifikasi A2F tersimpan.', 'fa-circle-check')" class="w-full bg-purple-600 text-white font-bold py-2 rounded text-xs cursor-pointer">SIMPAN A2F</button>
-            </div>`;
-            showModal("Security & 2FA (Phone & Email)", html, "fa-shield-halved");
-        }
-
-        function openFaceVerificationModal() {
-            showModal("Verifikasi Wajah", "Fitur Verifikasi Wajah (Face Scan) sedang dikunci dan akan terbuka otomatis dalam 20 hari sesuai skema hitung mundur.", "fa-face-smile");
-        }
-
-        function openIdVerificationModal() {
-            let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Pilih negara dan jenis kartu identitas Anda:</p>
-                <select class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
-                    <option>Indonesia</option><option>Malaysia</option><option>Singapore</option><option>Other Country</option>
-                </select>
-                <select class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
-                    <option>KTP (ID Card)</option><option>Passport</option><option>Driver License</option>
-                </select>
-                <p class="text-[10px] text-yellow-400">Fitur ini terkunci dan akan aktif dalam 40 hari.</p>
-            </div>`;
-            showModal("Verifikasi Identitas", html, "fa-id-card");
-        }
-
-        function openCheckInModal() {
-            let rewards = [10, 20, 35, 50, 75, 100, 150];
-            let html = `<div class="space-y-2.5 text-left text-[11px]">
-                <p class="text-gray-300 text-center mb-2">Check-in harian (Hari 1 - 7):</p>
-                <div class="grid grid-cols-4 gap-2">`;
-            for (let i = 1; i <= 7; i++) {
-                let isChecked = miningData.checkedDays.includes(i);
-                let isCurrent = (i === miningData.checkInDay && !isChecked);
-                let bgClass = isChecked ? "bg-green-500/20 border-green-500 text-green-400" : (isCurrent ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 animate-pulse cursor-pointer" : "bg-[#0b0f19] border-gray-700 text-gray-500");
-                html += `<div onclick="${isCurrent ? `claimCheckIn(${i})` : ''}" class="border rounded-xl p-2.5 text-center flex flex-col items-center justify-center ${bgClass}">
-                    <span class="text-[10px] font-bold block">Day ${i}</span>
-                    <span class="text-xs font-mono font-bold mt-1">+${rewards[i-1]}</span>
-                    <span class="text-[10px] mt-1">${isChecked ? '<i class="fa-solid fa-check"></i>' : (isCurrent ? '<i class="fa-solid fa-hand-pointer"></i>' : '<i class="fa-solid fa-lock"></i>')}</span>
-                </div>`;
-            }
-            html += `</div></div>`;
-            showModal("Daily Check-in", html, "fa-calendar-check");
-        }
-
-        function claimCheckIn(day) {
-            let rewards = [10, 20, 35, 50, 75, 100, 150];
-            let amt = rewards[day - 1];
-            miningData.balance += amt;
-            miningData.checkedDays.push(day);
-            miningData.checkInDay = day + 1;
-            miningData.history.unshift({ type: 'CHECK-IN', desc: `Claimed Day ${day} (+${amt} AFEX)`, time: new Date().toLocaleString() });
-            updateUI();
-            closeModal();
-            showModal("Berhasil!", `Klaim Day ${day} sebesar +${amt} AFEX sukses.`, "fa-circle-check");
+            showModal("Privacy Policy", "Data privasi pengguna dilindungi enkripsi standar industri.", "fa-shield-cat");
         }
 
         function copyUID() {
             navigator.clipboard.writeText(userIdStr);
-            showModal("Copied!", "UID berhasil disalin ke clipboard.", "fa-circle-check");
+            showModal("Copied!", "UID berhasil disalin.", "fa-circle-check");
         }
+
+        function startAdTask(btn) {
+            miningData.balance += 15;
+            miningData.usdtBalance += 0.002;
+            miningData.userPoints += 1;
+            updateUI();
+            showModal("Reward Claimed!", "+15 AFEX, +0.002 USDT, and +1 Point added!", "fa-circle-check");
+        }
+
+        function handleFounderClick() { openLockedFeature("Founder VIP", "Founder VIP akan tersedia dalam 45 hari."); }
 
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
         function handleMiningAction() {
-            let targetReward = 50.00;
             if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
                 miningData.isMining = true;
                 miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
                 updateUI();
-                showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
+                showModal("Mining Started", "12-Hour mining session active!", "fa-bolt");
             } else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
-                miningData.balance += targetReward;
+                miningData.balance += 50.00;
                 miningData.isMining = false;
                 miningData.miningEndTime = 0;
-                miningData.history.unshift({ type: 'MINING', desc: `Claimed +${targetReward} AFEX`, time: new Date().toLocaleString() });
                 updateUI();
-                showModal("Claim Success!", `Claimed +${targetReward} AFEX!`, "fa-circle-check");
+                showModal("Claim Success!", "Claimed +50.00 AFEX!", "fa-circle-check");
             }
         }
 
@@ -945,19 +678,18 @@
                 let timerLbl = document.getElementById('timer-countdown');
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
-                let targetReward = 50.00;
 
                 if (miningData.isMining) {
                     let timeLeft = miningData.miningEndTime - now;
                     let elapsedTime = TOTAL_DURATION_MS - timeLeft;
-                    let currentMined = Math.min((elapsedTime / TOTAL_DURATION_MS) * targetReward, targetReward);
+                    let currentMined = Math.min((elapsedTime / TOTAL_DURATION_MS) * 50.00, 50.00);
                     minedVal.innerText = `+${currentMined.toFixed(2)} AFEX`;
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
                         statusLbl.innerText = "READY TO CLAIM";
-                        mineBtn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
-                        mineBtn.className = "w-full bg-green-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
+                        mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
+                        mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     } else {
                         let h = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         let m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -965,50 +697,23 @@
                         timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
                         statusLbl.innerText = "MINING IN PROGRESS";
                         mineBtn.innerText = "MINING ACTIVE...";
-                        mineBtn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
+                        mineBtn.className = "w-full bg-gray-800 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
                     }
                 } else {
                     timerLbl.innerText = "12:00:00";
                     statusLbl.innerText = "Ready to Mine";
                     mineBtn.innerText = "START 12H AUTO MINING";
-                    mineBtn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
+                    mineBtn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     minedVal.innerText = "+0.00 AFEX";
                 }
             }, 1000);
         }
-
-        function startAdTask(btn) {
-            miningData.adWatchCount++;
-            miningData.balance += 15;
-            miningData.usdtBalance += 0.002;
-            updateUI();
-            showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
-        }
-
-        function claimFounderTask(btn) { handleFounderClick(); }
-        function handleFounderClick() { showModal("Founder VIP Locked", "Fitur Founder VIP terkunci dan akan tersedia dalam 45 hari.", "fa-lock"); }
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); });
             btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
-        }
-
-        function switchTaskSubTab(type, btnEl) {
-            let normalBtn = document.getElementById('subtab-btn-normal');
-            let founderBtn = document.getElementById('subtab-btn-founder');
-            let normalContent = document.getElementById('subtab-content-normal');
-            let founderContent = document.getElementById('subtab-content-founder');
-            if(type === 'normal') {
-                normalBtn.className = "px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md";
-                founderBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1";
-                normalContent.classList.remove('hidden'); founderContent.classList.add('hidden');
-            } else {
-                founderBtn.className = "px-3 py-1.5 rounded-lg bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black transition-all flex items-center gap-1 shadow-md";
-                normalBtn.className = "px-3 py-1.5 rounded-lg text-gray-400 transition-all";
-                founderContent.classList.remove('hidden'); normalContent.classList.add('hidden');
-            }
         }
 
         function showModal(title, message, iconClass = "fa-bell") {
