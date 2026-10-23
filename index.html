@@ -24,7 +24,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background 0.3s, color 0.3s; }
+        body.light-mode { background-color: #f3f4f6; color: #111827; }
+        body.light-mode .bg-[#161f33] { background-color: #ffffff; color: #111827; border-color: #e5e7eb; }
+        body.light-mode .bg-[#0b0f19] { background-color: #f9fafb; color: #111827; border-color: #e5e7eb; }
+        body.light-mode text-white { color: #111827; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .glow-circle { box-shadow: 0 0 50px rgba(234, 179, 8, 0.15); }
@@ -41,15 +45,17 @@
         <!-- HEADER PROFILE, LANGUAGE SELECTOR & STATS -->
         <div class="flex justify-between items-center mb-4 relative z-20 gap-2">
             <div class="bg-[#161f33] px-3 py-1.5 rounded-xl border border-gray-800 flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]">
-                    <img src="134069.jpg" alt="AFEX" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/40'">
+                <div class="relative">
+                    <div id="header-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden drop-shadow-[0_0_4px_rgba(234,179,8,0.9)]"><i class="fa-solid fa-crown"></i></div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)] bg-cyan-400 text-black font-bold text-xs">
+                        <span id="header-avatar-letter">C</span>
+                    </div>
                 </div>
                 <div>
                     <div class="flex items-center gap-1.5">
-                        <span id="header-username" class="text-xs font-bold text-white block">Loading...</span>
-                        <span id="header-crown" class="text-yellow-400 text-[11px] hidden drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"><i class="fa-solid fa-crown"></i></span>
+                        <span id="header-username" class="text-xs font-bold text-white block">Carmelo</span>
                     </div>
-                    <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono">8601594529</span></span>
+                    <span class="text-[10px] text-gray-400">ID: <span id="header-acc" class="font-mono">8821716544</span></span>
                 </div>
             </div>
 
@@ -70,7 +76,7 @@
                 </select>
 
                 <div class="bg-[#161f33] px-2.5 py-1.5 rounded-xl border border-gray-800 text-right flex items-center">
-                    <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$0.00</span>
+                    <span id="header-usdt" class="text-xs font-mono font-bold text-green-400">$1.20</span>
                 </div>
             </div>
         </div>
@@ -87,49 +93,22 @@
                         <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">LOCKED</span>
                     </h4>
                     <p id="founder-countdown-text" class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5">
-                        Founder tersedia dalam 45 hari
+                        Founder tersedia dalam 45 hari 00 jam
                     </p>
                 </div>
             </div>
             <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
         </div>
 
-        <!-- 1. TAB 1: AUTO MINING -->
+        <!-- 1. TAB 1: AUTO MINING (HOME) -->
         <div id="tab-tap" class="tab-content active text-center py-1 relative z-20">
             <div class="mb-3">
-                <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">TOTAL BALANCE</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight drop-shadow-md">0.00 AFEX</h1>
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
 
-            <!-- KYC & HISTORY QUICK ACCESS -->
-            <div class="grid grid-cols-2 gap-2 mb-4">
-                <div onclick="openKYCModal()" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </div>
-                        <div class="text-left">
-                            <h4 class="text-[11px] font-bold text-white" data-i18n="kyc_status">KYC Status</h4>
-                            <p id="kyc-status-label" class="text-[9px] text-yellow-400 font-mono" data-i18n="verify_now">Verify Now</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div onclick="openHistoryModal()" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                        <div class="text-left">
-                            <h4 class="text-[11px] font-bold text-white" data-i18n="history_title">History</h4>
-                            <p class="text-[9px] text-gray-400 font-mono" data-i18n="history_desc">Mining & WD Log</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Daily Check-In -->
+            <!-- DAILY CHECK-IN -->
             <div onclick="openCheckInModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-500/50 transition-all shadow-md">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-base">
@@ -137,13 +116,13 @@
                     </div>
                     <div class="text-left">
                         <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
-                        <p class="text-[10px] text-yellow-400 font-mono" data-i18n="claim_streak">Claim Streak Rewards</p>
+                        <p class="text-[10px] text-yellow-400 font-mono">Claim Streak Rewards (Day 1 - 7)</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
             </div>
 
-            <!-- Mining Circle -->
+            <!-- MINING CIRCLE -->
             <div id="mining-circle" class="relative w-48 h-48 mx-auto mb-4 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#161f33] to-[#0b0f19] border-4 border-yellow-500/30 glow-circle">
                 <div id="mining-icon-box" class="text-center">
                     <i id="mining-icon" class="fa-solid fa-bolt text-3xl text-yellow-400 mb-1.5 animate-pulse drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]"></i>
@@ -154,12 +133,12 @@
                 </div>
             </div>
 
-            <!-- Auto Mining Button -->
+            <!-- AUTO MINING BUTTON -->
             <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative" data-i18n="btn_start_mine">
                 START 12H AUTO MINING
             </button>
 
-            <!-- 12 Hours Status Timer -->
+            <!-- 12 HOURS STATUS TIMER -->
             <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                 <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span data-i18n="session_timer">Session Timer:</span></span>
                 <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
@@ -241,43 +220,50 @@
             </div>
         </div>
 
-        <!-- 3. TAB 3: WALLET PAGE -->
+        <!-- 3. TAB 3: SWAP PAGE -->
+        <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
+            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
+            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase animate-pulse" data-i18n="swap_subtitle">Coming Soon</p>
+            
+            <div class="bg-[#161f33] p-6 rounded-2xl border border-yellow-500/30 text-center space-y-4 shadow-xl">
+                <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-yellow-500/40">
+                    <i class="fa-solid fa-right-left"></i>
+                </div>
+                <h3 class="text-sm font-bold text-white">AFEX Token Swap Exchange</h3>
+                <p class="text-xs text-gray-400 leading-relaxed">Tukar token AFEX Anda ke USDT atau TON secara instan dengan likuiditas terdesentralisasi.</p>
+                <button onclick="showModal('Swap Info', 'Fitur Swap aktif otomatis saat Mainnet.', 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer">
+                    START SWAP
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. TAB 4: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
             <!-- ULTRA WALLET HEADER CARD -->
             <div class="bg-gradient-to-br from-indigo-900/60 via-[#161f33] to-purple-900/50 p-5 rounded-2xl border border-purple-500/30 text-center mb-4 shadow-xl relative overflow-hidden">
                 <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-2 text-white text-xs"><i class="fa-solid fa-wallet"></i></div>
                 <span class="text-[10px] text-gray-400 uppercase tracking-widest block" data-i18n="total_balance">TOTAL BALANCE</span>
                 <h2 id="wallet-total-bal-usd" class="text-2xl font-black font-mono text-white mb-3">$1.20</h2>
-                <button onclick="openWdPopup()" class="bg-[#161f33]/80 hover:bg-[#161f33] border border-purple-400/40 text-white font-bold text-xs py-2 px-5 rounded-full shadow-md transition-all">
-                    <i class="fa-solid fa-paper-plane mr-1 text-purple-400"></i> Withdraw LT
+                <button onclick="openWithdrawModal()" class="bg-[#161f33]/80 hover:bg-[#161f33] border border-purple-400/40 text-white font-bold text-xs py-2 px-5 rounded-full shadow-md transition-all">
+                    <i class="fa-solid fa-paper-plane mr-1 text-purple-400"></i> Withdraw
                 </button>
             </div>
 
-            <!-- ACTION BUTTONS GRID (Sesuai Gambar Ultra Wallet) -->
-            <div class="grid grid-cols-6 gap-2 mb-4 text-center">
-                <div onclick="triggerWalletAction('Receive')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-arrow-down"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">Receive</span>
+            <!-- ACTION BUTTONS GRID -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div onclick="openConnectWalletModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-link"></i></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block">Hubungkan Dompet</span><span class="text-[9px] text-gray-400">BSC, TON, ETH, TRC</span></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                 </div>
-                <div onclick="triggerWalletAction('Send')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-arrow-up"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">Send</span>
-                </div>
-                <div onclick="triggerWalletAction('Transfer')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-paper-plane"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">Transfer</span>
-                </div>
-                <div onclick="triggerWalletAction('P2P')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-users-viewfinder"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">P2P</span>
-                </div>
-                <div onclick="triggerWalletAction('Swap')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-right-left"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">Swap</span>
-                </div>
-                <div onclick="triggerWalletAction('Trade LT')" class="bg-[#161f33] border border-gray-800 p-2.5 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex flex-col items-center">
-                    <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs mb-1"><i class="fa-solid fa-chart-line"></i></div>
-                    <span class="text-[9px] text-gray-300 font-bold">Trade LT</span>
+                <div onclick="openWithdrawModal()" class="bg-[#161f33] border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-purple-500 transition-all flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block">Withdraw</span><span class="text-[9px] text-gray-400">Instant Payouts</span></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                 </div>
             </div>
 
@@ -300,52 +286,48 @@
                 </div>
             </div>
 
-            <!-- PORTFOLIO BREAKDOWN -->
+            <!-- PORTFOLIO LIVE CHART ESTIMATION -->
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
-                <h4 class="text-xs font-bold text-gray-400 mb-3 flex items-center gap-1.5"><i class="fa-solid fa-chart-pie"></i> PORTFOLIO BREAKDOWN</h4>
-                <div class="flex items-center justify-between bg-[#0b0f19] p-3 rounded-lg border border-gray-800">
+                <h4 class="text-xs font-bold text-gray-400 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-chart-line"></i> PORTFOLIO LIVE CHART</span>
+                    <span class="text-green-400 font-mono text-[10px] animate-pulse">● Live Tracking</span>
+                </h4>
+                <div class="flex items-center justify-between bg-[#0b0f19] p-3 rounded-lg border border-gray-800 mb-2">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-black font-bold text-xs">₮</div>
-                        <div><span class="text-xs font-bold text-white block">USDT</span><span class="text-[10px] text-gray-400">100.0%</span></div>
+                        <div><span class="text-xs font-bold text-white block">USDT</span><span class="text-[10px] text-gray-400">Est. Market Value</span></div>
                     </div>
                     <span id="wallet-usdt-bal" class="font-mono text-green-400 font-bold text-sm">$1.20</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- 4. TAB 4: SWAP PAGE -->
-        <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
-            <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase animate-pulse" data-i18n="swap_subtitle">Coming Soon</p>
-            
-            <div class="bg-[#161f33] p-6 rounded-2xl border border-yellow-500/30 text-center space-y-4 shadow-xl">
-                <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-yellow-500/40">
-                    <i class="fa-solid fa-hourglass-half"></i>
+                <div class="flex items-center justify-between bg-[#0b0f19] p-3 rounded-lg border border-gray-800">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-xs">⚡</div>
+                        <div><span class="text-xs font-bold text-white block">AFEX Token</span><span class="text-[10px] text-gray-400">Price: $0.0001</span></div>
+                    </div>
+                    <span id="wallet-afex-est" class="font-mono text-yellow-400 font-bold text-sm">$0.00</span>
                 </div>
-                <h3 class="text-sm font-bold text-white" data-i18n="swap_coming_title">Fitur Swap Segera Hadir</h3>
-                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_coming_desc">Sistem pertukaran token AFEX ke USDT/TON akan segera dibuka sesuai jadwal roadmap resmi.</p>
-                <button onclick="showModal('Coming Soon', 'Fitur Token Swap belum dibuka.', 'fa-lock')" class="w-full bg-gray-800 text-gray-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed">
-                    SWAP LOCKED (SOON)
-                </button>
             </div>
         </div>
 
         <!-- 5. TAB 5: PROFILE PAGE -->
         <div id="tab-profile" class="tab-content relative z-25 space-y-3 pb-6">
-            <!-- Header User Card -->
+            <!-- Header User Card with Light/Dark Switch -->
             <div class="bg-[#161f33] p-4 rounded-2xl border border-gray-800 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-cyan-400 text-black font-black flex items-center justify-center text-xl shadow-md">
-                        <span id="profile-avatar-initial">C</span>
+                    <div class="relative">
+                        <div id="profile-crown-badge" class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-yellow-400 text-xs hidden drop-shadow-[0_0_4px_rgba(234,179,8,0.9)]"><i class="fa-solid fa-crown"></i></div>
+                        <div class="w-12 h-12 rounded-full bg-cyan-400 text-black font-black flex items-center justify-center text-xl shadow-md">
+                            <span id="profile-avatar-initial">C</span>
+                        </div>
                     </div>
                     <div>
                         <h3 id="profile-display-name" class="text-sm font-bold text-white">Carmelo</h3>
                         <p id="profile-username" class="text-xs text-gray-400 font-mono">@Carmelohand32</p>
                     </div>
                 </div>
-                <div class="w-8 h-8 bg-[#0b0f19] border border-gray-700 rounded-xl flex items-center justify-center text-yellow-400">
-                    <i class="fa-solid fa-moon text-xs"></i>
-                </div>
+                <button onclick="toggleLightDarkMode()" class="w-9 h-9 bg-[#0b0f19] border border-gray-700 rounded-xl flex items-center justify-center text-yellow-400 cursor-pointer shadow">
+                    <i id="theme-icon" class="fa-solid fa-moon text-xs"></i>
+                </button>
             </div>
 
             <!-- UID Section -->
@@ -359,23 +341,30 @@
                 </button>
             </div>
 
-            <!-- SECURITY -->
+            <!-- SECURITY & KYC -->
             <div class="space-y-1">
-                <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">SECURITY</span>
+                <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">SECURITY & KYC</span>
                 <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
                     <div onclick="openSecurityModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-lock"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Security & 2FA</h4><p class="text-[10px] text-gray-400">Protect your account</p></div>
+                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Security & 2FA (Phone & Email)</h4><p class="text-[10px] text-gray-400">Verifikasi Nomor & Email akun</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
-                    <div onclick="openBackupModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openFaceVerificationModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Backup</h4><p class="text-[10px] text-gray-400">Recovery options</p></div>
+                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-face-smile"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Verifikasi Wajah (Face Scan)</h4><p id="face-countdown-lbl" class="text-[10px] text-yellow-400 font-mono">Terkunci (20 hari lagi)</p></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
+                    </div>
+                    <div onclick="openIdVerificationModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-id-card"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Verifikasi Identitas (ID Card / Passport)</h4><p id="id-countdown-lbl" class="text-[10px] text-yellow-400 font-mono">Terkunci (40 hari lagi)</p></div>
+                        </div>
+                        <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
                 </div>
             </div>
@@ -384,31 +373,24 @@
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">COMMUNITY</span>
                 <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
-                    <div onclick="openReferralModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openInviteModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-user-plus"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Invite Friends</h4><p class="text-[10px] text-gray-400">Earn together (+70 AFEX & +0.01 USDT)</p></div>
+                            <div><h4 class="text-xs font-bold text-white">Invite Friends</h4><p class="text-[10px] text-gray-400">Cek status undangan & syarat eligible (100 ads)</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
-                    <div onclick="showModal('Contests', 'Kompetisi dan turnamen trading akan segera hadir.', 'fa-trophy')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openContestsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-award"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Contests</h4><p class="text-[10px] text-gray-400">Compete for prizes</p></div>
+                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Contests & Leaderboard</h4><p class="text-[10px] text-gray-400">Poin, Hadiah USDT & iPhone (Realtime)</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
-                    <div onclick="showModal('Proof of Payouts', 'Semua riwayat pembayaran dijamin transparan dan terverifikasi.', 'fa-shield-halved')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openPayoutsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-circle-check"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Proof of Payouts</h4><p class="text-[10px] text-gray-400">Real payouts, verified</p></div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
-                    <div onclick="showModal('Event Gift', 'Selesaikan misi harian untuk membuka hadiah event spesial.', 'fa-gift')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-gift"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Event Gift</h4><p class="text-[10px] text-gray-400">Complete tasks to unlock</p></div>
+                            <div><h4 class="text-xs font-bold text-white">Proof of Payouts</h4><p class="text-[10px] text-gray-400">Live withdraw global users</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
@@ -433,23 +415,23 @@
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1">ABOUT</span>
                 <div class="bg-[#161f33] rounded-2xl border border-gray-800 overflow-hidden divide-y divide-gray-800/60 shadow-lg">
-                    <div onclick="showModal('About AFEX Mining', 'AFEX Mining v1.0 adalah platform penambangan digital Web3 berbasis Telegram Mini App.', 'fa-circle-info')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openAboutModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-circle-info"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">About AFEX Mining</h4></div>
+                            <div><h4 class="text-xs font-bold text-white">About AFEX Token</h4><p class="text-[10px] text-gray-400">Tentang proyek & ekosistem AFEX</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
-                    <div onclick="showModal('Privacy Policy', 'Data privasi Anda dilindungi dengan enkripsi tingkat tinggi sesuai standar web modern.', 'fa-shield-cat')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openPrivacyModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-lock"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Privacy Policy</h4></div>
+                            <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-xs"><i class="fa-solid fa-shield-cat"></i></div>
+                            <div><h4 class="text-xs font-bold text-white">Privacy Policy</h4><p class="text-[10px] text-gray-400">Kebijakan privasi & keamanan data</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
                     </div>
                 </div>
             </div>
-            <div class="text-center pt-2"><span class="text-[10px] text-gray-500 font-mono">Ultra Wallet v1.0</span></div>
+            <div class="text-center pt-2"><span class="text-[10px] text-gray-500 font-mono">Afex v1.0</span></div>
         </div>
     </div>
 
@@ -530,14 +512,20 @@
             balance: 100.00,
             usdtBalance: 1.20,
             availableWdAfex: 50.00,
-            refCount: 0,
+            refCount: 3,
             refCode: `AFEX-${userIdStr}`,
             isMining: false,
             miningEndTime: 0,
             isFounder: false,
             adWatchCount: 0,
-            checkInDay: 1, // Progress check-in harian (1 sampai 7)
-            checkedDays: [], // Daftar hari yang sudah dicentang/diklaim
+            checkInDay: 1,
+            checkedDays: [],
+            connectedWallets: { bsc: "", ton: "", eth: "", trc: "" },
+            referrals: [
+                { username: "@crypto_boy", adsWatched: 100, eligible: true },
+                { username: "@sultan_id", adsWatched: 45, eligible: false },
+                { username: "@airdrop_hunter", adsWatched: 100, eligible: true }
+            ],
             history: [
                 { type: 'DEPOSIT', desc: 'Received +1.20 USDT via BSC', time: '23/10/2026 21:00' },
                 { type: 'MINING', desc: 'Claimed +50.00 AFEX', time: '22/10/2026 15:30' }
@@ -547,60 +535,6 @@
             ]
         };
 
-        async function initBackendUser() {
-            try {
-                let response = await fetch(`${BACKEND_URL}/user/sync`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: userIdStr, username: userTg?.username || "", firstName: userTg?.first_name || "" })
-                });
-                let result = await response.json();
-                if (result.success) {
-                    miningData.balance = result.data.balance;
-                    miningData.usdtBalance = result.data.usdtBalance;
-                    miningData.availableWdAfex = result.data.availableWdAfex;
-                    miningData.isMining = result.data.isMining;
-                    miningData.miningEndTime = result.data.miningEndTime;
-                    updateUI();
-                }
-            } catch (e) {}
-        }
-
-        async function syncToServer() {
-            try {
-                await fetch(`${BACKEND_URL}/user/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: userIdStr, balance: miningData.balance, usdtBalance: miningData.usdtBalance, isMining: miningData.isMining, miningEndTime: miningData.miningEndTime })
-                });
-            } catch (e) {}
-        }
-
-        function handleFounderClick() {
-            showModal("Founder VIP Locked", "Fitur Founder VIP terkunci. Founder akan tersedia dalam 45 hari (berkurang setiap 24 jam).", "fa-lock");
-        }
-
-        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
-
-        function handleMiningAction() {
-            let targetReward = 50.00;
-            if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
-                miningData.isMining = true;
-                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
-                updateUI();
-                syncToServer();
-                showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
-            } else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
-                miningData.balance += targetReward;
-                miningData.isMining = false;
-                miningData.miningEndTime = 0;
-                miningData.history.unshift({ type: 'MINING', desc: `Claimed +${targetReward} AFEX`, time: new Date().toLocaleString() });
-                updateUI();
-                syncToServer();
-                showModal("Claim Success!", `Claimed +${targetReward} AFEX!`, "fa-circle-check");
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
@@ -608,31 +542,60 @@
             document.getElementById('profile-username').innerText = userHandle;
             document.getElementById('profile-uid').innerText = userIdStr;
             document.getElementById('profile-avatar-initial').innerText = displayName.charAt(0).toUpperCase();
+            document.getElementById('header-avatar-letter').innerText = displayName.charAt(0).toUpperCase();
 
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
 
-            initBackendUser();
             startTimerInterval();
             startFounderCountdown();
+            startVerificationCountdowns();
         });
 
-        // Hitung Mundur 45 Hari Founder VIP (Berkurang setiap 24 jam)
+        // 45 Hari Hitung Mundur Founder VIP & Verifikasi Wajah/Identitas
         function startFounderCountdown() {
             let targetTime = Date.now() + (45 * 24 * 60 * 60 * 1000);
+            let faceTarget = Date.now() + (20 * 24 * 60 * 60 * 1000);
+            let idTarget = Date.now() + (40 * 24 * 60 * 60 * 1000);
+
             setInterval(() => {
-                let diff = targetTime - Date.now();
-                if (diff < 0) diff = 0;
-                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let now = Date.now();
                 
-                let text = `Founder tersedia dalam ${days} hari ${hours} jam`;
-                let bannerText = document.getElementById('founder-countdown-text');
+                // Founder
+                let diff = targetTime - now; if(diff < 0) diff = 0;
+                let d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let text = `Founder tersedia dalam ${d} hari ${h} jam`;
+                document.getElementById('founder-countdown-text').innerText = text;
                 let overlayText = document.getElementById('overlay-countdown-text');
-                if(bannerText) bannerText.innerText = text;
                 if(overlayText) overlayText.innerText = text;
+
+                // Face verification 20 days
+                let fDiff = faceTarget - now; if(fDiff < 0) fDiff = 0;
+                let fd = Math.floor(fDiff / (1000 * 60 * 60 * 24));
+                let flbl = document.getElementById('face-countdown-lbl');
+                if(flbl) flbl.innerText = `Terkunci (${fd} hari lagi)`;
+
+                // ID verification 40 days
+                let iDiff = idTarget - now; if(iDiff < 0) iDiff = 0;
+                let id = Math.floor(iDiff / (1000 * 60 * 60 * 24));
+                let ilbl = document.getElementById('id-countdown-lbl');
+                if(ilbl) ilbl.innerText = `Terkunci (${id} hari lagi)`;
             }, 1000);
+        }
+
+        function startVerificationCountdowns() {}
+
+        function toggleLightDarkMode() {
+            let body = document.body;
+            let icon = document.getElementById('theme-icon');
+            body.classList.toggle('light-mode');
+            if(body.classList.contains('light-mode')) {
+                icon.className = "fa-solid fa-sun text-xs";
+            } else {
+                icon.className = "fa-solid fa-moon text-xs";
+            }
         }
 
         function changeLanguage(langCode) {
@@ -645,34 +608,228 @@
         }
 
         function updateUI() {
-            let usdEst = miningData.usdtBalance;
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
             document.getElementById('token-usd').innerText = "$" + (miningData.balance * 0.0001).toFixed(4) + " USDT (Est)";
             document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
-            document.getElementById('wallet-total-bal-usd').innerText = "$" + usdEst.toFixed(2);
+            document.getElementById('wallet-total-bal-usd').innerText = "$" + miningData.usdtBalance.toFixed(2);
+            document.getElementById('wallet-afex-est').innerText = "$" + (miningData.balance * 0.0001).toFixed(4);
         }
 
-        // Trigger Popups untuk Wallet Actions
-        function triggerWalletAction(action) {
-            if(action === 'Receive') {
-                showModal("Receive Crypto", "Alamat Dompet Anda (BEP-20 / TON):\n<code>0x38F...82171</code>", "fa-arrow-down");
-            } else if(action === 'Send') {
-                showModal("Send Crypto", "Masukkan alamat tujuan penarikan atau transfer token eksternal.", "fa-arrow-up");
-            } else if(action === 'Transfer') {
-                showModal("Transfer ke UID", "Kirim aset instan antar sesama pengguna UID AFEX.", "fa-paper-plane");
-            } else if(action === 'P2P') {
-                showModal("P2P Trading", "Fitur P2P Market segera dibuka untuk komunitas global.", "fa-users-viewfinder");
-            } else if(action === 'Swap') {
-                switchTab('swap', document.querySelector('.nav-btn:nth-child(3)'));
-                closeModal();
-            } else if(action === 'Trade LT') {
-                showModal("Trade LT Market", "Grafik dan pasangan trading LT akan aktif pada fase Mainnet.", "fa-chart-line");
+        // CONNECT WALLET MODAL WITH LED LIGHTS
+        function openConnectWalletModal() {
+            let networks = [
+                { id: 'bsc', name: 'BSC (BEP-20)', icon: 'fa-cube' },
+                { id: 'ton', name: 'TON Network', icon: 'fa-gem' },
+                { id: 'eth', name: 'Ethereum (ETH)', icon: 'fa-ethereum' },
+                { id: 'trc', name: 'TRON (TRC-20)', icon: 'fa-bolt' }
+            ];
+
+            let html = `<div class="space-y-3 text-left text-xs">
+                <p class="text-gray-300">Hubungkan alamat dompet untuk masing-masing jaringan agar bisa melakukan penarikan instan.</p>`;
+            
+            networks.forEach(net => {
+                let connectedAddr = miningData.connectedWallets[net.id];
+                let isConn = connectedAddr !== "";
+                let ledColor = isConn ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]";
+                
+                html += `<div class="bg-[#0b0f19] border border-gray-800 p-3 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-white flex items-center gap-2"><i class="fa-solid ${net.icon} text-yellow-400"></i> ${net.name}</span>
+                        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full ${ledColor}"></span> <span class="text-[10px] text-gray-400">${isConn ? 'Terhubung' : 'Terputus'}</span></div>
+                    </div>`;
+                if(isConn) {
+                    html += `<div class="flex items-center justify-between text-[10px] font-mono text-cyan-300 bg-black/40 p-1.5 rounded">
+                        <span class="truncate max-w-[180px]">${connectedAddr}</span>
+                        <button onclick="disconnectWallet('${net.id}')" class="text-red-400 font-bold ml-2 hover:underline">Putuskan</button>
+                    </div>`;
+                } else {
+                    html += `<div class="flex gap-2">
+                        <input type="text" id="wallet-input-${net.id}" placeholder="Masukkan alamat ${net.id.toUpperCase()}..." class="w-full bg-[#161f33] border border-gray-700 rounded p-1.5 text-[10px] text-white outline-none font-mono">
+                        <button onclick="connectWallet('${net.id}')" class="bg-yellow-500 text-black font-bold px-3 py-1 rounded text-[10px] cursor-pointer">Hubungkan</button>
+                    </div>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+            showModal("Kelola Alamat Dompet", html, "fa-link");
+        }
+
+        function connectWallet(net) {
+            let val = document.getElementById(`wallet-input-${net}`).value.trim();
+            if(!val) return alert("Masukkan alamat dompet yang valid!");
+            
+            // Validasi format alamat
+            if(net === 'bsc' && !val.startsWith('0x')) return alert("Alamat BSC harus diawali '0x'!");
+            if(net === 'ton' && val.length < 10) return alert("Alamat TON tidak valid!");
+            if(net === 'eth' && !val.startsWith('0x')) return alert("Alamat ETH harus diawali '0x'!");
+            if(net === 'trc' && !val.startsWith('T')) return alert("Alamat TRC-20 harus diawali 'T'!");
+
+            miningData.connectedWallets[net] = val;
+            openConnectWalletModal();
+        }
+
+        function disconnectWallet(net) {
+            miningData.connectedWallets[net] = "";
+            openConnectWalletModal();
+        }
+
+        // WITHDRAW MODAL WITH AUTOMATIC 2% FEE & MINIMUMS
+        function openWithdrawModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Aset</label>
+                    <select id="wd-asset" onchange="updateWdLimits()" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                        <option value="usdt">USDT</option>
+                        <option value="afex">AFEX Token (Khusus BSC)</option>
+                        <option value="ton">TON</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Dompet Terhubung</label>
+                    <select id="wd-wallet-select" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none font-mono">
+                        <!-- Opsi terisi dinamis -->
+                    </select>
+                </div>
+                <div>
+                    <label id="wd-limit-label" class="text-[10px] text-yellow-400 block mb-1">Min. WD: 5 USDT (Fee Otomatis 2%)</label>
+                    <input type="number" id="wd-amount" placeholder="0.00" oninput="calculateWdFee()" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none font-mono">
+                </div>
+                <div class="bg-black/30 p-2.5 rounded border border-gray-800 text-[11px] font-mono space-y-1">
+                    <div class="flex justify-between text-gray-400"><span>Jumlah Diminta:</span> <span id="calc-req">0.00</span></div>
+                    <div class="flex justify-between text-yellow-400"><span>Fee Potongan (2%):</span> <span id="calc-fee">0.00</span></div>
+                    <div class="flex justify-between text-green-400 font-bold border-t border-gray-800 pt-1"><span>Diterima Bersih:</span> <span id="calc-net">0.00</span></div>
+                </div>
+                <button onclick="executeWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
+                    KONFIRMASI WITHDRAW
+                </button>
+            </div>`;
+            showModal("Withdrawal Portal", html, "fa-paper-plane");
+            
+            setTimeout(() => {
+                updateWdLimits();
+            }, 100);
+        }
+
+        function updateWdLimits() {
+            let asset = document.getElementById('wd-asset').value;
+            let lbl = document.getElementById('wd-limit-label');
+            let select = document.getElementById('wd-wallet-select');
+            
+            let allowedNet = asset === 'afex' ? 'bsc' : (asset === 'usdt' ? 'bsc' : asset);
+            select.innerHTML = "";
+            
+            for(let net in miningData.connectedWallets) {
+                let addr = miningData.connectedWallets[net];
+                if(addr) {
+                    select.innerHTML += `<option value="${net}">${net.toUpperCase()}: ${addr.slice(0,6)}...${addr.slice(-4)}</option>`;
+                }
             }
+            if(select.innerHTML === "") {
+                select.innerHTML = `<option value="">-- Belum ada dompet terhubung --</option>`;
+            }
+
+            if(asset === 'usdt') lbl.innerText = "Min. WD: 5 USDT (Fee Otomatis 2%)";
+            else if(asset === 'afex') lbl.innerText = "Min. WD: 500 AFEX (Khusus Jaringan BSC, Fee 2%)";
+            else if(asset === 'ton') lbl.innerText = "Min. WD: 1.5 TON (Fee Otomatis 2%)";
         }
 
-        function openWdPopup() {
-            showModal("Withdrawal Portal", "Pilih aset yang ingin ditarik melalui portofolio dompet.", "fa-paper-plane");
+        function calculateWdFee() {
+            let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
+            let fee = amt * 0.02;
+            let net = amt - fee;
+            document.getElementById('calc-req').innerText = amt.toFixed(2);
+            document.getElementById('calc-fee').innerText = fee.toFixed(2);
+            document.getElementById('calc-net').innerText = net.toFixed(2);
+        }
+
+        function executeWithdraw() {
+            let asset = document.getElementById('wd-asset').value;
+            let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
+            let walletKey = document.getElementById('wd-wallet-select').value;
+            
+            if(!walletKey || miningData.connectedWallets[walletKey] === "") {
+                return alert("Pilih atau hubungkan alamat dompet yang benar sesuai jaringan!");
+            }
+
+            let minWd = asset === 'afex' ? 500 : (asset === 'ton' ? 1.5 : 5);
+            if(amt < minWd) return alert(`Minimum penarikan adalah ${minWd} ${asset.toUpperCase()}`);
+
+            let netAmt = amt * 0.98;
+            if(asset === 'usdt' && miningData.usdtBalance < amt) return alert("Saldo USDT tidak mencukupi!");
+            if(asset === 'afex' && miningData.availableWdAfex < amt) return alert("Saldo AFEX tersedia tidak mencukupi!");
+
+            if(asset === 'usdt') miningData.usdtBalance -= amt;
+            if(asset === 'afex') miningData.availableWdAfex -= amt;
+
+            miningData.withdrawHistory.unshift({ type: 'WITHDRAW', desc: `WD ${amt} ${asset.toUpperCase()} (Net: ${netAmt.toFixed(2)}) SUCCESS`, time: new Date().toLocaleString() });
+            updateUI();
+            closeModal();
+            showModal("Withdraw Berhasil", `Penarikan ${amt} ${asset.toUpperCase()} berhasil diproses setelah dipotong fee 2%.`, "fa-circle-check");
+        }
+
+        // INVITE FRIENDS PAGE MODAL
+        function openInviteModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div class="bg-[#0b0f19] p-3 rounded-xl border border-gray-800">
+                    <span class="text-[10px] text-gray-400 block">Link Referral Anda</span>
+                    <input type="text" readonly value="https://t.me/Fexboostbot?start=${miningData.refCode}" class="w-full bg-[#161f33] text-cyan-300 font-mono text-[10px] p-1.5 rounded mt-1 outline-none">
+                </div>
+                <h4 class="font-bold text-yellow-400">Daftar Undangan Teman (${miningData.referrals.length})</h4>
+                <div class="space-y-2 max-h-40 overflow-y-auto pr-1">`;
+            
+            miningData.referrals.forEach(ref => {
+                let statusBadge = ref.eligible ? '<span class="text-green-400 font-bold bg-green-500/20 px-2 py-0.5 rounded">Valid</span>' : '<span class="text-red-400 font-bold bg-red-500/20 px-2 py-0.5 rounded">Tidak Valid</span>';
+                html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded flex justify-between items-center">
+                    <div><span class="text-white font-bold">${ref.username}</span><p class="text-[9px] text-gray-400">Nonton Iklan: ${ref.adsWatched}/100</p></div>
+                    <div>${statusBadge}</div>
+                </div>`;
+            });
+            html += `</div><p class="text-[10px] text-gray-400">*Syarat eligible: Undangan harus menyelesaikan minimal 100 tonton iklan.</p></div>`;
+            showModal("Invite Friends & Eligibility", html, "fa-user-plus");
+        }
+
+        // CONTESTS & LEADERBOARD REALTIME MODAL
+        function openContestsModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div class="bg-gradient-to-r from-amber-500/20 to-purple-600/20 p-3 rounded-xl border border-yellow-500/30 text-center">
+                    <h4 class="font-bold text-yellow-400">Global Leaderboard (Realtime)</h4>
+                    <p class="text-[10px] text-gray-300">Menang hadiah utama iPhone & Pool USDT!</p>
+                </div>
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-yellow-400 font-bold">#1 @crypto_king</span><span class="font-mono text-green-400">14,250 Pts</span></div>
+                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-gray-300 font-bold">#2 @sultan_ton</span><span class="font-mono text-green-400">11,900 Pts</span></div>
+                    <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-gray-300 font-bold">#3 @carmelo (Anda)</span><span class="font-mono text-green-400">8,450 Pts</span></div>
+                </div>
+            </div>`;
+            showModal("Contests & Leaderboard", html, "fa-trophy");
+        }
+
+        // LIVE PAYOUTS MODAL
+        function openPayoutsModal() {
+            let html = `<div class="space-y-2 max-h-50 overflow-y-auto text-left text-xs pr-1">
+                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@whale_99 withdrew <strong class="text-yellow-400">500 USDT</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
+                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@ton_master withdrew <strong class="text-yellow-400">12.5 TON</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
+                <div class="bg-[#0b0f19] p-2 rounded flex justify-between items-center"><span class="text-white">@crypto_girl withdrew <strong class="text-yellow-400">1,500 AFEX</strong></span> <span class="text-green-400 text-[10px]">SUCCESS</span></div>
+            </div>`;
+            showModal("Proof of Payouts (Live)", html, "fa-circle-check");
+        }
+
+        // ABOUT & PRIVACY POLICY MODALS
+        function openAboutModal() {
+            let html = `<div class="space-y-2 text-left text-xs text-gray-300 leading-relaxed">
+                <p><strong>AFEX Token</strong> adalah aset utilitas generasi berikutnya yang dirancang khusus untuk ekosistem Telegram Mini App dan penambangan terdesentralisasi kecepatan tinggi.</p>
+                <p>Dengan infrastruktur multichain (BSC, TON, ETH, TRC), AFEX menjembatani kemudahan penambangan seluler dengan likuiditas keuangan global yang aman dan transparan.</p>
+            </div>`;
+            showModal("About AFEX Token", html, "fa-circle-info");
+        }
+
+        function openPrivacyModal() {
+            let html = `<div class="space-y-2 text-left text-xs text-gray-300 leading-relaxed">
+                <p>Kami sangat menjaga privasi dan keamanan data Anda. Seluruh informasi akun Telegram, nomor, email, serta alamat dompet terenkripsi dengan standar industri modern.</p>
+                <p>Data Anda tidak akan pernah dibagikan kepada pihak ketiga tanpa izin eksplisit.</p>
+            </div>`;
+            showModal("Privacy Policy", html, "fa-shield-cat");
         }
 
         function openHistoryModal() {
@@ -699,23 +856,47 @@
             showModal("Withdraw History", html, "fa-arrow-up-from-bracket");
         }
 
-        // Daily Check-In Interaktif Kotak Hari 1 - 7
+        function openSecurityModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <p class="text-gray-300">Hubungkan dan verifikasi nomor telepon serta email Anda untuk keamanan 2FA akun.</p>
+                <input type="text" placeholder="Nomor Telepon (+62...)" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                <input type="email" placeholder="Alamat Email..." class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                <button onclick="showModal('Berhasil', 'Verifikasi A2F tersimpan.', 'fa-circle-check')" class="w-full bg-purple-600 text-white font-bold py-2 rounded text-xs cursor-pointer">SIMPAN A2F</button>
+            </div>`;
+            showModal("Security & 2FA (Phone & Email)", html, "fa-shield-halved");
+        }
+
+        function openFaceVerificationModal() {
+            showModal("Verifikasi Wajah", "Fitur Verifikasi Wajah (Face Scan) sedang dikunci dan akan terbuka otomatis dalam 20 hari sesuai skema hitung mundur.", "fa-face-smile");
+        }
+
+        function openIdVerificationModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <p class="text-gray-300">Pilih negara dan jenis kartu identitas Anda:</p>
+                <select class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                    <option>Indonesia</option><option>Malaysia</option><option>Singapore</option><option>Other Country</option>
+                </select>
+                <select class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
+                    <option>KTP (ID Card)</option><option>Passport</option><option>Driver License</option>
+                </select>
+                <p class="text-[10px] text-yellow-400">Fitur ini terkunci dan akan aktif dalam 40 hari.</p>
+            </div>`;
+            showModal("Verifikasi Identitas", html, "fa-id-card");
+        }
+
         function openCheckInModal() {
             let rewards = [10, 20, 35, 50, 75, 100, 150];
             let html = `<div class="space-y-2.5 text-left text-[11px]">
-                <p class="text-gray-300 text-center mb-2">Check-in setiap hari untuk klaim hadiah token AFEX Anda!</p>
+                <p class="text-gray-300 text-center mb-2">Check-in harian (Hari 1 - 7):</p>
                 <div class="grid grid-cols-4 gap-2">`;
-            
             for (let i = 1; i <= 7; i++) {
                 let isChecked = miningData.checkedDays.includes(i);
                 let isCurrent = (i === miningData.checkInDay && !isChecked);
-                
                 let bgClass = isChecked ? "bg-green-500/20 border-green-500 text-green-400" : (isCurrent ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 animate-pulse cursor-pointer" : "bg-[#0b0f19] border-gray-700 text-gray-500");
-                
                 html += `<div onclick="${isCurrent ? `claimCheckIn(${i})` : ''}" class="border rounded-xl p-2.5 text-center flex flex-col items-center justify-center ${bgClass}">
                     <span class="text-[10px] font-bold block">Day ${i}</span>
                     <span class="text-xs font-mono font-bold mt-1">+${rewards[i-1]}</span>
-                    <span class="text-[10px] mt-1">${isChecked ? '<i class="fa-solid fa-check text-green-400"></i>' : (isCurrent ? '<i class="fa-solid fa-hand-pointer"></i>' : '<i class="fa-solid fa-lock"></i>')}</span>
+                    <span class="text-[10px] mt-1">${isChecked ? '<i class="fa-solid fa-check"></i>' : (isCurrent ? '<i class="fa-solid fa-hand-pointer"></i>' : '<i class="fa-solid fa-lock"></i>')}</span>
                 </div>`;
             }
             html += `</div></div>`;
@@ -724,18 +905,14 @@
 
         function claimCheckIn(day) {
             let rewards = [10, 20, 35, 50, 75, 100, 150];
-            let rewardAmt = rewards[day - 1];
-            
-            miningData.balance += rewardAmt;
+            let amt = rewards[day - 1];
+            miningData.balance += amt;
             miningData.checkedDays.push(day);
             miningData.checkInDay = day + 1;
-            
-            miningData.history.unshift({ type: 'CHECK-IN', desc: `Claimed Day ${day} Streak (+${rewardAmt} AFEX)`, time: new Date().toLocaleString() });
+            miningData.history.unshift({ type: 'CHECK-IN', desc: `Claimed Day ${day} (+${amt} AFEX)`, time: new Date().toLocaleString() });
             updateUI();
-            syncToServer();
-            
             closeModal();
-            showModal("Check-in Berhasil!", `Berhasil mengklaim +${rewardAmt} AFEX untuk Hari ke-${day}!`, "fa-circle-check");
+            showModal("Berhasil!", `Klaim Day ${day} sebesar +${amt} AFEX sukses.`, "fa-circle-check");
         }
 
         function copyUID() {
@@ -743,10 +920,23 @@
             showModal("Copied!", "UID berhasil disalin ke clipboard.", "fa-circle-check");
         }
 
-        function openSecurityModal() { showModal("Security & 2FA", "Akun Anda dilindungi dengan Google Authenticator dan enkripsi PIN Telegram.", "fa-lock"); }
-        function openBackupModal() { showModal("Backup Wallet", "Frasa pemulihan (seed phrase) telah diamankan di penyimpanan cloud aman.", "fa-cloud-arrow-up"); }
-        function openReferralModal() { showModal("Invite Friends", "Bagikan link referral Anda: https://t.me/Fexboostbot?start=" + miningData.refCode, "fa-user-plus"); }
-        function openKYCModal() { showModal("KYC Status", "Akun Anda terverifikasi penuh.", "fa-user-shield"); }
+        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
+        function handleMiningAction() {
+            let targetReward = 50.00;
+            if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
+                miningData.isMining = true;
+                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+                updateUI();
+                showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
+            } else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
+                miningData.balance += targetReward;
+                miningData.isMining = false;
+                miningData.miningEndTime = 0;
+                miningData.history.unshift({ type: 'MINING', desc: `Claimed +${targetReward} AFEX`, time: new Date().toLocaleString() });
+                updateUI();
+                showModal("Claim Success!", `Claimed +${targetReward} AFEX!`, "fa-circle-check");
+            }
+        }
 
         function startTimerInterval() {
             setInterval(() => {
@@ -792,11 +982,11 @@
             miningData.balance += 15;
             miningData.usdtBalance += 0.002;
             updateUI();
-            syncToServer();
             showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
         }
 
         function claimFounderTask(btn) { handleFounderClick(); }
+        function handleFounderClick() { showModal("Founder VIP Locked", "Fitur Founder VIP terkunci dan akan tersedia dalam 45 hari.", "fa-lock"); }
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
