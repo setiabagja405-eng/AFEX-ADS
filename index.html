@@ -100,6 +100,7 @@
             <div class="mb-3">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight drop-shadow-md">0.00 AFEX</h1>
+                <!-- Est USDT khusus untuk AFEX Token saja (tidak digabung dengan usdtBalance asli) -->
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
 
@@ -189,7 +190,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Watch Ad <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+10.00 USDT</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
                         </div>
                     </div>
                     <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
@@ -200,7 +201,7 @@
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><i class="fa-brands fa-telegram text-base"></i></div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.001 USDT</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
                         </div>
                     </div>
                     <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
@@ -261,7 +262,7 @@
         <!-- 4. TAB 4: SWAP PAGE -->
         <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Listing in December 2026</p>
+            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Cooming Soon</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 text-left shadow-lg">
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
@@ -522,9 +523,11 @@
         }
 
         function updateUI() {
-            let totalUsdEst = (miningData.balance * 0.0001) + miningData.usdtBalance;
+            // Est USDT khusus menghitung nilai dari token AFEX saja (tidak digabung dengan usdtBalance asli)
+            let afexUsdEst = miningData.balance * 0.0001;
+
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
-            document.getElementById('token-usd').innerText = "$" + totalUsdEst.toFixed(4) + " USDT (Est)";
+            document.getElementById('token-usd').innerText = "$" + afexUsdEst.toFixed(4) + " USDT (Est)";
             document.getElementById('header-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('total-ref-count').innerText = miningData.refCount;
             document.getElementById('wallet-afex-bal').innerText = miningData.availableWdAfex.toFixed(2);
@@ -751,6 +754,7 @@
             feedEl.innerHTML = html;
         }
 
+        // --- TIMER INTERVAL DENGAN PENAMBAHAN REAL-TIME SEDIKIT DEMI SEDIKIT ---
         function startTimerInterval() {
             setInterval(() => {
                 let now = Date.now();
@@ -762,12 +766,21 @@
 
                 if (miningData.isMining) {
                     let timeLeft = miningData.miningEndTime - now;
+                    
+                    // Hitung pertambahan saldo sedikit demi sedikit secara real-time setiap detik
+                    let elapsedTime = TOTAL_DURATION_MS - timeLeft;
+                    let currentMined = (elapsedTime / TOTAL_DURATION_MS) * targetReward;
+                    if (currentMined > targetReward) currentMined = targetReward;
+                    if (currentMined < 0) currentMined = 0;
+
+                    minedVal.innerText = `+${currentMined.toFixed(2)} AFEX`;
+
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
                         statusLbl.innerText = "READY TO CLAIM";
                         mineBtn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
                         mineBtn.className = "w-full bg-green-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
-                        minedVal.innerText = `+${targetReward} AFEX`;
+                        minedVal.innerText = `+${targetReward.toFixed(2)} AFEX`;
                     } else {
                         let h = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         let m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -792,37 +805,37 @@
                 show_11929290().then(() => {
                     miningData.adWatchCount++;
                     miningData.balance += 15;
-                    miningData.usdtBalance += 10.00;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
+                    miningData.usdtBalance += 0.01;
+                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
                 }).catch(() => {
                     miningData.adWatchCount++;
                     miningData.balance += 15;
-                    miningData.usdtBalance += 10.00;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
+                    miningData.usdtBalance += 0.01;
+                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
                 });
             } else {
                 miningData.adWatchCount++;
                 miningData.balance += 15;
-                miningData.usdtBalance += 10.00;
-                addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
+                miningData.usdtBalance += 0.01;
+                addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
                 updateUI();
-                showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
+                showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
             }
         }
 
         function claimFounderTask(btn) {
             if(!miningData.isFounder) return openFounderModal();
             if(miningData.founderTaskClaimed) return showModal("Claimed", "Already claimed today.", "fa-clock");
-            miningData.balance += 100;
-            miningData.usdtBalance += 10.00;
+            miningData.balance += 150;
+            miningData.usdtBalance += 0.01;
             miningData.founderTaskClaimed = true;
             addHistory('VIP', 'Claimed founder daily dividend');
             updateUI();
-            showModal("Claimed!", "+100 AFEX & +0.01 USDT added!", "fa-circle-check");
+            showModal("Claimed!", "+150 AFEX & +0.01 USDT added!", "fa-circle-check");
         }
 
         function attemptSwap() { showModal("Swap Locked", "Token swap will open in December 2026.", "fa-lock"); }
