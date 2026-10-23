@@ -76,7 +76,7 @@
         </div>
 
         <!-- FOUNDER VIP BANNER -->
-        <div id="founder-banner" onclick="openFounderModal()" class="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] luxury-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
+        <div id="founder-banner" onclick="handleFounderClick()" class="bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-[#161f33] luxury-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-yellow-500 text-black rounded-xl flex items-center justify-center text-sm font-black shadow-md">
                     <i class="fa-solid fa-crown"></i>
@@ -84,15 +84,14 @@
                 <div class="text-left">
                     <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
                         <span data-i18n="vip_pass">FOUNDER VIP PASS</span> 
-                        <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">UPGRADE</span>
+                        <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">LOCKED</span>
                     </h4>
-                    <!-- Teks hitung mundur otomatis -->
-                    <p class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5">
-                        <span data-i18n="unlocks_in">Unlocks in:</span> <span id="banner-timer">Loading...</span>
+                    <p class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5" data-i18n="founder_available_text">
+                        Founder akan tersedia tanggal 20 Nov 2026
                     </p>
                 </div>
             </div>
-            <i class="fa-solid fa-chevron-right text-xs text-yellow-400"></i>
+            <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
         </div>
 
         <!-- 1. TAB 1: AUTO MINING -->
@@ -236,8 +235,8 @@
                 <div id="founder-lock-overlay" class="absolute inset-0 bg-[#0b0f19]/80 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center text-center p-6 z-30 hidden">
                     <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center text-3xl mb-3 border border-yellow-500/50 animate-pulse"><i class="fa-solid fa-lock"></i></div>
                     <h3 class="text-base font-black text-yellow-400 mb-1" data-i18n="vip_locked">VIP Locked</h3>
-                    <p class="text-[11px] text-gray-300 mb-4" data-i18n="vip_locked_desc">Input Founder TxHash to unlock VIP Elite Hub.</p>
-                    <button onclick="openFounderModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 px-6 rounded-xl text-xs cursor-pointer" data-i18n="btn_unlock_vip">UNLOCK VIP</button>
+                    <p class="text-[11px] text-gray-300 mb-4" data-i18n="founder_available_text">Founder akan tersedia tanggal 20 Nov 2026</p>
+                    <button onclick="handleFounderClick()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 px-6 rounded-xl text-xs cursor-pointer" data-i18n="btn_unlock_vip">UNLOCK VIP</button>
                 </div>
             </div>
         </div>
@@ -261,34 +260,21 @@
         <!-- 4. TAB 4: SWAP PAGE -->
         <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase" data-i18n="swap_subtitle">Cooming Soon</p>
+            <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase animate-pulse" data-i18n="swap_subtitle">Coming Soon</p>
             
-            <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 text-left shadow-lg">
-                <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
-                    <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                        <span data-i18n="swap_from">From</span><span><span data-i18n="swap_balance">Balance:</span> <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <input type="number" id="swap-input-afex" oninput="calcSwap()" placeholder="0" class="w-2/3 bg-transparent text-lg font-bold text-white outline-none">
-                        <span class="font-bold text-yellow-400">AFEX</span>
-                    </div>
+            <div class="bg-[#161f33] p-6 rounded-2xl border border-yellow-500/30 text-center space-y-4 shadow-xl">
+                <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-yellow-500/40">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
-                <div class="flex justify-center -my-3 relative z-10"><div class="bg-[#161f33] p-1.5 rounded-full border border-gray-700"><i class="fa-solid fa-arrow-down text-gray-400 text-xs"></i></div></div>
-                <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-4 mt-1">
-                    <div class="flex justify-between text-[10px] text-gray-400 mb-1"><span data-i18n="swap_to">To (Destination Token)</span></div>
-                    <div class="flex justify-between items-center gap-2">
-                        <input type="number" id="swap-input-target" readonly placeholder="0" class="w-1/2 bg-transparent text-lg font-bold text-green-400 outline-none">
-                        <select id="swap-target-token" onchange="calcSwap()" class="bg-[#161f33] border border-gray-700 text-yellow-400 text-[11px] rounded-lg px-2 py-2 outline-none font-bold w-1/2">
-                            <option value="usdt_bep20">USDT (BEP-20)</option>
-                            <option value="ton">TON / GRAM</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="attemptSwap()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg" data-i18n="btn_swap">SWAP NOW</button>
+                <h3 class="text-sm font-bold text-white" data-i18n="swap_coming_title">Fitur Swap Segera Hadir</h3>
+                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_coming_desc">Sistem pertukaran token AFEX ke USDT/TON akan segera dibuka sesuai jadwal roadmap resmi.</p>
+                <button onclick="showModal('Coming Soon', 'Fitur Token Swap belum dibuka.', 'fa-lock')" class="w-full bg-gray-800 text-gray-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed">
+                    SWAP LOCKED (SOON)
+                </button>
             </div>
         </div>
 
-        <!-- 5. TAB 5: WALLET PAGE & PUBLIC WITHDRAW FEED -->
+        <!-- 5. TAB 5: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="wallet_title">WALLET ASSETS</h2>
             <p class="text-xs text-gray-400 mb-4" data-i18n="wallet_desc">Manage your accumulated crypto assets securely.</p>
@@ -310,6 +296,23 @@
                         </div>
                         <span id="wallet-usdt-bal" class="font-mono text-green-400 font-bold text-sm">$0.00</span>
                     </div>
+                </div>
+
+                <!-- MENU KIRIM TOKEN KE UID LAIN -->
+                <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 space-y-3 mb-4 text-left">
+                    <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="transfer_uid_title">Kirim ke User ID AFEX</span></h4>
+                    <p class="text-[10px] text-gray-400" data-i18n="transfer_uid_desc">Kirim AFEX instan ke sesama UID AFEX Mining.</p>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1" data-i18n="target_uid_label">Target User ID (UID)</label>
+                        <input type="text" id="transfer-uid-input" placeholder="Contoh: 8601594529" class="w-full bg-[#161f33] border border-gray-700 rounded-lg p-2 text-xs text-white outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1" data-i18n="transfer_amount_label">Jumlah AFEX</label>
+                        <input type="number" id="transfer-amount-input" placeholder="0.00" class="w-full bg-[#161f33] border border-gray-700 rounded-lg p-2 text-xs text-white outline-none font-mono">
+                    </div>
+                    <button onclick="attemptTransferUID()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer shadow-md hover:bg-blue-500" data-i18n="btn_transfer_uid">
+                        KIRIM SEKARANG
+                    </button>
                 </div>
 
                 <!-- WITHDRAWAL FORM -->
@@ -400,26 +403,33 @@
         let tg = window.Telegram?.WebApp;
         try { if(tg) { tg.expand(); tg.ready(); } } catch(e) {}
 
+        // Auto Generate Nama & UID Telegram Unik
         let userTg = tg?.initDataUnsafe?.user;
-        let userIdStr = userTg ? userTg.id.toString() : "8601594529";
-        let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "Guest User";
+        let userIdStr = userTg ? userTg.id.toString() : Math.floor(1000000000 + Math.random() * 9000000000).toString();
+        let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "User_" + userIdStr.slice(-5);
+
+        // URL Backend LocalTunnel terbaru yang aktif
+        const BACKEND_URL = "https://purple-cloths-smile.loca.lt/api";
 
         const i18n = {
             en: { 
                 total_balance: "Total Balance", daily_checkin: "Daily Check-in", ready_to_mine: "Ready to Mine", 
                 session_timer: "Session Timer:", tasks_title: "TASKS", tasks_desc: "Complete tasks to earn rewards.", 
-                ref_title: "INVITE FRIENDS!", swap_title: "TOKEN SWAP", swap_subtitle: "Cooming Soon", swap_from: "From", 
+                ref_title: "INVITE FRIENDS!", swap_title: "TOKEN SWAP", swap_subtitle: "Coming Soon", swap_from: "From", 
                 btn_swap: "SWAP NOW", wallet_title: "WALLET ASSETS", wallet_desc: "Manage your crypto assets.", 
                 nav_refer: "Refer", nav_task: "Task", nav_mine: "Mine", nav_swap: "Swap", nav_wallet: "Wallet", 
-                vip_pass: "FOUNDER VIP PASS", vip_desc: "Input TxHash & Unlock!", unlocks_in: "Unlocks in:",
+                vip_pass: "FOUNDER VIP PASS", founder_available_text: "Founder akan tersedia tanggal 20 Nov 2026",
                 kyc_status: "KYC Status", verify_now: "Verify Now", history_title: "History", history_desc: "Mining & WD Log",
                 claim_streak: "Claim Streak Rewards", btn_start_mine: "START 12H AUTO MINING", subtab_normal: "Normal",
                 task_watch_ad: "Watch Ad", btn_watch: "Watch", task_join_tg: "Join Telegram Channel", btn_start: "Start",
                 vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Exclusive high-tier rewards & multipliers.", founder_dividend: "Founder Daily Dividend",
-                btn_claim: "Claim", vip_locked: "VIP Locked", vip_locked_desc: "Input Founder TxHash to unlock VIP Elite Hub.", btn_unlock_vip: "UNLOCK VIP",
+                btn_claim: "Claim", vip_locked: "VIP Locked", btn_unlock_vip: "CLOSE",
                 ref_subtitle: "+70 AFEX & +0.01 USDT Per Successful Referral!", total_refs: "Total Referrals", btn_invite: "Invite a friend",
-                swap_balance: "Balance:", swap_to: "To (Destination Token)", afex_available: "AFEX Available", ready_to_wd: "Ready to withdraw",
-                multi_network: "Multi-network", wd_portal: "Withdrawal Portal", wd_asset: "Asset", wd_network: "Network", wd_amount: "Amount",
+                swap_coming_title: "Token Swap Coming Soon", swap_coming_desc: "The AFEX token swap exchange will open soon according to the official roadmap.",
+                afex_available: "AFEX Available", ready_to_wd: "Ready to withdraw", multi_network: "Multi-network",
+                transfer_uid_title: "Kirim ke User ID AFEX", transfer_uid_desc: "Kirim AFEX instan ke sesama UID AFEX Mining.",
+                target_uid_label: "Target User ID (UID)", transfer_amount_label: "Jumlah AFEX", btn_transfer_uid: "KIRIM SEKARANG",
+                wd_portal: "Withdrawal Portal", wd_asset: "Asset", wd_network: "Network", wd_amount: "Amount",
                 wd_address: "Wallet Address", btn_withdraw: "WITHDRAW FUNDS", live_feed: "Global Withdraw Feed", live_status: "Live",
                 mining_in_progress: "MINING IN PROGRESS", ready_to_claim: "READY TO CLAIM"
             },
@@ -429,245 +439,102 @@
                 ref_title: "UNDANG TEMAN!", swap_title: "TUKAR TOKEN", swap_subtitle: "Segera Hadir", swap_from: "Dari", 
                 btn_swap: "TUKAR SEKARANG", wallet_title: "ASET DOMPET", wallet_desc: "Kelola aset kripto Anda.", 
                 nav_refer: "Referral", nav_task: "Misi", nav_mine: "Mining", nav_swap: "Swap", nav_wallet: "Dompet", 
-                vip_pass: "FOUNDER VIP PASS", vip_desc: "Masukkan TxHash & Buka!", unlocks_in: "Terbuka dalam:",
+                vip_pass: "FOUNDER VIP PASS", founder_available_text: "Founder akan tersedia tanggal 20 Nov 2026",
                 kyc_status: "Status KYC", verify_now: "Verifikasi Sekarang", history_title: "Riwayat", history_desc: "Log Mining & WD",
                 claim_streak: "Klaim Hadiah Beruntun", btn_start_mine: "MULAI MINING OTOMATIS 12JAM", subtab_normal: "Normal",
                 task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", task_join_tg: "Gabung Channel Telegram", btn_start: "Mulai",
                 vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Hadiah eksklusif tingkat tinggi & multiplier.", founder_dividend: "Dividen Harian Founder",
-                btn_claim: "Klaim", vip_locked: "VIP Terkunci", vip_locked_desc: "Masukkan TxHash Founder untuk membuka VIP Elite Hub.", btn_unlock_vip: "BUKA VIP",
+                btn_claim: "Klaim", vip_locked: "VIP Terkunci", btn_unlock_vip: "TUTUP",
                 ref_subtitle: "+70 AFEX & +0.01 USDT Per Referral Berhasil!", total_refs: "Total Referral", btn_invite: "Undang Teman",
-                swap_balance: "Saldo:", swap_to: "Ke (Token Tujuan)", afex_available: "AFEX Tersedia", ready_to_wd: "Siap Ditarik",
-                multi_network: "Multi-jaringan", wd_portal: "Portal Penarikan", wd_asset: "Aset", wd_network: "Jaringan", wd_amount: "Jumlah",
+                swap_coming_title: "Fitur Swap Segera Hadir", swap_coming_desc: "Sistem pertukaran token AFEX ke USDT/TON akan segera dibuka sesuai jadwal roadmap resmi.",
+                afex_available: "AFEX Tersedia", ready_to_wd: "Siap Ditarik", multi_network: "Multi-jaringan",
+                transfer_uid_title: "Kirim ke User ID AFEX", transfer_uid_desc: "Kirim AFEX instan ke sesama UID AFEX Mining.",
+                target_uid_label: "Target User ID (UID)", transfer_amount_label: "Jumlah AFEX", btn_transfer_uid: "KIRIM SEKARANG",
+                wd_portal: "Portal Penarikan", wd_asset: "Aset", wd_network: "Jaringan", wd_amount: "Jumlah",
                 wd_address: "Alamat Dompet", btn_withdraw: "TARIK DANA", live_feed: "Feed Penarikan Global", live_status: "Aktif",
                 mining_in_progress: "PERTAMBANGAN BERLANGSUNG", ready_to_claim: "SIAP DIKLAIM"
-            },
-            hi: { 
-                total_balance: "कुल शेष", daily_checkin: "दैनिक चेक-इन", ready_to_mine: "माइन करने के लिए तैयार", 
-                session_timer: "सत्र 타이مر:", tasks_title: "कार्य", tasks_desc: "पुरस्कार अर्जित करने के लिए कार्य पूरे करें।", 
-                ref_title: "दोस्तों को आमंत्रित करें!", swap_title: "टोकन स्वैप", swap_subtitle: "जल्द आ रहा है", swap_from: "से", 
-                btn_swap: "अभी स्वैप करें", wallet_title: "वॉलेट संपत्ति", wallet_desc: "अपनी संपत्ति प्रबंधित करें।", 
-                nav_refer: "रेफर", nav_task: "कार्य", nav_mine: "माइन", nav_swap: "स्वैप", nav_wallet: "वॉलेट", 
-                vip_pass: "फाउंडर वीआईपी पास", vip_desc: "TxHash दर्ज करें!", unlocks_in: "खुलेगा:",
-                kyc_status: "KYC स्थिति", verify_now: "सत्यापित करें", history_title: "इतिहास", history_desc: "माइनिंग और WD लॉग",
-                claim_streak: "दैनिक स्ट्रीक क्ليم करें", btn_start_mine: "12 घंटे ऑटो माइनिंग शुरू करें", subtab_normal: "सामान्य",
-                task_watch_ad: "विज्ञापन देखें", btn_watch: "देखें", task_join_tg: "टेलीग्राम चैनल से जुड़ें", btn_start: "शुरू करें",
-                vip_hub_title: "VIP एलीट हब", vip_hub_desc: "विशेष पुरस्कार और गुणक।", founder_dividend: "फाउंडर दैनिक लाभांश",
-                btn_claim: "क्लेम करें", vip_locked: "VIP लॉक है", vip_locked_desc: "VIP अनलॉक करने के लिए TxHash दर्ज करें।", btn_unlock_vip: "VIP अनलॉक करें",
-                ref_subtitle: "+70 AFEX & +0.01 USDT प्रति सफल रेफरल!", total_refs: "कुल रेफरल", btn_invite: "मित्र को आमंत्रित करें",
-                swap_balance: "शेष:", swap_to: "प्रति (गंतव्य टोकन)", afex_available: "AFEX उपलब्ध", ready_to_wd: "निकासी के लिए तैयार",
-                multi_network: "मल्टी-नेटवर्क", wd_portal: "निकासी पोर्टल", wd_asset: "संपत्ति", wd_network: "नेटवर्क", wd_amount: "राशि",
-                wd_address: "वॉलेट पता", btn_withdraw: "धन निकालें", live_feed: "ग्लोबल निकासी फ़ीड", live_status: "लाइव",
-                mining_in_progress: "माइनिंग प्रगति पर है", ready_to_claim: "दावा करने के लिए तैयार"
-            },
-            th: { 
-                total_balance: "ยอดคงเหลือทั้งหมด", daily_checkin: "เช็คอินรายวัน", ready_to_mine: "พร้อมขุด", 
-                session_timer: "ตัวจับเวลา:", tasks_title: "ภารกิจ", tasks_desc: "ทำภารกิจเพื่อรับรางวัล", 
-                ref_title: "เชิญเพื่อน!", swap_title: "แลกเปลี่ยนโทเค็น", swap_subtitle: "เร็วๆ นี้", swap_from: "จาก", 
-                btn_swap: "แลกเปลี่ยนเลย", wallet_title: "สินทรัพย์กระเป๋า", wallet_desc: "จัดการสินทรัพย์ของคุณ", 
-                nav_refer: "เพื่อน", nav_task: "ภารกิจ", nav_mine: "ขุด", nav_swap: "แลก", nav_wallet: "กระเป๋า", 
-                vip_pass: "วีไอพีผู้ก่อตั้ง", vip_desc: "ใส่ TxHash!", unlocks_in: "ปลดล็อกใน:",
-                kyc_status: "สถานะ KYC", verify_now: "ยืนยันตอนนี้", history_title: "ประวัติ", history_desc: "ประวัติการขุดและการถอน",
-                claim_streak: "รับรางวัลต่อเนื่อง", btn_start_mine: "เริ่มขุดอัตโนมัติ 12 ชม.", subtab_normal: "ปกติ",
-                task_watch_ad: "ดูโฆษณา", btn_watch: "ดู", task_join_tg: "เข้าร่วมช่อง Telegram", btn_start: "เริ่ม",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "รางวัลพิเศษและตัวคูณระดับสูง", founder_dividend: "เงินปันผลรายวันผู้ก่อตั้ง",
-                btn_claim: "รับ", vip_locked: "VIP ล็อกอยู่", vip_locked_desc: "ใส่ TxHash เพื่อปลดล็อก VIP Elite Hub", btn_unlock_vip: "ปลดล็อก VIP",
-                ref_subtitle: "+70 AFEX และ +0.01 USDT ต่อการแนะนำสำเร็จ!", total_refs: "การแนะนำทั้งหมด", btn_invite: "เชิญเพื่อน",
-                swap_balance: "ยอดคงเหลือ:", swap_to: "ไปยัง (โทเค็นปลายทาง)", afex_available: "AFEX ที่ใช้งานได้", ready_to_wd: "พร้อมถอน",
-                multi_network: "หลายเครือข่าย", wd_portal: "พอร์ทัลการถอน", wd_asset: "สินทรัพย์", wd_network: "เครือข่าย", wd_amount: "จำนวน",
-                wd_address: "ที่อยู่วอลเล็ต", btn_withdraw: "ถอนเงิน", live_feed: "ฟีดการถอนทั่วโลก", live_status: "สด",
-                mining_in_progress: "กำลังขุด", ready_to_claim: "พร้อมรับรางวัล"
-            },
-            vi: { 
-                total_balance: "Tổng số dư", daily_checkin: "Điểm danh hàng ngày", ready_to_mine: "Sẵn sàng đào", 
-                session_timer: "Bộ đếm giờ:", tasks_title: "NHIỆM VỤ", tasks_desc: "Hoàn thành nhiệm vụ nhận thưởng.", 
-                ref_title: "MỜI BẠN BÈ!", swap_title: "HOÁN ĐỔI TOKEN", swap_subtitle: "Sắp ra mắt", swap_from: "Từ", 
-                btn_swap: "HOÁN ĐỔI NGAY", wallet_title: "TÀI SẢN VÍ", wallet_desc: "Quản lý tài sản của bạn.", 
-                nav_refer: "Giới thiệu", nav_task: "Nhiệm vụ", nav_mine: "Đào", nav_swap: "Đổi", nav_wallet: "Ví", 
-                vip_pass: "VIP FOUNDER", vip_desc: "Nhập TxHash!", unlocks_in: "Mở khóa trong:",
-                kyc_status: "Trạng thái KYC", verify_now: "Xác minh ngay", history_title: "Lịch sử", history_desc: "Nhật ký Đào & Rút",
-                claim_streak: "Nhận Thưởng Điểm Danh", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", subtab_normal: "Thông thường",
-                task_watch_ad: "Xem Quảng Cáo", btn_watch: "Xem", task_join_tg: "Tham gia Kênh Telegram", btn_start: "Bắt đầu",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Phần thưởng và hệ số nhân cao cấp.", founder_dividend: "Cổ tức Hàng ngày Founder",
-                btn_claim: "Nhận", vip_locked: "VIP Đã khóa", vip_locked_desc: "Nhập TxHash Founder để mở khóa VIP Elite Hub.", btn_unlock_vip: "MỞ KHÓA VIP",
-                ref_subtitle: "+70 AFEX & +0.01 USDT mỗi Giới thiệu thành công!", total_refs: "Tổng số Giới thiệu", btn_invite: "Mời bạn bè",
-                swap_balance: "Số dư:", swap_to: "Đến (Token đích)", afex_available: "AFEX Khả dụng", ready_to_wd: "Sẵn sàng rút",
-                multi_network: "Đa mạng", wd_portal: "Cổng Rút tiền", wd_asset: "Tài sản", wd_network: "Mạng", wd_amount: "Số lượng",
-                wd_address: "Địa chỉ Ví", btn_withdraw: "RÚT TIỀN", live_feed: "Dòng Rút tiền Toàn cầu", live_status: "Trực tiếp",
-                mining_in_progress: "ĐANG ĐÀO", ready_to_claim: "SẴN SÀNG NHẬN"
-            },
-            zh: { 
-                total_balance: "总余额", daily_checkin: "每日签到", ready_to_mine: "准备挖矿", 
-                session_timer: "倒计时:", tasks_title: "任务", tasks_desc: "完成任务赚取奖励。", 
-                ref_title: "邀请好友！", swap_title: "代币兑换", swap_subtitle: "即将推出", swap_from: "从", 
-                btn_swap: "立即兑换", wallet_title: "钱包资产", wallet_desc: "管理您的资产。", 
-                nav_refer: "推荐", nav_task: "任务", nav_mine: "挖矿", nav_swap: "兑换", nav_wallet: "钱包", 
-                vip_pass: "创始人VIP", vip_desc: "输入TxHash！", unlocks_in: "解锁倒计时:",
-                kyc_status: "KYC状态", verify_now: "立即验证", history_title: "历史记录", history_desc: "挖矿与提现日志",
-                claim_streak: "领取连续奖励", btn_start_mine: "开始12小时自动挖矿", subtab_normal: "普通",
-                task_watch_ad: "观看广告", btn_watch: "观看", task_join_tg: "加入电报频道", btn_start: "开始",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "专属的高级奖励与倍率。", founder_dividend: "创始人每日红利",
-                btn_claim: "领取", vip_locked: "VIP已锁定", vip_locked_desc: "输入创始人TxHash以解锁VIP Elite Hub。", btn_unlock_vip: "解锁VIP",
-                ref_subtitle: "+70 AFEX & 每个成功推荐 +0.01 USDT！", total_refs: "推荐总数", btn_invite: "邀请好友",
-                swap_balance: "余额:", swap_to: "至 (目标代币)", afex_available: "可用AFEX", ready_to_wd: "准备提现",
-                multi_network: "多网络", wd_portal: "提现门户", wd_asset: "资产", wd_network: "网络", wd_amount: "金额",
-                wd_address: "钱包地址", btn_withdraw: "提取资金", live_feed: "全球提现动态", live_status: "实时",
-                mining_in_progress: "正在挖矿", ready_to_claim: "准备领取"
-            },
-            ja: { 
-                total_balance: "トータル残高", daily_checkin: "デイリーチェックイン", ready_to_mine: "マイニング準備完了", 
-                session_timer: "タイマー:", tasks_title: "タスク", tasks_desc: "タスクを完了して報酬を獲得。", 
-                ref_title: "友達を招待！", swap_title: "スワップ", swap_subtitle: "まもなく公開", swap_from: "元", 
-                btn_swap: "今すぐスワップ", wallet_title: "ウォレット資産", wallet_desc: "資産を管理する。", 
-                nav_refer: "紹介", nav_task: "タスク", nav_mine: "採掘", nav_swap: "交換", nav_wallet: "ウォレット", 
-                vip_pass: "創設者VIP", vip_desc: "TxHashを入力！", unlocks_in: "アンロックまで:",
-                kyc_status: "KYCステータス", verify_now: "今すぐ認証", history_title: "履歴", history_desc: "採掘・出金ログ",
-                claim_streak: "連続ボーナス受取", btn_start_mine: "12時間自動マイニング開始", subtab_normal: "通常",
-                task_watch_ad: "広告視聴", btn_watch: "視聴", task_join_tg: "Telegramチャンネルに参加", btn_start: "開始",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "限定の高報酬＆倍率。", founder_dividend: "創設者デイリー配当",
-                btn_claim: "受取", vip_locked: "VIPロック中", vip_locked_desc: "TxHashを入力してVIP Elite Hubをアンロック。", btn_unlock_vip: "VIPをアンロック",
-                ref_subtitle: "+70 AFEX ＆ 紹介成功ごとに +0.01 USDT！", total_refs: "紹介総数", btn_invite: "友達を招待",
-                swap_balance: "残高:", swap_to: "宛先 (ターゲットトークン)", afex_available: "利用可能 AFEX", ready_to_wd: "出金可能",
-                multi_network: "マルチネットワーク", wd_portal: "出金ポータル", wd_asset: "資産", wd_network: "ネットワーク", wd_amount: "数量",
-                wd_address: "ウォレットアドレス", btn_withdraw: "資金を出金", live_feed: "グローバル出金フィード", live_status: "ライブ",
-                mining_in_progress: "マイニング中", ready_to_claim: "受取準備完了"
-            },
-            ko: { 
-                total_balance: "총 잔액", daily_checkin: "일일 출석체크", ready_to_mine: "채굴 준비 완료", 
-                session_timer: "세션 타이머:", tasks_title: "작업", tasks_desc: "작업을 완료하고 보상을 받으세요.", 
-                ref_title: "친구 초대!", swap_title: "토큰 스왑", swap_subtitle: "출시 예정", swap_from: "보낸 주소", 
-                btn_swap: "지금 스왑", wallet_title: "지갑 자산", wallet_desc: "자산을 관리하세요.", 
-                nav_refer: "추천", nav_task: "작업", nav_mine: "채굴", nav_swap: "스왑", nav_wallet: "지갑", 
-                vip_pass: "창립자 VIP", vip_desc: "TxHash 입력!", unlocks_in: "잠금 해제까지:",
-                kyc_status: "KYC 상태", verify_now: "지금 인증", history_title: "기록", history_desc: "채굴 및 출금 내역",
-                claim_streak: "연속 보상 받기", btn_start_mine: "12시간 자동 채굴 시작", subtab_normal: "일반",
-                task_watch_ad: "광고 시청", btn_watch: "시청", task_join_tg: "텔레그램 채널 가입", btn_start: "시작",
-                vip_hub_title: "VIP 엘리트 허브", vip_hub_desc: "독점 고배당 보상 및 배율.", founder_dividend: "창립자 일일 배당",
-                btn_claim: "수령", vip_locked: "VIP 잠김", vip_locked_desc: "TxHash를 입력하여 VIP 엘리트 허브를 잠금 해제하세요.", btn_unlock_vip: "VIP 잠금 해제",
-                ref_subtitle: "+70 AFEX & 추천 성공당 +0.01 USDT!", total_refs: "총 추천 수", btn_invite: "친구 초대하기",
-                swap_balance: "잔액:", swap_to: "받는 주소 (대상 토큰)", afex_available: "출금 가능 AFEX", ready_to_wd: "출금 가능",
-                multi_network: "다중 네트워크", wd_portal: "출금 포털", wd_asset: "자산", wd_network: "네트워크", wd_amount: "금액",
-                wd_address: "지갑 주소", btn_withdraw: "출금 신청", live_feed: "글로벌 출금 피드", live_status: "실시간",
-                mining_in_progress: "채굴 진행 중", ready_to_claim: "수령 대기 중"
-            },
-            fr: { 
-                total_balance: "Solde Total", daily_checkin: "Enregistrement Quotidien", ready_to_mine: "Prêt à miner", 
-                session_timer: "Minuteur:", tasks_title: "TÂCHES", tasks_desc: "Complétez les tâches.", 
-                ref_title: "INVITER DES AMIS !", swap_title: "ÉCHANGE", swap_subtitle: "Bientôt disponible", swap_from: "De", 
-                btn_swap: "ÉCHANGER", wallet_title: "ACTIFS", wallet_desc: "Gérez vos actifs.", 
-                nav_refer: "Parrain", nav_task: "Tâches", nav_mine: "Miner", nav_swap: "Échange", nav_wallet: "Portefeuille", 
-                vip_pass: "VIP FONDATEUR", vip_desc: "Entrez TxHash !", unlocks_in: "Déverrouillage dans :",
-                kyc_status: "Statut KYC", verify_now: "Vérifier", history_title: "Historique", history_desc: "Journal de Minage & Retraits",
-                claim_streak: "Réclamer les récompenses", btn_start_mine: "DÉMARRER LE MINAGE AUTO 12H", subtab_normal: "Normal",
-                task_watch_ad: "Regarder une pub", btn_watch: "Regarder", task_join_tg: "Rejoindre le canal", btn_start: "Démarrer",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Récompenses et multiplicateurs exclusifs.", founder_dividend: "Dividende Quotidien Fondateur",
-                btn_claim: "Réclamer", vip_locked: "VIP Verrouillé", vip_locked_desc: "Entrez le TxHash Fondateur pour déverrouiller.", btn_unlock_vip: "DÉVERROUILLER VIP",
-                ref_subtitle: "+70 AFEX & +0.01 USDT par parrainage réussi !", total_refs: "Total Parrainages", btn_invite: "Inviter un ami",
-                swap_balance: "Solde :", swap_to: "Vers (Jeton de destination)", afex_available: "AFEX Disponible", ready_to_wd: "Prêt à retirer",
-                multi_network: "Multi-réseau", wd_portal: "Portail de Retrait", wd_asset: "Actif", wd_network: "Réseau", wd_amount: "Montant",
-                wd_address: "Adresse du portefeuille", btn_withdraw: "RETIRER LES FONDS", live_feed: "Flux de retraits en direct", live_status: "En direct",
-                mining_in_progress: "MINAGE EN COURS", ready_to_claim: "PRÊT À RÉCLAMER"
-            },
-            de: { 
-                total_balance: "Gesamtguthaben", daily_checkin: "Ttäglicher Check-in", ready_to_mine: "Bereit zum Minen", 
-                session_timer: "Timer:", tasks_title: "AUFGABEN", tasks_desc: "Erfülle Aufgaben.", 
-                ref_title: "FREUNDE EINLADEN!", swap_title: "TOKEN SWAP", swap_subtitle: "Demnächst", swap_from: "Von", 
-                btn_swap: "JETZT SWAPPEN", wallet_title: "WALLET", wallet_desc: "Vermögen verwalten.", 
-                nav_refer: "Referral", nav_task: "Aufgaben", nav_mine: "Minen", nav_swap: "Swap", nav_wallet: "Wallet", 
-                vip_pass: "GRÜNDER VIP", vip_desc: "TxHash eingeben!", unlocks_in: "Freischaltung in:",
-                kyc_status: "KYC-Status", verify_now: "Jetzt verifizieren", history_title: "Verlauf", history_desc: "Mining- & WD-Log",
-                claim_streak: "Streak-Belohnung beanspruchen", btn_start_mine: "12H AUTO-MINING STARTEN", subtab_normal: "Normal",
-                task_watch_ad: "Werbung ansehen", btn_watch: "Ansehen", task_join_tg: "Telegram-Kanal beitreten", btn_start: "Starten",
-                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Exklusive High-Tier-Belohnungen.", founder_dividend: "Gründer Tägliche Dividende",
-                btn_claim: "Beanspruchen", vip_locked: "VIP Gesperrt", vip_locked_desc: "Gründer-TxHash eingeben, um den VIP Hub zu entsperren.", btn_unlock_vip: "VIP ENTSPERREN",
-                ref_subtitle: "+70 AFEX & +0.01 USDT pro erfolgreichem Referral!", total_refs: "Gesamte Referrals", btn_invite: "Freund einladen",
-                swap_balance: "Guthaben:", swap_to: "Zu (Ziel-Token)", afex_available: "AFEX Verfügbar", ready_to_wd: "Bereit zum Auszahlen",
-                multi_network: "Multi-Netzwerk", wd_portal: "Auszahlungsportal", wd_asset: "Asset", wd_network: "Netzwerk", wd_amount: "Betrag",
-                wd_address: "Wallet-Adresse", btn_withdraw: "GUTHABEN AUSZAHLEN", live_feed: "Live-Auszahlungs-Feed", live_status: "Live",
-                mining_in_progress: "MINING LÄUFT", ready_to_claim: "BEREIT ZUM BEANSPRUCHEN"
-            },
-            ar: { 
-                total_balance: "الرصيد الإجمالي", daily_checkin: "تسجيل الوصول اليومي", ready_to_mine: "جاهز للتعدين", 
-                session_timer: "المؤقت:", tasks_title: "المهام", tasks_desc: "أكمل المهام لكسب المكافآت.", 
-                ref_title: "ادعُ الأصدقاء!", swap_title: "مبادلة الرموز", swap_subtitle: "قريباً", swap_from: "من", 
-                btn_swap: "ابدأ المبادلة", wallet_title: "أصول المحفظة", wallet_desc: "إدارة أصولك.", 
-                nav_refer: "الإحالات", nav_task: "المهام", nav_mine: "تعدين", nav_swap: "مبادلة", nav_wallet: "المحفظة", 
-                vip_pass: "بطاقة المؤسس", vip_desc: "أدخل TxHash!", unlocks_in: "يفتح خلال:",
-                kyc_status: "حالة KYC", verify_now: "تحقق الآن", history_title: "السجل", history_desc: "سجل التعدين والسحب",
-                claim_streak: "مطالبة مكافأة التتابع", btn_start_mine: "ابدأ التعدين التلقائي 12س", subtab_normal: "عادي",
-                task_watch_ad: "مشاهدة الإعلان", btn_watch: "مشاهدة", task_join_tg: "انضم لقناة تلغرام", btn_start: "ابدأ",
-                vip_hub_title: "مركز VIP النخبة", vip_hub_desc: "مكافآت ومضاعفات حصرية.", founder_dividend: "توزيعات المؤسس اليومية",
-                btn_claim: "مطالبة", vip_locked: "VIP مقفل", vip_locked_desc: "أدخل TxHash المؤسس لفتح مركز VIP.", btn_unlock_vip: "فتح VIP",
-                ref_subtitle: "+70 AFEX و +0.01 USDT لكل إحالة ناجحة!", total_refs: "إجمالي الإحالات", btn_invite: "ادعُ صديقاً",
-                swap_balance: "الرصيد:", swap_to: "إلى (الرمز المستهدف)", afex_available: "AFEX المتاح", ready_to_wd: "جاهز للسحب",
-                multi_network: "شبكات متعددة", wd_portal: "بوابة السحب", wd_asset: "الأصل", wd_network: "الشبكة", wd_amount: "المبلغ",
-                wd_address: "عنوان المحفظة", btn_withdraw: "سحب الأموال", live_feed: "بث السحب المباشر", live_status: "مباشر",
-                mining_in_progress: "التعدين قيد التقدم", ready_to_claim: "جاهز للمطالبة"
             }
         };
 
         let miningData = {
-            balance: parseFloat(localStorage.getItem(`afex_bal_${userIdStr}`)) || 100.00,
-            usdtBalance: parseFloat(localStorage.getItem(`afex_usdt_${userIdStr}`)) || 1.20,
-            availableWdAfex: parseFloat(localStorage.getItem(`afex_avail_wd_${userIdStr}`)) || 50.00,
-            campaignPoints: parseInt(localStorage.getItem(`afex_pts_${userIdStr}`)) || 0,
-            refCount: parseInt(localStorage.getItem(`afex_refs_${userIdStr}`)) || 0,
+            balance: 100.00,
+            usdtBalance: 1.20,
+            availableWdAfex: 50.00,
+            campaignPoints: 0,
+            refCount: 0,
             refCode: `AFEX-${userIdStr}`,
-            isMining: localStorage.getItem(`afex_is_mining_${userIdStr}`) === 'true',
-            miningEndTime: parseInt(localStorage.getItem(`afex_mining_end_${userIdStr}`)) || 0,
-            isFounder: localStorage.getItem(`afex_is_founder_${userIdStr}`) === 'true',
-            founderTaskClaimed: localStorage.getItem(`afex_founder_claimed_${userIdStr}`) === 'true',
-            adWatchCount: parseInt(localStorage.getItem(`afex_ad_count_${userIdStr}`)) || 0,
-            adLastDate: localStorage.getItem(`afex_ad_date_${userIdStr}`) || '',
-            kycVerified: localStorage.getItem(`afex_kyc_${userIdStr}`) === 'true',
-            history: JSON.parse(localStorage.getItem(`afex_history_${userIdStr}`)) || []
+            isMining: false,
+            miningEndTime: 0,
+            isFounder: false,
+            founderTaskClaimed: false,
+            adWatchCount: 0,
+            adLastDate: '',
+            kycVerified: false,
+            history: []
         };
 
-        const FOUNDER_WALLET_ADDRESSES = {
-            bsc: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9",
-            trc20: "TDNNUubgz77612C6jC9YiAiQYX9oeF7Rz1",
-            eth: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9",
-            ton: "UQDE6M-6i_q2MXyxG4ZAA4G0OSoNVVWb_7ugCCrK48ILusAI"
-        };
-
-        // --- HITUNG MUNDUR MENUJU 20 NOVEMBER 2026 ---
-        function startFounderCountdown() {
-            const targetDate = new Date("March 20, 2026 00:00:00").getTime();
-
-            setInterval(function() {
-                const now = new Date().getTime();
-                const timeLeft = targetDate - now;
-                const timerEl = document.getElementById('banner-timer');
-
-                if (!timerEl) return;
-
-                if (timeLeft < 0) {
-                    timerEl.innerText = "UNLOCKED!";
-                    return;
+        // Sinkronisasi Data Awal dari Backend Server Telegram Mini App
+        async function initBackendUser() {
+            try {
+                let response = await fetch(`${BACKEND_URL}/user/sync`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userIdStr,
+                        username: userTg?.username || "",
+                        firstName: userTg?.first_name || ""
+                    })
+                });
+                let result = await response.json();
+                if (result.success) {
+                    miningData.balance = result.data.balance;
+                    miningData.usdtBalance = result.data.usdtBalance;
+                    miningData.availableWdAfex = result.data.availableWdAfex;
+                    miningData.isMining = result.data.isMining;
+                    miningData.miningEndTime = result.data.miningEndTime;
+                    miningData.history = result.data.history || [];
+                    updateUI();
                 }
-
-                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-                const formatHours = String(hours).padStart(2, '0');
-                const formatMinutes = String(minutes).padStart(2, '0');
-                const formatSeconds = String(seconds).padStart(2, '0');
-
-                timerEl.innerText = `${days}d ${formatHours}:${formatMinutes}:${formatSeconds}`;
-            }, 1000);
+            } catch (e) {
+                console.log("Mode Offline / Backend belum tersambung:", e);
+            }
         }
 
-        // --- MINING & 24H HOLD SYSTEM ---
+        // Sinkronisasi otomatis ke Server
+        async function syncToServer() {
+            try {
+                await fetch(`${BACKEND_URL}/user/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userIdStr,
+                        balance: miningData.balance,
+                        usdtBalance: miningData.usdtBalance,
+                        availableWdAfex: miningData.availableWdAfex,
+                        isMining: miningData.isMining,
+                        miningEndTime: miningData.miningEndTime,
+                        history: miningData.history
+                    })
+                });
+            } catch (e) {
+                console.log("Gagal menyinkronkan ke server:", e);
+            }
+        }
+
+        function handleFounderClick() {
+            showModal("Founder VIP Locked", "Fitur Founder VIP terkunci. Founder akan tersedia tanggal 20 Nov 2026.", "fa-lock");
+        }
+
         const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
 
         function handleMiningAction() {
-            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+            let targetReward = 50.00;
             
             if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
                 miningData.isMining = true;
                 miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
                 updateUI();
+                syncToServer();
                 showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
             } 
             else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
@@ -678,6 +545,7 @@
                 miningData.miningEndTime = 0; 
                 addHistory('MINING', `Claimed +${targetReward} AFEX`);
                 updateUI();
+                syncToServer();
                 showModal("Claim Success!", `Claimed +${targetReward} AFEX!`, "fa-circle-check");
             }
         }
@@ -690,20 +558,21 @@
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
-            updateUI();
+            
+            initBackendUser();
             updateFounderUI();
             updateKYCUI();
             startTimerInterval();
-            startFounderCountdown();
             renderPublicWithdrawFeed();
         });
 
         function changeLanguage(langCode) {
             localStorage.setItem(`afex_lang_${userIdStr}`, langCode);
+            let langDict = i18n[langCode] || i18n['en'];
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 let key = el.getAttribute('data-i18n');
-                if (i18n[langCode] && i18n[langCode][key]) {
-                    el.innerText = i18n[langCode][key];
+                if (langDict[key]) {
+                    el.innerText = langDict[key];
                 }
             });
         }
@@ -717,22 +586,7 @@
             document.getElementById('total-ref-count').innerText = miningData.refCount;
             document.getElementById('wallet-afex-bal').innerText = miningData.availableWdAfex.toFixed(2);
             document.getElementById('wallet-usdt-bal').innerText = "$" + miningData.usdtBalance.toFixed(2);
-            document.getElementById('swap-bal-afex').innerText = miningData.balance.toFixed(2);
             document.getElementById('ad-counter-badge').innerText = `${miningData.adWatchCount}/100`;
-
-            localStorage.setItem(`afex_bal_${userIdStr}`, miningData.balance);
-            localStorage.setItem(`afex_usdt_${userIdStr}`, miningData.usdtBalance);
-            localStorage.setItem(`afex_avail_wd_${userIdStr}`, miningData.availableWdAfex);
-            localStorage.setItem(`afex_pts_${userIdStr}`, miningData.campaignPoints);
-            localStorage.setItem(`afex_refs_${userIdStr}`, miningData.refCount);
-            localStorage.setItem(`afex_is_mining_${userIdStr}`, miningData.isMining);
-            localStorage.setItem(`afex_mining_end_${userIdStr}`, miningData.miningEndTime);
-            localStorage.setItem(`afex_is_founder_${userIdStr}`, miningData.isFounder);
-            localStorage.setItem(`afex_founder_claimed_${userIdStr}`, miningData.founderTaskClaimed);
-            localStorage.setItem(`afex_ad_count_${userIdStr}`, miningData.adWatchCount);
-            localStorage.setItem(`afex_ad_date_${userIdStr}`, miningData.adLastDate);
-            localStorage.setItem(`afex_kyc_${userIdStr}`, miningData.kycVerified);
-            localStorage.setItem(`afex_history_${userIdStr}`, JSON.stringify(miningData.history));
         }
 
         function addHistory(type, desc) {
@@ -744,16 +598,15 @@
 
         function openKYCModal() {
             if(miningData.kycVerified) {
-                return showModal("KYC Verified", "Your account is successfully verified with Phone, Email, and Unique Facial Recognition.", "fa-user-check");
+                return showModal("KYC Verified", "Your account is successfully verified.", "fa-user-check");
             }
             showModal("KYC & Anti-Bot Verification", `
                 <div class="space-y-2.5 text-left text-[11px]">
-                    <p class="text-gray-300">Enter details and complete face scan (1 face = 1 Telegram account):</p>
+                    <p class="text-gray-300">Enter details and complete face scan:</p>
                     <input type="tel" id="kyc-phone" placeholder="Phone Number (+62...)" class="w-full bg-[#0b0f19] border border-gray-700 rounded p-2 text-xs text-white outline-none">
                     <input type="email" id="kyc-email" placeholder="Email Address..." class="w-full bg-[#0b0f19] border border-gray-700 rounded p-2 text-xs text-white outline-none">
                     <div id="face-scan-box" class="border-2 border-dashed border-gray-700 rounded-lg p-3 text-center bg-black/40">
                         <i class="fa-solid fa-face-recognition text-2xl text-yellow-400 mb-1"></i>
-                        <p class="text-[10px] text-gray-400">Position your face in front of camera</p>
                         <button onclick="simulateFaceScan()" class="mt-2 bg-blue-600 text-white font-bold py-1.5 px-4 rounded text-[10px] cursor-pointer">START FACE SCAN</button>
                     </div>
                 </div>
@@ -765,27 +618,17 @@
             let email = document.getElementById('kyc-email').value;
             if(!phone || !email) return alert("Please fill phone and email first!");
             
-            let scanBox = document.getElementById('face-scan-box');
-            scanBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-2xl text-green-400 mb-1"></i><p class="text-[10px] text-green-400">Verifying biometric unique hash...</p>`;
-            
-            setTimeout(() => {
-                miningData.kycVerified = true;
-                updateUI();
-                updateKYCUI();
-                closeModal();
-                showModal("KYC Successful!", "Your face embedding is secured. Account fully verified!", "fa-circle-check");
-            }, 2500);
+            miningData.kycVerified = true;
+            updateKYCUI();
+            closeModal();
+            showModal("KYC Successful!", "Account fully verified!", "fa-circle-check");
         }
 
         function updateKYCUI() {
             let label = document.getElementById('kyc-status-label');
-            let currentLang = document.getElementById('lang-select').value;
             if(miningData.kycVerified) {
-                label.innerText = currentLang === 'id' ? 'Terverifikasi' : 'Verified';
+                label.innerText = 'Verified';
                 label.className = "text-[9px] text-green-400 font-mono font-bold";
-            } else {
-                label.innerText = i18n[currentLang]?.verify_now || "Verify Now";
-                label.className = "text-[9px] text-yellow-400 font-mono";
             }
         }
 
@@ -795,10 +638,9 @@
                 html += `<p class="text-gray-400 text-center py-4">No activity history yet.</p>`;
             } else {
                 miningData.history.forEach(item => {
-                    let badgeColor = item.type === 'MINING' ? 'text-yellow-400 bg-yellow-500/10' : (item.type === 'AD' ? 'text-purple-400 bg-purple-500/10' : 'text-green-400 bg-green-500/10');
                     html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded-lg flex justify-between items-center">
                         <div>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${badgeColor}">${item.type}</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-yellow-400">${item.type}</span>
                             <p class="text-white mt-1">${item.desc}</p>
                         </div>
                         <span class="text-[9px] text-gray-500 font-mono">${item.time}</span>
@@ -806,63 +648,17 @@
                 });
             }
             html += `</div>`;
-            showModal("Activity & Transaction History", html, "fa-clock-rotate-left");
-        }
-
-        function openFounderModal() {
-            if(miningData.isFounder) {
-                showModal("Founder VIP Active", "You are an elite VIP Founder! Enjoying 150 AFEX per session.", "fa-crown");
-            } else {
-                showModal("Activate Founder VIP ($5.00)", `
-                    <div class="space-y-3 text-left text-[11px]">
-                        <p class="text-gray-300">Select network & send $5 USDT to founder wallet:</p>
-                        <select id="founder-net-select" onchange="updateFounderWalletAddress()" class="w-full bg-[#0b0f19] border border-gray-700 text-white rounded p-2 text-xs outline-none">
-                            <option value="bsc">BSC (BEP-20)</option>
-                            <option value="trc20">TRC-20</option>
-                            <option value="eth">ETH</option>
-                            <option value="ton">TON</option>
-                        </select>
-                        <div class="bg-black/50 p-2 rounded text-[10px] space-y-1 font-mono">
-                            <p class="text-gray-400">Address:</p>
-                            <p id="founder-display-addr" class="text-cyan-300 select-all break-all">${FOUNDER_WALLET_ADDRESSES.bsc}</p>
-                        </div>
-                        <input type="text" id="founder-tx-input" placeholder="Input TxHash from chat bot..." class="w-full bg-[#0b0f19] border border-gray-700 rounded p-2 text-xs text-white font-mono outline-none">
-                        <button onclick="verifyFounderTx()" class="w-full bg-yellow-500 text-black font-bold py-2.5 rounded-xl text-xs shadow-lg">VERIFY TXHASH</button>
-                    </div>
-                `, "fa-crown");
-            }
-        }
-
-        function updateFounderWalletAddress() {
-            let net = document.getElementById('founder-net-select').value;
-            document.getElementById('founder-display-addr').innerText = FOUNDER_WALLET_ADDRESSES[net];
-        }
-
-        function verifyFounderTx() {
-            let txInput = document.getElementById('founder-tx-input').value.trim();
-            if(!txInput || txInput.length < 8) return alert("Please enter a valid TxHash!");
-            miningData.isFounder = true;
-            updateUI();
-            updateFounderUI();
-            closeModal();
-            showModal("VIP Unlocked!", "TxHash verified successfully! Founder VIP Hub is now active.", "fa-circle-check");
+            showModal("Activity History", html, "fa-clock-rotate-left");
         }
 
         function updateFounderUI() {
             let badge = document.getElementById('founder-status-badge');
             let crownIcon = document.getElementById('header-crown');
             let founderLockOverlay = document.getElementById('founder-lock-overlay');
-            if(miningData.isFounder) {
-                badge.innerText = "VIP ACTIVE";
-                badge.className = "bg-green-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
-                crownIcon.classList.remove('hidden');
-                founderLockOverlay.classList.add('hidden');
-            } else {
-                badge.innerText = "UPGRADE $5";
-                badge.className = "bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold";
-                crownIcon.classList.add('hidden');
-                founderLockOverlay.classList.remove('hidden');
-            }
+            badge.innerText = "LOCKED";
+            badge.className = "bg-gray-700 text-yellow-400 text-[9px] px-1.5 py-0.2 rounded font-bold";
+            crownIcon.classList.add('hidden');
+            founderLockOverlay.classList.remove('hidden');
         }
 
         function onWdAssetChange() {
@@ -877,70 +673,79 @@
             }
         }
 
-        function validateWalletAddress(network, address) {
-            if (network === 'bsc' || network === 'eth') return /^0x[a-fA-F0-9]{40}$/.test(address);
-            if (network === 'trc20') return /^T[a-zA-Z0-9]{33}$/.test(address);
-            if (network === 'ton') return /^(EQ|UQ)[a-zA-Z0-9\-_]{46}$/.test(address);
-            return false;
+        // Transfer Token ke UID Lain via Backend API
+        async function attemptTransferUID() {
+            let targetUid = document.getElementById('transfer-uid-input').value.trim();
+            let amount = parseFloat(document.getElementById('transfer-amount-input').value) || 0;
+
+            if(!targetUid) return alert("Masukkan User ID (UID) tujuan!");
+            if(amount <= 0) return alert("Jumlah AFEX harus lebih besar dari 0!");
+
+            try {
+                let response = await fetch(`${BACKEND_URL}/user/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        senderId: userIdStr,
+                        targetUid: targetUid,
+                        amount: amount
+                    })
+                });
+                let result = await response.json();
+                
+                if(result.success) {
+                    miningData.availableWdAfex = result.sender.availableWdAfex;
+                    miningData.history = result.sender.history;
+                    updateUI();
+                    document.getElementById('transfer-uid-input').value = "";
+                    document.getElementById('transfer-amount-input').value = "";
+                    showModal("Transfer Berhasil", `Berhasil mengirim ${amount} AFEX ke UID ${targetUid}!`, "fa-circle-check");
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan koneksi ke server backend.");
+            }
         }
 
         function attemptWithdraw() {
             let asset = document.getElementById('wd-asset-select').value;
-            let network = document.getElementById('wd-network-select').value;
             let amount = parseFloat(document.getElementById('wd-amount-input').value) || 0;
             let address = document.getElementById('wd-address-input').value.trim();
 
             if(!address) return alert("Please enter your wallet address!");
-            if(!validateWalletAddress(network, address)) {
-                return showModal("Invalid Address", `Please enter a valid wallet address matching the selected ${network.toUpperCase()} network!`, "fa-triangle-exclamation");
-            }
-
             if(asset === 'usdt' && miningData.usdtBalance < amount) return alert("Insufficient USDT balance!");
             if(asset === 'afex' && miningData.availableWdAfex < amount) return alert("Insufficient Available AFEX balance!");
 
             if(asset === 'usdt') miningData.usdtBalance -= amount;
             if(asset === 'afex') miningData.availableWdAfex -= amount;
 
-            let logDesc = `WD ${amount} ${asset.toUpperCase()} via ${network.toUpperCase()} (PENDING TxHash)`;
-            addHistory('WITHDRAW', logDesc);
-
-            pushPublicWithdrawFeed(displayName, `${amount} ${asset.toUpperCase()}`, network, "PENDING", "#");
-
+            addHistory('WITHDRAW', `WD ${amount} ${asset.toUpperCase()} (PENDING)`);
             updateUI();
-            showModal("Withdrawal Requested", `Your withdrawal of ${amount} ${asset.toUpperCase()} is submitted. Status is PENDING until bot sends TxHash via chat.`, "fa-paper-plane");
+            syncToServer();
+            showModal("Withdrawal Requested", `Your withdrawal of ${amount} ${asset.toUpperCase()} is submitted.`, "fa-paper-plane");
         }
 
         let publicWithdraws = [
-            { user: "@cryptoking", amount: "2 USDT", net: "bsc", status: "SUCCESS", tx: "0x3f5...91a" },
-            { user: "@sultan_ton", amount: "1.2 TON", net: "ton", status: "SUCCESS", tx: "EQC...81b" },
-            { user: "@bagja_dev", amount: "200 AFEX", net: "bsc", status: "SUCCESS", tx: "0x8eE...63b9" }
+            { user: "@cryptoking", amount: "50 USDT", net: "bsc", status: "SUCCESS" },
+            { user: "@sultan_ton", amount: "1.2 TON", net: "ton", status: "SUCCESS" }
         ];
-
-        function pushPublicWithdrawFeed(user, amount, net, status, txHash) {
-            publicWithdraws.unshift({ user, amount, net, status, tx: txHash });
-            if(publicWithdraws.length > 15) publicWithdraws.pop();
-            renderPublicWithdrawFeed();
-        }
 
         function renderPublicWithdrawFeed() {
             let feedEl = document.getElementById('public-withdraw-feed');
             if(!feedEl) return;
             let html = "";
             publicWithdraws.forEach(item => {
-                let explorerUrl = item.net === 'ton' ? `https://tonscan.org` : `https://bscscan.com`;
-                let statusBadge = item.status === 'PENDING' ? '<span class="text-yellow-400 font-mono">[PENDING]</span>' : '<span class="text-green-400 font-mono">[SUCCESS]</span>';
                 html += `<div class="bg-[#0b0f19] border border-gray-800 p-2 rounded-lg flex justify-between items-center">
                     <div>
                         <span class="text-white font-bold">${item.user}</span> withdrew <span class="text-yellow-400">${item.amount}</span> 
-                        <span class="text-[9px] text-gray-400 uppercase">(${item.net})</span> ${statusBadge}
+                        <span class="text-[9px] text-gray-400 uppercase">(${item.net})</span> <span class="text-green-400 font-mono">[SUCCESS]</span>
                     </div>
-                    <a href="${explorerUrl}" target="_blank" class="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-[10px] font-bold hover:bg-blue-600/40">TxHash <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i></a>
                 </div>`;
             });
             feedEl.innerHTML = html;
         }
 
-        // --- TIMER INTERVAL DENGAN PENAMBAHAN REAL-TIME & BAHASA DINAMIS ---
         function startTimerInterval() {
             setInterval(() => {
                 let now = Date.now();
@@ -948,38 +753,33 @@
                 let timerLbl = document.getElementById('timer-countdown');
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
-                let targetReward = miningData.isFounder ? 150.00 : 50.00;
-                let currentLang = document.getElementById('lang-select').value;
+                let targetReward = 50.00;
 
                 if (miningData.isMining) {
                     let timeLeft = miningData.miningEndTime - now;
-                    
                     let elapsedTime = TOTAL_DURATION_MS - timeLeft;
-                    let currentMined = (elapsedTime / TOTAL_DURATION_MS) * targetReward;
-                    if (currentMined > targetReward) currentMined = targetReward;
-                    if (currentMined < 0) currentMined = 0;
+                    let currentMined = Math.min((elapsedTime / TOTAL_DURATION_MS) * targetReward, targetReward);
 
                     minedVal.innerText = `+${currentMined.toFixed(2)} AFEX`;
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
-                        statusLbl.innerText = i18n[currentLang]?.ready_to_claim || "READY TO CLAIM";
+                        statusLbl.innerText = "READY TO CLAIM";
                         mineBtn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
                         mineBtn.className = "w-full bg-green-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
-                        minedVal.innerText = `+${targetReward.toFixed(2)} AFEX`;
                     } else {
                         let h = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         let m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                         let s = Math.floor((timeLeft % (1000 * 60)) / 1000);
                         timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                        statusLbl.innerText = i18n[currentLang]?.mining_in_progress || "MINING IN PROGRESS";
+                        statusLbl.innerText = "MINING IN PROGRESS";
                         mineBtn.innerText = "MINING ACTIVE...";
                         mineBtn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
                     }
                 } else {
                     timerLbl.innerText = "12:00:00";
-                    statusLbl.innerText = i18n[currentLang]?.ready_to_mine || "Ready to Mine";
-                    mineBtn.innerText = i18n[currentLang]?.btn_start_mine || "START 12H AUTO MINING";
+                    statusLbl.innerText = "Ready to Mine";
+                    mineBtn.innerText = "START 12H AUTO MINING";
                     mineBtn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     minedVal.innerText = "+0.00 AFEX";
                 }
@@ -987,47 +787,21 @@
         }
 
         function startAdTask(btn) {
-            if(typeof show_11929290 === 'function') {
-                show_11929290().then(() => {
-                    miningData.adWatchCount++;
-                    miningData.balance += 15;
-                    miningData.usdtBalance += 0.002;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.002 USDT)');
-                    updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
-                }).catch(() => {
-                    miningData.adWatchCount++;
-                    miningData.balance += 15;
-                    miningData.usdtBalance += 0.002;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.002 USDT)');
-                    updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
-                });
-            } else {
-                miningData.adWatchCount++;
-                miningData.balance += 15;
-                miningData.usdtBalance += 0.002;
-                addHistory('AD', 'Watched ad (+15 AFEX, +0.002 USDT)');
-                updateUI();
-                showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
-            }
+            miningData.adWatchCount++;
+            miningData.balance += 15;
+            miningData.usdtBalance += 0.002;
+            addHistory('AD', 'Watched ad (+15 AFEX, +0.002 USDT)');
+            updateUI();
+            syncToServer();
+            showModal("Reward Claimed!", "+15 AFEX & +0.002 USDT added!", "fa-circle-check");
         }
 
         function claimFounderTask(btn) {
-            if(!miningData.isFounder) return openFounderModal();
-            if(miningData.founderTaskClaimed) return showModal("Claimed", "Already claimed today.", "fa-clock");
-            miningData.balance += 150;
-            miningData.usdtBalance += 0.01;
-            miningData.founderTaskClaimed = true;
-            addHistory('VIP', 'Claimed founder daily dividend');
-            updateUI();
-            showModal("Claimed!", "+150 AFEX & +0.01 USDT added!", "fa-circle-check");
+            handleFounderClick();
         }
 
-        function attemptSwap() { showModal("Swap Locked", "Token swap Cooming Soon.", "fa-lock"); }
         function openCheckInModal() { showModal("Daily Check-in", "Streak check-in is active.", "fa-calendar-check"); }
         function inviteFriend() { window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank'); }
-        function calcSwap() {}
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
