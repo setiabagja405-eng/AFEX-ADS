@@ -631,7 +631,7 @@
 
         // --- HITUNG MUNDUR MENUJU 20 NOVEMBER 2026 ---
         function startFounderCountdown() {
-            const targetDate = new Date("Nov 20, 2026 00:00:00").getTime();
+            const targetDate = new Date("March 20, 2026 00:00:00").getTime();
 
             setInterval(function() {
                 const now = new Date().getTime();
@@ -911,7 +911,7 @@
         }
 
         let publicWithdraws = [
-            { user: "@cryptoking", amount: "50 USDT", net: "bsc", status: "SUCCESS", tx: "0x3f5...91a" },
+            { user: "@cryptoking", amount: "2 USDT", net: "bsc", status: "SUCCESS", tx: "0x3f5...91a" },
             { user: "@sultan_ton", amount: "1.2 TON", net: "ton", status: "SUCCESS", tx: "EQC...81b" },
             { user: "@bagja_dev", amount: "200 AFEX", net: "bsc", status: "SUCCESS", tx: "0x8eE...63b9" }
         ];
@@ -1024,7 +1024,7 @@
             showModal("Claimed!", "+150 AFEX & +0.01 USDT added!", "fa-circle-check");
         }
 
-        function attemptSwap() { showModal("Swap Locked", "Token swap will open in December 2026.", "fa-lock"); }
+        function attemptSwap() { showModal("Swap Locked", "Token swap Cooming Soon.", "fa-lock"); }
         function openCheckInModal() { showModal("Daily Check-in", "Streak check-in is active.", "fa-calendar-check"); }
         function inviteFriend() { window.open(`https://t.me/share/url?url=${encodeURIComponent(document.getElementById('ref-link-input').value)}&text=Join+AFEX+Mining+Now!`, '_blank'); }
         function calcSwap() {}
