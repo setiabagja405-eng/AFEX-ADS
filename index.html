@@ -87,8 +87,8 @@
                         <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">UPGRADE</span>
                     </h4>
                     <!-- Teks hitung mundur otomatis -->
-                    <p class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5" id="founder-countdown-banner">
-                        Unlocks in: <span id="banner-timer">Loading...</span>
+                    <p class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5">
+                        <span data-i18n="unlocks_in">Unlocks in:</span> <span id="banner-timer">Loading...</span>
                     </p>
                 </div>
             </div>
@@ -100,7 +100,6 @@
             <div class="mb-3">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider block" data-i18n="total_balance">Total Balance</span>
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight drop-shadow-md">0.00 AFEX</h1>
-                <!-- Est USDT khusus untuk AFEX Token saja (tidak digabung dengan usdtBalance asli) -->
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
 
@@ -112,8 +111,8 @@
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-[11px] font-bold text-white">KYC Status</h4>
-                            <p id="kyc-status-label" class="text-[9px] text-yellow-400 font-mono">Verify Now</p>
+                            <h4 class="text-[11px] font-bold text-white" data-i18n="kyc_status">KYC Status</h4>
+                            <p id="kyc-status-label" class="text-[9px] text-yellow-400 font-mono" data-i18n="verify_now">Verify Now</p>
                         </div>
                     </div>
                 </div>
@@ -124,8 +123,8 @@
                             <i class="fa-solid fa-clock-rotate-left"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-[11px] font-bold text-white">History</h4>
-                            <p class="text-[9px] text-gray-400 font-mono">Mining & WD Log</p>
+                            <h4 class="text-[11px] font-bold text-white" data-i18n="history_title">History</h4>
+                            <p class="text-[9px] text-gray-400 font-mono" data-i18n="history_desc">Mining & WD Log</p>
                         </div>
                     </div>
                 </div>
@@ -139,7 +138,7 @@
                     </div>
                     <div class="text-left">
                         <h4 class="text-xs font-bold text-white" data-i18n="daily_checkin">Daily Check-in</h4>
-                        <p class="text-[10px] text-yellow-400 font-mono">Claim Streak Rewards</p>
+                        <p class="text-[10px] text-yellow-400 font-mono" data-i18n="claim_streak">Claim Streak Rewards</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
@@ -157,7 +156,7 @@
             </div>
 
             <!-- Auto Mining Button -->
-            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative">
+            <button id="action-mine-btn" onclick="handleMiningAction()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative" data-i18n="btn_start_mine">
                 START 12H AUTO MINING
             </button>
 
@@ -176,7 +175,7 @@
                     <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn rewards.</p>
                 </div>
                 <div class="flex bg-[#161f33] p-1 rounded-xl border border-gray-800 text-xs font-bold">
-                    <button onclick="switchTaskSubTab('normal', this)" id="subtab-btn-normal" class="px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md">Normal</button>
+                    <button onclick="switchTaskSubTab('normal', this)" id="subtab-btn-normal" class="px-3 py-1.5 rounded-lg bg-yellow-500 text-black transition-all shadow-md" data-i18n="subtab_normal">Normal</button>
                     <button onclick="switchTaskSubTab('founder', this)" id="subtab-btn-founder" class="px-3 py-1.5 rounded-lg text-gray-400 transition-all flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> VIP</button>
                 </div>
             </div>
@@ -189,22 +188,22 @@
                             <i class="fa-solid fa-play text-base"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Watch Ad <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
+                            <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Watch Ad</span> <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
                             <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
+                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
                 </div>
 
                 <div class="bg-[#161f33] p-3 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><i class="fa-brands fa-telegram text-base"></i></div>
                         <div>
-                            <h4 class="text-xs font-bold text-white">Join Telegram Channel</h4>
+                            <h4 class="text-xs font-bold text-white" data-i18n="task_join_tg">Join Telegram Channel</h4>
                             <p class="text-[10px] text-yellow-400 font-mono">+25 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.002 USDT</span></p>
                         </div>
                     </div>
-                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Start</button>
+                    <button onclick="window.open('https://t.me/+EGutCOoOgb4yNWQ9', '_blank')" class="bg-[#229ED9] text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_start">Start</button>
                 </div>
             </div>
 
@@ -216,8 +215,8 @@
                             <i class="fa-solid fa-crown"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-black text-yellow-400 tracking-widest uppercase gold-glow">VIP Elite Hub</h3>
-                            <p class="text-[10px] text-gray-300">Exclusive high-tier rewards & multipliers.</p>
+                            <h3 class="text-sm font-black text-yellow-400 tracking-widest uppercase gold-glow" data-i18n="vip_hub_title">VIP Elite Hub</h3>
+                            <p class="text-[10px] text-gray-300" data-i18n="vip_hub_desc">Exclusive high-tier rewards & multipliers.</p>
                         </div>
                     </div>
                 </div>
@@ -226,19 +225,19 @@
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-gem"></i></div>
                         <div>
-                            <h4 class="text-xs font-bold text-yellow-400">Founder Daily Dividend</h4>
+                            <h4 class="text-xs font-bold text-yellow-400" data-i18n="founder_dividend">Founder Daily Dividend</h4>
                             <p class="text-[10px] text-yellow-200/80 font-mono">+150 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
                         </div>
                     </div>
-                    <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer">Claim</button>
+                    <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer" data-i18n="btn_claim">Claim</button>
                 </div>
 
                 <!-- Overlay Gembok VIP -->
                 <div id="founder-lock-overlay" class="absolute inset-0 bg-[#0b0f19]/80 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center text-center p-6 z-30 hidden">
                     <div class="w-16 h-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center text-3xl mb-3 border border-yellow-500/50 animate-pulse"><i class="fa-solid fa-lock"></i></div>
-                    <h3 class="text-base font-black text-yellow-400 mb-1">VIP Locked</h3>
-                    <p class="text-[11px] text-gray-300 mb-4">Input Founder TxHash to unlock VIP Elite Hub.</p>
-                    <button onclick="openFounderModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 px-6 rounded-xl text-xs cursor-pointer">UNLOCK VIP</button>
+                    <h3 class="text-base font-black text-yellow-400 mb-1" data-i18n="vip_locked">VIP Locked</h3>
+                    <p class="text-[11px] text-gray-300 mb-4" data-i18n="vip_locked_desc">Input Founder TxHash to unlock VIP Elite Hub.</p>
+                    <button onclick="openFounderModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 px-6 rounded-xl text-xs cursor-pointer" data-i18n="btn_unlock_vip">UNLOCK VIP</button>
                 </div>
             </div>
         </div>
@@ -246,16 +245,16 @@
         <!-- 3. TAB 3: REFERRAL PAGE -->
         <div id="tab-referral" class="tab-content relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="ref_title">INVITE FRIENDS!</h2>
-            <p class="text-xs text-yellow-400 font-bold mb-4">+70 AFEX & +0.01 USDT Per Successful Referral!</p>
+            <p class="text-xs text-yellow-400 font-bold mb-4" data-i18n="ref_subtitle">+70 AFEX & +0.01 USDT Per Successful Referral!</p>
             
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
-                <span class="text-xs text-gray-400 block mb-1">Total Referrals</span>
+                <span class="text-xs text-gray-400 block mb-1" data-i18n="total_refs">Total Referrals</span>
                 <h3 id="total-ref-count" class="text-2xl font-black text-white font-mono">0</h3>
             </div>
 
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 space-y-2">
                 <input type="text" id="ref-link-input" readonly class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg p-2.5 text-xs text-cyan-300 font-mono outline-none">
-                <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer">Invite a friend</button>
+                <button onclick="inviteFriend()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer" data-i18n="btn_invite">Invite a friend</button>
             </div>
         </div>
 
@@ -267,7 +266,7 @@
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4 text-left shadow-lg">
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-2">
                     <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                        <span data-i18n="swap_from">From</span><span>Balance: <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
+                        <span data-i18n="swap_from">From</span><span><span data-i18n="swap_balance">Balance:</span> <span id="swap-bal-afex" class="text-yellow-400 font-bold">0.00</span> AFEX</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <input type="number" id="swap-input-afex" oninput="calcSwap()" placeholder="0" class="w-2/3 bg-transparent text-lg font-bold text-white outline-none">
@@ -276,7 +275,7 @@
                 </div>
                 <div class="flex justify-center -my-3 relative z-10"><div class="bg-[#161f33] p-1.5 rounded-full border border-gray-700"><i class="fa-solid fa-arrow-down text-gray-400 text-xs"></i></div></div>
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 mb-4 mt-1">
-                    <div class="flex justify-between text-[10px] text-gray-400 mb-1"><span>To (Destination Token)</span></div>
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-1"><span data-i18n="swap_to">To (Destination Token)</span></div>
                     <div class="flex justify-between items-center gap-2">
                         <input type="number" id="swap-input-target" readonly placeholder="0" class="w-1/2 bg-transparent text-lg font-bold text-green-400 outline-none">
                         <select id="swap-target-token" onchange="calcSwap()" class="bg-[#161f33] border border-gray-700 text-yellow-400 text-[11px] rounded-lg px-2 py-2 outline-none font-bold w-1/2">
@@ -299,7 +298,7 @@
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-8 rounded-full border border-yellow-500 overflow-hidden"><img src="134069.jpg" class="w-full h-full object-cover"></div>
-                            <div><span class="text-xs font-bold text-white block">AFEX Available</span><span class="text-[10px] text-gray-400">Ready to withdraw</span></div>
+                            <div><span class="text-xs font-bold text-white block" data-i18n="afex_available">AFEX Available</span><span class="text-[10px] text-gray-400" data-i18n="ready_to_wd">Ready to withdraw</span></div>
                         </div>
                         <span id="wallet-afex-bal" class="font-mono text-yellow-400 font-bold text-sm">0.00</span>
                     </div>
@@ -307,7 +306,7 @@
                     <div class="bg-[#0b0f19] border border-gray-700 rounded-lg p-3 flex justify-between items-center">
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-8 bg-[#26A17B] rounded-full flex items-center justify-center font-bold text-white text-xs">₮</div>
-                            <div><span class="text-xs font-bold text-white block">USDT</span><span class="text-[10px] text-gray-400">Multi-network</span></div>
+                            <div><span class="text-xs font-bold text-white block">USDT</span><span class="text-[10px] text-gray-400" data-i18n="multi_network">Multi-network</span></div>
                         </div>
                         <span id="wallet-usdt-bal" class="font-mono text-green-400 font-bold text-sm">$0.00</span>
                     </div>
@@ -315,17 +314,17 @@
 
                 <!-- WITHDRAWAL FORM -->
                 <div class="bg-[#0b0f19] p-3 rounded-lg border border-gray-700 space-y-3 mb-3 text-left">
-                    <h4 class="text-xs font-bold text-yellow-400">Withdrawal Portal</h4>
+                    <h4 class="text-xs font-bold text-yellow-400" data-i18n="wd_portal">Withdrawal Portal</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-[10px] text-gray-400 block mb-1">Asset</label>
+                            <label class="text-[10px] text-gray-400 block mb-1" data-i18n="wd_asset">Asset</label>
                             <select id="wd-asset-select" onchange="onWdAssetChange()" class="w-full bg-[#161f33] border border-gray-700 text-white text-xs rounded-lg p-2 outline-none">
                                 <option value="usdt">USDT</option>
                                 <option value="afex">AFEX</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-gray-400 block mb-1">Network</label>
+                            <label class="text-[10px] text-gray-400 block mb-1" data-i18n="wd_network">Network</label>
                             <select id="wd-network-select" class="w-full bg-[#161f33] border border-gray-700 text-white text-xs rounded-lg p-2 outline-none">
                                 <option value="bsc">BSC (BEP-20)</option>
                                 <option value="ton">TON</option>
@@ -335,16 +334,16 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Amount</label>
+                        <label class="text-[10px] text-gray-400 block mb-1" data-i18n="wd_amount">Amount</label>
                         <input type="number" id="wd-amount-input" placeholder="0.00" class="w-full bg-[#161f33] border border-gray-700 rounded-lg p-2 text-xs text-white outline-none font-mono">
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Wallet Address</label>
+                        <label class="text-[10px] text-gray-400 block mb-1" data-i18n="wd_address">Wallet Address</label>
                         <input type="text" id="wd-address-input" placeholder="Enter destination address..." class="w-full bg-[#161f33] border border-gray-700 rounded-lg p-2 text-xs text-cyan-300 outline-none font-mono">
                     </div>
                 </div>
 
-                <button onclick="attemptWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-90">
+                <button onclick="attemptWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-90" data-i18n="btn_withdraw">
                     <i class="fa-solid fa-paper-plane mr-1"></i> WITHDRAW FUNDS
                 </button>
             </div>
@@ -352,8 +351,8 @@
             <!-- LIVE PUBLIC WITHDRAW FEED -->
             <div class="bg-[#161f33] p-4 rounded-xl border border-gray-800 mb-4">
                 <h4 class="text-xs font-bold text-yellow-400 mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-globe mr-1.5"></i> Global Withdraw Feed</span>
-                    <span class="text-[9px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded animate-pulse">Live</span>
+                    <span><i class="fa-solid fa-globe mr-1.5"></i> <span data-i18n="live_feed">Global Withdraw Feed</span></span>
+                    <span class="text-[9px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded animate-pulse" data-i18n="live_status">Live</span>
                 </h4>
                 <div id="public-withdraw-feed" class="space-y-2 max-h-40 overflow-y-auto text-xs pr-1"></div>
             </div>
@@ -406,17 +405,204 @@
         let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "Guest User";
 
         const i18n = {
-            en: { total_balance: "Total Balance", daily_checkin: "Daily Check-in", ready_to_mine: "Ready to Mine", session_timer: "Session Timer:", tasks_title: "TASKS", tasks_desc: "Complete tasks to earn rewards.", ref_title: "INVITE FRIENDS!", swap_title: "TOKEN SWAP", swap_subtitle: "Listing in December 2026", swap_from: "From", btn_swap: "SWAP NOW", wallet_title: "WALLET ASSETS", wallet_desc: "Manage your crypto assets.", nav_refer: "Refer", nav_task: "Task", nav_mine: "Mine", nav_swap: "Swap", nav_wallet: "Wallet", vip_pass: "FOUNDER VIP PASS", vip_desc: "Input TxHash & Unlock!" },
-            id: { total_balance: "Total Saldo", daily_checkin: "Absen Harian", ready_to_mine: "Siap Mining", session_timer: "Waktu Sesi:", tasks_title: "MISI & TUGAS", tasks_desc: "Selesaikan misi untuk mendapatkan reward.", ref_title: "UNDANG TEMAN!", swap_title: "TUKAR TOKEN", swap_subtitle: "Listing Desember 2026", swap_from: "Dari", btn_swap: "TUKAR SEKARANG", wallet_title: "ASET DOMPET", wallet_desc: "Kelola aset kripto Anda.", nav_refer: "Referral", nav_task: "Misi", nav_mine: "Mining", nav_swap: "Swap", nav_wallet: "Dompet", vip_pass: "FOUNDER VIP PASS", vip_desc: "Masukkan TxHash & Buka!" },
-            hi: { total_balance: "कुल शेष", daily_checkin: "दैनिक चेक-इन", ready_to_mine: "माइन करने के लिए तैयार", session_timer: "सत्रタイمر:", tasks_title: "कार्य", tasks_desc: "पुरस्कार अर्जित करने के लिए कार्य पूरे करें।", ref_title: "दोस्तों को आमंत्रित करें!", swap_title: "टोकन स्वैप", swap_subtitle: "दिसंबर 2026 में लिस्टिंग", swap_from: "से", btn_swap: "अभी स्वैप करें", wallet_title: "वॉलेट संपत्ति", wallet_desc: "अपनी संपत्ति प्रबंधित करें।", nav_refer: "रेफर", nav_task: "कार्य", nav_mine: "माइन", nav_swap: "स्वैप", nav_wallet: "वॉलेट", vip_pass: "फाउंडर वीआईपी पास", vip_desc: "TxHash दर्ज करें!" },
-            th: { total_balance: "ยอดคงเหลือทั้งหมด", daily_checkin: "เช็คอินรายวัน", ready_to_mine: "พร้อมขุด", session_timer: "ตัวจับเวลา:", tasks_title: "ภารกิจ", tasks_desc: "ทำภารกิจเพื่อรับรางวัล", ref_title: "เชิญเพื่อน!", swap_title: "แลกเปลี่ยนโทเค็น", swap_subtitle: "ลิสต์ธันวาคม 2026", swap_from: "จาก", btn_swap: "แลกเปลี่ยนเลย", wallet_title: "สินทรัพย์กระเป๋า", wallet_desc: "จัดการสินทรัพย์ของคุณ", nav_refer: "เพื่อน", nav_task: "ภารกิจ", nav_mine: "ขุด", nav_swap: "แลก", nav_wallet: "กระเป๋า", vip_pass: "วีไอพีผู้ก่อตั้ง", vip_desc: "ใส่ TxHash!" },
-            vi: { total_balance: "Tổng số dư", daily_checkin: "Điểm danh hàng ngày", ready_to_mine: "Sẵn sàng đào", session_timer: "Bộ đếm giờ:", tasks_title: "NHIỆM VỤ", tasks_desc: "Hoàn thành nhiệm vụ nhận thưởng.", ref_title: "MỜI BẠN BÈ!", swap_title: "HOÁN ĐỔI TOKEN", swap_subtitle: "Niêm yết tháng 12/2026", swap_from: "Từ", btn_swap: "HOÁN ĐỔI NGAY", wallet_title: "TÀI SẢN VÍ", wallet_desc: "Quản lý tài sản của bạn.", nav_refer: "Giới thiệu", nav_task: "Nhiệm vụ", nav_mine: "Đào", nav_swap: "Đổi", nav_wallet: "Ví", vip_pass: "VIP FOUNDER", vip_desc: "Nhập TxHash!" },
-            zh: { total_balance: "总余额", daily_checkin: "每日签到", ready_to_mine: "准备挖矿", session_timer: "倒计时:", tasks_title: "任务", tasks_desc: "完成任务赚取奖励。", ref_title: "邀请好友！", swap_title: "代币兑换", swap_subtitle: "2026年12月上线", swap_from: "从", btn_swap: "立即兑换", wallet_title: "钱包资产", wallet_desc: "管理您的资产。", nav_refer: "推荐", nav_task: "任务", nav_mine: "挖矿", nav_swap: "兑换", nav_wallet: "钱包", vip_pass: "创始人VIP", vip_desc: "输入TxHash！" },
-            ja: { total_balance: "トータル残高", daily_checkin: "デイリーチェックイン", ready_to_mine: "マイニング準備完了", session_timer: "タイマー:", tasks_title: "タスク", tasks_desc: "タスクを完了して報酬を獲得。", ref_title: "友達を招待！", swap_title: "スワップ", swap_subtitle: "2026年12月上場", swap_from: "元", btn_swap: "今すぐスワップ", wallet_title: "ウォレット資産", wallet_desc: "資産を管理する。", nav_refer: "紹介", nav_task: "タスク", nav_mine: "採掘", nav_swap: "交換", nav_wallet: "ウォレット", vip_pass: "創設者VIP", vip_desc: "TxHashを入力！" },
-            ko: { total_balance: "총 잔액", daily_checkin: "일일 출석체크", ready_to_mine: "채굴 준비 완료", session_timer: "세션 타이머:", tasks_title: "작업", tasks_desc: "작업을 완료하고 보상을 받으세요.", ref_title: "친구 초대!", swap_title: "토큰 스왑", swap_subtitle: "2026년 12월 상장", swap_from: "보낸 주소", btn_swap: "지금 스왑", wallet_title: "지갑 자산", wallet_desc: "자산을 관리하세요.", nav_refer: "추천", nav_task: "작업", nav_mine: "채굴", nav_swap: "스왑", nav_wallet: "지갑", vip_pass: "창립자 VIP", vip_desc: "TxHash 입력!" },
-            fr: { total_balance: "Solde Total", daily_checkin: "Enregistrement Quotidien", ready_to_mine: "Prêt àminer", session_timer: "Minuteur:", tasks_title: "TÂCHES", tasks_desc: "Complétez les tâches.", ref_title: "INVITER DES AMIS !", swap_title: "ÉCHANGE", swap_subtitle: "Listing Décembre 2026", swap_from: "De", btn_swap: "ÉCHANGER", wallet_title: "ACTIFS", wallet_desc: "Gérez vos actifs.", nav_refer: "Parrain", nav_task: "Tâches", nav_mine: "Miner", nav_swap: "Échange", nav_wallet: "Portefeuille", vip_pass: "VIP FONDATEUR", vip_desc: "Entrez TxHash!" },
-            de: { total_balance: "Gesamtguthaben", daily_checkin: "Ttäglicher Check-in", ready_to_mine: "Bereit zum Minen", session_timer: "Timer:", tasks_title: "AUFGABEN", tasks_desc: "Erfülle Aufgaben.", ref_title: "FREUNDE EINLADEN!", swap_title: "TOKEN SWAP", swap_subtitle: "Listing Dezember 2026", swap_from: "Von", btn_swap: "JETZT SWAPPEN", wallet_title: "WALLET", wallet_desc: "Vermögen verwalten.", nav_refer: "Referral", nav_task: "Aufgaben", nav_mine: "Minen", nav_swap: "Swap", nav_wallet: "Wallet", vip_pass: "GRÜNDER VIP", vip_desc: "TxHash eingeben!" },
-            ar: { total_balance: "الرصيد الإجمالي", daily_checkin: "تسجيل الوصول اليومي", ready_to_mine: "جاهز للتعدين", session_timer: "المؤقت:", tasks_title: "المهام", tasks_desc: "أكمل المهام لكسب المكافآت.", ref_title: "ادعُ الأصدقاء!", swap_title: "مبادلة الرموز", swap_subtitle: "الإدراج في ديسمبر 2026", swap_from: "من", btn_swap: "ابدأ المبادلة", wallet_title: "أصول المحفظة", wallet_desc: "إدارة أصولك.", nav_refer: "الإحالات", nav_task: "المهام", nav_mine: "تعدين", nav_swap: "مبادلة", nav_wallet: "المحفظة", vip_pass: "بطاقة المؤسس", vip_desc: "أدخل TxHash!" }
+            en: { 
+                total_balance: "Total Balance", daily_checkin: "Daily Check-in", ready_to_mine: "Ready to Mine", 
+                session_timer: "Session Timer:", tasks_title: "TASKS", tasks_desc: "Complete tasks to earn rewards.", 
+                ref_title: "INVITE FRIENDS!", swap_title: "TOKEN SWAP", swap_subtitle: "Cooming Soon", swap_from: "From", 
+                btn_swap: "SWAP NOW", wallet_title: "WALLET ASSETS", wallet_desc: "Manage your crypto assets.", 
+                nav_refer: "Refer", nav_task: "Task", nav_mine: "Mine", nav_swap: "Swap", nav_wallet: "Wallet", 
+                vip_pass: "FOUNDER VIP PASS", vip_desc: "Input TxHash & Unlock!", unlocks_in: "Unlocks in:",
+                kyc_status: "KYC Status", verify_now: "Verify Now", history_title: "History", history_desc: "Mining & WD Log",
+                claim_streak: "Claim Streak Rewards", btn_start_mine: "START 12H AUTO MINING", subtab_normal: "Normal",
+                task_watch_ad: "Watch Ad", btn_watch: "Watch", task_join_tg: "Join Telegram Channel", btn_start: "Start",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Exclusive high-tier rewards & multipliers.", founder_dividend: "Founder Daily Dividend",
+                btn_claim: "Claim", vip_locked: "VIP Locked", vip_locked_desc: "Input Founder TxHash to unlock VIP Elite Hub.", btn_unlock_vip: "UNLOCK VIP",
+                ref_subtitle: "+70 AFEX & +0.01 USDT Per Successful Referral!", total_refs: "Total Referrals", btn_invite: "Invite a friend",
+                swap_balance: "Balance:", swap_to: "To (Destination Token)", afex_available: "AFEX Available", ready_to_wd: "Ready to withdraw",
+                multi_network: "Multi-network", wd_portal: "Withdrawal Portal", wd_asset: "Asset", wd_network: "Network", wd_amount: "Amount",
+                wd_address: "Wallet Address", btn_withdraw: "WITHDRAW FUNDS", live_feed: "Global Withdraw Feed", live_status: "Live",
+                mining_in_progress: "MINING IN PROGRESS", ready_to_claim: "READY TO CLAIM"
+            },
+            id: { 
+                total_balance: "Total Saldo", daily_checkin: "Absen Harian", ready_to_mine: "Siap Mining", 
+                session_timer: "Waktu Sesi:", tasks_title: "MISI & TUGAS", tasks_desc: "Selesaikan misi untuk mendapatkan reward.", 
+                ref_title: "UNDANG TEMAN!", swap_title: "TUKAR TOKEN", swap_subtitle: "Segera Hadir", swap_from: "Dari", 
+                btn_swap: "TUKAR SEKARANG", wallet_title: "ASET DOMPET", wallet_desc: "Kelola aset kripto Anda.", 
+                nav_refer: "Referral", nav_task: "Misi", nav_mine: "Mining", nav_swap: "Swap", nav_wallet: "Dompet", 
+                vip_pass: "FOUNDER VIP PASS", vip_desc: "Masukkan TxHash & Buka!", unlocks_in: "Terbuka dalam:",
+                kyc_status: "Status KYC", verify_now: "Verifikasi Sekarang", history_title: "Riwayat", history_desc: "Log Mining & WD",
+                claim_streak: "Klaim Hadiah Beruntun", btn_start_mine: "MULAI MINING OTOMATIS 12JAM", subtab_normal: "Normal",
+                task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", task_join_tg: "Gabung Channel Telegram", btn_start: "Mulai",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Hadiah eksklusif tingkat tinggi & multiplier.", founder_dividend: "Dividen Harian Founder",
+                btn_claim: "Klaim", vip_locked: "VIP Terkunci", vip_locked_desc: "Masukkan TxHash Founder untuk membuka VIP Elite Hub.", btn_unlock_vip: "BUKA VIP",
+                ref_subtitle: "+70 AFEX & +0.01 USDT Per Referral Berhasil!", total_refs: "Total Referral", btn_invite: "Undang Teman",
+                swap_balance: "Saldo:", swap_to: "Ke (Token Tujuan)", afex_available: "AFEX Tersedia", ready_to_wd: "Siap Ditarik",
+                multi_network: "Multi-jaringan", wd_portal: "Portal Penarikan", wd_asset: "Aset", wd_network: "Jaringan", wd_amount: "Jumlah",
+                wd_address: "Alamat Dompet", btn_withdraw: "TARIK DANA", live_feed: "Feed Penarikan Global", live_status: "Aktif",
+                mining_in_progress: "PERTAMBANGAN BERLANGSUNG", ready_to_claim: "SIAP DIKLAIM"
+            },
+            hi: { 
+                total_balance: "कुल शेष", daily_checkin: "दैनिक चेक-इन", ready_to_mine: "माइन करने के लिए तैयार", 
+                session_timer: "सत्र 타이مر:", tasks_title: "कार्य", tasks_desc: "पुरस्कार अर्जित करने के लिए कार्य पूरे करें।", 
+                ref_title: "दोस्तों को आमंत्रित करें!", swap_title: "टोकन स्वैप", swap_subtitle: "जल्द आ रहा है", swap_from: "से", 
+                btn_swap: "अभी स्वैप करें", wallet_title: "वॉलेट संपत्ति", wallet_desc: "अपनी संपत्ति प्रबंधित करें।", 
+                nav_refer: "रेफर", nav_task: "कार्य", nav_mine: "माइन", nav_swap: "स्वैप", nav_wallet: "वॉलेट", 
+                vip_pass: "फाउंडर वीआईपी पास", vip_desc: "TxHash दर्ज करें!", unlocks_in: "खुलेगा:",
+                kyc_status: "KYC स्थिति", verify_now: "सत्यापित करें", history_title: "इतिहास", history_desc: "माइनिंग और WD लॉग",
+                claim_streak: "दैनिक स्ट्रीक क्ليم करें", btn_start_mine: "12 घंटे ऑटो माइनिंग शुरू करें", subtab_normal: "सामान्य",
+                task_watch_ad: "विज्ञापन देखें", btn_watch: "देखें", task_join_tg: "टेलीग्राम चैनल से जुड़ें", btn_start: "शुरू करें",
+                vip_hub_title: "VIP एलीट हब", vip_hub_desc: "विशेष पुरस्कार और गुणक।", founder_dividend: "फाउंडर दैनिक लाभांश",
+                btn_claim: "क्लेम करें", vip_locked: "VIP लॉक है", vip_locked_desc: "VIP अनलॉक करने के लिए TxHash दर्ज करें।", btn_unlock_vip: "VIP अनलॉक करें",
+                ref_subtitle: "+70 AFEX & +0.01 USDT प्रति सफल रेफरल!", total_refs: "कुल रेफरल", btn_invite: "मित्र को आमंत्रित करें",
+                swap_balance: "शेष:", swap_to: "प्रति (गंतव्य टोकन)", afex_available: "AFEX उपलब्ध", ready_to_wd: "निकासी के लिए तैयार",
+                multi_network: "मल्टी-नेटवर्क", wd_portal: "निकासी पोर्टल", wd_asset: "संपत्ति", wd_network: "नेटवर्क", wd_amount: "राशि",
+                wd_address: "वॉलेट पता", btn_withdraw: "धन निकालें", live_feed: "ग्लोबल निकासी फ़ीड", live_status: "लाइव",
+                mining_in_progress: "माइनिंग प्रगति पर है", ready_to_claim: "दावा करने के लिए तैयार"
+            },
+            th: { 
+                total_balance: "ยอดคงเหลือทั้งหมด", daily_checkin: "เช็คอินรายวัน", ready_to_mine: "พร้อมขุด", 
+                session_timer: "ตัวจับเวลา:", tasks_title: "ภารกิจ", tasks_desc: "ทำภารกิจเพื่อรับรางวัล", 
+                ref_title: "เชิญเพื่อน!", swap_title: "แลกเปลี่ยนโทเค็น", swap_subtitle: "เร็วๆ นี้", swap_from: "จาก", 
+                btn_swap: "แลกเปลี่ยนเลย", wallet_title: "สินทรัพย์กระเป๋า", wallet_desc: "จัดการสินทรัพย์ของคุณ", 
+                nav_refer: "เพื่อน", nav_task: "ภารกิจ", nav_mine: "ขุด", nav_swap: "แลก", nav_wallet: "กระเป๋า", 
+                vip_pass: "วีไอพีผู้ก่อตั้ง", vip_desc: "ใส่ TxHash!", unlocks_in: "ปลดล็อกใน:",
+                kyc_status: "สถานะ KYC", verify_now: "ยืนยันตอนนี้", history_title: "ประวัติ", history_desc: "ประวัติการขุดและการถอน",
+                claim_streak: "รับรางวัลต่อเนื่อง", btn_start_mine: "เริ่มขุดอัตโนมัติ 12 ชม.", subtab_normal: "ปกติ",
+                task_watch_ad: "ดูโฆษณา", btn_watch: "ดู", task_join_tg: "เข้าร่วมช่อง Telegram", btn_start: "เริ่ม",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "รางวัลพิเศษและตัวคูณระดับสูง", founder_dividend: "เงินปันผลรายวันผู้ก่อตั้ง",
+                btn_claim: "รับ", vip_locked: "VIP ล็อกอยู่", vip_locked_desc: "ใส่ TxHash เพื่อปลดล็อก VIP Elite Hub", btn_unlock_vip: "ปลดล็อก VIP",
+                ref_subtitle: "+70 AFEX และ +0.01 USDT ต่อการแนะนำสำเร็จ!", total_refs: "การแนะนำทั้งหมด", btn_invite: "เชิญเพื่อน",
+                swap_balance: "ยอดคงเหลือ:", swap_to: "ไปยัง (โทเค็นปลายทาง)", afex_available: "AFEX ที่ใช้งานได้", ready_to_wd: "พร้อมถอน",
+                multi_network: "หลายเครือข่าย", wd_portal: "พอร์ทัลการถอน", wd_asset: "สินทรัพย์", wd_network: "เครือข่าย", wd_amount: "จำนวน",
+                wd_address: "ที่อยู่วอลเล็ต", btn_withdraw: "ถอนเงิน", live_feed: "ฟีดการถอนทั่วโลก", live_status: "สด",
+                mining_in_progress: "กำลังขุด", ready_to_claim: "พร้อมรับรางวัล"
+            },
+            vi: { 
+                total_balance: "Tổng số dư", daily_checkin: "Điểm danh hàng ngày", ready_to_mine: "Sẵn sàng đào", 
+                session_timer: "Bộ đếm giờ:", tasks_title: "NHIỆM VỤ", tasks_desc: "Hoàn thành nhiệm vụ nhận thưởng.", 
+                ref_title: "MỜI BẠN BÈ!", swap_title: "HOÁN ĐỔI TOKEN", swap_subtitle: "Sắp ra mắt", swap_from: "Từ", 
+                btn_swap: "HOÁN ĐỔI NGAY", wallet_title: "TÀI SẢN VÍ", wallet_desc: "Quản lý tài sản của bạn.", 
+                nav_refer: "Giới thiệu", nav_task: "Nhiệm vụ", nav_mine: "Đào", nav_swap: "Đổi", nav_wallet: "Ví", 
+                vip_pass: "VIP FOUNDER", vip_desc: "Nhập TxHash!", unlocks_in: "Mở khóa trong:",
+                kyc_status: "Trạng thái KYC", verify_now: "Xác minh ngay", history_title: "Lịch sử", history_desc: "Nhật ký Đào & Rút",
+                claim_streak: "Nhận Thưởng Điểm Danh", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", subtab_normal: "Thông thường",
+                task_watch_ad: "Xem Quảng Cáo", btn_watch: "Xem", task_join_tg: "Tham gia Kênh Telegram", btn_start: "Bắt đầu",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Phần thưởng và hệ số nhân cao cấp.", founder_dividend: "Cổ tức Hàng ngày Founder",
+                btn_claim: "Nhận", vip_locked: "VIP Đã khóa", vip_locked_desc: "Nhập TxHash Founder để mở khóa VIP Elite Hub.", btn_unlock_vip: "MỞ KHÓA VIP",
+                ref_subtitle: "+70 AFEX & +0.01 USDT mỗi Giới thiệu thành công!", total_refs: "Tổng số Giới thiệu", btn_invite: "Mời bạn bè",
+                swap_balance: "Số dư:", swap_to: "Đến (Token đích)", afex_available: "AFEX Khả dụng", ready_to_wd: "Sẵn sàng rút",
+                multi_network: "Đa mạng", wd_portal: "Cổng Rút tiền", wd_asset: "Tài sản", wd_network: "Mạng", wd_amount: "Số lượng",
+                wd_address: "Địa chỉ Ví", btn_withdraw: "RÚT TIỀN", live_feed: "Dòng Rút tiền Toàn cầu", live_status: "Trực tiếp",
+                mining_in_progress: "ĐANG ĐÀO", ready_to_claim: "SẴN SÀNG NHẬN"
+            },
+            zh: { 
+                total_balance: "总余额", daily_checkin: "每日签到", ready_to_mine: "准备挖矿", 
+                session_timer: "倒计时:", tasks_title: "任务", tasks_desc: "完成任务赚取奖励。", 
+                ref_title: "邀请好友！", swap_title: "代币兑换", swap_subtitle: "即将推出", swap_from: "从", 
+                btn_swap: "立即兑换", wallet_title: "钱包资产", wallet_desc: "管理您的资产。", 
+                nav_refer: "推荐", nav_task: "任务", nav_mine: "挖矿", nav_swap: "兑换", nav_wallet: "钱包", 
+                vip_pass: "创始人VIP", vip_desc: "输入TxHash！", unlocks_in: "解锁倒计时:",
+                kyc_status: "KYC状态", verify_now: "立即验证", history_title: "历史记录", history_desc: "挖矿与提现日志",
+                claim_streak: "领取连续奖励", btn_start_mine: "开始12小时自动挖矿", subtab_normal: "普通",
+                task_watch_ad: "观看广告", btn_watch: "观看", task_join_tg: "加入电报频道", btn_start: "开始",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "专属的高级奖励与倍率。", founder_dividend: "创始人每日红利",
+                btn_claim: "领取", vip_locked: "VIP已锁定", vip_locked_desc: "输入创始人TxHash以解锁VIP Elite Hub。", btn_unlock_vip: "解锁VIP",
+                ref_subtitle: "+70 AFEX & 每个成功推荐 +0.01 USDT！", total_refs: "推荐总数", btn_invite: "邀请好友",
+                swap_balance: "余额:", swap_to: "至 (目标代币)", afex_available: "可用AFEX", ready_to_wd: "准备提现",
+                multi_network: "多网络", wd_portal: "提现门户", wd_asset: "资产", wd_network: "网络", wd_amount: "金额",
+                wd_address: "钱包地址", btn_withdraw: "提取资金", live_feed: "全球提现动态", live_status: "实时",
+                mining_in_progress: "正在挖矿", ready_to_claim: "准备领取"
+            },
+            ja: { 
+                total_balance: "トータル残高", daily_checkin: "デイリーチェックイン", ready_to_mine: "マイニング準備完了", 
+                session_timer: "タイマー:", tasks_title: "タスク", tasks_desc: "タスクを完了して報酬を獲得。", 
+                ref_title: "友達を招待！", swap_title: "スワップ", swap_subtitle: "まもなく公開", swap_from: "元", 
+                btn_swap: "今すぐスワップ", wallet_title: "ウォレット資産", wallet_desc: "資産を管理する。", 
+                nav_refer: "紹介", nav_task: "タスク", nav_mine: "採掘", nav_swap: "交換", nav_wallet: "ウォレット", 
+                vip_pass: "創設者VIP", vip_desc: "TxHashを入力！", unlocks_in: "アンロックまで:",
+                kyc_status: "KYCステータス", verify_now: "今すぐ認証", history_title: "履歴", history_desc: "採掘・出金ログ",
+                claim_streak: "連続ボーナス受取", btn_start_mine: "12時間自動マイニング開始", subtab_normal: "通常",
+                task_watch_ad: "広告視聴", btn_watch: "視聴", task_join_tg: "Telegramチャンネルに参加", btn_start: "開始",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "限定の高報酬＆倍率。", founder_dividend: "創設者デイリー配当",
+                btn_claim: "受取", vip_locked: "VIPロック中", vip_locked_desc: "TxHashを入力してVIP Elite Hubをアンロック。", btn_unlock_vip: "VIPをアンロック",
+                ref_subtitle: "+70 AFEX ＆ 紹介成功ごとに +0.01 USDT！", total_refs: "紹介総数", btn_invite: "友達を招待",
+                swap_balance: "残高:", swap_to: "宛先 (ターゲットトークン)", afex_available: "利用可能 AFEX", ready_to_wd: "出金可能",
+                multi_network: "マルチネットワーク", wd_portal: "出金ポータル", wd_asset: "資産", wd_network: "ネットワーク", wd_amount: "数量",
+                wd_address: "ウォレットアドレス", btn_withdraw: "資金を出金", live_feed: "グローバル出金フィード", live_status: "ライブ",
+                mining_in_progress: "マイニング中", ready_to_claim: "受取準備完了"
+            },
+            ko: { 
+                total_balance: "총 잔액", daily_checkin: "일일 출석체크", ready_to_mine: "채굴 준비 완료", 
+                session_timer: "세션 타이머:", tasks_title: "작업", tasks_desc: "작업을 완료하고 보상을 받으세요.", 
+                ref_title: "친구 초대!", swap_title: "토큰 스왑", swap_subtitle: "출시 예정", swap_from: "보낸 주소", 
+                btn_swap: "지금 스왑", wallet_title: "지갑 자산", wallet_desc: "자산을 관리하세요.", 
+                nav_refer: "추천", nav_task: "작업", nav_mine: "채굴", nav_swap: "스왑", nav_wallet: "지갑", 
+                vip_pass: "창립자 VIP", vip_desc: "TxHash 입력!", unlocks_in: "잠금 해제까지:",
+                kyc_status: "KYC 상태", verify_now: "지금 인증", history_title: "기록", history_desc: "채굴 및 출금 내역",
+                claim_streak: "연속 보상 받기", btn_start_mine: "12시간 자동 채굴 시작", subtab_normal: "일반",
+                task_watch_ad: "광고 시청", btn_watch: "시청", task_join_tg: "텔레그램 채널 가입", btn_start: "시작",
+                vip_hub_title: "VIP 엘리트 허브", vip_hub_desc: "독점 고배당 보상 및 배율.", founder_dividend: "창립자 일일 배당",
+                btn_claim: "수령", vip_locked: "VIP 잠김", vip_locked_desc: "TxHash를 입력하여 VIP 엘리트 허브를 잠금 해제하세요.", btn_unlock_vip: "VIP 잠금 해제",
+                ref_subtitle: "+70 AFEX & 추천 성공당 +0.01 USDT!", total_refs: "총 추천 수", btn_invite: "친구 초대하기",
+                swap_balance: "잔액:", swap_to: "받는 주소 (대상 토큰)", afex_available: "출금 가능 AFEX", ready_to_wd: "출금 가능",
+                multi_network: "다중 네트워크", wd_portal: "출금 포털", wd_asset: "자산", wd_network: "네트워크", wd_amount: "금액",
+                wd_address: "지갑 주소", btn_withdraw: "출금 신청", live_feed: "글로벌 출금 피드", live_status: "실시간",
+                mining_in_progress: "채굴 진행 중", ready_to_claim: "수령 대기 중"
+            },
+            fr: { 
+                total_balance: "Solde Total", daily_checkin: "Enregistrement Quotidien", ready_to_mine: "Prêt à miner", 
+                session_timer: "Minuteur:", tasks_title: "TÂCHES", tasks_desc: "Complétez les tâches.", 
+                ref_title: "INVITER DES AMIS !", swap_title: "ÉCHANGE", swap_subtitle: "Bientôt disponible", swap_from: "De", 
+                btn_swap: "ÉCHANGER", wallet_title: "ACTIFS", wallet_desc: "Gérez vos actifs.", 
+                nav_refer: "Parrain", nav_task: "Tâches", nav_mine: "Miner", nav_swap: "Échange", nav_wallet: "Portefeuille", 
+                vip_pass: "VIP FONDATEUR", vip_desc: "Entrez TxHash !", unlocks_in: "Déverrouillage dans :",
+                kyc_status: "Statut KYC", verify_now: "Vérifier", history_title: "Historique", history_desc: "Journal de Minage & Retraits",
+                claim_streak: "Réclamer les récompenses", btn_start_mine: "DÉMARRER LE MINAGE AUTO 12H", subtab_normal: "Normal",
+                task_watch_ad: "Regarder une pub", btn_watch: "Regarder", task_join_tg: "Rejoindre le canal", btn_start: "Démarrer",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Récompenses et multiplicateurs exclusifs.", founder_dividend: "Dividende Quotidien Fondateur",
+                btn_claim: "Réclamer", vip_locked: "VIP Verrouillé", vip_locked_desc: "Entrez le TxHash Fondateur pour déverrouiller.", btn_unlock_vip: "DÉVERROUILLER VIP",
+                ref_subtitle: "+70 AFEX & +0.01 USDT par parrainage réussi !", total_refs: "Total Parrainages", btn_invite: "Inviter un ami",
+                swap_balance: "Solde :", swap_to: "Vers (Jeton de destination)", afex_available: "AFEX Disponible", ready_to_wd: "Prêt à retirer",
+                multi_network: "Multi-réseau", wd_portal: "Portail de Retrait", wd_asset: "Actif", wd_network: "Réseau", wd_amount: "Montant",
+                wd_address: "Adresse du portefeuille", btn_withdraw: "RETIRER LES FONDS", live_feed: "Flux de retraits en direct", live_status: "En direct",
+                mining_in_progress: "MINAGE EN COURS", ready_to_claim: "PRÊT À RÉCLAMER"
+            },
+            de: { 
+                total_balance: "Gesamtguthaben", daily_checkin: "Ttäglicher Check-in", ready_to_mine: "Bereit zum Minen", 
+                session_timer: "Timer:", tasks_title: "AUFGABEN", tasks_desc: "Erfülle Aufgaben.", 
+                ref_title: "FREUNDE EINLADEN!", swap_title: "TOKEN SWAP", swap_subtitle: "Demnächst", swap_from: "Von", 
+                btn_swap: "JETZT SWAPPEN", wallet_title: "WALLET", wallet_desc: "Vermögen verwalten.", 
+                nav_refer: "Referral", nav_task: "Aufgaben", nav_mine: "Minen", nav_swap: "Swap", nav_wallet: "Wallet", 
+                vip_pass: "GRÜNDER VIP", vip_desc: "TxHash eingeben!", unlocks_in: "Freischaltung in:",
+                kyc_status: "KYC-Status", verify_now: "Jetzt verifizieren", history_title: "Verlauf", history_desc: "Mining- & WD-Log",
+                claim_streak: "Streak-Belohnung beanspruchen", btn_start_mine: "12H AUTO-MINING STARTEN", subtab_normal: "Normal",
+                task_watch_ad: "Werbung ansehen", btn_watch: "Ansehen", task_join_tg: "Telegram-Kanal beitreten", btn_start: "Starten",
+                vip_hub_title: "VIP Elite Hub", vip_hub_desc: "Exklusive High-Tier-Belohnungen.", founder_dividend: "Gründer Tägliche Dividende",
+                btn_claim: "Beanspruchen", vip_locked: "VIP Gesperrt", vip_locked_desc: "Gründer-TxHash eingeben, um den VIP Hub zu entsperren.", btn_unlock_vip: "VIP ENTSPERREN",
+                ref_subtitle: "+70 AFEX & +0.01 USDT pro erfolgreichem Referral!", total_refs: "Gesamte Referrals", btn_invite: "Freund einladen",
+                swap_balance: "Guthaben:", swap_to: "Zu (Ziel-Token)", afex_available: "AFEX Verfügbar", ready_to_wd: "Bereit zum Auszahlen",
+                multi_network: "Multi-Netzwerk", wd_portal: "Auszahlungsportal", wd_asset: "Asset", wd_network: "Netzwerk", wd_amount: "Betrag",
+                wd_address: "Wallet-Adresse", btn_withdraw: "GUTHABEN AUSZAHLEN", live_feed: "Live-Auszahlungs-Feed", live_status: "Live",
+                mining_in_progress: "MINING LÄUFT", ready_to_claim: "BEREIT ZUM BEANSPRUCHEN"
+            },
+            ar: { 
+                total_balance: "الرصيد الإجمالي", daily_checkin: "تسجيل الوصول اليومي", ready_to_mine: "جاهز للتعدين", 
+                session_timer: "المؤقت:", tasks_title: "المهام", tasks_desc: "أكمل المهام لكسب المكافآت.", 
+                ref_title: "ادعُ الأصدقاء!", swap_title: "مبادلة الرموز", swap_subtitle: "قريباً", swap_from: "من", 
+                btn_swap: "ابدأ المبادلة", wallet_title: "أصول المحفظة", wallet_desc: "إدارة أصولك.", 
+                nav_refer: "الإحالات", nav_task: "المهام", nav_mine: "تعدين", nav_swap: "مبادلة", nav_wallet: "المحفظة", 
+                vip_pass: "بطاقة المؤسس", vip_desc: "أدخل TxHash!", unlocks_in: "يفتح خلال:",
+                kyc_status: "حالة KYC", verify_now: "تحقق الآن", history_title: "السجل", history_desc: "سجل التعدين والسحب",
+                claim_streak: "مطالبة مكافأة التتابع", btn_start_mine: "ابدأ التعدين التلقائي 12س", subtab_normal: "عادي",
+                task_watch_ad: "مشاهدة الإعلان", btn_watch: "مشاهدة", task_join_tg: "انضم لقناة تلغرام", btn_start: "ابدأ",
+                vip_hub_title: "مركز VIP النخبة", vip_hub_desc: "مكافآت ومضاعفات حصرية.", founder_dividend: "توزيعات المؤسس اليومية",
+                btn_claim: "مطالبة", vip_locked: "VIP مقفل", vip_locked_desc: "أدخل TxHash المؤسس لفتح مركز VIP.", btn_unlock_vip: "فتح VIP",
+                ref_subtitle: "+70 AFEX و +0.01 USDT لكل إحالة ناجحة!", total_refs: "إجمالي الإحالات", btn_invite: "ادعُ صديقاً",
+                swap_balance: "الرصيد:", swap_to: "إلى (الرمز المستهدف)", afex_available: "AFEX المتاح", ready_to_wd: "جاهز للسحب",
+                multi_network: "شبكات متعددة", wd_portal: "بوابة السحب", wd_asset: "الأصل", wd_network: "الشبكة", wd_amount: "المبلغ",
+                wd_address: "عنوان المحفظة", btn_withdraw: "سحب الأموال", live_feed: "بث السحب المباشر", live_status: "مباشر",
+                mining_in_progress: "التعدين قيد التقدم", ready_to_claim: "جاهز للمطالبة"
+            }
         };
 
         let miningData = {
@@ -523,7 +709,6 @@
         }
 
         function updateUI() {
-            // Est USDT khusus menghitung nilai dari token AFEX saja (tidak digabung dengan usdtBalance asli)
             let afexUsdEst = miningData.balance * 0.0001;
 
             document.getElementById('token-balance').innerText = miningData.balance.toFixed(2) + " AFEX";
@@ -594,11 +779,12 @@
 
         function updateKYCUI() {
             let label = document.getElementById('kyc-status-label');
+            let currentLang = document.getElementById('lang-select').value;
             if(miningData.kycVerified) {
-                label.innerText = "Verified";
+                label.innerText = currentLang === 'id' ? 'Terverifikasi' : 'Verified';
                 label.className = "text-[9px] text-green-400 font-mono font-bold";
             } else {
-                label.innerText = "Verify Now";
+                label.innerText = i18n[currentLang]?.verify_now || "Verify Now";
                 label.className = "text-[9px] text-yellow-400 font-mono";
             }
         }
@@ -754,7 +940,7 @@
             feedEl.innerHTML = html;
         }
 
-        // --- TIMER INTERVAL DENGAN PENAMBAHAN REAL-TIME SEDIKIT DEMI SEDIKIT ---
+        // --- TIMER INTERVAL DENGAN PENAMBAHAN REAL-TIME & BAHASA DINAMIS ---
         function startTimerInterval() {
             setInterval(() => {
                 let now = Date.now();
@@ -763,11 +949,11 @@
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
                 let targetReward = miningData.isFounder ? 150.00 : 50.00;
+                let currentLang = document.getElementById('lang-select').value;
 
                 if (miningData.isMining) {
                     let timeLeft = miningData.miningEndTime - now;
                     
-                    // Hitung pertambahan saldo sedikit demi sedikit secara real-time setiap detik
                     let elapsedTime = TOTAL_DURATION_MS - timeLeft;
                     let currentMined = (elapsedTime / TOTAL_DURATION_MS) * targetReward;
                     if (currentMined > targetReward) currentMined = targetReward;
@@ -777,7 +963,7 @@
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
-                        statusLbl.innerText = "READY TO CLAIM";
+                        statusLbl.innerText = i18n[currentLang]?.ready_to_claim || "READY TO CLAIM";
                         mineBtn.innerText = `CLAIM REWARD (+${targetReward} AFEX)`;
                         mineBtn.className = "w-full bg-green-500 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                         minedVal.innerText = `+${targetReward.toFixed(2)} AFEX`;
@@ -786,14 +972,14 @@
                         let m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                         let s = Math.floor((timeLeft % (1000 * 60)) / 1000);
                         timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                        statusLbl.innerText = "MINING IN PROGRESS";
+                        statusLbl.innerText = i18n[currentLang]?.mining_in_progress || "MINING IN PROGRESS";
                         mineBtn.innerText = "MINING ACTIVE...";
                         mineBtn.className = "w-full bg-gray-700 text-gray-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
                     }
                 } else {
                     timerLbl.innerText = "12:00:00";
-                    statusLbl.innerText = "READY TO MINE";
-                    mineBtn.innerText = "START 12H AUTO MINING";
+                    statusLbl.innerText = i18n[currentLang]?.ready_to_mine || "Ready to Mine";
+                    mineBtn.innerText = i18n[currentLang]?.btn_start_mine || "START 12H AUTO MINING";
                     mineBtn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     minedVal.innerText = "+0.00 AFEX";
                 }
