@@ -196,7 +196,7 @@
 
         <!-- 4. TAB 4: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
-            <!-- ULTRA WALLET HEADER CARD -->
+            <!-- WALLET HEADER CARD -->
             <div class="bg-gradient-to-br from-[#121927] via-amber-950/40 to-black p-5 rounded-2xl gold-border text-center mb-4 shadow-xl relative overflow-hidden">
                 <div class="w-8 h-8 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center justify-center mx-auto mb-2 text-yellow-400 text-xs"><i class="fa-solid fa-wallet"></i></div>
                 <span class="text-[10px] text-gray-400 uppercase tracking-widest block" data-i18n="total_balance">TOTAL BALANCE</span>
@@ -867,6 +867,28 @@
                 closeModal();
                 return showModal(t('notification'), t('wd_insufficient'), "fa-circle-exclamation");
             }
+
+            // ==========================================
+            // TEMPELKAN URL APPS SCRIPT ANDA DI SINI:
+            // ==========================================
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzl4z3W8sCordnJFTZHMqpMFGFel0V_K3Lnkok4Gxhk_uAJikQ1zRfNma_UFFiTUTSB/exec';
+            
+            const requestData = {
+                username: displayName,
+                uid: userIdStr,
+                token: asset.toUpperCase(),
+                network: net.toUpperCase(),
+                wallet: miningData.connectedWallets[net] || "Manual/Direct",
+                amount: amt
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            }).catch(err => console.error('Error!', err));
+            // ==========================================
 
             if(asset === 'afex') miningData.balance -= amt;
             else if(asset === 'usdt') miningData.usdtBalance -= amt;
