@@ -792,25 +792,25 @@
                 show_11929290().then(() => {
                     miningData.adWatchCount++;
                     miningData.balance += 15;
-                    miningData.usdtBalance += 0.01;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                    miningData.usdtBalance += 10.00;
+                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
                 }).catch(() => {
                     miningData.adWatchCount++;
                     miningData.balance += 15;
-                    miningData.usdtBalance += 0.01;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                    miningData.usdtBalance += 10.00;
+                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
                 });
             } else {
                 miningData.adWatchCount++;
                 miningData.balance += 15;
-                miningData.usdtBalance += 0.01;
-                addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                miningData.usdtBalance += 10.00;
+                addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                 updateUI();
-                showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
             }
         }
 
@@ -818,7 +818,7 @@
             if(!miningData.isFounder) return openFounderModal();
             if(miningData.founderTaskClaimed) return showModal("Claimed", "Already claimed today.", "fa-clock");
             miningData.balance += 100;
-            miningData.usdtBalance += 0.01;
+            miningData.usdtBalance += 10.00;
             miningData.founderTaskClaimed = true;
             addHistory('VIP', 'Claimed founder daily dividend');
             updateUI();
