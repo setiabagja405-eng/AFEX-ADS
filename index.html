@@ -86,7 +86,10 @@
                         <span data-i18n="vip_pass">FOUNDER VIP PASS</span> 
                         <span id="founder-status-badge" class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-bold">UPGRADE</span>
                     </h4>
-                    <p class="text-[10px] text-gray-300" id="founder-banner-desc" data-i18n="vip_desc">Input TxHash & Unlock!</p>
+                    <!-- Teks diganti hitung mundur otomatis -->
+                    <p class="text-[10px] text-yellow-300 font-mono font-bold mt-0.5" id="founder-countdown-banner">
+                        Unlocks in: <span id="banner-timer">Loading...</span>
+                    </p>
                 </div>
             </div>
             <i class="fa-solid fa-chevron-right text-xs text-yellow-400"></i>
@@ -186,7 +189,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white">Watch Ad <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+10.00 USDT</span></p>
                         </div>
                     </div>
                     <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg cursor-pointer">Watch</button>
@@ -223,7 +226,7 @@
                         <div class="w-10 h-10 bg-yellow-500/20 text-yellow-400 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-gem"></i></div>
                         <div>
                             <h4 class="text-xs font-bold text-yellow-400">Founder Daily Dividend</h4>
-                            <p class="text-[10px] text-yellow-200/80 font-mono">+100 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
+                            <p class="text-[10px] text-yellow-200/80 font-mono">+150 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+0.01 USDT</span></p>
                         </div>
                     </div>
                     <button id="task-founder" onclick="claimFounderTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-bold px-4 py-2 rounded-xl cursor-pointer">Claim</button>
@@ -442,7 +445,60 @@
             eth: "0x8eE55668494f2F67bB2027e1Fa55602afaBF63b9",
             ton: "UQDE6M-6i_q2MXyxG4ZAA4G0OSoNVVWb_7ugCCrK48ILusAI"
         };
+// --- HITUNG MUNDUR MENUJU 20 NOVEMBER 2026 ---
+        function startFounderCountdown() {
+            const targetDate = new Date("Nov 20, 2026 00:00:00").getTime();
 
+            setInterval(function() {
+                const now = new Date().getTime();
+                const timeLeft = targetDate - now;
+                const timerEl = document.getElementById('banner-timer');
+
+                if (!timerEl) return;
+
+                if (timeLeft < 0) {
+                    timerEl.innerText = "UNLOCKED!";
+                    return;
+                }
+
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                const formatHours = String(hours).padStart(2, '0');
+                const formatMinutes = String(minutes).padStart(2, '0');
+                const formatSeconds = String(seconds).padStart(2, '0');
+
+                timerEl.innerText = `${days}d ${formatHours}:${formatMinutes}:${formatSeconds}`;
+            }, 1000);
+        }
+
+        // --- MINING & 24H HOLD SYSTEM ---
+        const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
+
+        function handleMiningAction() {
+            let targetReward = miningData.isFounder ? 150.00 : 50.00;
+            
+            // Jika belum mulai, mulai mining baru
+            if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
+                miningData.isMining = true;
+                miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+                updateUI();
+                showModal("Mining Started", "12-Hour auto mining session started!", "fa-bolt");
+            } 
+            // Jika waktu sudah habis dan siap claim
+            else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
+                let halfReward = targetReward / 2;
+                miningData.balance += targetReward;
+                miningData.availableWdAfex += halfReward; 
+                miningData.isMining = false;
+                miningData.miningEndTime = 0; // Reset waktu akhir
+                addHistory('MINING', `Claimed +${targetReward} AFEX`);
+                updateUI();
+                showModal("Claim Success!", `Claimed +${targetReward} AFEX!`, "fa-circle-check");
+            }
+        }
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
@@ -455,7 +511,9 @@
             updateFounderUI();
             updateKYCUI();
             startTimerInterval();
+            startFounderCountdown(); // <--- Jalankan hitung mundur founder di sini
             renderPublicWithdrawFeed();
+        });
         });
 
         function changeLanguage(langCode) {
@@ -769,25 +827,25 @@
                     miningData.adWatchCount++;
                     miningData.balance += 15;
                     miningData.usdtBalance += 0.01; // Sesuai permintaan: 0.01 USDT per iklan
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
                 }).catch(() => {
                     // Fallback jika adguard memblokir
                     miningData.adWatchCount++;
                     miningData.balance += 15;
                     miningData.usdtBalance += 0.01;
-                    addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                    addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                     updateUI();
-                    showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                    showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
                 });
             } else {
                 miningData.adWatchCount++;
                 miningData.balance += 15;
                 miningData.usdtBalance += 0.01;
-                addHistory('AD', 'Watched ad (+15 AFEX, +0.01 USDT)');
+                addHistory('AD', 'Watched ad (+15 AFEX, +10.00 USDT)');
                 updateUI();
-                showModal("Reward Claimed!", "+15 AFEX & +0.01 USDT added!", "fa-circle-check");
+                showModal("Reward Claimed!", "+15 AFEX & +10.00 USDT added!", "fa-circle-check");
             }
         }
 
