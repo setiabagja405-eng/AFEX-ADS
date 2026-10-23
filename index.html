@@ -86,7 +86,7 @@
                         <span class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-black">LOCKED</span>
                     </h4>
                     <p id="founder-countdown-text" class="text-[10px] text-yellow-300/80 font-mono font-bold mt-0.5">
-                        Founder available in 45 days 00 hours
+                        Founder available in 45 days 00:00:00
                     </p>
                 </div>
             </div>
@@ -187,7 +187,7 @@
                     <i class="fa-solid fa-right-left"></i>
                 </div>
                 <h3 class="text-sm font-bold text-white" data-i18n="swap_heading">AFEX Token Swap Exchange</h3>
-                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_desc">Swap AFEX tokens instantly to USDT or TON with liquidity pool estimates.</p>
+                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_desc">Swap AFEX tokens instantly to USDT or TON.</p>
                 <button onclick="showModal(t('notification'), t('swap_locked'), 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer">
                     START SWAP
                 </button>
@@ -421,7 +421,7 @@
         let userIdStr = userTg ? userTg.id.toString() : "8821716544";
         let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "Carmelo";
 
-        /* TRANSLATION DICTIONARY 100% COMPLETE */
+        /* TRANSLATION DICTIONARY (Updated with {time} parameter for active countdowns) */
         const i18n = {
             en: { 
                 total_balance: "TOTAL BALANCE", checkin_title: "Daily Check-in", checkin_sub: "Claim Streak Rewards (Day 1 - 7)",
@@ -436,9 +436,9 @@
                 notification: "Notification", success: "Success", error: "Error", copied: "Copied!",
                 checkin_done: "Already checked in today. Please return tomorrow.", checkin_success: "Check-in successful for Day",
                 ad_claimed: "Reward Claimed! +15 AFEX, +0.002 USDT, and +1 Point added!", ad_not_ready: "Sorry, no ads available right now.",
-                founder_avail: "Founder available in {d} days {h} hours", lock_a2f: "A2F Security will be available in {d} days.", 
-                lock_face: "Face Recognition will be available in {d} days.", lock_id: "Identity Verification will be available in {d} days.",
-                locked_list: "Locked ({d} days left)", swap_locked: "Swap feature will be active during Mainnet.",
+                founder_avail: "Founder available in {d} days {time}", lock_a2f: "A2F Security will be available in {d} days {time}.", 
+                lock_face: "Face Recognition will be available in {d} days {time}.", lock_id: "Identity Verification will be available in {d} days {time}.",
+                locked_list: "Locked ({d} days {time})", swap_locked: "Swap feature will be active during Mainnet.",
                 wd_insufficient: "Oops, your balance is insufficient, please continue mining.", wd_processed: "Withdrawal processed successfully!",
                 wallet_manage: "Manage Wallet Addresses"
             },
@@ -455,9 +455,9 @@
                 notification: "Pemberitahuan", success: "Berhasil", error: "Kesalahan", copied: "Tersalin!",
                 checkin_done: "Sudah check-in hari ini, silahkan kembali besok.", checkin_success: "Berhasil check-in Hari ke-",
                 ad_claimed: "Hadiah Diklaim! +15 AFEX, +0.002 USDT, & +1 Poin!", ad_not_ready: "Maaf, belum ada iklan tersedia saat ini.",
-                founder_avail: "Founder tersedia dalam {d} hari {h} jam", lock_a2f: "Keamanan A2F akan tersedia dalam {d} hari.", 
-                lock_face: "Verifikasi Wajah akan tersedia dalam {d} hari.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari.",
-                locked_list: "Terkunci ({d} hari lagi)", swap_locked: "Fitur Swap akan aktif pada fase Mainnet.",
+                founder_avail: "Founder tersedia dalam {d} hari {time}", lock_a2f: "Keamanan A2F akan tersedia dalam {d} hari {time}.", 
+                lock_face: "Verifikasi Wajah akan tersedia dalam {d} hari {time}.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari {time}.",
+                locked_list: "Terkunci ({d} hari {time})", swap_locked: "Fitur Swap akan aktif pada fase Mainnet.",
                 wd_insufficient: "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", wd_processed: "Penarikan berhasil diproses!",
                 wallet_manage: "Kelola Alamat Dompet"
             },
@@ -474,9 +474,9 @@
                 notification: "अधिसूचना", success: "सफल", error: "त्रुटि", copied: "कॉपी किया!",
                 checkin_done: "आज चेक-इन हो गया है। कृपया कल आएं।", checkin_success: "चेक-इन सफल दिन",
                 ad_claimed: "इनाम प्राप्त! +15 AFEX, +0.002 USDT, +1 Pts!", ad_not_ready: "विज्ञापन अभी उपलब्ध नहीं है।",
-                founder_avail: "संस्थापक {d} दिन {h} घंटे में उपलब्ध", lock_a2f: "A2F सुरक्षा {d} दिनों में उपलब्ध होगी।",
-                lock_face: "चेहरा पहचान {d} दिनों में उपलब्ध होगी।", lock_id: "पहचान सत्यापन {d} दिनों में उपलब्ध होगा।",
-                locked_list: "लॉक ({d} दिन शेष)", swap_locked: "स्वैप मेननेट के दौरान सक्रिय होगा।",
+                founder_avail: "संस्थापक {d} दिन {time} में उपलब्ध", lock_a2f: "A2F सुरक्षा {d} दिनों {time} में उपलब्ध होगी।",
+                lock_face: "चेहरा पहचान {d} दिनों {time} में उपलब्ध होगी।", lock_id: "पहचान सत्यापन {d} दिनों {time} में उपलब्ध होगा।",
+                locked_list: "लॉक ({d} दिन {time})", swap_locked: "स्वैप मेननेट के दौरान सक्रिय होगा।",
                 wd_insufficient: "क्षमा करें, आपका बैलेंस कम है।", wd_processed: "निकासी सफल!", wallet_manage: "वॉलेट प्रबंधित करें"
             },
             zh: {
@@ -492,9 +492,9 @@
                 notification: "通知", success: "成功", error: "错误", copied: "已复制！",
                 checkin_done: "今天已签到，请明天再来。", checkin_success: "签到成功，第",
                 ad_claimed: "奖励已领取！+15 AFEX, +0.002 USDT, +1 积分！", ad_not_ready: "暂无广告，请稍后再试。",
-                founder_avail: "创始人 VIP 将在 {d} 天 {h} 小时后可用", lock_a2f: "A2F 安全将在 {d} 天后可用。",
-                lock_face: "面部识别将在 {d} 天后可用。", lock_id: "身份验证将在 {d} 天后可用。",
-                locked_list: "锁定 (剩 {d} 天)", swap_locked: "兑换将在主网激活。",
+                founder_avail: "创始人 VIP 将在 {d} 天 {time} 后可用", lock_a2f: "A2F 安全将在 {d} 天 {time} 后可用。",
+                lock_face: "面部识别将在 {d} 天 {time} 后可用。", lock_id: "身份验证将在 {d} 天 {time} 后可用。",
+                locked_list: "锁定 (剩 {d} 天 {time})", swap_locked: "兑换将在主网激活。",
                 wd_insufficient: "抱歉，余额不足，请继续挖矿。", wd_processed: "提现成功！", wallet_manage: "管理钱包"
             },
             ja: {
@@ -510,9 +510,9 @@
                 notification: "通知", success: "成功", error: "エラー", copied: "コピー完了！",
                 checkin_done: "本日はチェックイン済みです。", checkin_success: "チェックイン成功、日目",
                 ad_claimed: "報酬獲得！ +15 AFEX, +0.002 USDT, +1 Pts！", ad_not_ready: "現在広告はありません。",
-                founder_avail: "創設者VIPは{d}日{h}時間後に利用可能", lock_a2f: "A2Fセキュリティは{d}日後に利用可能。",
-                lock_face: "顔認証は{d}日後に利用可能。", lock_id: "身元確認は{d}日後に利用可能。",
-                locked_list: "ロック中 (残り{d}日)", swap_locked: "スワップはメインネットで有効になります。",
+                founder_avail: "創設者VIPは{d}日と{time}後に利用可能", lock_a2f: "A2Fセキュリティは{d}日{time}後に利用可能。",
+                lock_face: "顔認証は{d}日{time}後に利用可能。", lock_id: "身元確認は{d}日{time}後に利用可能。",
+                locked_list: "ロック中 (残り{d}日 {time})", swap_locked: "スワップはメインネットで有効になります。",
                 wd_insufficient: "残高不足です。マイニングを続けてください。", wd_processed: "出金完了！", wallet_manage: "ウォレット管理"
             },
             ar: {
@@ -528,25 +528,24 @@
                 notification: "إشعار", success: "نجاح", error: "خطأ", copied: "تم النسخ!",
                 checkin_done: "تم تسجيل الدخول اليوم.", checkin_success: "نجاح تسجيل الدخول لليوم",
                 ad_claimed: "تمت المكافأة! +15 AFEX, +0.002 USDT, +1 Pts!", ad_not_ready: "لا توجد إعلانات الآن.",
-                founder_avail: "المؤسس متاح بعد {d} أيام {h} ساعات", lock_a2f: "أمان A2F متاح بعد {d} أيام.",
-                lock_face: "التعرف على الوجه متاح بعد {d} أيام.", lock_id: "التحقق من الهوية متاح بعد {d} أيام.",
-                locked_list: "مغلق (باقي {d} أيام)", swap_locked: "سيتم تفعيل التبادل قريباً.",
+                founder_avail: "المؤسس متاح بعد {d} أيام {time}", lock_a2f: "أمان A2F متاح بعد {d} أيام {time}.",
+                lock_face: "التعرف على الوجه متاح بعد {d} أيام {time}.", lock_id: "التحقق من الهوية متاح بعد {d} أيام {time}.",
+                locked_list: "مغلق (باقي {d} أيام {time})", swap_locked: "سيتم تفعيل التبادل قريباً.",
                 wd_insufficient: "رصيدك غير كافٍ.", wd_processed: "تم السحب بنجاح!", wallet_manage: "إدارة المحافظ"
             }
         };
 
-        // Fungsi helper multi-bahasa pintar
         function t(key) {
             let lang = document.getElementById('lang-select').value || 'en';
             return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : (i18n['en'][key] || key);
         }
 
-        // TANGGAL TARGET GLOBAL UNTUK MENGHITUNG HARI SISA
+        // TANGGAL TARGET GLOBAL - Inisialisasi awal
         let targetDates = {
-            founder: Date.now() + (45 * 24 * 60 * 60 * 1000),
-            a2f: Date.now() + (15 * 24 * 60 * 60 * 1000),
-            face: Date.now() + (20 * 24 * 60 * 60 * 1000),
-            id: Date.now() + (40 * 24 * 60 * 60 * 1000)
+            founder: Date.now() + (45 * 24 * 60 * 60 * 1000), // Pas 45 hari 00 jam (Otomatis start dari 44 hr 23:59:59)
+            a2f: Date.now() + (15 * 24 * 60 * 60 * 1000),     // Pas 15 hari
+            face: Date.now() + (20 * 24 * 60 * 60 * 1000),    // Pas 20 hari
+            id: Date.now() + (40 * 24 * 60 * 60 * 1000)       // Pas 40 hari
         };
 
         let miningData = {
@@ -606,6 +605,18 @@
             document.getElementById('user-points-badge').innerText = `${miningData.userPoints} Pts`;
         }
 
+        // FUNGSI HELPER TIME FORMATTER
+        function getFormattedTime(targetTimeMs) {
+            let diff = Math.max(0, targetTimeMs - Date.now());
+            let d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            let s = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            let timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            return { d, timeStr };
+        }
+
         /* INTERVAL REAL-TIME COUNTDOWN DAN MINING */
         function startTimerInterval() {
             setInterval(() => {
@@ -646,22 +657,18 @@
         }
 
         function updateDynamicCountdowns() {
-            let now = Date.now();
-            
-            // Founder VIP Hitung Mundur
-            let dF = Math.floor(Math.max(0, targetDates.founder - now) / 86400000);
-            let hF = Math.floor((Math.max(0, targetDates.founder - now) % 86400000) / 3600000);
-            document.getElementById('founder-countdown-text').innerText = t('founder_avail').replace('{d}', dF).replace('{h}', hF);
+            // Update UI with calculated real-time days & formatted HH:MM:SS
+            let fData = getFormattedTime(targetDates.founder);
+            document.getElementById('founder-countdown-text').innerText = t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr);
 
-            // KYC Labels
-            let dA = Math.floor(Math.max(0, targetDates.a2f - now) / 86400000);
-            document.getElementById('a2f-countdown-lbl').innerText = t('locked_list').replace('{d}', dA);
+            let a2fData = getFormattedTime(targetDates.a2f);
+            document.getElementById('a2f-countdown-lbl').innerText = t('locked_list').replace('{d}', a2fData.d).replace('{time}', a2fData.timeStr);
 
-            let dFace = Math.floor(Math.max(0, targetDates.face - now) / 86400000);
-            document.getElementById('face-countdown-lbl').innerText = t('locked_list').replace('{d}', dFace);
+            let faceData = getFormattedTime(targetDates.face);
+            document.getElementById('face-countdown-lbl').innerText = t('locked_list').replace('{d}', faceData.d).replace('{time}', faceData.timeStr);
 
-            let dId = Math.floor(Math.max(0, targetDates.id - now) / 86400000);
-            document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', dId);
+            let idData = getFormattedTime(targetDates.id);
+            document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', idData.d).replace('{time}', idData.timeStr);
         }
 
         /* CHECK-IN HARIAN DENGAN PENDING 24 JAM */
@@ -689,20 +696,19 @@
 
         /* LOCK POPUP HARIAN DINAMIS & TERJEMAHAN */
         function openLockedFeature(type) {
-            let now = Date.now();
-            let d = Math.floor(Math.max(0, targetDates[type] - now) / 86400000);
+            let fData = getFormattedTime(targetDates[type]);
             
             let title = "", msg = "";
-            if(type === 'a2f') { title = "A2F Security"; msg = t('lock_a2f').replace('{d}', d); }
-            else if(type === 'face') { title = "Face Recognition"; msg = t('lock_face').replace('{d}', d); }
-            else if(type === 'id') { title = "Identity Verification"; msg = t('lock_id').replace('{d}', d); }
+            if(type === 'a2f') { title = "A2F Security"; msg = t('lock_a2f').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
+            else if(type === 'face') { title = "Face Recognition"; msg = t('lock_face').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
+            else if(type === 'id') { title = "Identity Verification"; msg = t('lock_id').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
             
             showModal(`${title} Locked`, msg, "fa-lock");
         }
         
         function handleFounderClick() { 
-            let d = Math.floor(Math.max(0, targetDates.founder - Date.now()) / 86400000);
-            showModal("Founder VIP Locked", t('founder_avail').replace('{d}', d).replace('{h}', '0'), "fa-lock"); 
+            let fData = getFormattedTime(targetDates.founder);
+            showModal("Founder VIP Locked", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
         }
 
         /* MENONTON IKLAN - POINT HANYA JIKA IKLAN SELESAI MUNCUL */
