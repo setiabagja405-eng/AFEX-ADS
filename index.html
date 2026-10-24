@@ -510,6 +510,8 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxVW6mfPCvvl9Ntp4ly_Mh0fEZx1RhjRhojQi-mbNSEbOmdXSEiDedb1IIwcfe10GqUUA/exec";
+
         let tg = window.Telegram?.WebApp;
         try { if(tg) { tg.expand(); tg.ready(); } } catch(e) {}
 
@@ -1035,6 +1037,27 @@
 
         let cameraStream = null;
 
+        async function syncWithBackend() {
+            try {
+                const res = await fetch(`${API_URL}?action=GET_USER_STATUS&uid=${userIdStr}`);
+                const result = await res.json();
+                if (result.success && result.data) {
+                    const data = result.data;
+                    miningData.balance = Number(data.balance) || miningData.balance;
+                    miningData.isMining = !!data.isMining;
+                    if (data.isMining) {
+                        miningData.miningEndTime = Date.now() + (12 * 60 * 60 * 1000);
+                    }
+                    if (data.lockedAmount > 0) {
+                        miningData.lockedAmount = Number(data.lockedAmount);
+                    }
+                    updateUI();
+                }
+            } catch (e) {
+                console.error("Backend sync error:", e);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
@@ -1047,6 +1070,7 @@
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
 
+            syncWithBackend();
             startTimerInterval();
         });
 
@@ -1249,7 +1273,7 @@
             let fakeFaceHash = "FACE_HASH_" + Math.random().toString(36).substring(2, 10).toUpperCase();
 
             // KIRIM DATA KE GOOGLE SPREADSHEET (APPS SCRIPT)
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzl4z3W8sCordnJFTZHMqpMFGFel0V_K3Lnkok4Gxhk_uAJikQ1zRfNma_UFFiTUTSB/exec';
+            const scriptURL = API_URL;
 
             const requestData = {
                 action: "FACE_SCAN",
@@ -1563,7 +1587,7 @@
             lbl.innerText = `Min. WD: ${min} ${asset.toUpperCase()} (Fee 2%)`;
         }
 
-        function executeWithdraw() {
+        async function executeWithdraw() {
             let asset = document.getElementById('wd-asset').value;
             let net = document.getElementById('wd-network').value;
             let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
@@ -1592,26 +1616,26 @@
                 return showModal(t('notification'), t('wd_insufficient'), "fa-circle-exclamation");
             }
 
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzl4z3W8sCordnJFTZHMqpMFGFel0V_K3Lnkok4Gxhk_uAJikQ1zRfNma_UFFiTUTSB/exec';
-            
-            const requestData = {
-                action: "WITHDRAW",
-                username: displayName,
-                uid: userIdStr,
-                token: asset.toUpperCase(),
-                network: net.toUpperCase(),
-                wallet: miningData.connectedWallets[net] || "Manual/Direct",
-                amount: amt,
-                status: "PROCESSING"
-            };
+            const scriptURL = API_URL;
+            let targetWallet = miningData.connectedWallets[net] || "Manual/Direct";
 
-            fetch(scriptURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(requestData)
-            })
-            .then(res => console.log('Data WD berhasil dikirim ke Spreadsheet'))
-            .catch(err => console.error('Error WD:', err));
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "SUBMIT_WD",
+                        uid: userIdStr,
+                        username: displayName,
+                        amount: amt,
+                        walletAddress: targetWallet,
+                        token: asset.toUpperCase(),
+                        network: net.toUpperCase()
+                    })
+                });
+            } catch (err) {
+                console.error('Error WD Backend:', err);
+            }
 
             if(asset === 'afex') miningData.balance -= amt;
             else if(asset === 'usdt') miningData.usdtBalance -= amt;
@@ -1641,7 +1665,7 @@
                 return showModal(t('error'), t('err_enter_txhash'), "fa-circle-exclamation");
             }
 
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec'; 
+            const scriptURL = API_URL; 
 
             const requestData = {
                 action: "DEPOSIT_TXHASH",
@@ -1789,28 +1813,61 @@
             }
         }
 
-        function claimUsdtMining() {
+        async function claimUsdtMining() {
             if (miningData.usdtMinedPending <= 0.000001) {
                 return showModal(t('notification'), "Mining progress is too small to claim yet.", "fa-circle-exclamation");
             }
             let claimed = miningData.usdtMinedPending;
             miningData.usdtBalance += claimed;
             miningData.usdtMinedPending = 0.0;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr })
+                });
+            } catch (err) {
+                console.error("Backend Claim Error:", err);
+            }
+
             updateUI();
             showModal(t('success'), `Claimed +$${claimed.toFixed(4)} USDT to your Wallet balance!`, "fa-circle-check");
         }
 
-        function handleMiningAction() {
+        async function handleMiningAction() {
             const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
             if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
                 miningData.isMining = true;
                 miningData.miningEndTime = Date.now() + TOTAL_DURATION_MS;
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "START_MINING", uid: userIdStr })
+                    });
+                } catch (err) {
+                    console.error("Backend Start Mining Error:", err);
+                }
+
                 updateUI();
                 showModal(t('notification'), "12-Hour mining session active!", "fa-bolt");
             } else if (miningData.isMining && Date.now() >= miningData.miningEndTime) {
                 miningData.balance += 50.00;
                 miningData.isMining = false;
                 miningData.miningEndTime = 0;
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr })
+                    });
+                } catch (err) {
+                    console.error("Backend Claim Mining Error:", err);
+                }
+
                 updateUI();
                 showModal(t('success'), "Claimed +50.00 AFEX!", "fa-circle-check");
             }
