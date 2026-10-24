@@ -511,21 +511,24 @@
     <!-- FIREBASE & JAVASCRIPT LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
         import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD6kSNbAhtVFDvAVkt4Tn_O69eRdB13VDY",
-            authDomain: "afexmining.firebaseapp.com",
-            databaseURL: "https://afexmining-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "afexmining",
-            storageBucket: "afexmining.firebasestorage.app",
-            messagingSenderId: "42256997232",
-            appId: "1:42256997232:web:7534ec5a15f20d550bcdb5",
-            measurementId: "G-3D2JHCCH3T"
+            apiKey: "AIzaSyBeDb2ISj0_tgC2vLOT-SylBP51pmeHbYk",
+            authDomain: "afex-mining-new.firebaseapp.com",
+            databaseURL: "https://afex-mining-new-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "afex-mining-new",
+            storageBucket: "afex-mining-new.firebasestorage.app",
+            messagingSenderId: "43555744747",
+            appId: "1:43555744747:web:2822925282d1ae065b87ae",
+            measurementId: "G-HQZ3WYLDTG"
         };
 
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const db = getDatabase(app);
+        
         window.dbRef = db;
         window.FB = { ref, set, get, update, child };
     </script>
@@ -665,7 +668,6 @@
 
         function saveLocalData() {
             localStorage.setItem(`afex_mining_data_${userIdStr}`, JSON.stringify(miningData));
-            // Sinkronisasi otomatis ke Firebase Realtime Database
             if (window.FB && window.dbRef) {
                 try {
                     window.FB.set(window.FB.ref(window.dbRef, `users/${userIdStr}`), miningData);
