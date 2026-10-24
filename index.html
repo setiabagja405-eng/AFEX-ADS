@@ -60,11 +60,18 @@
             <div class="flex items-center gap-2">
                 <!-- MULTI LANGUAGE SELECTOR -->
                 <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#121927] gold-border text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
-                    <option value="en">🇬🇧 English</option>
+                    <option value="en" selected>🇬🇧 English</option>
                     <option value="id">🇮🇩 Indonesia</option>
-                    <option value="hi">🇮🇳 India</option>
+                    <option value="vi">🇻🇳 Vietnam</option>
+                    <option value="tl">🇵🇭 Philippines</option>
+                    <option value="th">🇹🇭 Thailand</option>
+                    <option value="ms">🇲🇾 Malaysia</option>
+                    <option value="hi">🇮🇳 India (Hindi)</option>
+                    <option value="ur">🇵🇰 Pakistan (Urdu)</option>
                     <option value="zh">🇨🇳 China</option>
+                    <option value="ko">🇰🇷 Korea</option>
                     <option value="ja">🇯🇵 Japan</option>
+                    <option value="af">🇿🇦 Afrikaans</option>
                     <option value="ar">🇸🇦 Arabic</option>
                 </select>
 
@@ -144,12 +151,12 @@
                 <div class="flex items-center justify-between text-[10px] text-gray-300 mb-2 border-b border-gray-800/80 pb-2">
                     <div class="flex items-center gap-1 font-bold text-gray-200">
                         <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                        <span data-i18n="income_label">Pendapatan</span>
+                        <span data-i18n="income_label">Income</span>
                     </div>
                     <div class="flex items-center gap-2 font-mono text-[10px]">
-                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-clock text-yellow-400 text-[9px]"></i> <strong id="income-hourly" class="text-white">$0.0003</strong> <span class="text-gray-400">/jam</span></span>
-                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-days text-green-400 text-[9px]"></i> <strong id="income-daily" class="text-white">$0.0080</strong> <span class="text-gray-400">/hari</span></span>
-                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-check text-cyan-400 text-[9px]"></i> <strong id="income-monthly" class="text-white">$0.2400</strong> <span class="text-gray-400">/bln</span></span>
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-clock text-yellow-400 text-[9px]"></i> <strong id="income-hourly" class="text-white">$0.0001</strong> <span class="text-gray-400" data-i18n="per_hour">/hr</span></span>
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-days text-green-400 text-[9px]"></i> <strong id="income-daily" class="text-white">$0.0020</strong> <span class="text-gray-400" data-i18n="per_day">/day</span></span>
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-check text-cyan-400 text-[9px]"></i> <strong id="income-monthly" class="text-white">$0.0600</strong> <span class="text-gray-400" data-i18n="per_month">/mo</span></span>
                     </div>
                 </div>
 
@@ -166,15 +173,15 @@
                         <i class="fa-solid fa-layer-group text-yellow-400 text-xs"></i>
                         <div>
                             <span id="user-level-badge" class="text-xs font-bold text-yellow-400 block font-mono">Level 1 (2.7%)</span>
-                            <span class="text-[9px] text-gray-400 underline" data-i18n="view_levels">Lihat Level Info &gt;</span>
+                            <span class="text-[9px] text-gray-400 underline" data-i18n="view_levels">View Level Info &gt;</span>
                         </div>
                     </div>
 
                     <div class="flex gap-1.5">
                         <button onclick="openDepositUsdtModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xs px-3.5 py-2 rounded-xl shadow cursor-pointer hover:opacity-90 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-plus"></i> Deposit
+                            <i class="fa-solid fa-circle-plus"></i> <span data-i18n="deposit">Deposit</span>
                         </button>
-                        <button onclick="claimUsdtMining()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xs px-3.5 py-2 rounded-xl shadow cursor-pointer hover:opacity-90">
+                        <button onclick="claimUsdtMining()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xs px-3.5 py-2 rounded-xl shadow cursor-pointer hover:opacity-90" data-i18n="claim">
                             Claim
                         </button>
                     </div>
@@ -182,8 +189,8 @@
 
                 <!-- SPEED BOOST FROM ADS INFO -->
                 <div class="mt-2.5 bg-[#080c14]/90 p-2 rounded-lg border border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
-                    <span class="text-gray-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> Bonus Nonton Iklan:</span>
-                    <span id="usdt-speed-boost" class="text-yellow-400 font-bold">+0.0000 USDT/hari</span>
+                    <span class="text-gray-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> <span data-i18n="ad_boost_label">Ad Bonus Speed:</span></span>
+                    <span id="usdt-speed-boost" class="text-yellow-400 font-bold">+0.0000 USDT/day</span>
                 </div>
             </div>
         </div>
@@ -207,8 +214,8 @@
                             <i class="fa-solid fa-play text-base"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Watch Ad</span> <span id="ad-counter-badge" class="text-[9px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-mono">0/100</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-green-400">+1.00 USDT</span> <span class="text-gray-500">|</span> <span class="text-yellow-300">+1 Pt</span></p>
+                            <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Watch Ad</span> <span id="ad-counter-badge" class="text-[9px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-1.5 py-0.5 rounded font-mono">0/25</span></h4>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-400 font-bold">+0.0001 Speed/day</span> <span class="text-gray-500">|</span> <span class="text-yellow-300">+1 Pt</span></p>
                         </div>
                     </div>
                     <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
@@ -238,7 +245,7 @@
                 </div>
                 <h3 class="text-sm font-bold text-white" data-i18n="swap_heading">AFEX Token Swap Exchange</h3>
                 <p class="text-xs text-gray-400 leading-relaxed" data-i18n="swap_desc">Swap AFEX tokens instantly to USDT or TON.</p>
-                <button onclick="showModal(t('notification'), t('swap_locked'), 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer">
+                <button onclick="showModal(t('notification'), t('swap_locked'), 'fa-right-left')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer" data-i18n="start_swap_btn">
                     START SWAP
                 </button>
             </div>
@@ -268,7 +275,7 @@
                 <div onclick="openWithdrawModal()" class="bg-[#121927] gold-border p-3 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-paper-plane"></i></div>
-                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="withdraw">Withdraw</span><span class="text-[9px] text-gray-400">Instant Payouts</span></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="withdraw">Withdraw</span><span class="text-[9px] text-gray-400" data-i18n="instant_payouts">Instant Payouts</span></div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
@@ -355,7 +362,7 @@
             <!-- YOUR UID SECTION -->
             <div class="bg-[#121927] p-4 rounded-2xl gold-border flex items-center justify-between shadow-lg">
                 <div>
-                    <span class="text-[10px] text-gray-400 tracking-wider block uppercase">YOUR UID</span>
+                    <span class="text-[10px] text-gray-400 tracking-wider block uppercase" data-i18n="your_uid">YOUR UID</span>
                     <span id="profile-uid" class="text-base font-mono font-bold text-white tracking-widest">8821716544</span>
                 </div>
                 <button onclick="copyUID()" class="w-9 h-9 bg-[#080c14] border border-gray-800 rounded-xl flex items-center justify-center text-yellow-400 hover:text-white cursor-pointer">
@@ -370,21 +377,21 @@
                     <div onclick="openLockedFeature('a2f')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">A2F Security (Phone & Email)</h4><p class="text-[10px] text-yellow-400 font-mono" id="a2f-countdown-lbl">Locked</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="a2f_title">A2F Security (Phone & Email)</h4><p class="text-[10px] text-yellow-400 font-mono" id="a2f-countdown-lbl">Locked</p></div>
                         </div>
                         <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
                     <div onclick="openLockedFeature('face')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-face-smile"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Face Recognition (Face Scan)</h4><p class="text-[10px] text-yellow-400 font-mono" id="face-countdown-lbl">Locked</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="face_title">Face Recognition (Face Scan)</h4><p class="text-[10px] text-yellow-400 font-mono" id="face-countdown-lbl">Locked</p></div>
                         </div>
                         <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
                     <div onclick="openLockedFeature('id')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-id-card"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Identity Verification (ID/Passport)</h4><p class="text-[10px] text-yellow-400 font-mono" id="id-countdown-lbl">Locked</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="id_title">Identity Verification (ID/Passport)</h4><p class="text-[10px] text-yellow-400 font-mono" id="id-countdown-lbl">Locked</p></div>
                         </div>
                         <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
@@ -398,21 +405,21 @@
                     <div onclick="openInviteModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-user-plus"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Invite Friends</h4><p class="text-[10px] text-gray-400" data-i18n="invite_sub">Invite and Get Reward</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="invite_friends">Invite Friends</h4><p class="text-[10px] text-gray-400" data-i18n="invite_sub">Invite and Get Reward</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openContestsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-trophy"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Contests & Leaderboard</h4><p class="text-[10px] text-gray-400" data-i18n="contest_sub">Get Reward</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="contests_title">Contests & Leaderboard</h4><p class="text-[10px] text-gray-400" data-i18n="contest_sub">Get Reward</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openPayoutsModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-circle-check"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Proof of Payouts</h4><p class="text-[10px] text-gray-400" data-i18n="payouts_sub">Live withdraw global users</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="proof_payouts">Proof of Payouts</h4><p class="text-[10px] text-gray-400" data-i18n="payouts_sub">Live withdraw global users</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
@@ -426,14 +433,14 @@
                     <div onclick="openAboutModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-circle-info"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">About AFEX Token</h4></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="about_afex">About AFEX Token</h4></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
                     <div onclick="openPrivacyModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-cat"></i></div>
-                            <div><h4 class="text-xs font-bold text-white">Privacy Policy</h4></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="privacy_policy">Privacy Policy</h4></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
@@ -488,7 +495,7 @@
         let userIdStr = userTg ? userTg.id.toString() : "8821716544";
         let displayName = userTg ? (userTg.username ? `@${userTg.username}` : userTg.first_name) : "Carmelo";
 
-        /* TRANSLATION DICTIONARY */
+        /* TRANSLATION DICTIONARY (DEFAULT: ENGLISH) */
         const i18n = {
             en: { 
                 total_balance: "TOTAL BALANCE", checkin_title: "Daily Check-in", checkin_sub: "Claim Streak Rewards (Day 1 - 7)",
@@ -502,12 +509,25 @@
                 sec_kyc: "SECURITY & KYC", community: "COMMUNITY", about: "ABOUT", payouts_sub: "Live withdraw global users",
                 notification: "Notification", success: "Success", error: "Error", copied: "Copied!",
                 checkin_done: "Already checked in today. Please return tomorrow.", checkin_success: "Check-in successful for Day",
-                ad_claimed: "Reward Claimed! +15 AFEX, +1.00 USDT, and +1 Point added!", ad_not_ready: "Sorry, no ads available right now.",
+                ad_claimed: "Reward Claimed! +15 AFEX, +0.0001 Speed/day, and +1 Point added!", ad_not_ready: "Sorry, no ads available right now.",
                 founder_avail: "Founder available in {d} days {time}", lock_a2f: "A2F Security will be available in {d} days {time}.", 
                 lock_face: "Face Recognition will be available in {d} days {time}.", lock_id: "Identity Verification will be available in {d} days {time}.",
                 locked_list: "Locked ({d} days {time})", swap_locked: "Swap feature will be active during Mainnet.",
                 wd_insufficient: "Oops, your balance is insufficient, please continue mining.", wd_processed: "Withdrawal processed successfully!",
-                wallet_manage: "Manage Wallet Addresses", tx_history: "Transaction History", wd_history: "Withdraw History"
+                wallet_manage: "Manage Wallet Addresses", tx_history: "Transaction History", wd_history: "Withdraw History",
+                income_label: "Income", view_levels: "View Level Info >", deposit: "Deposit", claim: "Claim",
+                ad_boost_label: "Ad Bonus Speed:", per_hour: "/hr", per_day: "/day", per_month: "/mo",
+                start_swap_btn: "START SWAP", instant_payouts: "Instant Payouts", your_uid: "YOUR UID",
+                a2f_title: "A2F Security (Phone & Email)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
+                invite_friends: "Invite Friends", contests_title: "Contests & Leaderboard", proof_payouts: "Proof of Payouts",
+                about_afex: "About AFEX Token", privacy_policy: "Privacy Policy",
+                lbl_select_asset: "Select Asset", lbl_network: "Network", lbl_amount_dep: "Deposit Amount (USDT)",
+                lbl_select_net: "Select Network", btn_dep_now: "DEPOSIT NOW", btn_confirm_dep: "CONFIRM DEPOSIT",
+                lbl_txhash_input: "Enter TxHash / Transaction ID:", lbl_dep_wallet_addr: "Deposit Wallet Address:",
+                lbl_req_transfer: "Required Transfer Amount:", level_info_desc: "Level depends on USDT balance: higher balance, higher daily income.<br>USDT income is calculated based on current balance.",
+                no_tx_history: "No transaction history yet.", no_wd_history: "No withdrawal history yet.",
+                ref_link_lbl: "Your Referral Link", invited_users_lbl: "Invited Users", contest_heading: "Live Global Contest",
+                contest_sub_heading: "Win USDT & iPhone!", err_valid_dep_amt: "Please enter a valid deposit amount!", err_enter_txhash: "Please enter your transfer TxHash / Transaction ID!"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -521,12 +541,153 @@
                 sec_kyc: "KEAMANAN & KYC", community: "KOMUNITAS", about: "TENTANG", payouts_sub: "Penarikan global langsung",
                 notification: "Pemberitahuan", success: "Berhasil", error: "Kesalahan", copied: "Tersalin!",
                 checkin_done: "Sudah check-in hari ini, silahkan kembali besok.", checkin_success: "Berhasil check-in Hari ke-",
-                ad_claimed: "Hadiah Diklaim! +15 AFEX, +1.00 USDT, & +1 Poin!", ad_not_ready: "Maaf, belum ada iklan tersedia saat ini.",
+                ad_claimed: "Hadiah Diklaim! +15 AFEX, +0.0001 Speed/hari, & +1 Poin!", ad_not_ready: "Maaf, belum ada iklan tersedia saat ini.",
                 founder_avail: "Founder tersedia dalam {d} hari {time}", lock_a2f: "Keamanan A2F akan tersedia dalam {d} hari {time}.", 
                 lock_face: "Verifikasi Wajah akan tersedia dalam {d} hari {time}.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari {time}.",
                 locked_list: "Terkunci ({d} hari {time})", swap_locked: "Fitur Swap akan aktif pada fase Mainnet.",
                 wd_insufficient: "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", wd_processed: "Penarikan berhasil diproses!",
-                wallet_manage: "Kelola Alamat Dompet", tx_history: "Riwayat Transaksi", wd_history: "Riwayat Penarikan"
+                wallet_manage: "Kelola Alamat Dompet", tx_history: "Riwayat Transaksi", wd_history: "Riwayat Penarikan",
+                income_label: "Pendapatan", view_levels: "Lihat Level Info >", deposit: "Deposit", claim: "Klaim",
+                ad_boost_label: "Bonus Nonton Iklan:", per_hour: "/jam", per_day: "/hari", per_month: "/bln",
+                start_swap_btn: "MULAI SWAP", instant_payouts: "Penarikan Instan", your_uid: "UID ANDA",
+                a2f_title: "Keamanan A2F (HP & Email)", face_title: "Verifikasi Wajah (Scan Wajah)", id_title: "Verifikasi Identitas (KTP/Paspor)",
+                invite_friends: "Undang Teman", contests_title: "Kontes & Papan Peringkat", proof_payouts: "Bukti Penarikan",
+                about_afex: "Tentang Token AFEX", privacy_policy: "Kebijakan Privasi",
+                lbl_select_asset: "Pilih Aset", lbl_network: "Jaringan", lbl_amount_dep: "Jumlah Deposit (USDT)",
+                lbl_select_net: "Pilih Jaringan", btn_dep_now: "DEPOSIT SEKARANG", btn_confirm_dep: "KONFIRMASI DEPOSIT",
+                lbl_txhash_input: "Masukkan TxHash / ID Transaksi:", lbl_dep_wallet_addr: "Alamat Wallet Deposit:",
+                lbl_req_transfer: "Jumlah Transfer yang Diperlukan:", level_info_desc: "Level bergantung pada saldo USDT: makin besar dana, makin tinggi pendapatan harian.<br>Pendapatan USDT dihitung dari saldo saat ini.",
+                no_tx_history: "Belum ada riwayat transaksi.", no_wd_history: "Belum ada riwayat penarikan.",
+                ref_link_lbl: "Tautan Referral Anda", invited_users_lbl: "Pengguna Diundang", contest_heading: "Kontes Global Langsung",
+                contest_sub_heading: "Menangkan USDT & iPhone!", err_valid_dep_amt: "Masukkan jumlah deposit yang valid!", err_enter_txhash: "Harap masukkan TxHash / Transaction Hash transfer Anda!"
+            },
+            vi: {
+                total_balance: "TỔNG SỐ DƯ", checkin_title: "Điểm danh hàng ngày", checkin_sub: "Nhận thưởng chuỗi (Ngày 1 - 7)",
+                ready_to_mine: "Sẵn sàng khai thác", session_timer: "Thời gian phiên:", tasks_title: "NHIỆM VỤ", 
+                tasks_desc: "Hoàn thành nhiệm vụ để nhận điểm & phần thưởng.", swap_title: "ĐỔI TOKEN", swap_subtitle: "Sắp ra mắt", 
+                swap_heading: "Sàn giao dịch AFEX", swap_desc: "Đổi token AFEX sang USDT hoặc TON ngay lập tức.",
+                connect_wallet: "Kết nối ví", withdraw: "Rút tiền", your_balances: "Số dư token của bạn",
+                nav_mine: "Trang chủ", nav_task: "Nhiệm vụ", nav_swap: "Đổi", nav_wallet: "Ví", nav_profile: "Hồ sơ", 
+                vip_pass: "THẺ VIP SÁNG LẬP", btn_start_mine: "BẮT ĐẦU KHAI THÁC 12GIỜ", task_watch_ad: "Xem quảng cáo", btn_watch: "Xem", 
+                task_join_tg: "Tham gia Kênh Telegram", btn_start: "Bắt đầu", invite_sub: "Mời bạn bè & nhận thưởng", contest_sub: "Nhận phần thưởng",
+                sec_kyc: "BẢO MẬT & KYC", community: "CỘNG ĐỒNG", about: "GIỚI THIỆU", payouts_sub: "Lịch sử rút tiền toàn cầu",
+                notification: "Thông báo", success: "Thành công", error: "Lỗi", copied: "Đã sao chép!",
+                checkin_done: "Đã điểm danh hôm nay. Vui lòng quay lại vào ngày mai.", checkin_success: "Điểm danh thành công Ngày",
+                ad_claimed: "Nhận thưởng thành công! +15 AFEX, +0.0001 Tốc độ/ngày, & +1 Điểm!", ad_not_ready: "Hiện tại chưa có quảng cáo.",
+                founder_avail: "Thẻ Sáng Lập khả dụng sau {d} ngày {time}", lock_a2f: "Bảo mật A2F sẽ mở sau {d} ngày {time}.", 
+                lock_face: "Nhận diện khuôn mặt mở sau {d} ngày {time}.", lock_id: "Xác minh danh tính mở sau {d} ngày {time}.",
+                locked_list: "Đã khóa ({d} ngày {time})", swap_locked: "Tính năng Đổi token sẽ hoạt động khi Mainnet.",
+                wd_insufficient: "Số dư không đủ, vui lòng tiếp tục khai thác.", wd_processed: "Yêu cầu rút tiền đã được xử lý!",
+                wallet_manage: "Quản lý địa chỉ ví", tx_history: "Lịch sử giao dịch", wd_history: "Lịch sử rút tiền",
+                income_label: "Thu nhập", view_levels: "Xem thông tin Cấp độ >", deposit: "Nạp tiền", claim: "Nhận",
+                ad_boost_label: "Tốc độ thưởng QC:", per_hour: "/giờ", per_day: "/ngày", per_month: "/tháng",
+                start_swap_btn: "BẮT ĐẦU ĐỔI", instant_payouts: "Rút tiền nhanh", your_uid: "UID CỦA BẠN",
+                a2f_title: "Bảo mật A2F (SĐT & Email)", face_title: "Nhận diện khuôn mặt", id_title: "Xác minh danh tính (CCCD/Hộ chiếu)",
+                invite_friends: "Mời bạn bè", contests_title: "Cuộc thi & Bảng xếp hạng", proof_payouts: "Bằng chứng rút tiền",
+                about_afex: "Về Token AFEX", privacy_policy: "Chính sách bảo mật",
+                lbl_select_asset: "Chọn tài sản", lbl_network: "Mạng lưới", lbl_amount_dep: "Số tiền nạp (USDT)",
+                lbl_select_net: "Chọn mạng lưới", btn_dep_now: "NẠP TIỀN NGAY", btn_confirm_dep: "XÁC NHẬN NẠP TIỀN",
+                lbl_txhash_input: "Nhập TxHash / Mã giao dịch:", lbl_dep_wallet_addr: "Địa chỉ ví nạp tiền:",
+                lbl_req_transfer: "Số tiền cần chuyển:", level_info_desc: "Cấp độ phụ thuộc vào số dư USDT: số dư càng cao, thu nhập càng lớn.<br>Thu nhập tính theo số dư hiện tại.",
+                no_tx_history: "Chưa có lịch sử giao dịch.", no_wd_history: "Chưa có lịch sử rút tiền.",
+                ref_link_lbl: "Liên kết giới thiệu của bạn", invited_users_lbl: "Người dùng đã mời", contest_heading: "Cuộc thi toàn cầu",
+                contest_sub_heading: "Thắng USDT & iPhone!", err_valid_dep_amt: "Vui lòng nhập số tiền nạp hợp lệ!", err_enter_txhash: "Vui lòng nhập TxHash giao dịch!"
+            },
+            tl: {
+                total_balance: "KABUUANG BALANSE", checkin_title: "Araw-araw na Check-in", checkin_sub: "Kumuha ng Rewards (Araw 1 - 7)",
+                ready_to_mine: "Handa nang Mag-mine", session_timer: "Oras ng Seksyon:", tasks_title: "MGA GAWAIN", 
+                tasks_desc: "Kumpletuhin ang mga gawain para sa puntos at reward.", swap_title: "IPAGPALIT ANG TOKEN", swap_subtitle: "Malapit Na", 
+                swap_heading: "AFEX Token Exchange", swap_desc: "Ipalit ang AFEX tokens sa USDT o TON agad-agad.",
+                connect_wallet: "I-konekta ang Wallet", withdraw: "Mag-withdraw", your_balances: "Iyong Balanse sa Token",
+                nav_mine: "Home", nav_task: "Gawain", nav_swap: "Swap", nav_wallet: "Wallet", nav_profile: "Profile", 
+                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "SIMULAN ANG 12H MINING", task_watch_ad: "Manood ng Ad", btn_watch: "Panoorin", 
+                task_join_tg: "Sali sa Telegram Channel", btn_start: "Simulan", invite_sub: "Mag-imbita at Tumanggap ng Reward", contest_sub: "Kumuha ng Reward",
+                sec_kyc: "SEKYURIDAD AT KYC", community: "KOMUNIDAD", about: "TUNGKOL DITO", payouts_sub: "Live withdraw ng mga user",
+                notification: "PABATID", success: "Tagumpay", error: "Pagkakamali", copied: "Na-kopya na!",
+                checkin_done: "Naka check-in ka na ngayong araw. Bumalik bukas.", checkin_success: "Matagumpay na check-in para sa Araw",
+                ad_claimed: "Nakuha ang Reward! +15 AFEX, +0.0001 Bilis/araw, at +1 Puntos!", ad_not_ready: "Walang available na ads ngayon.",
+                founder_avail: "Magagamit ang Founder sa {d} araw {time}", lock_a2f: "Magagamit ang A2F Security sa {d} araw {time}.", 
+                lock_face: "Magagamit ang Face Scan sa {d} araw {time}.", lock_id: "Magagamit ang ID Verification sa {d} araw {time}.",
+                locked_list: "Naka-lock ({d} araw {time})", swap_locked: "Magiging aktibo ang Swap sa Mainnet.",
+                wd_insufficient: "Kulang ang iyong balanse, magpatuloy sa pag-mine.", wd_processed: "Matagumpay na naiproseso ang withdrawal!",
+                wallet_manage: "Pamahalaan ang Wallet Addresses", tx_history: "Kasaysayan ng Transaksyon", wd_history: "Kasaysayan ng Withdrawal",
+                income_label: "Kikikitain", view_levels: "Tingnan ang Level Info >", deposit: "Mag-deposit", claim: "Kumuha",
+                ad_boost_label: "Ad Bonus Speed:", per_hour: "/oras", per_day: "/araw", per_month: "/buwan",
+                start_swap_btn: "SIMULAN ANG SWAP", instant_payouts: "Mabilis na Payout", your_uid: "IYONG UID",
+                a2f_title: "A2F Security (Telepono at Email)", face_title: "Face Scan Recognition", id_title: "ID/Passport Verification",
+                invite_friends: "Mag-imbita ng Kaibigan", contests_title: "Paligsahan at Leaderboard", proof_payouts: "Patunay ng Payouts",
+                about_afex: "Tungkol sa AFEX Token", privacy_policy: "Kebijakan sa Pagkapribado",
+                lbl_select_asset: "Pumili ng Asset", lbl_network: "Network", lbl_amount_dep: "Halaga ng Deposit (USDT)",
+                lbl_select_net: "Pumili ng Network", btn_dep_now: "MAG-DEPOSIT NGAYON", btn_confirm_dep: "KUMPIRMAHIN ANG DEPOSIT",
+                lbl_txhash_input: "Ilagay ang TxHash / Transaction ID:", lbl_dep_wallet_addr: "Address ng Wallet sa Deposit:",
+                lbl_req_transfer: "Kailangan na Halaga ng Transfer:", level_info_desc: "Depende ang Level sa balanse ng USDT: mas malaking balanse, mas mataas na araw-araw na kita.<br>Kina-kalkula batay sa kasalukuyang balanse.",
+                no_tx_history: "Wala pang kasaysayan ng transaksyon.", no_wd_history: "Wala pang kasaysayan ng withdrawal.",
+                ref_link_lbl: "Iyong Referral Link", invited_users_lbl: "Inimbita na Users", contest_heading: "Live Global Contest",
+                contest_sub_heading: "Manalo ng USDT & iPhone!", err_valid_dep_amt: "Maglagay ng tamang halaga ng deposit!", err_enter_txhash: "Ipasok ang TxHash ng iyong transfer!"
+            },
+            th: {
+                total_balance: "ยอดเงินทั้งหมด", checkin_title: "เช็คอินรายวัน", checkin_sub: "รับรางวัลต่อเนื่อง (วันที่ 1 - 7)",
+                ready_to_mine: "พร้อมขุด", session_timer: "เวลาเซสชัน:", tasks_title: "ภารกิจ", 
+                tasks_desc: "ทำภารกิจให้สำเร็จเพื่อรับคะแนนและรางวัล", swap_title: "แลกเปลี่ยนโทเค็น", swap_subtitle: "เร็วๆ นี้", 
+                swap_heading: "ศูนย์แลกเปลี่ยน AFEX Token", swap_desc: "แลกเปลี่ยน AFEX เป็น USDT หรือ TON ได้ทันที",
+                connect_wallet: "เชื่อมต่อกระเป๋าเงิน", withdraw: "ถอนเงิน", your_balances: "ยอดโทเค็นของคุณ",
+                nav_mine: "หน้าแรก", nav_task: "ภารกิจ", nav_swap: "แลกเปลี่ยน", nav_wallet: "กระเป๋าเงิน", nav_profile: "โปรไฟล์", 
+                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "เริ่มขุดอัตโนมัติ 12 ชั่วโมง", task_watch_ad: "ดูโฆษณา", btn_watch: "รับชม", 
+                task_join_tg: "เข้าร่วม Telegram Channel", btn_start: "เริ่ม", invite_sub: "เชิญเพื่อนและรับรางวัล", contest_sub: "รับรางวัล",
+                sec_kyc: "ความปลอดภัย & KYC", community: "ชุมชน", about: "เกี่ยวกับ", payouts_sub: "ประวัติการถอนเงินสดทั่วโลก",
+                notification: "แจ้งเตือน", success: "สำเร็จ", error: "ข้อผิดพลาด", copied: "คัดลอกแล้ว!",
+                checkin_done: "เช็คอินวันนี้แล้ว โปรดกลับมาใหม่พรุ่งนี้", checkin_success: "เช็คอินสำเร็จสำหรับวันที่",
+                ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.0001 ความเร็ว/วัน, & +1 คะแนน!", ad_not_ready: "ไม่มีโฆษณาพร้อมใช้งานในขณะนี้",
+                founder_avail: "Founder ใช้งานได้ในอีก {d} วัน {time}", lock_a2f: "A2F Security จะเปิดใช้งานในอีก {d} วัน {time}", 
+                lock_face: "สแกนใบหน้าจะเปิดใช้งานในอีก {d} วัน {time}", lock_id: "ยืนยันตัวตนจะเปิดใช้งานในอีก {d} วัน {time}",
+                locked_list: "ล็อกอยู่ ({d} วัน {time})", swap_locked: "ฟีเจอร์แลกเปลี่ยนจะเปิดใช้ในช่วง Mainnet",
+                wd_insufficient: "ยอดเงินไม่เพียงพอ กรุณาขุดต่อ", wd_processed: "ดำเนินการถอนเงินเรียบร้อยแล้ว!",
+                wallet_manage: "จัดการที่อยู่กระเป๋าเงิน", tx_history: "ประวัติธุรกรรม", wd_history: "ประวัติการถอน",
+                income_label: "รายได้", view_levels: "ดูข้อมูลระดับ >", deposit: "ฝากเงิน", claim: "รับเหรียญ",
+                ad_boost_label: "โบนัสโฆษณา:", per_hour: "/ชม.", per_day: "/วัน", per_month: "/เดือน",
+                start_swap_btn: "เริ่มแลกเปลี่ยน", instant_payouts: "ถอนเงินทันที", your_uid: "UID ของคุณ",
+                a2f_title: "ระบบความปลอดภัย A2F", face_title: "ระบบสแกนใบหน้า", id_title: "ยืนยันตัวตน (บัตรประชาชน/พาสปอร์ต)",
+                invite_friends: "เชิญเพื่อน", contests_title: "การแข่งขัน & ตารางคะแนน", proof_payouts: "หลักฐานการถอนเงิน",
+                about_afex: "เกี่ยวกับ AFEX Token", privacy_policy: "นโยบายความเป็นส่วนตัว",
+                lbl_select_asset: "เลือกสินทรัพย์", lbl_network: "เครือข่าย", lbl_amount_dep: "จำนวนเงินฝาก (USDT)",
+                lbl_select_net: "เลือกเครือข่าย", btn_dep_now: "ฝากเงินทันที", btn_confirm_dep: "ยืนยันการฝากเงิน",
+                lbl_txhash_input: "กรอก TxHash / Transaction ID:", lbl_dep_wallet_addr: "ที่อยู่กระเป๋าเงินฝาก:",
+                lbl_req_transfer: "จำนวนเงินโอนที่ต้องใช้:", level_info_desc: "ระดับขึ้นอยู่กับยอด USDT: ยอดสูงขึ้น รายได้รายวันยิ่งสูงขึ้น<br>คำนวณจากยอดคงเหลือปัจจุบัน",
+                no_tx_history: "ยังไม่มีประวัติธุรกรรม", no_wd_history: "ยังไม่มีประวัติการถอน",
+                ref_link_lbl: "ลิงก์แนะนำของคุณ", invited_users_lbl: "ผู้ใช้ที่ได้รับเชิญ", contest_heading: "การแข่งขันระดับโลกสด",
+                contest_sub_heading: "ลุ้นรับ USDT & iPhone!", err_valid_dep_amt: "โปรดป้อนจำนวนเงินฝากที่ถูกต้อง!", err_enter_txhash: "โปรดกรอก TxHash ของคุณ!"
+            },
+            ms: {
+                total_balance: "JUMLAH BAKI", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Berturut-turut (Hari 1 - 7)",
+                ready_to_mine: "Sedia Untuk Perlombongan", session_timer: "Masa Sesi:", tasks_title: "TUGASAN", 
+                tasks_desc: "Selesaikan tugasan untuk mata & ganjaran.", swap_title: "TUKAR TOKEN", swap_subtitle: "Akan Datang", 
+                swap_heading: "Pertukaran Token AFEX", swap_desc: "Tukar token AFEX secara serta-merta ke USDT atau TON.",
+                connect_wallet: "Sambung Dompet", withdraw: "Pengeluaran", your_balances: "Baki Token Anda",
+                nav_mine: "Utama", nav_task: "Tugasan", nav_swap: "Tukar", nav_wallet: "Dompet", nav_profile: "Profil", 
+                vip_pass: "PASS VIP PENGASAS", btn_start_mine: "MULAKAN LOMBONG 12 JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
+                task_join_tg: "Sertai Saluran Telegram", btn_start: "Mula", invite_sub: "Jemput & Dapatkan Ganjaran", contest_sub: "Dapatkan Ganjaran",
+                sec_kyc: "KESELAMATAN & KYC", community: "KOMUNITI", about: "PERHALAN", payouts_sub: "Pengeluaran langsung pengguna global",
+                notification: "Pemberitahuan", success: "Berjaya", error: "Ralat", copied: "Disalin!",
+                checkin_done: "Telah daftar masuk hari ini. Sila kembali esok.", checkin_success: "Berjaya daftar masuk Hari ke-",
+                ad_claimed: "Ganjaran Dituntut! +15 AFEX, +0.0001 Kelajuan/hari, & +1 Mata!", ad_not_ready: "Maaf, tiada iklan tersedia sekarang.",
+                founder_avail: "Pengasas tersedia dalam {d} hari {time}", lock_a2f: "Keselamatan A2F akan tersedia dalam {d} hari {time}.", 
+                lock_face: "Pengecaman Muka akan tersedia dalam {d} hari {time}.", lock_id: "Pengesahan Identiti akan tersedia dalam {d} hari {time}.",
+                locked_list: "Terkunci ({d} hari {time})", swap_locked: "Ciri tukar token akan diaktifkan semasa Mainnet.",
+                wd_insufficient: "Baki anda tidak mencukupi, sila teruskan melombong.", wd_processed: "Pengeluaran berjaya diproses!",
+                wallet_manage: "Urus Alamat Dompet", tx_history: "Sejarah Transaksi", wd_history: "Sejarah Pengeluaran",
+                income_label: "Pendapatan", view_levels: "Lihat Info Tahap >", deposit: "Deposit", claim: "Tuntut",
+                ad_boost_label: "Kelajuan Bonus Iklan:", per_hour: "/jam", per_day: "/hari", per_month: "/bln",
+                start_swap_btn: "MULAKAN TUKAR", instant_payouts: "Pengeluaran Segera", your_uid: "UID ANDA",
+                a2f_title: "Keselamatan A2F (Telefon & Emel)", face_title: "Pengecaman Muka", id_title: "Pengesahan Identiti (Kad Pengenalan/Pasport)",
+                invite_friends: "Jemput Rakan", contests_title: "Pertandingan & Papan Pendahulu", proof_payouts: "Bukti Pengeluaran",
+                about_afex: "Mengenai Token AFEX", privacy_policy: "Dasar Privasi",
+                lbl_select_asset: "Pilih Aset", lbl_network: "Rangkaian", lbl_amount_dep: "Jumlah Deposit (USDT)",
+                lbl_select_net: "Pilih Rangkaian", btn_dep_now: "DEPOSIT SEKARANG", btn_confirm_dep: "SAHKAN DEPOSIT",
+                lbl_txhash_input: "Masukkan TxHash / ID Transaksi:", lbl_dep_wallet_addr: "Alamat Dompet Deposit:",
+                lbl_req_transfer: "Jumlah Pemindahan Diperlukan:", level_info_desc: "Tahap bergantung pada baki USDT: makin besar dana, makin tinggi pendapatan harian.<br>Pengiraan dikira dari baki semasa.",
+                no_tx_history: "Tiada sejarah transaksi lagi.", no_wd_history: "Tiada sejarah pengeluaran lagi.",
+                ref_link_lbl: "Pautan Rujukan Anda", invited_users_lbl: "Pengguna Dijemput", contest_heading: "Pertandingan Global Langsung",
+                contest_sub_heading: "Menangi USDT & iPhone!", err_valid_dep_amt: "Sila masukkan jumlah deposit yang sah!", err_enter_txhash: "Sila masukkan TxHash pemindahan anda!"
             },
             hi: {
                 total_balance: "कुल राशि", checkin_title: "दैनिक चेक-इन", checkin_sub: "लगातार इनाम (दिन 1-7)",
@@ -540,11 +701,56 @@
                 sec_kyc: "सुरक्षा व KYC", community: "समुदाय", about: "के बारे में", payouts_sub: "लाइव ग्लोबल निकासी",
                 notification: "अधिसूचना", success: "सफल", error: "त्रुटि", copied: "कॉपी किया!",
                 checkin_done: "आज चेक-इन हो गया है। कृपया कल आएं।", checkin_success: "चेक-इन सफल दिन",
-                ad_claimed: "इनाम प्राप्त! +15 AFEX, +1.00 USDT, +1 Pts!", ad_not_ready: "विज्ञापन अभी उपलब्ध नहीं है।",
+                ad_claimed: "इनाम प्राप्त! +15 AFEX, +0.0001 गति/दिन, +1 Pts!", ad_not_ready: "विज्ञापन अभी उपलब्ध नहीं है।",
                 founder_avail: "संस्थापक {d} दिन {time} में उपलब्ध", lock_a2f: "A2F सुरक्षा {d} दिनों {time} में उपलब्ध होगी।",
                 lock_face: "चेहरा पहचान {d} दिनों {time} में उपलब्ध होगी।", lock_id: "पहचान सत्यापन {d} दिनों {time} में उपलब्ध होगा।",
                 locked_list: "लॉक ({d} दिन {time})", swap_locked: "स्वैप मेननेट के दौरान सक्रिय होगा।",
-                wd_insufficient: "क्षमा करें, आपका बैलेंस कम है।", wd_processed: "निकासी सफल!", wallet_manage: "वॉलेट प्रबंधित करें", tx_history: "लेनदेन इतिहास", wd_history: "निकासी इतिहास"
+                wd_insufficient: "क्षमा करें, आपका बैलेंस कम है।", wd_processed: "निकासी सफल!", wallet_manage: "वॉलेट प्रबंधित करें", tx_history: "लेनदेन इतिहास", wd_history: "निकासी इतिहास",
+                income_label: "आय", view_levels: "लेवल जानकारी देखें >", deposit: "जमा करें", claim: "दावा करें",
+                ad_boost_label: "विज्ञापन गति बोनस:", per_hour: "/घंटे", per_day: "/दिन", per_month: "/माह",
+                start_swap_btn: "स्वैप शुरू करें", instant_payouts: "तत्काल निकासी", your_uid: "आपका UID",
+                a2f_title: "A2F सुरक्षा (फोन व ईमेल)", face_title: "चेहरा पहचान", id_title: "पहचान सत्यापन (ID/पासपोर्ट)",
+                invite_friends: "मित्रों को आमंत्रित करें", contests_title: "प्रतियोगिताएं और लीडरबोर्ड", proof_payouts: "निकासी के प्रमाण",
+                about_afex: "AFEX टोकन के बारे में", privacy_policy: "गोपनीयता नीति",
+                lbl_select_asset: "संपत्ति चुनें", lbl_network: "नेटवर्क", lbl_amount_dep: "जमा राशि (USDT)",
+                lbl_select_net: "नेटवर्क चुनें", btn_dep_now: "अभी जमा करें", btn_confirm_dep: "जमा की पुष्टि करें",
+                lbl_txhash_input: "TxHash / ट्रांजैक्शन ID दर्ज करें:", lbl_dep_wallet_addr: "जमा वॉलेट पता:",
+                lbl_req_transfer: "आवश्यक स्थानांतरण राशि:", level_info_desc: "स्तर USDT शेष पर निर्भर करता है: जितना अधिक शेष, उतनी अधिक दैनिक आय।<br>गणना वर्तमान शेष के आधार पर की जाती है।",
+                no_tx_history: "अभी कोई लेनदेन इतिहास नहीं है।", no_wd_history: "अभी कोई निकासी इतिहास नहीं है।",
+                ref_link_lbl: "आपका रेफ़रल लिंक", invited_users_lbl: "आमंत्रित उपयोगकर्ता", contest_heading: "लाइव ग्लोबल प्रतियोगिता",
+                contest_sub_heading: "USDT और iPhone जीतें!", err_valid_dep_amt: "कृपया एक मान्य जमा राशि दर्ज करें!", err_enter_txhash: "कृपया ट्रांसफर का TxHash दर्ज करें!"
+            },
+            ur: {
+                total_balance: "کل بقایا", checkin_title: "روزانہ چیک ان", checkin_sub: "تسلسل کے انعامات (دن 1 - 7)",
+                ready_to_mine: "مائننگ کے لیے تیار", session_timer: "سیشن کا وقت:", tasks_title: "ٹاسکس", 
+                tasks_desc: "پوائنٹس اور انعامات حاصل کرنے کے لیے ٹاسک مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "عنقریب آرہا ہے", 
+                swap_heading: "AFEX ٹوکن ایکسچینج", swap_desc: "AFEX ٹوکنز کو فوری طور پر USDT یا TON میں تبدیل کریں۔",
+                connect_wallet: "والیٹ منسلک کریں", withdraw: "رقم نکلوائیں", your_balances: "آپ کا ٹوکن بیلنس",
+                nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والیٹ", nav_profile: "پروفائل", 
+                vip_pass: "بانی VIP پاس", btn_start_mine: "12 گھنٹے مائننگ شروع کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
+                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "شروع کریں", invite_sub: "دوستوں کو دعوت دیں اور انعام پائیں", contest_sub: "انعام حاصل کریں",
+                sec_kyc: "سیکیورٹی اور KYC", community: "کمیونٹی", about: "معلومات", payouts_sub: "عالمی صارفین کی لائیو رقم منتقلی",
+                notification: "اطلاع", success: "کامیاب", error: "خرابی", copied: "کاپی ہو گیا!",
+                checkin_done: "آج چیک ان ہو چکا ہے۔ براہ کرم کل واپس آئیں۔", checkin_success: "دن کا چیک ان کامیاب رہا",
+                ad_claimed: "انعام حاصل کر لیا گیا! +15 AFEX، +0.0001 رفتار/دن، اور +1 پوائنٹ!", ad_not_ready: "معذرت، اس وقت کوئی اشتہار دستیاب نہیں ہے۔",
+                founder_avail: "بانی {d} دنوں {time} میں دستیاب ہے", lock_a2f: "A2F سیکیورٹی {d} دنوں {time} میں دستیاب ہوگی۔", 
+                lock_face: "چہرے کی شناخت {d} دنوں {time} میں دستیاب ہوگی۔", lock_id: "شناخت کی تصدیق {d} دنوں {time} میں دستیاب ہوگی۔",
+                locked_list: "قفل ہے ({d} دن {time})", swap_locked: "سویپ کی خصوصیت مین نیٹ کے دوران فعال ہوگی۔",
+                wd_insufficient: "آپ کا بیلنس ناکافی ہے، براہ کرم مائننگ جاری رکھیں۔", wd_processed: "رقم کی منتقلی کامیابی سے عمل میں آئی!",
+                wallet_manage: "والیٹ ایڈریسز کا انتظام کریں", tx_history: "ٹرانزیکشن کی ہسٹری", wd_history: "ودڈرا کی ہسٹری",
+                income_label: "آمدنی", view_levels: "لیول کی معلومات دیکھیں >", deposit: "ڈیپازٹ کریں", claim: "حاصل کریں",
+                ad_boost_label: "اشتہار بونس رفتار:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/ماہ",
+                start_swap_btn: "سویپ شروع کریں", instant_payouts: "فوری رقم کی منتقلی", your_uid: "آپ کا UID",
+                a2f_title: "A2F سیکیورٹی (فون اور ای میل)", face_title: "چہرے کی شناخت", id_title: "شناخت کی تصدیق (شناختی کارڈ/پاسپورٹ)",
+                invite_friends: "دوستوں کو دعوت دیں", contests_title: "مقابلے اور لیڈر بورڈ", proof_payouts: "رقم کی منتقلی کا ثبوت",
+                about_afex: "AFEX ٹوکن کے بارے میں", privacy_policy: "رازداری کی پالیسی",
+                lbl_select_asset: "اثاثہ منتخب کریں", lbl_network: "نیٹ ورک", lbl_amount_dep: "ڈیپازٹ کی رقم (USDT)",
+                lbl_select_net: "نیٹ ورک منتخب کریں", btn_dep_now: "ابھی ڈیپازٹ کریں", btn_confirm_dep: "ڈیپازٹ کی تصدیق کریں",
+                lbl_txhash_input: "TxHash / ٹرانزیکشن ID درج کریں:", lbl_dep_wallet_addr: "ڈیپازٹ والیٹ کا پتہ:",
+                lbl_req_transfer: "مطلوبہ منتقلی کی رقم:", level_info_desc: "سطح کا انحصار USDT بیلنس پر ہے: بیلنس جتنا زیادہ ہوگا، روزانہ کی آمدنی اتنی ہی زیادہ ہوگی۔",
+                no_tx_history: "ابھی تک کوئی ٹرانزیکشن ہسٹری نہیں ہے۔", no_wd_history: "ابھی تک کوئی ودڈرا ہسٹری نہیں ہے۔",
+                ref_link_lbl: "آپ کا ریفرل لنک", invited_users_lbl: "دعوت شدہ صارفین", contest_heading: "لائیو گلوبل مقابلہ",
+                contest_sub_heading: "USDT اور iPhone جیتیں!", err_valid_dep_amt: "براہ کرم صحیح ڈیپازٹ رقم درج کریں!", err_enter_txhash: "براہ کرم اپنا TxHash درج کریں!"
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "连续奖励 (1-7天)",
@@ -558,11 +764,56 @@
                 sec_kyc: "安全与 KYC", community: "社区", about: "关于", payouts_sub: "全球提现实况",
                 notification: "通知", success: "成功", error: "错误", copied: "已复制！",
                 checkin_done: "今天已签到，请明天再来。", checkin_success: "签到成功，第",
-                ad_claimed: "奖励已领取！+15 AFEX, +1.00 USDT, +1 积分！", ad_not_ready: "暂无广告，请稍后再试。",
+                ad_claimed: "奖励已领取！+15 AFEX, +0.0001 速度/天, +1 积分！", ad_not_ready: "暂无广告，请稍后再试。",
                 founder_avail: "创始人 VIP 将在 {d} 天 {time} 后可用", lock_a2f: "A2F 安全将在 {d} 天 {time} 后可用。",
                 lock_face: "面部识别将在 {d} 天 {time} 后可用。", lock_id: "身份验证将在 {d} 天 {time} 后可用。",
                 locked_list: "锁定 (剩 {d} 天 {time})", swap_locked: "兑换将在主网激活。",
-                wd_insufficient: "抱歉，余额不足，请继续挖矿。", wd_processed: "提现成功！", wallet_manage: "管理钱包", tx_history: "交易历史", wd_history: "提现历史"
+                wd_insufficient: "抱歉，余额不足，请继续挖矿。", wd_processed: "提现成功！", wallet_manage: "管理钱包", tx_history: "交易历史", wd_history: "提现历史",
+                income_label: "收益", view_levels: "查看等级信息 >", deposit: "充值", claim: "领取",
+                ad_boost_label: "广告加速:", per_hour: "/小时", per_day: "/天", per_month: "/月",
+                start_swap_btn: "开始兑换", instant_payouts: "即时提款", your_uid: "您的 UID",
+                a2f_title: "双重验证 A2F", face_title: "人脸识别", id_title: "身份验证 (身份证/护照)",
+                invite_friends: "邀请好友", contests_title: "竞赛与排行榜", proof_payouts: "提款证明",
+                about_afex: "关于 AFEX 代币", privacy_policy: "隐私政策",
+                lbl_select_asset: "选择资产", lbl_network: "网络", lbl_amount_dep: "充值金额 (USDT)",
+                lbl_select_net: "选择网络", btn_dep_now: "立即充值", btn_confirm_dep: "确认充值",
+                lbl_txhash_input: "输入 TxHash / 交易 ID:", lbl_dep_wallet_addr: "充值钱包地址:",
+                lbl_req_transfer: "所需转账金额:", level_info_desc: "等级取决于 USDT 余额：余额越高，每日收益越高。<br>收益根据当前余额计算。",
+                no_tx_history: "暂无交易历史。", no_wd_history: "暂无提款历史。",
+                ref_link_lbl: "您的邀请链接", invited_users_lbl: "已邀请用户", contest_heading: "全球实时竞赛",
+                contest_sub_heading: "赢取 USDT 和 iPhone！", err_valid_dep_amt: "请输入有效的充值金额！", err_enter_txhash: "请输入您的转账哈希 (TxHash)！"
+            },
+            ko: {
+                total_balance: "총 잔액", checkin_title: "매일 출석체크", checkin_sub: "연속 보상 획득 (1 - 7일)",
+                ready_to_mine: "채굴 준비 완료", session_timer: "세션 타이머:", tasks_title: "미션 & 미션", 
+                tasks_desc: "미션을 완료하고 포인트와 보상을 받으세요.", swap_title: "토큰 스왑", swap_subtitle: "출시 예정", 
+                swap_heading: "AFEX 토큰 스왑 거래소", swap_desc: "AFEX 토큰을 USDT 또는 TON으로 즉시 스왑하세요.",
+                connect_wallet: "지갑 연결", withdraw: "출금하기", your_balances: "보유 토큰 잔액",
+                nav_mine: "홈", nav_task: "미션", nav_swap: "스왑", nav_wallet: "지갑", nav_profile: "프로필", 
+                vip_pass: "파운더 VIP 패스", btn_start_mine: "12시간 자동 채굴 시작", task_watch_ad: "광고 시청", btn_watch: "시청", 
+                task_join_tg: "텔레그램 채널 참여", btn_start: "시작", invite_sub: "친구 초대하고 보상 받기", contest_sub: "보상 받기",
+                sec_kyc: "보안 & KYC", community: "커뮤니티", about: "정보", payouts_sub: "글로벌 유저 실시간 출금",
+                notification: "알림", success: "성공", error: "오류", copied: "복사되었습니다!",
+                checkin_done: "오늘 출석체크를 완료했습니다. 내일 다시 방문해주세요.", checkin_success: "출석체크 성공 Day",
+                ad_claimed: "보상 획득! +15 AFEX, +0.0001 채굴속도/일, & +1 포인트!", ad_not_ready: "현재 시청 가능한 광고가 없습니다.",
+                founder_avail: "파운더 패스 {d}일 {time} 후 이용 가능", lock_a2f: "A2F 보안은 {d}일 {time} 후 이용 가능합니다.", 
+                lock_face: "얼굴 인식은 {d}일 {time} 후 이용 가능합니다.", lock_id: "신원 인증은 {d}일 {time} 후 이용 가능합니다.",
+                locked_list: "잠김 ({d}일 {time})", swap_locked: "스왑 기능은 메인넷 단계에서 활성화됩니다.",
+                wd_insufficient: "잔액이 부족합니다. 채굴을 계속 진행해주세요.", wd_processed: "출금 요청이 성공적으로 처리되었습니다!",
+                wallet_manage: "지갑 주소 관리", tx_history: "거래 내역", wd_history: "출금 내역",
+                income_label: "수익", view_levels: "레벨 정보 보기 >", deposit: "입금하기", claim: "수령하기",
+                ad_boost_label: "광고 보너스 속도:", per_hour: "/시간", per_day: "/일", per_month: "/월",
+                start_swap_btn: "스왑 시작", instant_payouts: "즉시 출금", your_uid: "나의 UID",
+                a2f_title: "A2F 이중 보안 (휴대폰/이메일)", face_title: "얼굴 인식 스캔", id_title: "신원 인증 (신분증/여권)",
+                invite_friends: "친구 초대", contests_title: "콘테스트 & 리더보드", proof_payouts: "출금 증명",
+                about_afex: "AFEX 토큰 정보", privacy_policy: "개인정보 처리방침",
+                lbl_select_asset: "자산 선택", lbl_network: "네트워크", lbl_amount_dep: "입금 금액 (USDT)",
+                lbl_select_net: "네트워크 선택", btn_dep_now: "지금 입금하기", btn_confirm_dep: "입금 확인",
+                lbl_txhash_input: "TxHash / 트랜잭션 ID 입력:", lbl_dep_wallet_addr: "입금 지갑 주소:",
+                lbl_req_transfer: "필요한 전송 금액:", level_info_desc: "레벨은 USDT 잔액에 따라 결정됩니다: 잔액이 많을수록 일일 수익이 높아집니다.<br>현재 잔액 기준으로 계산됩니다.",
+                no_tx_history: "거래 내역이 없습니다.", no_wd_history: "출금 내역이 없습니다.",
+                ref_link_lbl: "나의 추천 링크", invited_users_lbl: "초대된 사용자", contest_heading: "글로벌 라이브 콘테스트",
+                contest_sub_heading: "USDT 및 iPhone 증정!", err_valid_dep_amt: "올바른 입금 금액을 입력하세요!", err_enter_txhash: "전송 TxHash를 입력하세요!"
             },
             ja: {
                 total_balance: "合計残高", checkin_title: "毎日ログイン", checkin_sub: "連続報酬 (1-7日)",
@@ -570,17 +821,62 @@
                 tasks_desc: "タスクを完了してポイントを獲得。", swap_title: "スワップ", swap_subtitle: "近日公開",
                 swap_heading: "AFEX スワップ", swap_desc: "AFEX を USDT や TON に即時交換。",
                 connect_wallet: "ウォレット接続", withdraw: "出金", your_balances: "トークン残高",
-                nav_mine: "ホーム", nav_task: "タスク", nav_swap: "スワップ", nav_wallet: "財布", nav_profile: "プロファイル",
+                nav_mine: "ホーム", nav_task: "タスク", nav_swap: "スワップ", nav_wallet: "財布", nav_profile: "マイページ",
                 vip_pass: "創設者 VIP", btn_start_mine: "12時間のマイニングを開始", task_watch_ad: "広告を見る", btn_watch: "視聴",
                 task_join_tg: "Telegram参加", btn_start: "開始", invite_sub: "招待して報酬を獲得", contest_sub: "報酬を獲得",
                 sec_kyc: "セキュリティ KYC", community: "コミュニティ", about: "概要", payouts_sub: "グローバル出金",
                 notification: "通知", success: "成功", error: "エラー", copied: "コピー完了！",
                 checkin_done: "本日はチェックイン済みです。", checkin_success: "チェックイン成功、日目",
-                ad_claimed: "報酬獲得！ +15 AFEX, +1.00 USDT, +1 Pts！", ad_not_ready: "現在広告はありません。",
+                ad_claimed: "報酬獲得！ +15 AFEX, +0.0001 速度/日, +1 Pts！", ad_not_ready: "現在広告はありません。",
                 founder_avail: "創設者VIPは{d}日と{time}後に利用可能", lock_a2f: "A2Fセキュリティは{d}日{time}後に利用可能。",
                 lock_face: "顔認証は{d}日{time}後に利用可能。", lock_id: "身元確認は{d}日{time}後に利用可能。",
                 locked_list: "ロック中 (残り{d}日 {time})", swap_locked: "スワップはメインネットで有効になります。",
-                wd_insufficient: "残高不足です。マイニングを続けてください。", wd_processed: "出金完了！", wallet_manage: "ウォレット管理", tx_history: "取引履歴", wd_history: "出金履歴"
+                wd_insufficient: "残高不足です。マイニングを続けてください。", wd_processed: "出金完了！", wallet_manage: "ウォレット管理", tx_history: "取引履歴", wd_history: "出金履歴",
+                income_label: "収益", view_levels: "レベル詳細を見る >", deposit: "入金", claim: "受取",
+                ad_boost_label: "広告ボーナス速度:", per_hour: "/時間", per_day: "/日", per_month: "/月",
+                start_swap_btn: "スワップ開始", instant_payouts: "即時出金", your_uid: "あなたの UID",
+                a2f_title: "2段階認証 (A2F)", face_title: "顔認証スキャン", id_title: "本人確認 (身分証/パスポート)",
+                invite_friends: "友達を招待", contests_title: "コンテスト & 排行榜", proof_payouts: "出金証明",
+                about_afex: "AFEXトークンについて", privacy_policy: "プライバシーポリシー",
+                lbl_select_asset: "資産を選択", lbl_network: "ネットワーク", lbl_amount_dep: "入金額 (USDT)",
+                lbl_select_net: "ネットワークを選択", btn_dep_now: "今すぐ入金", btn_confirm_dep: "入金を確定",
+                lbl_txhash_input: "TxHash / 取引IDを入力:", lbl_dep_wallet_addr: "入金用ウォレットアドレス:",
+                lbl_req_transfer: "必要な送金額:", level_info_desc: "レベルはUSDT残高に応じて変動します。残高が多いほど日々の収益が高くなります。<br>収益は現在の残高に基づき計算されます。",
+                no_tx_history: "取引履歴はまだありません。", no_wd_history: "出金履歴はまだありません。",
+                ref_link_lbl: "あなたの招待リンク", invited_users_lbl: "招待されたユーザー", contest_heading: "ライブグローバルコンテスト",
+                contest_sub_heading: "USDT & iPhoneを獲得！", err_valid_dep_amt: "有効な入金額を入力してください！", err_enter_txhash: "送金のTxHashを入力してください！"
+            },
+            af: {
+                total_balance: "TOTALE BALANS", checkin_title: "Daaglikse Inklok", checkin_sub: "Eis Reeks Belonings (Dag 1 - 7)",
+                ready_to_mine: "Gereed vir Mynbou", session_timer: "Sessie Tyd:", tasks_title: "TAKE", 
+                tasks_desc: "Voltooi take om punte en belonings te verdien.", swap_title: "RUIL TOKEN", swap_subtitle: "Binnekort Beskikbaar", 
+                swap_heading: "AFEX Token Ruilbeurs", swap_desc: "Ruil AFEX-tokens onmiddellik na USDT of TON.",
+                connect_wallet: "Koppel Beursie", withdraw: "Onttrekking", your_balances: "Jou Token Balanse",
+                nav_mine: "Tuis", nav_task: "Taak", nav_swap: "Ruil", nav_wallet: "Beursie", nav_profile: "Profiel", 
+                vip_pass: "STIGTER VIP PAS", btn_start_mine: "BEGIN 12U OUTO MYNBOU", task_watch_ad: "Kyk Advertensie", btn_watch: "Kyk", 
+                task_join_tg: "Sluit aan by Telegram Kanaal", btn_start: "Begin", invite_sub: "Nooi Vriende & Kry Beloning", contest_sub: "Kry Beloning",
+                sec_kyc: "SEKURITEIT & KYC", community: "GEMEENSKAP", about: "OOR", payouts_sub: "Regstreekse onttrekkings wêreldwyd",
+                notification: "Kennisgewing", success: "Sukses", error: "Fout", copied: "Gekopieer!",
+                checkin_done: "Reeds vandag ingeklok. Kom asseblief môre terug.", checkin_success: "Inklok suksesvol vir Dag",
+                ad_claimed: "Beloning Eise! +15 AFEX, +0.0001 Spoed/dag, & +1 Punt!", ad_not_ready: "Jammer, geen advertensies tans beskikbaar nie.",
+                founder_avail: "Stigter beskikbaar oor {d} dae {time}", lock_a2f: "A2F Sekuriteit beskikbaar oor {d} dae {time}.", 
+                lock_face: "Gesigsherkenning beskikbaar oor {d} dae {time}.", lock_id: "Identiteitsverifikasie beskikbaar oor {d} dae {time}.",
+                locked_list: "Gesluit ({d} dae {time})", swap_locked: "Ruilfunksie sal aktief wees tydens Mainnet.",
+                wd_insufficient: "Jammer, jou balans is onvoldoende, gaan voort met mynbou.", wd_processed: "Onttrekking suksesvol verwerk!",
+                wallet_manage: "Bestuur Beursie Adresse", tx_history: "Transaksie Geskiedenis", wd_history: "Onttrekking Geskiedenis",
+                income_label: "Inkomste", view_levels: "Sien Vlak Inligting >", deposit: "Deposito", claim: "Eis",
+                ad_boost_label: "Advertensie Spoed Bonus:", per_hour: "/uur", per_day: "/dag", per_month: "/mnd",
+                start_swap_btn: "BEGIN RUIL", instant_payouts: "Onmiddellike Betalings", your_uid: "JOU UID",
+                a2f_title: "A2F Sekuriteit (Foon & E-pos)", face_title: "Gesigsherkenning Skandering", id_title: "Identiteitsverifikasie (ID/Paspoort)",
+                invite_friends: "Nooi Vriende", contests_title: "Wedstryde & Ranglys", proof_payouts: "Bewys van Betalings",
+                about_afex: "Oor AFEX Token", privacy_policy: "Privaatheidsbeleid",
+                lbl_select_asset: "Kies Bate", lbl_network: "Netwerk", lbl_amount_dep: "Deposito Bedrag (USDT)",
+                lbl_select_net: "Kies Netwerk", btn_dep_now: "DEPOSITO NOU", btn_confirm_dep: "BEVESTIG DEPOSITO",
+                lbl_txhash_input: "Voer TxHash / Transaksie ID in:", lbl_dep_wallet_addr: "Deposito Beursie Adres:",
+                lbl_req_transfer: "Vereiste Oordragbedrag:", level_info_desc: "Vlak hang af van USDT-balans: hoe hoër die balans, hoe hoër die daaglikse inkomste.<br>Bereken op die huidige balans.",
+                no_tx_history: "Nog geen transaksiegeskiedenis nie.", no_wd_history: "Nog geen onttrekkingsgeskiedenis nie.",
+                ref_link_lbl: "Jou Verwysingskakel", invited_users_lbl: "Genooide Gebruikers", contest_heading: "Regstreekse Wêreldwye Wedstryd",
+                contest_sub_heading: "Wen USDT & iPhone!", err_valid_dep_amt: "Voer asseblief 'n geldige depositobedrag in!", err_enter_txhash: "Voer asseblief jou oordrag TxHash in!"
             },
             ar: {
                 total_balance: "إجمالي الرصيد", checkin_title: "تسجيل الدخول", checkin_sub: "مكافآت (اليوم 1-7)",
@@ -594,11 +890,24 @@
                 sec_kyc: "الأمان و KYC", community: "المجتمع", about: "حول", payouts_sub: "سحوبات مباشرة",
                 notification: "إشعار", success: "نجاح", error: "خطأ", copied: "تم النسخ!",
                 checkin_done: "تم تسجيل الدخول اليوم.", checkin_success: "نجاح تسجيل الدخول لليوم",
-                ad_claimed: "تمت المكافأة! +15 AFEX, +1.00 USDT, +1 Pts!", ad_not_ready: "لا توجد إعلانات الآن.",
+                ad_claimed: "تمت المكافأة! +15 AFEX, +0.0001 سرعة/يوم, +1 Pts!", ad_not_ready: "لا توجد إعلانات الآن.",
                 founder_avail: "المؤسس متاح بعد {d} أيام {time}", lock_a2f: "أمان A2F متاح بعد {d} أيام {time}.",
                 lock_face: "التعرف على الوجه متاح بعد {d} أيام {time}.", lock_id: "التحقق من الهوية متاح بعد {d} أيام {time}.",
                 locked_list: "مغلق (باقي {d} أيام {time})", swap_locked: "سيتم تفعيل التبادل قريباً.",
-                wd_insufficient: "رصيدك غير كافٍ.", wd_processed: "تم السحب بنجاح!", wallet_manage: "إدارة المحافظ", tx_history: "سجل المعاملات", wd_history: "سجل السحوبات"
+                wd_insufficient: "رصيدك غير كافٍ.", wd_processed: "تم السحب بنجاح!", wallet_manage: "إدارة المحافظ", tx_history: "سجل المعاملات", wd_history: "سجل السحوبات",
+                income_label: "الدخل", view_levels: "عرض معلومات المستوى >", deposit: "إيداع", claim: "مطالبة",
+                ad_boost_label: "سرعة مكافأة الإعلان:", per_hour: "/ساعة", per_day: "/يوم", per_month: "/شهر",
+                start_swap_btn: "بدء التبادل", instant_payouts: "سحوبات فورية", your_uid: "معرفك UID",
+                a2f_title: "الأمان الثنائي A2F", face_title: "التعرف على الوجه", id_title: "التحقق من الهوية (الهوية/الجواز)",
+                invite_friends: "دعوة الأصدقاء", contests_title: "المسابقات ولائحة المتصدرين", proof_payouts: "إثباتات السحب",
+                about_afex: "حول رمز AFEX", privacy_policy: "سياسة الخصوصية",
+                lbl_select_asset: "اختر الأصل", lbl_network: "الشبكة", lbl_amount_dep: "مبلغ الإيداع (USDT)",
+                lbl_select_net: "اختر الشبكة", btn_dep_now: "إيداع الآن", btn_confirm_dep: "تأكيد الإيداع",
+                lbl_txhash_input: "أدخل معرف المعاملة TxHash:", lbl_dep_wallet_addr: "عنوان محفظة الإيداع:",
+                lbl_req_transfer: "مبلغ التحويل المطلوب:", level_info_desc: "يعتمد المستوى على رصيد USDT: كلما زاد الرصيد، زاد الدخل اليومي.<br>يتم الحساب بناءً على الرصيد الحالي.",
+                no_tx_history: "لا يوجد سجل معاملات حتى الآن.", no_wd_history: "لا يوجد سجل سحوبات حتى الآن.",
+                ref_link_lbl: "رابط الإحالة الخاص بك", invited_users_lbl: "المستخدمون المدعوون", contest_heading: "المسابقة العالمية المباشرة",
+                contest_sub_heading: "فز بـ USDT و iPhone!", err_valid_dep_amt: "يرجى إدخال مبلغ إيداع صحيح!", err_enter_txhash: "يرجى إدخال معرف المعاملة TxHash!"
             }
         };
 
@@ -618,10 +927,12 @@
         let miningData = {
             balance: 100.00,
             usdtBalance: 1.20,
+            adsWatchedToday: 0,
+            adLimitResetTime: 0,
             tonBalance: 0.00,
             ethBalance: 0.000,
             userPoints: 0,
-            usdtBaseRate: 0.0050,
+            usdtBaseRate: 0.0020,
             usdtSpeedBoost: 0.0000,
             usdtMinedPending: 0.0000,
             refCode: `AFEX-${userIdStr}`,
@@ -663,9 +974,11 @@
             localStorage.setItem(`afex_lang_${userIdStr}`, langCode);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 let key = el.getAttribute('data-i18n');
-                el.innerText = t(key);
+                el.innerHTML = t(key);
             });
-            updateDynamicCountdowns();
+            updateDynamicCountdowns(); 
+            updateAdTaskUI();
+            updateUI();
         }
 
         function updateUI() {
@@ -689,9 +1002,11 @@
             else if (userUsdt >= 15) { currentLevel = 2; levelRatePercent = 3.0; }
             else { currentLevel = 1; levelRatePercent = 2.7; }
 
-            let levelDailyRate = (userUsdt * (levelRatePercent / 100));
-            if (levelDailyRate < miningData.usdtBaseRate) levelDailyRate = miningData.usdtBaseRate;
-            let totalDailySpeed = levelDailyRate + miningData.usdtSpeedBoost;
+            let levelDailyRate = 0;
+            if (userUsdt >= 3) {
+                levelDailyRate = userUsdt * (levelRatePercent / 100);
+            }
+            let totalDailySpeed = miningData.usdtBaseRate + levelDailyRate + miningData.usdtSpeedBoost;
             let hourlySpeed = totalDailySpeed / 24;
             let monthlySpeed = totalDailySpeed * 30;
 
@@ -700,7 +1015,7 @@
                 document.getElementById('income-daily').innerText = "$" + totalDailySpeed.toFixed(4);
                 document.getElementById('income-monthly').innerText = "$" + monthlySpeed.toFixed(2);
                 document.getElementById('user-level-badge').innerText = `Level ${currentLevel} (${levelRatePercent}%)`;
-                document.getElementById('usdt-speed-boost').innerText = "+" + miningData.usdtSpeedBoost.toFixed(4) + " USDT/hari";
+                document.getElementById('usdt-speed-boost').innerText = "+" + miningData.usdtSpeedBoost.toFixed(4) + ` USDT${t('per_day')}`;
                 
                 let valStr = miningData.usdtMinedPending.toFixed(8);
                 let parts = valStr.split('.');
@@ -736,7 +1051,7 @@
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
-                        statusLbl.innerText = "READY TO CLAIM";
+                        statusLbl.innerText = t('ready_to_mine');
                         mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
                         mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     } else {
@@ -759,10 +1074,11 @@
                 else if (userUsdt >= 50) levelRatePercent = 3.2;
                 else if (userUsdt >= 15) levelRatePercent = 3.0;
 
-                let levelDailyRate = (userUsdt * (levelRatePercent / 100));
-                if (levelDailyRate < miningData.usdtBaseRate) levelDailyRate = miningData.usdtBaseRate;
-
-                let dailyRate = levelDailyRate + miningData.usdtSpeedBoost;
+                let levelDailyRate = 0;
+                if (userUsdt >= 3) {
+                    levelDailyRate = userUsdt * (levelRatePercent / 100);
+                }
+                let dailyRate = miningData.usdtBaseRate + levelDailyRate + miningData.usdtSpeedBoost;
                 let perSecondRate = dailyRate / (24 * 3600);
                 miningData.usdtMinedPending += perSecondRate;
 
@@ -772,7 +1088,7 @@
                     document.getElementById('usdt-mined-display').innerHTML = `$${parts[0]}<span class="text-gray-400 font-semibold">.${parts[1]}</span>`;
                 }
 
-                updateDynamicCountdowns();
+                updateDynamicCountdowns(); updateAdTaskUI();
 
             }, 1000);
         }
@@ -815,32 +1131,108 @@
         function openLockedFeature(type) {
             let fData = getFormattedTime(targetDates[type]);
             let title = "", msg = "";
-            if(type === 'a2f') { title = "A2F Security"; msg = t('lock_a2f').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
-            else if(type === 'face') { title = "Face Recognition"; msg = t('lock_face').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
-            else if(type === 'id') { title = "Identity Verification"; msg = t('lock_id').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
+            if(type === 'a2f') { title = t('a2f_title'); msg = t('lock_a2f').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
+            else if(type === 'face') { title = t('face_title'); msg = t('lock_face').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
+            else if(type === 'id') { title = t('id_title'); msg = t('lock_id').replace('{d}', fData.d).replace('{time}', fData.timeStr); }
             
-            showModal(`${title} Locked`, msg, "fa-lock");
+            showModal(`${title}`, msg, "fa-lock");
         }
         
         function handleFounderClick() { 
             let fData = getFormattedTime(targetDates.founder);
-            showModal("Founder VIP Locked", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
+            showModal("Founder VIP", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
         }
 
         function startAdTask(btn) {
+            let now = Date.now();
+            
+            if (miningData.adLimitResetTime > now) {
+                return showModal(t('notification'), t('ad_not_ready'), "fa-clock");
+            }
+
+            if (miningData.adLimitResetTime > 0 && now >= miningData.adLimitResetTime) {
+                miningData.adsWatchedToday = 0;
+                miningData.adLimitResetTime = 0;
+            }
+
+            if (miningData.adsWatchedToday >= 25) {
+                miningData.adLimitResetTime = now + (24 * 60 * 60 * 1000);
+                updateAdTaskUI();
+                return showModal(t('notification'), t('ad_not_ready'), "fa-clock");
+            }
+
             if (typeof show_11929290 === 'function') {
                 show_11929290().then(() => {
                     miningData.balance += 15;
-                    miningData.usdtBalance += 1.00;
                     miningData.userPoints += 1;
                     miningData.usdtSpeedBoost += 0.0001;
+                    miningData.adsWatchedToday += 1;
+
+                    if (miningData.adsWatchedToday >= 25) {
+                        miningData.adLimitResetTime = Date.now() + (24 * 60 * 60 * 1000);
+                    }
+
                     updateUI();
+                    updateAdTaskUI();
                     showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 }).catch((error) => {
-                    showModal(t('error'), t('ad_not_ready'), "fa-circle-exclamation");
+                    miningData.balance += 15;
+                    miningData.userPoints += 1;
+                    miningData.usdtSpeedBoost += 0.0001;
+                    miningData.adsWatchedToday += 1;
+
+                    if (miningData.adsWatchedToday >= 25) {
+                        miningData.adLimitResetTime = Date.now() + (24 * 60 * 60 * 1000);
+                    }
+
+                    updateUI();
+                    updateAdTaskUI();
+                    showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 });
             } else {
-                showModal(t('error'), t('ad_not_ready'), "fa-circle-exclamation");
+                miningData.balance += 15;
+                miningData.userPoints += 1;
+                miningData.usdtSpeedBoost += 0.0001;
+                miningData.adsWatchedToday += 1;
+
+                if (miningData.adsWatchedToday >= 25) {
+                    miningData.adLimitResetTime = Date.now() + (24 * 60 * 60 * 1000);
+                }
+
+                updateUI();
+                updateAdTaskUI();
+                showModal(t('success'), t('ad_claimed'), "fa-circle-check");
+            }
+        }
+
+        function updateAdTaskUI() {
+            let adBtn = document.getElementById('task-ad');
+            let adBadge = document.getElementById('ad-counter-badge');
+            let now = Date.now();
+
+            if (adBadge) {
+                adBadge.innerText = `${miningData.adsWatchedToday}/25`;
+            }
+
+            if (!adBtn) return;
+
+            if (miningData.adLimitResetTime > now) {
+                let diff = miningData.adLimitResetTime - now;
+                let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let s = Math.floor((diff % (1000 * 60)) / 1000);
+                let timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+                adBtn.innerText = timeStr;
+                adBtn.className = "bg-gray-800 text-yellow-400 font-mono text-xs font-bold px-3 py-1.5 rounded-lg cursor-not-allowed border border-yellow-500/30";
+            } else {
+                if (miningData.adLimitResetTime > 0 && now >= miningData.adLimitResetTime) {
+                    miningData.adsWatchedToday = 0;
+                    miningData.adLimitResetTime = 0;
+                    if (adBadge) adBadge.innerText = `0/25`;
+                }
+                adBtn.innerText = t('btn_watch');
+                adBtn.className = "bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer";
             }
         }
 
@@ -895,7 +1287,7 @@
         function openWithdrawModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Select Asset</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('lbl_select_asset')}</label>
                     <select id="wd-asset" onchange="updateWdAssetNetwork()" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none">
                         <option value="usdt">USDT</option>
                         <option value="afex">AFEX Token</option>
@@ -903,7 +1295,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Network</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('lbl_network')}</label>
                     <select id="wd-network" onchange="updateWdLimitLabel()" class="w-full bg-[#080c14] border border-gray-800 text-yellow-400 rounded p-2 text-xs outline-none font-mono">
                     </select>
                 </div>
@@ -1019,8 +1411,7 @@
         function openLevelModal() {
             let html = `<div class="text-left text-xs space-y-2.5">
                 <p class="text-[11px] text-gray-300 leading-relaxed">
-                    Level bergantung pada saldo USDT: makin besar dana, makin tinggi pendapatan harian.<br>
-                    Pendapatan USDT dihitung dari saldo saat ini.
+                    ${t('level_info_desc')}
                 </p>
                 
                 <div class="overflow-x-auto rounded-xl border border-yellow-500/30">
@@ -1028,9 +1419,9 @@
                         <thead class="bg-[#080c14] text-yellow-400 border-b border-yellow-500/30 uppercase text-[9px]">
                             <tr>
                                 <th class="p-2">LEVEL</th>
-                                <th class="p-2">DARI</th>
-                                <th class="p-2">PERSEN</th>
-                                <th class="p-2 text-right">PER BULAN</th>
+                                <th class="p-2">FROM</th>
+                                <th class="p-2">RATE</th>
+                                <th class="p-2 text-right">MONTHLY</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800 bg-[#121927]">
@@ -1059,11 +1450,11 @@
         function openDepositUsdtModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Jumlah Deposit (USDT)</label>
-                    <input type="number" id="dep-amount" placeholder="Contoh: 10" min="1" class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('lbl_amount_dep')}</label>
+                    <input type="number" id="dep-amount" placeholder="e.g. 10" min="1" class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan / Network</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('lbl_select_net')}</label>
                     <select id="dep-network" class="w-full bg-[#080c14] border border-gray-800 text-yellow-400 rounded-lg p-2.5 text-xs outline-none font-mono">
                         <option value="bsc">USDT (BEP-20)</option>
                         <option value="trc">USDT (TRC-20)</option>
@@ -1072,10 +1463,10 @@
                     </select>
                 </div>
                 <button onclick="proceedDepositStep2()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-md hover:opacity-90 mt-2">
-                    DEPOSIT SEKARANG
+                    ${t('btn_dep_now')}
                 </button>
             </div>`;
-            showModal("Deposit USDT", html, "fa-circle-plus");
+            showModal(t('deposit'), html, "fa-circle-plus");
         }
 
         function proceedDepositStep2() {
@@ -1083,7 +1474,7 @@
             let net = document.getElementById('dep-network').value;
 
             if (amt <= 0) {
-                return showModal(t('error'), "Masukkan jumlah deposit yang valid!", "fa-circle-exclamation");
+                return showModal(t('error'), t('err_valid_dep_amt'), "fa-circle-exclamation");
             }
 
             let walletAddr = DEPOSIT_ADDRESSES[net] || DEPOSIT_ADDRESSES['bsc'];
@@ -1091,13 +1482,13 @@
 
             let html = `<div class="space-y-3 text-left text-xs">
                 <div class="bg-yellow-500/10 border border-yellow-500/30 p-2.5 rounded-xl text-center">
-                    <span class="text-[10px] text-gray-400 block">Jumlah Transfer yang Diperlukan:</span>
+                    <span class="text-[10px] text-gray-400 block">${t('lbl_req_transfer')}</span>
                     <span class="text-lg font-black font-mono text-green-400">$${amt.toFixed(2)} USDT</span>
-                    <span class="text-[9px] text-yellow-400 block font-mono mt-0.5">Jaringan: ${netName}</span>
+                    <span class="text-[9px] text-yellow-400 block font-mono mt-0.5">${t('lbl_network')}: ${netName}</span>
                 </div>
 
                 <div class="bg-[#080c14] p-3 rounded-xl border border-gray-800">
-                    <span class="text-[10px] text-gray-400 block mb-1">Alamat Wallet Deposit:</span>
+                    <span class="text-[10px] text-gray-400 block mb-1">${t('lbl_dep_wallet_addr')}</span>
                     <div class="flex items-center justify-between bg-[#121927] p-2 rounded-lg border border-gray-700">
                         <span id="dep-wallet-addr" class="text-[10px] font-mono text-cyan-300 truncate max-w-[200px]">${walletAddr}</span>
                         <button onclick="copyDepositAddress('${walletAddr}', this)" class="text-xs text-yellow-400 hover:text-white ml-2 font-bold flex items-center gap-1 cursor-pointer">
@@ -1107,23 +1498,23 @@
                 </div>
 
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Masukkan TxHash / ID Transaksi:</label>
-                    <input type="text" id="dep-txhash" placeholder="Paste Hash/TxID di sini..." class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('lbl_txhash_input')}</label>
+                    <input type="text" id="dep-txhash" placeholder="Paste Hash/TxID..." class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
                 </div>
 
                 <button onclick="submitDepositTxHash('${netName}', ${amt})" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-md hover:opacity-90">
-                    KONFIRMASI DEPOSIT
+                    ${t('btn_confirm_dep')}
                 </button>
             </div>`;
 
-            showModal("Alamat Pembayaran Deposit", html, "fa-wallet");
+            showModal(t('deposit'), html, "fa-wallet");
         }
 
         function copyDepositAddress(addr, btnEl) {
             navigator.clipboard.writeText(addr);
             if (btnEl) {
                 let originalContent = btnEl.innerHTML;
-                btnEl.innerHTML = `<i class="fa-solid fa-check text-green-400"></i> Copied!`;
+                btnEl.innerHTML = `<i class="fa-solid fa-check text-green-400"></i> ${t('copied')}`;
                 btnEl.classList.add('text-green-400');
                 setTimeout(() => {
                     btnEl.innerHTML = originalContent;
@@ -1135,7 +1526,7 @@
         function submitDepositTxHash(netName, amount) {
             let txHash = document.getElementById('dep-txhash').value.trim();
             if (!txHash) {
-                return showModal(t('error'), "Harap masukkan TxHash / Transaction Hash transfer Anda!", "fa-circle-exclamation");
+                return showModal(t('error'), t('err_enter_txhash'), "fa-circle-exclamation");
             }
 
             let dateStr = new Date().toISOString().split('T')[0];
@@ -1147,7 +1538,7 @@
             });
 
             closeModal();
-            showModal(t('success'), `Deposit sebesar $${amount.toFixed(2)} USDT (${netName}) berhasil dikirim untuk verifikasi TxHash!`, "fa-circle-check");
+            showModal(t('success'), `Deposit $${amount.toFixed(2)} USDT (${netName}) submitted!`, "fa-circle-check");
         }
 
         function claimUsdtMining() {
@@ -1180,10 +1571,10 @@
         function openInviteModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div class="bg-[#080c14] p-2.5 rounded gold-border">
-                    <span class="text-[10px] text-gray-400 block">Your Referral Link</span>
+                    <span class="text-[10px] text-gray-400 block">${t('ref_link_lbl')}</span>
                     <input type="text" readonly value="https://t.me/Fexboostbot?start=${miningData.refCode}" class="w-full bg-[#121927] text-yellow-400 font-mono text-[10px] p-1.5 rounded mt-1 outline-none">
                 </div>
-                <h4 class="font-bold text-yellow-400">Invited Users (${miningData.referrals.length})</h4>
+                <h4 class="font-bold text-yellow-400">${t('invited_users_lbl')} (${miningData.referrals.length})</h4>
                 <div class="space-y-2 max-h-36 overflow-y-auto pr-1">`;
             miningData.referrals.forEach(ref => {
                 html += `<div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
@@ -1198,8 +1589,8 @@
         function openContestsModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div class="bg-gradient-to-r from-yellow-500/10 to-amber-500/20 p-2.5 rounded gold-border text-center">
-                    <h4 class="font-bold text-yellow-400">Live Global Contest</h4>
-                    <p class="text-[10px] text-gray-300">Win USDT & iPhone!</p>
+                    <h4 class="font-bold text-yellow-400">${t('contest_heading')}</h4>
+                    <p class="text-[10px] text-gray-300">${t('contest_sub_heading')}</p>
                 </div>
                 <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                     <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span class="text-yellow-400 font-bold">#1 @crypto_king</span><span class="font-mono text-green-400">140 Pts</span></div>
@@ -1219,7 +1610,7 @@
         function openTxHistoryModal() {
             let html = `<div class="space-y-2 text-left text-xs max-h-48 overflow-y-auto pr-1">`;
             if(miningData.txHistory.length === 0) {
-                html += `<p class="text-gray-400 text-center py-4">No transaction history yet.</p>`;
+                html += `<p class="text-gray-400 text-center py-4">${t('no_tx_history')}</p>`;
             } else {
                 miningData.txHistory.forEach(tx => {
                     html += `<div class="bg-[#080c14] p-2.5 rounded border border-gray-800 flex justify-between items-center">
@@ -1241,7 +1632,7 @@
         function openWdHistoryModal() {
             let html = `<div class="space-y-2 text-left text-xs max-h-48 overflow-y-auto pr-1">`;
             if(miningData.wdHistory.length === 0) {
-                html += `<p class="text-gray-400 text-center py-4">No withdrawal history yet.</p>`;
+                html += `<p class="text-gray-400 text-center py-4">${t('no_wd_history')}</p>`;
             } else {
                 miningData.wdHistory.forEach(wd => {
                     let badgeColor = wd.status === 'SUCCESS' ? 'text-green-400' : 'text-yellow-400';
@@ -1260,8 +1651,8 @@
             showModal(t('wd_history'), html, "fa-list-check");
         }
 
-        function openAboutModal() { showModal(t('about'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
-        function openPrivacyModal() { showModal("Privacy Policy", "Data is encrypted.", "fa-shield-cat"); }
+        function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
+        function openPrivacyModal() { showModal(t('privacy_policy'), "Data is encrypted.", "fa-shield-cat"); }
         function copyUID() { navigator.clipboard.writeText(userIdStr); showModal(t('notification'), t('copied'), "fa-circle-check"); }
 
         function switchTab(tabId, btnElement) {
