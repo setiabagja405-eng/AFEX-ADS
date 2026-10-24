@@ -132,9 +132,59 @@
             </button>
 
             <!-- 12 HOURS STATUS TIMER -->
-            <div class="bg-[#121927] p-3 rounded-xl gold-border flex justify-between items-center text-xs font-mono mb-2">
+            <div class="bg-[#121927] p-3 rounded-xl gold-border flex justify-between items-center text-xs font-mono mb-3">
                 <span class="text-gray-400 flex items-center gap-1.5"><i class="fa-regular fa-clock text-yellow-400"></i> <span data-i18n="session_timer">Session Timer:</span></span>
                 <span id="timer-countdown" class="text-yellow-400 font-bold">12:00:00</span>
+            </div>
+
+            <!-- USDT DAILY MINING & LEVEL SCHEME CARD (MATCHING USER SCREENSHOT) -->
+            <div class="bg-gradient-to-br from-[#121927] via-[#151d2c] to-[#080c14] p-4 rounded-2xl gold-border text-left shadow-xl relative overflow-hidden mb-3">
+                
+                <!-- TOP STATS BAR (Jam, Hari, Bulan) -->
+                <div class="flex items-center justify-between text-[10px] text-gray-300 mb-2 border-b border-gray-800/80 pb-2">
+                    <div class="flex items-center gap-1 font-bold text-gray-200">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span data-i18n="income_label">Pendapatan</span>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono text-[10px]">
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-clock text-yellow-400 text-[9px]"></i> <strong id="income-hourly" class="text-white">$0.0003</strong> <span class="text-gray-400">/jam</span></span>
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-days text-green-400 text-[9px]"></i> <strong id="income-daily" class="text-white">$0.0080</strong> <span class="text-gray-400">/hari</span></span>
+                        <span class="flex items-center gap-0.5 text-gray-300"><i class="fa-regular fa-calendar-check text-cyan-400 text-[9px]"></i> <strong id="income-monthly" class="text-white">$0.2400</strong> <span class="text-gray-400">/bln</span></span>
+                    </div>
+                </div>
+
+                <!-- LARGE MINED DISPLAY LIKE SCREENSHOT -->
+                <div class="py-1 mb-2">
+                    <div class="flex items-baseline gap-1">
+                        <h1 id="usdt-mined-display" class="text-3xl font-black font-mono tracking-tight text-white drop-shadow-md">$0<span class="text-gray-400 font-semibold">.00000000</span></h1>
+                    </div>
+                </div>
+
+                <!-- LEVEL BADGE & ACTION BUTTONS -->
+                <div class="flex items-center justify-between gap-2 pt-1 border-t border-gray-800/80">
+                    <div onclick="openLevelModal()" class="flex items-center gap-2 bg-[#080c14] border border-yellow-500/40 px-3 py-1.5 rounded-xl cursor-pointer hover:border-yellow-400 transition-all">
+                        <i class="fa-solid fa-layer-group text-yellow-400 text-xs"></i>
+                        <div>
+                            <span id="user-level-badge" class="text-xs font-bold text-yellow-400 block font-mono">Level 1 (2.7%)</span>
+                            <span class="text-[9px] text-gray-400 underline" data-i18n="view_levels">Lihat Level Info &gt;</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-1.5">
+                        <button onclick="openDepositUsdtModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xs px-3.5 py-2 rounded-xl shadow cursor-pointer hover:opacity-90 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-plus"></i> Deposit
+                        </button>
+                        <button onclick="claimUsdtMining()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black text-xs px-3.5 py-2 rounded-xl shadow cursor-pointer hover:opacity-90">
+                            Claim
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SPEED BOOST FROM ADS INFO -->
+                <div class="mt-2.5 bg-[#080c14]/90 p-2 rounded-lg border border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+                    <span class="text-gray-400 flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> Bonus Nonton Iklan:</span>
+                    <span id="usdt-speed-boost" class="text-yellow-400 font-bold">+0.0000 USDT/hari</span>
+                </div>
             </div>
         </div>
 
@@ -572,6 +622,9 @@
             tonBalance: 0.00,
             ethBalance: 0.000,
             userPoints: 0,
+            usdtBaseRate: 0.0050,
+            usdtSpeedBoost: 0.0000,
+            usdtMinedPending: 0.0000,
             refCode: `AFEX-${userIdStr}`,
             isMining: false,
             miningEndTime: 0,
@@ -628,6 +681,39 @@
             document.getElementById('bal-usdt').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('wallet-total-bal-usd').innerText = "$" + miningData.usdtBalance.toFixed(2);
             document.getElementById('user-points-badge').innerText = `${miningData.userPoints} Pts`;
+
+            // Update USDT Mining Card Display & Level Calculations
+            let userUsdt = miningData.usdtBalance;
+            let currentLevel = 1;
+            let levelRatePercent = 2.7;
+
+            if (userUsdt >= 1000) { currentLevel = 7; levelRatePercent = 4.0; }
+            else if (userUsdt >= 500) { currentLevel = 6; levelRatePercent = 3.8; }
+            else if (userUsdt >= 250) { currentLevel = 5; levelRatePercent = 3.7; }
+            else if (userUsdt >= 100) { currentLevel = 4; levelRatePercent = 3.4; }
+            else if (userUsdt >= 50) { currentLevel = 3; levelRatePercent = 3.2; }
+            else if (userUsdt >= 15) { currentLevel = 2; levelRatePercent = 3.0; }
+            else { currentLevel = 1; levelRatePercent = 2.7; }
+
+            // Mining speed calculated based on current level rate + ad boost
+            let levelDailyRate = (userUsdt * (levelRatePercent / 100));
+            if (levelDailyRate < miningData.usdtBaseRate) levelDailyRate = miningData.usdtBaseRate;
+            let totalDailySpeed = levelDailyRate + miningData.usdtSpeedBoost;
+            let hourlySpeed = totalDailySpeed / 24;
+            let monthlySpeed = totalDailySpeed * 30;
+
+            if (document.getElementById('income-hourly')) {
+                document.getElementById('income-hourly').innerText = "$" + hourlySpeed.toFixed(4);
+                document.getElementById('income-daily').innerText = "$" + totalDailySpeed.toFixed(4);
+                document.getElementById('income-monthly').innerText = "$" + monthlySpeed.toFixed(2);
+                document.getElementById('user-level-badge').innerText = `Level ${currentLevel} (${levelRatePercent}%)`;
+                document.getElementById('usdt-speed-boost').innerText = "+" + miningData.usdtSpeedBoost.toFixed(4) + " USDT/hari";
+                
+                // Formatted mined USDT display like $0.48944444
+                let valStr = miningData.usdtMinedPending.toFixed(8);
+                let parts = valStr.split('.');
+                document.getElementById('usdt-mined-display').innerHTML = `$${parts[0]}<span class="text-gray-400 font-semibold">.${parts[1]}</span>`;
+            }
         }
 
         // FUNGSI HELPER TIME FORMATTER
@@ -675,7 +761,30 @@
                     }
                 }
 
-                // 2. Update Dynamic Locks Countdown Real-time
+                // 2. Accumulate USDT Mining Pending Progress
+                let userUsdt = miningData.usdtBalance;
+                let levelRatePercent = 2.7;
+                if (userUsdt >= 1000) levelRatePercent = 4.0;
+                else if (userUsdt >= 500) levelRatePercent = 3.8;
+                else if (userUsdt >= 250) levelRatePercent = 3.7;
+                else if (userUsdt >= 100) levelRatePercent = 3.4;
+                else if (userUsdt >= 50) levelRatePercent = 3.2;
+                else if (userUsdt >= 15) levelRatePercent = 3.0;
+
+                let levelDailyRate = (userUsdt * (levelRatePercent / 100));
+                if (levelDailyRate < miningData.usdtBaseRate) levelDailyRate = miningData.usdtBaseRate;
+
+                let dailyRate = levelDailyRate + miningData.usdtSpeedBoost;
+                let perSecondRate = dailyRate / (24 * 3600);
+                miningData.usdtMinedPending += perSecondRate;
+
+                if(document.getElementById('usdt-mined-display')) {
+                    let valStr = miningData.usdtMinedPending.toFixed(8);
+                    let parts = valStr.split('.');
+                    document.getElementById('usdt-mined-display').innerHTML = `$${parts[0]}<span class="text-gray-400 font-semibold">.${parts[1]}</span>`;
+                }
+
+                // 3. Update Dynamic Locks Countdown Real-time
                 updateDynamicCountdowns();
 
             }, 1000);
@@ -744,6 +853,7 @@
                     miningData.balance += 15;
                     miningData.usdtBalance += 1.00;
                     miningData.userPoints += 1;
+                    miningData.usdtSpeedBoost += 0.0001; // Tambah kecepatan +0.0001 USDT/hari per iklan
                     updateUI();
                     showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 }).catch((error) => {
@@ -934,7 +1044,148 @@
             showModal(t('success'), t('wd_processed'), "fa-circle-check");
         }
 
+
+        /* LEVEL INFO MODAL (BASED ON USER SCREENSHOT) */
+        function openLevelModal() {
+            let html = `<div class="text-left text-xs space-y-2.5">
+                <p class="text-[11px] text-gray-300 leading-relaxed">
+                    Level bergantung pada saldo USDT: makin besar dana, makin tinggi pendapatan harian.<br>
+                    Pendapatan USDT dihitung dari saldo saat ini.
+                </p>
+                
+                <div class="overflow-x-auto rounded-xl border border-yellow-500/30">
+                    <table class="w-full text-left text-[11px] font-mono">
+                        <thead class="bg-[#080c14] text-yellow-400 border-b border-yellow-500/30 uppercase text-[9px]">
+                            <tr>
+                                <th class="p-2">LEVEL</th>
+                                <th class="p-2">DARI</th>
+                                <th class="p-2">PERSEN</th>
+                                <th class="p-2 text-right">PER BULAN</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800 bg-[#121927]">
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">1</td><td class="p-2 text-gray-300">3 USDT</td><td class="p-2 text-green-400 font-bold">2.7%</td><td class="p-2 text-right text-yellow-400">$6.67</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">2</td><td class="p-2 text-gray-300">15 USDT</td><td class="p-2 text-green-400 font-bold">3%</td><td class="p-2 text-right text-yellow-400">$36.41</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">3</td><td class="p-2 text-gray-300">50 USDT</td><td class="p-2 text-green-400 font-bold">3.2%</td><td class="p-2 text-right text-yellow-400">$128.64</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">4</td><td class="p-2 text-gray-300">100 USDT</td><td class="p-2 text-green-400 font-bold">3.4%</td><td class="p-2 text-right text-yellow-400">$272.66</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">5</td><td class="p-2 text-gray-300">250 USDT</td><td class="p-2 text-green-400 font-bold">3.7%</td><td class="p-2 text-right text-yellow-400">$743.54</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">6</td><td class="p-2 text-gray-300">500 USDT</td><td class="p-2 text-green-400 font-bold">3.8%</td><td class="p-2 text-right text-yellow-400">$1530.70</td></tr>
+                            <tr class="hover:bg-yellow-500/10"><td class="p-2 font-bold text-white">7</td><td class="p-2 text-gray-300">1000 USDT</td><td class="p-2 text-green-400 font-bold">4%</td><td class="p-2 text-right text-yellow-400">$3243.40</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+            showModal("Level & Rate Info", html, "fa-layer-group");
+        }
+
+        /* DEPOSIT USDT FLOW (STEP 1 & STEP 2 WITH WALLET ADDRESS, AMOUNT & TXHASH) */
+        const DEPOSIT_ADDRESSES = {
+            bsc: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+            trc: "TYD2v9M2K6G8fNp7aQ4k5xL2W9y1uZ8pXm",
+            ton: "EQD0g3e2R8aQ1Xm4yK7bN8vP9L2uW5zY3iO6tP4xM1vN8L",
+            eth: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+        };
+
+        function openDepositUsdtModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Jumlah Deposit (USDT)</label>
+                    <input type="number" id="dep-amount" placeholder="Contoh: 10" min="1" class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan / Network</label>
+                    <select id="dep-network" class="w-full bg-[#080c14] border border-gray-800 text-yellow-400 rounded-lg p-2.5 text-xs outline-none font-mono">
+                        <option value="bsc">BSC (BEP-20)</option>
+                        <option value="trc">TRON (TRC-20)</option>
+                        <option value="ton">TON Network</option>
+                        <option value="eth">Ethereum (ERC-20)</option>
+                    </select>
+                </div>
+                <button onclick="proceedDepositStep2()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-md hover:opacity-90 mt-2">
+                    DEPOSIT SEKARANG
+                </button>
+            </div>`;
+            showModal("Deposit USDT", html, "fa-circle-plus");
+        }
+
+        function proceedDepositStep2() {
+            let amt = parseFloat(document.getElementById('dep-amount').value) || 0;
+            let net = document.getElementById('dep-network').value;
+
+            if (amt <= 0) {
+                return showModal(t('error'), "Masukkan jumlah deposit yang valid!", "fa-circle-exclamation");
+            }
+
+            let walletAddr = DEPOSIT_ADDRESSES[net] || DEPOSIT_ADDRESSES['bsc'];
+            let netName = net.toUpperCase();
+
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div class="bg-yellow-500/10 border border-yellow-500/30 p-2.5 rounded-xl text-center">
+                    <span class="text-[10px] text-gray-400 block">Jumlah Transfer yang Diperlukan:</span>
+                    <span class="text-lg font-black font-mono text-green-400">$${amt.toFixed(2)} USDT</span>
+                    <span class="text-[9px] text-yellow-400 block font-mono mt-0.5">Jaringan: ${netName}</span>
+                </div>
+
+                <div class="bg-[#080c14] p-3 rounded-xl border border-gray-800">
+                    <span class="text-[10px] text-gray-400 block mb-1">Alamat Wallet Deposit:</span>
+                    <div class="flex items-center justify-between bg-[#121927] p-2 rounded-lg border border-gray-700">
+                        <span id="dep-wallet-addr" class="text-[10px] font-mono text-cyan-300 truncate max-w-[200px]">${walletAddr}</span>
+                        <button onclick="copyDepositAddress('${walletAddr}')" class="text-xs text-yellow-400 hover:text-white ml-2 font-bold flex items-center gap-1 cursor-pointer">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Masukkan TxHash / ID Transaksi:</label>
+                    <input type="text" id="dep-txhash" placeholder="Paste Hash/TxID di sini..." class="w-full bg-[#080c14] gold-border text-white rounded-lg p-2.5 text-xs outline-none font-mono">
+                </div>
+
+                <button onclick="submitDepositTxHash('${netName}', ${amt})" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-md hover:opacity-90">
+                    KONFIRMASI DEPOSIT
+                </button>
+            </div>`;
+
+            showModal("Alamat Pembayaran Deposit", html, "fa-wallet");
+        }
+
+        function copyDepositAddress(addr) {
+            navigator.clipboard.writeText(addr);
+            showModal(t('notification'), "Alamat wallet berhasil disalin!", "fa-circle-check");
+        }
+
+        function submitDepositTxHash(netName, amount) {
+            let txHash = document.getElementById('dep-txhash').value.trim();
+            if (!txHash) {
+                return showModal(t('error'), "Harap masukkan TxHash / Transaction Hash transfer Anda!", "fa-circle-exclamation");
+            }
+
+            // Simpan ke riwayat transaksi / Kirim Apps Script jika ada
+            let dateStr = new Date().toISOString().split('T')[0];
+            miningData.txHistory.unshift({
+                type: `Deposit USDT (${netName})`,
+                amount: `+$${amount.toFixed(2)} USDT`,
+                date: dateStr,
+                status: "PENDING VERIFICATION"
+            });
+
+            // Kirim notifikasi konfirmasi
+            closeModal();
+            showModal(t('success'), `Deposit sebesar $${amount.toFixed(2)} USDT (${netName}) berhasil dikirim untuk verifikasi TxHash!`, "fa-circle-check");
+        }
+
         /* LAIN-LAIN */
+        function claimUsdtMining() {
+            if (miningData.usdtMinedPending <= 0.000001) {
+                return showModal(t('notification'), "Mining progress is too small to claim yet.", "fa-circle-exclamation");
+            }
+            let claimed = miningData.usdtMinedPending;
+            miningData.usdtBalance += claimed;
+            miningData.usdtMinedPending = 0.0;
+            updateUI();
+            showModal(t('success'), `Claimed +$${claimed.toFixed(4)} USDT to your Wallet balance!`, "fa-circle-check");
+        }
+
         function handleMiningAction() {
             const TOTAL_DURATION_MS = 12 * 60 * 60 * 1000;
             if (!miningData.isMining && miningData.miningEndTime <= Date.now()) {
@@ -990,7 +1241,7 @@
             showModal(t('payouts_sub'), html, "fa-circle-check");
         }
 
-                function openTxHistoryModal() {
+        function openTxHistoryModal() {
             let html = `<div class="space-y-2 text-left text-xs max-h-48 overflow-y-auto pr-1">`;
             if(miningData.txHistory.length === 0) {
                 html += `<p class="text-gray-400 text-center py-4">No transaction history yet.</p>`;
