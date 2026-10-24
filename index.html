@@ -207,11 +207,11 @@
             </div>
 
             <!-- ACTION BUTTONS GRID -->
-            <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="grid grid-cols-2 gap-2 mb-3">
                 <div onclick="openConnectWalletModal()" class="bg-[#121927] gold-border p-3 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-link"></i></div>
-                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="connect_wallet">Connect Wallet</span><span class="text-[9px] text-gray-400">BSC, TON, ETH, TRC</span></div>
+                        <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="connect_wallet">Connect Wallet</span><span class="text-[9px] text-gray-400">BSC, TON, ETH</span></div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
@@ -221,6 +221,24 @@
                         <div class="text-left"><span class="text-[11px] font-bold text-white block" data-i18n="withdraw">Withdraw</span><span class="text-[9px] text-gray-400">Instant Payouts</span></div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
+                </div>
+            </div>
+
+            <!-- HISTORY BUTTONS GRID -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div onclick="openTxHistoryModal()" class="bg-[#121927] gold-border p-2.5 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-[10px] border border-yellow-500/20"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <div class="text-left"><span class="text-[10px] font-bold text-white block" data-i18n="tx_history">History</span></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-yellow-500"></i>
+                </div>
+                <div onclick="openWdHistoryModal()" class="bg-[#121927] gold-border p-2.5 rounded-xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 bg-yellow-500/10 text-yellow-400 rounded-lg flex items-center justify-center text-[10px] border border-yellow-500/20"><i class="fa-solid fa-list-check"></i></div>
+                        <div class="text-left"><span class="text-[10px] font-bold text-white block" data-i18n="wd_history">Withdraw History</span></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-yellow-500"></i>
                 </div>
             </div>
 
@@ -440,7 +458,7 @@
                 lock_face: "Face Recognition will be available in {d} days {time}.", lock_id: "Identity Verification will be available in {d} days {time}.",
                 locked_list: "Locked ({d} days {time})", swap_locked: "Swap feature will be active during Mainnet.",
                 wd_insufficient: "Oops, your balance is insufficient, please continue mining.", wd_processed: "Withdrawal processed successfully!",
-                wallet_manage: "Manage Wallet Addresses"
+                wallet_manage: "Manage Wallet Addresses", tx_history: "Transaction History", wd_history: "Withdraw History"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -459,7 +477,7 @@
                 lock_face: "Verifikasi Wajah akan tersedia dalam {d} hari {time}.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari {time}.",
                 locked_list: "Terkunci ({d} hari {time})", swap_locked: "Fitur Swap akan aktif pada fase Mainnet.",
                 wd_insufficient: "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", wd_processed: "Penarikan berhasil diproses!",
-                wallet_manage: "Kelola Alamat Dompet"
+                wallet_manage: "Kelola Alamat Dompet", tx_history: "Riwayat Transaksi", wd_history: "Riwayat Penarikan"
             },
             hi: {
                 total_balance: "कुल राशि", checkin_title: "दैनिक चेक-इन", checkin_sub: "लगातार इनाम (दिन 1-7)",
@@ -477,7 +495,7 @@
                 founder_avail: "संस्थापक {d} दिन {time} में उपलब्ध", lock_a2f: "A2F सुरक्षा {d} दिनों {time} में उपलब्ध होगी।",
                 lock_face: "चेहरा पहचान {d} दिनों {time} में उपलब्ध होगी।", lock_id: "पहचान सत्यापन {d} दिनों {time} में उपलब्ध होगा।",
                 locked_list: "लॉक ({d} दिन {time})", swap_locked: "स्वैप मेननेट के दौरान सक्रिय होगा।",
-                wd_insufficient: "क्षमा करें, आपका बैलेंस कम है।", wd_processed: "निकासी सफल!", wallet_manage: "वॉलेट प्रबंधित करें"
+                wd_insufficient: "क्षमा करें, आपका बैलेंस कम है।", wd_processed: "निकासी सफल!", wallet_manage: "वॉलेट प्रबंधित करें", tx_history: "लेनदेन इतिहास", wd_history: "निकासी इतिहास"
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "连续奖励 (1-7天)",
@@ -495,7 +513,7 @@
                 founder_avail: "创始人 VIP 将在 {d} 天 {time} 后可用", lock_a2f: "A2F 安全将在 {d} 天 {time} 后可用。",
                 lock_face: "面部识别将在 {d} 天 {time} 后可用。", lock_id: "身份验证将在 {d} 天 {time} 后可用。",
                 locked_list: "锁定 (剩 {d} 天 {time})", swap_locked: "兑换将在主网激活。",
-                wd_insufficient: "抱歉，余额不足，请继续挖矿。", wd_processed: "提现成功！", wallet_manage: "管理钱包"
+                wd_insufficient: "抱歉，余额不足，请继续挖矿。", wd_processed: "提现成功！", wallet_manage: "管理钱包", tx_history: "交易历史", wd_history: "提现历史"
             },
             ja: {
                 total_balance: "合計残高", checkin_title: "毎日ログイン", checkin_sub: "連続報酬 (1-7日)",
@@ -513,7 +531,7 @@
                 founder_avail: "創設者VIPは{d}日と{time}後に利用可能", lock_a2f: "A2Fセキュリティは{d}日{time}後に利用可能。",
                 lock_face: "顔認証は{d}日{time}後に利用可能。", lock_id: "身元確認は{d}日{time}後に利用可能。",
                 locked_list: "ロック中 (残り{d}日 {time})", swap_locked: "スワップはメインネットで有効になります。",
-                wd_insufficient: "残高不足です。マイニングを続けてください。", wd_processed: "出金完了！", wallet_manage: "ウォレット管理"
+                wd_insufficient: "残高不足です。マイニングを続けてください。", wd_processed: "出金完了！", wallet_manage: "ウォレット管理", tx_history: "取引履歴", wd_history: "出金履歴"
             },
             ar: {
                 total_balance: "إجمالي الرصيد", checkin_title: "تسجيل الدخول", checkin_sub: "مكافآت (اليوم 1-7)",
@@ -531,7 +549,7 @@
                 founder_avail: "المؤسس متاح بعد {d} أيام {time}", lock_a2f: "أمان A2F متاح بعد {d} أيام {time}.",
                 lock_face: "التعرف على الوجه متاح بعد {d} أيام {time}.", lock_id: "التحقق من الهوية متاح بعد {d} أيام {time}.",
                 locked_list: "مغلق (باقي {d} أيام {time})", swap_locked: "سيتم تفعيل التبادل قريباً.",
-                wd_insufficient: "رصيدك غير كافٍ.", wd_processed: "تم السحب بنجاح!", wallet_manage: "إدارة المحافظ"
+                wd_insufficient: "رصيدك غير كافٍ.", wd_processed: "تم السحب بنجاح!", wallet_manage: "إدارة المحافظ", tx_history: "سجل المعاملات", wd_history: "سجل السحوبات"
             }
         };
 
@@ -561,6 +579,13 @@
             lastCheckInTime: 0, 
             checkedDays: [],
             connectedWallets: { bsc: "", ton: "", eth: "", trc: "" },
+            txHistory: [
+                { type: "Welcome Bonus", amount: "+100.00 AFEX", date: "2026-06-01", status: "SUCCESS" },
+                { type: "Ad Reward", amount: "+1.00 USDT", date: "2026-06-02", status: "SUCCESS" }
+            ],
+            wdHistory: [
+                { token: "USDT", amount: "1.20 USDT", network: "BSC", date: "2026-06-03", status: "SUCCESS" }
+            ],
             referrals: [
                 { username: "@crypto_boy", adsWatched: 100, eligible: true },
                 { username: "@sultan_id", adsWatched: 45, eligible: false }
@@ -894,6 +919,16 @@
             else if(asset === 'usdt') miningData.usdtBalance -= amt;
             else if(asset === 'ton') miningData.tonBalance -= amt;
 
+            // Push to Withdraw History
+            let dateStr = new Date().toISOString().split('T')[0];
+            miningData.wdHistory.unshift({
+                token: asset.toUpperCase(),
+                amount: amt.toFixed(2) + " " + asset.toUpperCase(),
+                network: net.toUpperCase(),
+                date: dateStr,
+                status: "PROCESSING"
+            });
+
             updateUI();
             closeModal();
             showModal(t('success'), t('wd_processed'), "fa-circle-check");
@@ -953,6 +988,50 @@
                 <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>@whale_99 withdrew <strong class="text-yellow-400">500 AFEX</strong></span><span class="text-green-400">SUCCESS</span></div>
             </div>`;
             showModal(t('payouts_sub'), html, "fa-circle-check");
+        }
+
+                function openTxHistoryModal() {
+            let html = `<div class="space-y-2 text-left text-xs max-h-48 overflow-y-auto pr-1">`;
+            if(miningData.txHistory.length === 0) {
+                html += `<p class="text-gray-400 text-center py-4">No transaction history yet.</p>`;
+            } else {
+                miningData.txHistory.forEach(tx => {
+                    html += `<div class="bg-[#080c14] p-2.5 rounded border border-gray-800 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-white block">${tx.type}</span>
+                            <span class="text-[9px] text-gray-400 font-mono">${tx.date}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-yellow-400 block">${tx.amount}</span>
+                            <span class="text-[9px] text-green-400 font-bold">${tx.status}</span>
+                        </div>
+                    </div>`;
+                });
+            }
+            html += `</div>`;
+            showModal(t('tx_history'), html, "fa-clock-rotate-left");
+        }
+
+        function openWdHistoryModal() {
+            let html = `<div class="space-y-2 text-left text-xs max-h-48 overflow-y-auto pr-1">`;
+            if(miningData.wdHistory.length === 0) {
+                html += `<p class="text-gray-400 text-center py-4">No withdrawal history yet.</p>`;
+            } else {
+                miningData.wdHistory.forEach(wd => {
+                    let badgeColor = wd.status === 'SUCCESS' ? 'text-green-400' : 'text-yellow-400';
+                    html += `<div class="bg-[#080c14] p-2.5 rounded border border-gray-800 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-white block">${wd.amount} (${wd.network})</span>
+                            <span class="text-[9px] text-gray-400 font-mono">${wd.date}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-mono font-bold ${badgeColor}">${wd.status}</span>
+                        </div>
+                    </div>`;
+                });
+            }
+            html += `</div>`;
+            showModal(t('wd_history'), html, "fa-list-check");
         }
 
         function openAboutModal() { showModal(t('about'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
