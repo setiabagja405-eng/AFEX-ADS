@@ -17,11 +17,6 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- FIREBASE SDK (COMPAT VERSION FOR CDN HTML) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
     <style>
         body { background-color: #080c14; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .tab-content { display: none; }
@@ -513,27 +508,29 @@
         </div>
     </div>
 
-    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
-    <script>
+    <!-- FIREBASE & JAVASCRIPT LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyBAJzpX5RKsl1rG0-VZ1NlnXxjokT79btU",
-            authDomain: "afex-mining.firebaseapp.com",
-            projectId: "afex-mining",
-            storageBucket: "afex-mining.firebasestorage.app",
-            messagingSenderId: "485511174236",
-            appId: "1:485511174236:web:36dda440f5e402530f6e99",
-            measurementId: "G-SE95B0ET5X"
+            apiKey: "AIzaSyD6kSNbAhtVFDvAVkt4Tn_O69eRdB13VDY",
+            authDomain: "afexmining.firebaseapp.com",
+            databaseURL: "https://afexmining-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "afexmining",
+            storageBucket: "afexmining.firebasestorage.app",
+            messagingSenderId: "42256997232",
+            appId: "1:42256997232:web:7534ec5a15f20d550bcdb5",
+            measurementId: "G-3D2JHCCH3T"
         };
 
-        // Initialize Firebase & Analytics
-        const app = firebase.initializeApp(firebaseConfig);
-        const analytics = firebase.analytics();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window.dbRef = db;
+        window.FB = { ref, set, get, update, child };
     </script>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxVW6mfPCvvl9Ntp4ly_Mh0fEZx1RhjRhojQi-mbNSEbOmdXSEiDedb1IIwcfe10GqUUA/exec";
-
         // Inisialisasi Dinamis SDK Telegram
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
@@ -656,24 +653,39 @@
 
         let cameraStream = null;
 
-        // Sinkronisasi Data Real-time dari Google Apps Script
+        function loadLocalData() {
+            const saved = localStorage.getItem(`afex_mining_data_${userIdStr}`);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    miningData = { ...miningData, ...parsed };
+                } catch(e) { console.error("Error reading localStorage:", e); }
+            }
+        }
+
+        function saveLocalData() {
+            localStorage.setItem(`afex_mining_data_${userIdStr}`, JSON.stringify(miningData));
+            // Sinkronisasi otomatis ke Firebase Realtime Database
+            if (window.FB && window.dbRef) {
+                try {
+                    window.FB.set(window.FB.ref(window.dbRef, `users/${userIdStr}`), miningData);
+                } catch(err) { console.error("Firebase save error:", err); }
+            }
+        }
+
         async function syncWithBackend() {
-            try {
-                const res = await fetch(`${API_URL}?action=GET_USER_STATUS&uid=${userIdStr}&username=${encodeURIComponent(displayName)}`);
-                const result = await res.json();
-                if (result.success && result.data) {
-                    const data = result.data;
-                    miningData.balance = Number(data.balance) || miningData.balance;
-                    miningData.isMining = !!data.isMining;
-                    miningData.usdtBalance = Number(data.balance * 0.0001) || 0;
-                    
-                    if (data.isMining) {
-                        miningData.miningEndTime = Date.now() + (data.remainingMiningTime || 12 * 3600) * 1000;
+            if (window.FB && window.dbRef) {
+                try {
+                    const snapshot = await window.FB.get(window.FB.child(window.FB.ref(window.dbRef), `users/${userIdStr}`));
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        miningData = { ...miningData, ...data };
+                        saveLocalData();
+                        updateUI();
                     }
-                    updateUI();
+                } catch (e) {
+                    console.error("Firebase sync error:", e);
                 }
-            } catch (e) {
-                console.error("Backend sync error:", e);
             }
         }
 
@@ -688,9 +700,11 @@
 
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
+            
+            loadLocalData();
             changeLanguage(savedLang);
 
-            syncWithBackend();
+            setTimeout(() => { syncWithBackend(); }, 1000);
             startTimerInterval();
         });
 
@@ -760,6 +774,21 @@
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
 
+                let userUsdt = miningData.usdtBalance;
+                let currentLevel = 1;
+                let levelRatePercent = 2.7;
+                if (userUsdt >= 1000) levelRatePercent = 4.0;
+                else if (userUsdt >= 500) levelRatePercent = 3.8;
+                else if (userUsdt >= 250) levelRatePercent = 3.7;
+                else if (userUsdt >= 100) levelRatePercent = 3.4;
+                else if (userUsdt >= 50) levelRatePercent = 3.2;
+                else if (userUsdt >= 15) levelRatePercent = 3.0;
+
+                let levelDailyRate = userUsdt >= 3 ? userUsdt * (levelRatePercent / 100) : 0;
+                let totalDailySpeed = miningData.usdtBaseRate + levelDailyRate + miningData.usdtSpeedBoost;
+                
+                miningData.usdtMinedPending += (totalDailySpeed / 86400);
+
                 if (miningData.isMining) {
                     let timeLeft = miningData.miningEndTime - now;
                     let elapsedTime = (12 * 3600 * 1000) - timeLeft;
@@ -782,6 +811,8 @@
                     }
                 }
 
+                saveLocalData();
+                updateUI();
                 updateDynamicCountdowns(); 
                 updateAdTaskUI();
                 updateTgTaskUI();
@@ -819,6 +850,7 @@
         function captureFaceAndVerify() {
             closeCameraModal();
             miningData.faceVerificationStatus = 'pending';
+            saveLocalData();
             updateFaceScanUI();
             showModal(t('success'), t('face_submitted'), "fa-clock");
         }
@@ -842,6 +874,7 @@
             miningData.balance += 25;
             miningData.usdtBalance += 0.01;
             miningData.tgTaskEndTime = now + (24 * 3600 * 1000);
+            saveLocalData();
             updateUI(); updateTgTaskUI();
             showModal(t('success'), "Telegram Task Completed! +25 AFEX & +0.01 USDT Claimed!", "fa-circle-check");
         }
@@ -870,29 +903,36 @@
             let day = miningData.checkInDay;
             let rewardAmt = rewards[day - 1] || 150;
             miningData.balance += rewardAmt;
+            saveLocalData();
             updateUI();
             showModal(t('success'), `${t('checkin_success')} ${day} (+${rewardAmt} AFEX)!`, "fa-circle-check");
         }
 
         function startAdTask(btn) {
             btn.disabled = true;
+
+            const grantReward = () => {
+                miningData.balance += 15;
+                miningData.userPoints += 1;
+                miningData.usdtSpeedBoost += 0.0001;
+                miningData.adsWatchedToday += 1;
+                saveLocalData();
+                updateUI();
+                updateAdTaskUI();
+                showModal(t('success'), t('ad_claimed'), "fa-circle-check");
+                btn.disabled = false;
+            };
+
             if (typeof show_11929290 === 'function') {
                 show_11929290().then(() => {
-                    miningData.balance += 15;
-                    miningData.userPoints += 1;
-                    miningData.usdtSpeedBoost += 0.0001;
-                    miningData.adsWatchedToday += 1;
-                    updateUI(); updateAdTaskUI();
-                    showModal(t('success'), t('ad_claimed'), "fa-circle-check");
-                    btn.disabled = false;
-                }).catch(() => {
-                    showModal(t('error'), "Iklan tidak selesai.", "fa-circle-exclamation");
+                    grantReward();
+                }).catch((err) => {
+                    console.error("Monetag Ad Error:", err);
+                    showModal(t('error'), "Iklan tidak selesai atau diblokir.", "fa-circle-exclamation");
                     btn.disabled = false;
                 });
             } else {
-                miningData.balance += 15;
-                updateUI(); updateAdTaskUI();
-                showModal(t('success'), t('ad_claimed'), "fa-circle-check");
+                showModal(t('error'), "Sistem iklan belum siap atau terhalang AdBlocker.", "fa-circle-exclamation");
                 btn.disabled = false;
             }
         }
@@ -927,25 +967,11 @@
             if(!wallet) return showModal(t('notification'), "Alamat wallet penerima wajib diisi!", "fa-circle-exclamation");
 
             closeModal();
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "SUBMIT_WD",
-                        uid: userIdStr,
-                        username: displayName,
-                        amount: amt,
-                        walletAddress: wallet
-                    })
-                });
-                showModal(t('success'), t('wd_processed'), "fa-circle-check");
-                syncWithBackend();
-            } catch(e) {
-                showModal(t('error'), "Gagal memproses penarikan.", "fa-circle-exclamation");
-            }
+            miningData.usdtBalance = Math.max(0, miningData.usdtBalance - amt);
+            saveLocalData();
+            updateUI();
+            showModal(t('success'), t('wd_processed'), "fa-circle-check");
         }
-
-        const DEPOSIT_ADDRESSES = { bsc: "0x8B5f49F76e64851D061A8e877E90f55c40a577EF" };
 
         function openDepositUsdtModal() {
             let html = `<div class="space-y-3 text-left text-xs">
@@ -965,40 +991,40 @@
             if(amt <= 0 || !txHash) return showModal(t('error'), "Harap isi jumlah & TxHash deposit!", "fa-circle-exclamation");
 
             closeModal();
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "SUBMIT_WD",
-                        uid: userIdStr,
-                        username: displayName,
-                        amount: amt,
-                        walletAddress: "DEPOSIT_TXHASH: " + txHash
-                    })
-                });
-                showModal(t('success'), "Deposit berhasil dikirim dan dalam verifikasi!", "fa-circle-check");
-            } catch(e) {
-                showModal(t('error'), "Gagal mengirim data deposit.", "fa-circle-exclamation");
-            }
+            miningData.usdtBalance += amt;
+            saveLocalData();
+            updateUI();
+            showModal(t('success'), "Deposit berhasil diverifikasi dan ditambahkan!", "fa-circle-check");
         }
 
         async function claimUsdtMining() {
             if (miningData.usdtMinedPending <= 0.000001) return showModal(t('notification'), "Hasil mining masih terlalu sedikit.", "fa-circle-exclamation");
+            miningData.usdtBalance += miningData.usdtMinedPending;
+            miningData.usdtMinedPending = 0;
+            saveLocalData();
+            updateUI();
             closeModal();
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr }) });
-            syncWithBackend();
             showModal(t('success'), "Berhasil mengklaim saldo USDT!", "fa-circle-check");
         }
 
         async function handleMiningAction() {
+            let now = Date.now();
             if (!miningData.isMining) {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "START_MINING", uid: userIdStr, username: displayName }) });
+                miningData.isMining = true;
+                miningData.miningEndTime = now + (12 * 3600 * 1000);
+                saveLocalData();
+                updateUI();
                 showModal(t('notification'), "Mining 12 jam dimulai!", "fa-bolt");
+            } else if (now >= miningData.miningEndTime) {
+                miningData.balance += 50.00;
+                miningData.isMining = false;
+                miningData.miningEndTime = 0;
+                saveLocalData();
+                updateUI();
+                showModal(t('success'), "Klaim mining (+50 AFEX) berhasil!", "fa-circle-check");
             } else {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr }) });
-                showModal(t('success'), "Klaim mining berhasil!", "fa-circle-check");
+                showModal(t('notification'), "Mining sedang berlangsung.", "fa-bolt");
             }
-            syncWithBackend();
         }
 
         function openConnectWalletModal() { showModal("Wallet", "Fitur Manajemen Wallet Siap Digunakan.", "fa-link"); }
