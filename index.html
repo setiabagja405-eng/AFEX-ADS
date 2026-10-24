@@ -17,6 +17,11 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- FIREBASE SDK (COMPAT VERSION FOR CDN HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         body { background-color: #080c14; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .tab-content { display: none; }
@@ -507,6 +512,23 @@
             <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-black cursor-pointer shadow-lg hover:opacity-90">OK</button>
         </div>
     </div>
+
+    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAJzpX5RKsl1rG0-VZ1NlnXxjokT79btU",
+            authDomain: "afex-mining.firebaseapp.com",
+            projectId: "afex-mining",
+            storageBucket: "afex-mining.firebasestorage.app",
+            messagingSenderId: "485511174236",
+            appId: "1:485511174236:web:36dda440f5e402530f6e99",
+            measurementId: "G-SE95B0ET5X"
+        };
+
+        // Initialize Firebase & Analytics
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
+    </script>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
