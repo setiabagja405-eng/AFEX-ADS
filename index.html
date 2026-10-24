@@ -1371,6 +1371,7 @@
             lbl.innerText = `Min. WD: ${min} ${asset.toUpperCase()} (Fee 2%)`;
         }
 
+        /* FUNGSI EXECUTE WITHDRAW (URL APPS SCRIPT SPREADSHEET WD) */
         function executeWithdraw() {
             let asset = document.getElementById('wd-asset').value;
             let net = document.getElementById('wd-network').value;
@@ -1384,10 +1385,10 @@
             }
             else if(asset === 'usdt') minVal = 5;
 
-            // PENCEGAHAN: Jika sudah pernah WD 0.10 USDT dan mencoba WD nominal < 1.5 USDT
+            // PENCEGAHAN: Jika sudah pernah WD 0.10 USDT dan mencoba WD kurang dari 1.5 USDT
             if(asset === 'usdt' && net === 'bsc' && miningData.hasWithdrawnFirst010 && amt < 1.5) {
                 closeModal();
-                // Tidak akan dikirim ke Spreadsheet
+                // Tidak dikirim ke Spreadsheet
                 return showModal(t('notification'), t('wd_first_time_used'), "fa-trophy");
             }
 
@@ -1402,8 +1403,8 @@
                 return showModal(t('notification'), t('wd_insufficient'), "fa-circle-exclamation");
             }
 
-            // HANYA TERKIRIM KE SPREADSHEET JIKA PERSYARATAN TERPATUHI
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec';
+            // URL SPREADSHEET KHUSUS WD
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzl4z3W8sCordnJFTZHMqpMFGFel0V_K3Lnkok4Gxhk_uAJikQ1zRfNma_UFFiTUTSB/exec';
             
             const requestData = {
                 action: "WITHDRAW",
@@ -1418,16 +1419,17 @@
 
             fetch(scriptURL, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(requestData)
-            }).catch(err => console.error('Error!', err));
+            })
+            .then(res => console.log('Data WD berhasil dikirim ke Spreadsheet'))
+            .catch(err => console.error('Error WD:', err));
 
             if(asset === 'afex') miningData.balance -= amt;
             else if(asset === 'usdt') miningData.usdtBalance -= amt;
             else if(asset === 'ton') miningData.tonBalance -= amt;
 
-            // Kunci fitur penarikan $0.10 USDT setelah penarikan berhasil
+            // Kunci WD 0.10 USDT agar tidak dapat diulangi
             if(asset === 'usdt' && net === 'bsc' && !miningData.hasWithdrawnFirst010) {
                 miningData.hasWithdrawnFirst010 = true;
             }
@@ -1444,6 +1446,48 @@
             updateUI();
             closeModal();
             showModal(t('success'), t('wd_processed'), "fa-circle-check");
+        }
+
+        /* FUNGSI SUBMIT DEPOSIT TXHASH (URL APPS SCRIPT SPREADSHEET TXHASH) */
+        function submitDepositTxHash(netName, amount) {
+            let txHash = document.getElementById('dep-txhash').value.trim();
+            if (!txHash) {
+                return showModal(t('error'), t('err_enter_txhash'), "fa-circle-exclamation");
+            }
+
+            // URL SPREADSHEET KHUSUS DEPOSIT TXHASH
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec'; 
+
+            const requestData = {
+                action: "DEPOSIT_TXHASH",
+                username: displayName,
+                uid: userIdStr,
+                token: "USDT",
+                network: netName,
+                wallet: DEPOSIT_ADDRESSES[netName.toLowerCase()] || "Direct/Manual",
+                amount: amount,
+                txHash: txHash,
+                status: "PENDING"
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => console.log('TxHash berhasil terkirim ke Spreadsheet'))
+            .catch(err => console.error('Error kirim TxHash:', err));
+
+            let dateStr = new Date().toISOString().split('T')[0];
+            miningData.txHistory.unshift({
+                type: `Deposit USDT (${netName})`,
+                amount: `+$${amount.toFixed(2)} USDT`,
+                date: dateStr,
+                status: "PENDING VERIFICATION"
+            });
+
+            closeModal();
+            showModal(t('success'), `Deposit $${amount.toFixed(2)} USDT (${netName}) submitted!`, "fa-circle-check");
         }
 
         function openLevelModal() {
@@ -1559,47 +1603,6 @@
                     btnEl.classList.remove('text-green-400');
                 }, 2000);
             }
-        }
-
-        function submitDepositTxHash(netName, amount) {
-            let txHash = document.getElementById('dep-txhash').value.trim();
-            if (!txHash) {
-                return showModal(t('error'), t('err_enter_txhash'), "fa-circle-exclamation");
-            }
-
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec'; 
-
-            const requestData = {
-                action: "DEPOSIT_TXHASH",
-                username: displayName,
-                uid: userIdStr,
-                token: "USDT",
-                network: netName,
-                wallet: DEPOSIT_ADDRESSES[netName.toLowerCase()] || "Direct/Manual",
-                amount: amount,
-                txHash: txHash,
-                status: "PENDING"
-            };
-
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestData)
-            })
-            .then(() => console.log('TxHash dikirim ke Spreadsheet'))
-            .catch(err => console.error('Error:', err));
-
-            let dateStr = new Date().toISOString().split('T')[0];
-            miningData.txHistory.unshift({
-                type: `Deposit USDT (${netName})`,
-                amount: `+$${amount.toFixed(2)} USDT`,
-                date: dateStr,
-                status: "PENDING VERIFICATION"
-            });
-
-            closeModal();
-            showModal(t('success'), `Deposit $${amount.toFixed(2)} USDT (${netName}) submitted!`, "fa-circle-check");
         }
 
         function claimUsdtMining() {
