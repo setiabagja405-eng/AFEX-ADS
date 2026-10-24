@@ -1362,7 +1362,6 @@
             
             if(asset === 'usdt') {
                 if(net === 'bsc') {
-                    // Cek apakah penarikan pertama 0.10 sudah dipakai atau belum
                     min = miningData.hasWithdrawnFirst010 ? 1.5 : 0.10;
                 } else {
                     min = 5; 
@@ -1385,9 +1384,10 @@
             }
             else if(asset === 'usdt') minVal = 5;
 
-            // Jika pengguna sudah pernah WD 0.10 dan mencoba memasukkan nominal < 1.5
+            // PENCEGAHAN: Jika sudah pernah WD 0.10 USDT dan mencoba WD nominal < 1.5 USDT
             if(asset === 'usdt' && net === 'bsc' && miningData.hasWithdrawnFirst010 && amt < 1.5) {
                 closeModal();
+                // Tidak akan dikirim ke Spreadsheet
                 return showModal(t('notification'), t('wd_first_time_used'), "fa-trophy");
             }
 
@@ -1402,15 +1402,18 @@
                 return showModal(t('notification'), t('wd_insufficient'), "fa-circle-exclamation");
             }
 
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbzl4z3W8sCordnJFTZHMqpMFGFel0V_K3Lnkok4Gxhk_uAJikQ1zRfNma_UFFiTUTSB/exec';
+            // HANYA TERKIRIM KE SPREADSHEET JIKA PERSYARATAN TERPATUHI
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec';
             
             const requestData = {
+                action: "WITHDRAW",
                 username: displayName,
                 uid: userIdStr,
                 token: asset.toUpperCase(),
                 network: net.toUpperCase(),
                 wallet: miningData.connectedWallets[net] || "Manual/Direct",
-                amount: amt
+                amount: amt,
+                status: "PROCESSING"
             };
 
             fetch(scriptURL, {
@@ -1424,7 +1427,7 @@
             else if(asset === 'usdt') miningData.usdtBalance -= amt;
             else if(asset === 'ton') miningData.tonBalance -= amt;
 
-            // Jika withdraw 0.10 USDT berhasil dilakukan, kunci batas 0.10 untuk seterusnya
+            // Kunci fitur penarikan $0.10 USDT setelah penarikan berhasil
             if(asset === 'usdt' && net === 'bsc' && !miningData.hasWithdrawnFirst010) {
                 miningData.hasWithdrawnFirst010 = true;
             }
@@ -1563,6 +1566,29 @@
             if (!txHash) {
                 return showModal(t('error'), t('err_enter_txhash'), "fa-circle-exclamation");
             }
+
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxSLaBmW0SrggcN2wDJ3JnToyv46NRAycwe5nyrfW0EF1sd6Nfq3OO3HN6EBXLeg1o6/exec'; 
+
+            const requestData = {
+                action: "DEPOSIT_TXHASH",
+                username: displayName,
+                uid: userIdStr,
+                token: "USDT",
+                network: netName,
+                wallet: DEPOSIT_ADDRESSES[netName.toLowerCase()] || "Direct/Manual",
+                amount: amount,
+                txHash: txHash,
+                status: "PENDING"
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            })
+            .then(() => console.log('TxHash dikirim ke Spreadsheet'))
+            .catch(err => console.error('Error:', err));
 
             let dateStr = new Date().toISOString().split('T')[0];
             miningData.txHistory.unshift({
