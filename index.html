@@ -85,11 +85,8 @@
             </div>
         </div>
 
-        <!-- FOUNDER VIP BANNER (BLURRED & LOCKED) -->
-        <div id="founder-banner" onclick="handleFounderClick()" class="gold-card-bg gold-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg relative overflow-hidden">
-            <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                <span class="text-xs font-black text-yellow-400 tracking-wider bg-[#121927]/90 px-3 py-1 rounded-lg border border-yellow-500/40" data-i18n="founder_locked_text">Founder Masih Terkunci Silahkan Tunggu Informasi Selanjutnya</span>
-            </div>
+        <!-- FOUNDER VIP BANNER (KEMBALI SEPERTI AWAL TANPA BLUR) -->
+        <div id="founder-banner" onclick="handleFounderClick()" class="gold-card-bg gold-border p-3 rounded-xl mb-4 flex items-center justify-between cursor-pointer hover:border-yellow-400 transition-all shadow-lg">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-yellow-500 text-black rounded-xl flex items-center justify-center text-sm font-black shadow-md">
                     <i class="fa-solid fa-crown"></i>
@@ -511,17 +508,16 @@
         </div>
     </div>
 
-    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
+    <!-- FIREBASE CONFIGURATION & INITIALIZATION (DIPERBARUI SESUAI PERMINTAAN) -->
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyBeDb2ISj0_tgC2vLOT-SylBP51pmeHbYk",
-            authDomain: "afex-mining-new.firebaseapp.com",
-            databaseURL: "https://afex-mining-new-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "afex-mining-new",
-            storageBucket: "afex-mining-new.firebasestorage.app",
-            messagingSenderId: "43555744747",
-            appId: "1:43555744747:web:2822925282d1ae065b87ae",
-            measurementId: "G-HQZ3WYLDTG"
+            apiKey: "AIzaSyC1e-qHoWNoEcUjaCeYjZ887hfO6Yk9XiY",
+            authDomain: "afexmining2new.firebaseapp.com",
+            projectId: "afexmining2new",
+            storageBucket: "afexmining2new.firebasestorage.app",
+            messagingSenderId: "186819219544",
+            appId: "1:186819219544:web:32a44de1cee4f83bd77a2d",
+            measurementId: "G-0WC0BJLJ7N"
         };
 
         const app = firebase.initializeApp(firebaseConfig);
@@ -553,7 +549,7 @@
                 task_join_tg: "Join Telegram Channel", btn_start: "Start", invite_sub: "Invite and Get Reward", contest_sub: "Get Reward",
                 sec_kyc: "SECURITY & KYC", community: "COMMUNITY", about: "ABOUT", payouts_sub: "Live withdraw global users",
                 notification: "Notification", success: "Success", error: "Error", copied: "Copied!", btn_ok: "OK",
-                founder_locked_text: "Founder is still locked, please wait for further information",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Wallet Disconnected", btn_connect: "Connect",
                 checkin_done: "Already checked in today. Please return tomorrow.", checkin_success: "Check-in successful for Day",
                 ad_claimed: "Reward Claimed! +15 AFEX, +0.00001 Speed/hr, and +1 Point added!", ad_not_ready: "AdsGuard active / No ads ready. Reward granted directly!",
@@ -583,7 +579,7 @@
                 task_join_tg: "Gabung Saluran Telegram", btn_start: "Mulai", invite_sub: "Undang dan Dapatkan Hadiah", contest_sub: "Dapatkan Hadiah",
                 sec_kyc: "KEAMANAN & KYC", community: "KOMUNITAS", about: "TENTANG", payouts_sub: "Penarikan langsung pengguna global",
                 notification: "Pemberitahuan", success: "Berhasil", error: "Kesalahan", copied: "Tersalin!", btn_ok: "OKE",
-                founder_locked_text: "Founder Masih Terkunci Silahkan Tunggu Informasi Selanjutnya",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Dompet Belum Terhubung", btn_connect: "Hubungkan",
                 checkin_done: "Sudah check-in hari ini, silahkan kembali besok.", checkin_success: "Berhasil check-in Hari ke-",
                 ad_claimed: "Hadiah Diklaim! +15 AFEX, +0.00001 Kecepatan/jam, dan +1 Poin ditambahkan!", ad_not_ready: "AdsGuard aktif / Iklan dilewati. Hadiah langsung diberikan!",
@@ -613,7 +609,7 @@
                 task_join_tg: "Tham gia kênh Telegram", btn_start: "Bắt đầu", invite_sub: "Mời và nhận thưởng", contest_sub: "Nhận thưởng",
                 sec_kyc: "BẢO MẬT & KYC", community: "CỘNG ĐỒNG", about: "GIỚI THIỆU", payouts_sub: "Rút tiền trực tiếp người dùng toàn cầu",
                 notification: "Thông báo", success: "Thành công", error: "Lỗi", copied: "Đã sao chép!", btn_ok: "ĐỒNG Ý",
-                founder_locked_text: "Nhà sáng lập vẫn bị khóa, vui lòng đợi thông tin thêm",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Ví chưa kết nối", btn_connect: "Kết nối",
                 checkin_done: "Đã điểm danh hôm nay. Vui lòng quay lại vào ngày mai.", checkin_success: "Điểm danh thành công ngày",
                 ad_claimed: "Đã nhận thưởng! +15 AFEX, +0.00001 Tốc độ/giờ, và +1 Điểm!", ad_not_ready: "AdsGuard hoạt động / Quảng cáo đã được bỏ qua. Nhận thưởng trực tiếp!",
@@ -643,7 +639,7 @@
                 task_join_tg: "Sumali sa Telegram Channel", btn_start: "Simulan", invite_sub: "Mag-imbita at Kumuha ng Gantimpala", contest_sub: "Kumuha ng Gantimpala",
                 sec_kyc: "SEGURIDAD & KYC", community: "KOMUNIDAD", about: "TUNGKOL", payouts_sub: "Live na withdraw ng mga pandaigdigang user",
                 notification: "Notipikasyon", success: "Tagumpay", error: "Mali", copied: "Kopya na!", btn_ok: "OK",
-                founder_locked_text: "Ang Founder ay naka-lock pa rin, mangyaring maghintay ng karagdagang impormasyon",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Hindi Nakakonekta ang Wallet", btn_connect: "Ikonekta",
                 checkin_done: "Nag-check-in na ngayon. Mangyaring bumalik bukas.", checkin_success: "Matagumpay na check-in para sa Araw",
                 ad_claimed: "Nakuha ang Gantimpala! +15 AFEX, +0.00001 Bilis/oras, at +1 Puntos!", ad_not_ready: "Aktibo ang AdsGuard / Na-skip ang ad. Iginawad agad ang gantimpala!",
@@ -673,7 +669,7 @@
                 task_join_tg: "เข้าร่วมช่อง Telegram", btn_start: "เริ่มต้น", invite_sub: "เชิญและรับรางวัล", contest_sub: "รับรางวัล",
                 sec_kyc: "ความปลอดภัย & KYC", community: "ชุมชน", about: "เกี่ยวกับ", payouts_sub: "ถอนเงินสดผู้ใช้ทั่วโลกแบบสด",
                 notification: "การแจ้งเตือน", success: "สำเร็จ", error: "ข้อผิดพลาด", copied: "คัดลอกแล้ว!", btn_ok: "ตกลง",
-                founder_locked_text: "ผู้ก่อตั้งยังถูกล็อคอยู่ โปรดรอข้อมูลเพิ่มเติม",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "ยังไม่ได้เชื่อมต่อกระเป๋าเงิน", btn_connect: "เชื่อมต่อ",
                 checkin_done: "เช็คอินไปแล้ววันนี้ โปรดกลับมาใหม่พรุ่งนี้", checkin_success: "เช็คอินสำเร็จสำหรับวันที่",
                 ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.00001 ความเร็ว/ชม., และ +1 คะแนน!", ad_not_ready: "AdsGuard เปิดใช้งาน / ข้ามโฆษณาแล้ว ให้รางวัลทันที!",
@@ -703,7 +699,7 @@
                 task_join_tg: "Sertai Saluran Telegram", btn_start: "Mula", invite_sub: "Jemput dan Dapatkan Ganjaran", contest_sub: "Dapatkan Ganjaran",
                 sec_kyc: "KESELAMATAN & KYC", community: "KOMUNITI", about: "TENTANG", payouts_sub: "Pengeluaran langsung pengguna global",
                 notification: "Pemberitahuan", success: "Berjaya", error: "Ralat", copied: "Disalin!", btn_ok: "OK",
-                founder_locked_text: "Pengasas masih dikunci, sila tunggu maklumat lanjut",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Dompet Belum Disambungkan", btn_connect: "Sambung",
                 checkin_done: "Sudah daftar masuk hari ini. Sila kembali esok.", checkin_success: "Daftar masuk berjaya untuk Hari",
                 ad_claimed: "Ganjaran Dituntut! +15 AFEX, +0.00001 Kelajuan/jam, dan +1 Mata!", ad_not_ready: "AdsGuard aktif / Iklan dilangkau. Ganjaran terus diberikan!",
@@ -733,7 +729,7 @@
                 task_join_tg: "टेलीग्राम चैनल से जुड़ें", btn_start: "शुरू करें", invite_sub: "आमंत्रित करें और पुरस्कार पाएं", contest_sub: "पुरस्कार पाएं",
                 sec_kyc: "सुरक्षा और केवाईसी", community: "समुदाय", about: "के बारे में", payouts_sub: "वैश्विक उपयोगकर्ताओं की लाइव निकासी",
                 notification: "सूचना", success: "सफलता", error: "त्रुटि", copied: "कॉपी किया गया!", btn_ok: "ठीक है",
-                founder_locked_text: "फाउंडर अभी भी लॉक है, कृपया अगली जानकारी की प्रतीक्षा करें",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "वॉलेट डिस्कनेक्टेड", btn_connect: "कनेक्ट",
                 checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
                 ad_claimed: "पुरस्कार का दावा किया गया! +15 AFEX, +0.00001 स्पीड/घंटा, और +1 पॉइंट!", ad_not_ready: "AdsGuard सक्रिय / विज्ञापन छोड़ दिया गया। पुरस्कार सीधे दिया गया!",
@@ -755,32 +751,32 @@
             ur: {
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک کے انعامات کا دعویٰ کریں (دن 1 - 7)",
                 ready_to_mine: "مائن کرنے کے لیے تیار", session_timer: "سیشن ٹائمر:", tasks_title: "کام", 
-                tasks_desc: "پوائنٹس اور انعامات حاصل کرنے के लिए کام مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
-                swap_heading: "AFEX ٹोकन سویپ ایکسچینج", swap_desc: "AFEX ٹوکنز کو فوری طور پر USDT یا TON میں سویپ کریں۔",
-                connect_wallet: "والٹ കണक्ट करें", withdraw: "रقم نکالیں", your_balances: "آپ کے ٹोकन بیلنس",
+                tasks_desc: "پوائنٹس और انعامات حاصل करने के लिए काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
+                swap_heading: "AFEX ٹोकन سویپ ایکسچینج", swap_desc: "AFEX ٹوکنز को فوری طور پر USDT یا TON में سویپ کریں۔",
+                connect_wallet: "والٹ connect करें", withdraw: "رقم نکالیں", your_balances: "آپ के टोकन بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
                 vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ شروع کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
-                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "शुरू करें", invite_sub: "دعوت دیں اور انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
-                sec_kyc: "سیکیورٹی और के व वाई सी", community: "کمیونٹی", about: "کے بارے میں", payouts_sub: "عالمی صارفین کی لائیو نکاسی",
+                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "शुरू करें", invite_sub: "دعوت دیں और انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
+                sec_kyc: "سیکیورٹی और के व वाई सी", community: "کمیونٹی", about: "के बारे में", payouts_sub: "عالمی صارفین की لائیو نکاسی",
                 notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک ہے",
-                founder_locked_text: "بانی اب بھی مقفل ہیں، براہ کرم مزید معلومات کا انتظار کریں",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "والٹ منقطع ہے", btn_connect: "جڑیں",
-                checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "دن के लिए चेक-इन सफल",
-                ad_claimed: "انعام کا دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار چھوڑ دیا گیا۔ انعام براہ راست دے دیا گیا!",
-                founder_avail: "{d} دنوں {time} میں بانی دستیاب ہوں گے", lock_a2f: "A2F سیکیورٹی {d} دنوں {time} میں دستیاب होगी।", 
-                lock_face: "چہرہ شناخت {d} دنوں {time} में دستیاب ہوگی।", lock_id: "شناختی تصدیق {d} دنوں {time} में دستیاب होगी।",
-                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ کے دوران سویپ کی خصوصیت فعال ہوگی۔",
-                wd_insufficient: "افوہ، آپ کا بیلنس ناکافی ہے، براہ کرم مائننگ جاری رکھیں۔", wd_processed: "رقم کامیابی کے ساتھ نکال دی گئی!",
-                wallet_manage: "والٹ کے پتے کا انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
-                income_label: "آمدنی", view_levels: "لیول کی معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ کریں",
+                checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
+                ad_claimed: "انعام का دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، और +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست دے دیا گیا!",
+                founder_avail: "{d} دنوں {time} में بانی دستیاب ہوں گے", lock_a2f: "A2F سیکیورٹی {d} دنوں {time} में دستیاب ہوگی।", 
+                lock_face: "चہرہ شناخت {d} دنوں {time} में دستیاب ہوگی।", lock_id: "شناختی تصدیق {d} دنوں {time} में دستیاب ہوگی।",
+                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ की خصوصیت فعال ہوگی।",
+                wd_insufficient: "افوہ، آپ का بیلنس ناکافی है، براہ کرم مائننگ जारी रखें।", wd_processed: "رقم کامیابی کے ساتھ نکال दी گئی!",
+                wallet_manage: "والٹ के پتے का انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
+                income_label: "آمدنی", view_levels: "لیول की معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ کریں",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/माह",
-                start_swap_btn: "سویپ شروع کریں", instant_payouts: "فوری ادائیگی", your_uid: "آپ کا UID",
-                a2f_title: "A2F سیکیورٹی (ایمیل اور OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
-                invite_friends: "دوستوں को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
-                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری کی پالیسی",
+                start_swap_btn: "سویپ शुरू करें", instant_payouts: "فوری ادائیگی", your_uid: "آپ का UID",
+                a2f_title: "A2F سیکیورٹی (ایمیل और OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
+                invite_friends: "دوستों को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
+                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری की پالیسی",
                 status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ",
-                face_scan_title: "فیس ریکگنیشن اسکین", face_scan_desc: "اپنے چہرے को فریم के अंदर रखें और कीپچر کریں۔", btn_capture: "ابھی کیپچر करें", btn_cancel: "منسوخ करें",
-                face_submitted: "فیس اسکین جمع कर दिया गया! تصدیق ایڈمن के زیر جائزہ है।", face_already_verified: "آپ की چہرے की تصدیق पहले ही مکمل और تصدیق شدہ है!"
+                face_scan_title: "فیس ریکگنیشن اسکین", face_scan_desc: "अपने چہرے को فریم के अंदर रखें और कीپچر करें।", btn_capture: "ابھی کیپچر करें", btn_cancel: "منسوخ करें",
+                face_submitted: "فیس اسکین جمع कर दिया गया! تصدیق ایڈمن के زیر جائزہ है।", face_already_verified: "آپ کی چہرے की تصدیق پہلے ही مکمل और تصدیق شدہ है!"
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续奖励 (第 1 - 7 天)",
@@ -793,7 +789,7 @@
                 task_join_tg: "加入电报频道", btn_start: "开始", invite_sub: "邀请并获得奖励", contest_sub: "获得奖励",
                 sec_kyc: "安全与 KYC", community: "社区", about: "关于", payouts_sub: "全球用户实时提现",
                 notification: "通知", success: "成功", error: "错误", copied: "已复制！", btn_ok: "确定",
-                founder_locked_text: "创始人仍处于锁定状态，请等待进一步通知",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "钱包未连接", btn_connect: "连接",
                 checkin_done: "今天已签到。请明天再来。", checkin_success: "签到成功，第",
                 ad_claimed: "已领取奖励！+15 AFEX，+0.00001 速度/小时，以及 +1 积分！", ad_not_ready: "AdsGuard 已激活 / 广告已跳过。直接发放奖励！",
@@ -823,7 +819,7 @@
                 task_join_tg: "텔레그램 채널 가입", btn_start: "시작", invite_sub: "초대하고 보상 받기", contest_sub: "보상 받기",
                 sec_kyc: "보안 및 KYC", community: "커뮤니티", about: "정보", payouts_sub: "글로벌 사용자 실시간 출금",
                 notification: "알림", success: "성공", error: "오류", copied: "복사됨!", btn_ok: "확인",
-                founder_locked_text: "창립자가 아직 잠겨 있습니다. 추가 정보를 기다려 주세요.",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "지갑 연결 안 됨", btn_connect: "연결",
                 checkin_done: "오늘 이미 출석했습니다. 내일 다시 방문해주세요.", checkin_success: "출석 성공 일차:",
                 ad_claimed: "보상 수령 완료! +15 AFEX, +0.00001 속도/시간, +1 포인트!", ad_not_ready: "AdsGuard 활성화됨 / 광고 건너뜀. 보상이 즉시 지급되었습니다!",
@@ -853,7 +849,7 @@
                 task_join_tg: "Telegramチャンネルに参加", btn_start: "開始", invite_sub: "招待して報酬を獲得", contest_sub: "報酬を獲得",
                 sec_kyc: "セキュリティ & KYC", community: "コミュニティ", about: "情報", payouts_sub: "グローバルユーザーのライブ出金",
                 notification: "通知", success: "成功", error: "エラー", copied: "コピーしました！", btn_ok: "OK",
-                founder_locked_text: "創設者はまだロックされています。詳細情報をお待ちください",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "ウォレット未接続", btn_connect: "接続",
                 checkin_done: "本日は既にチェックイン済みです。明日またお越しください。", checkin_success: "チェックイン成功 日目:",
                 ad_claimed: "報酬を受け取りました！+15 AFEX、+0.00001 速度/時間、+1 ポイント！", ad_not_ready: "AdsGuard有効 / 広告スキップ。報酬が直接付与されました！",
@@ -883,7 +879,7 @@
                 task_join_tg: "Sluit aan by Telegram-kanaal", btn_start: "Begin", invite_sub: "Nooi uit en Kry Beloning", contest_sub: "Kry Beloning",
                 sec_kyc: "SEKURITEIT & KYC", community: "GEMEENSKAP", about: "OOR", payouts_sub: "Regstreekse onttrekkings van globale gebruikers",
                 notification: "Kennisgewing", success: "Sukses", error: "Fout", copied: "Gekopieer!", btn_ok: "OK",
-                founder_locked_text: "Stigter is steeds gesluit, wag asseblief vir verdere inligting",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "Beursie Ontkoppel", btn_connect: "Koppel",
                 checkin_done: "Reeds vandag aangemeld. Kom asseblief môre terug.", checkin_success: "Aanmelding suksesvol vir Dag",
                 ad_claimed: "Beloning opgevorder! +15 AFEX, +0.00001 Spoed/uur, en +1 Punt!", ad_not_ready: "AdsGuard aktief / Advertensie oorgeslaan. Beloning direk toegeken!",
@@ -893,7 +889,7 @@
                 wd_insufficient: "Oeps, jou balans is onvoldoende, gaan asseblief voort om te myne.", wd_processed: "Onttrekking suksesvol verwerk!",
                 wallet_manage: "Bestuur Beursie-adresse", tx_history: "Transaksiegeskiedenis", wd_history: "Onttrekkinggeskiedenis",
                 income_label: "Inkomste", view_levels: "Bekyk Vlakinligting >", deposit: "Deponeer", claim: "Vorder op",
-                ad_boost_label: "Advertensie Bonusspoed:", per_hour: "/uur", per_day: "/dag", per_month: "/mnd",
+                ad_boost_label: "Advertensie Bonusspoed:", per_hour: "/uur", per_dag: "/dag", per_month: "/mnd",
                 start_swap_btn: "BEGIN OMRUIL", instant_payouts: "Onmiddellike Uitbetalings", your_uid: "JOU UID",
                 a2f_title: "A2F-sekuriteit (E-pos & OTP)", face_title: "Gesigsherkenning (Gesigskandering)", id_title: "Identiteitsverifikasie (ID/Paspoort)",
                 invite_friends: "Nooi Vriende uit", contests_title: "Kompetisies & Leaderboard", proof_payouts: "Bewys van Uitbetalings",
@@ -913,7 +909,7 @@
                 task_join_tg: "الانضمام لقناة تلغرام", btn_start: "ابدأ", invite_sub: "ادع واحصل على المكافأة", contest_sub: "احصل على المكافأة",
                 sec_kyc: "الأمان و KYC", community: "المجتمع", about: "حول", payouts_sub: "سحب مباشر للمستخدمين العالميين",
                 notification: "إشعار", success: "نجاح", error: "خطأ", copied: "تم النسخ!", btn_ok: "موافق",
-                founder_locked_text: "المؤسس لا يزال مقفلاً، يرجى انتظار المزيد من المعلومات",
+                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "المحفظة غير متصلة", btn_connect: "اتصال",
                 checkin_done: "تم تسجيل الوصول اليوم بالفعل. يرجى العودة غداً.", checkin_success: "نجاح تسجيل الوصول لليوم",
                 ad_claimed: "تم مطالبة المكافأة! +15 AFEX، +0.00001 سرعة/ساعة، وتم إضافة +1 نقطة!", ad_not_ready: "AdsGuard نشط / تم تخطي الإعلان. تم منح المكافأة مباشرة!",
@@ -1794,7 +1790,7 @@
         function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
         function openPrivacyModal() { showModal(t('privacy_policy'), "Data terenkripsi aman.", "fa-shield-cat"); }
         function openLockedFeature(type) { showModal("Fitur Terkunci", "Fitur ini akan dibuka pada tahap Mainnet.", "fa-lock"); }
-        function handleFounderClick() { showModal("Founder VIP", "Founder Masih Terkunci Silahkan Tunggu Informasi Selanjutnya", "fa-lock"); }
+        function handleFounderClick() { showModal("Founder VIP", t('founder_alert'), "fa-lock"); }
         function copyUID() { navigator.clipboard.writeText(userIdStr); showModal(t('notification'), t('copied'), "fa-circle-check"); }
 
         function switchTab(tabId, btnElement) {
