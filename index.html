@@ -66,6 +66,7 @@
                 <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#121927] gold-border text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
                     <option value="en">🇬🇧 English</option>
                     <option value="id" selected>🇮🇩 Indonesia</option>
+                    <option value="ru">🇷🇺 Русский</option>
                     <option value="vi">🇻🇳 Vietnam</option>
                     <option value="tl">🇵🇭 Philippines</option>
                     <option value="th">🇹🇭 Thailand</option>
@@ -251,7 +252,7 @@
             </div>
         </div>
 
-        <!-- 4. TAB 4: WALLET PAGE (DISESUAIKAN DENGAN GAMBAR REFERENSI 4 TOMBOL) -->
+        <!-- 4. TAB 4: WALLET PAGE -->
         <div id="tab-wallet" class="tab-content relative z-20">
             <div class="bg-gradient-to-br from-[#121927] via-amber-950/40 to-black p-5 rounded-2xl gold-border text-center mb-4 shadow-xl relative overflow-hidden">
                 <div class="w-8 h-8 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-center justify-center mx-auto mb-2 text-yellow-400 text-xs"><i class="fa-solid fa-wallet"></i></div>
@@ -259,49 +260,45 @@
                 <h2 id="wallet-total-bal-usd" class="text-2xl font-black font-mono text-yellow-400 mb-3">$0.00</h2>
             </div>
 
-            <!-- 4 MENU UTAMA SESUAI GAMBAR REFERENSI -->
+            <!-- 4 MENU UTAMA -->
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <!-- Connect Wallet -->
                 <div onclick="openConnectWalletModal()" class="bg-[#121927] gold-border p-3.5 rounded-2xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/30"><i class="fa-solid fa-link"></i></div>
                         <div class="text-left">
-                            <span class="text-xs font-bold text-white block">Connect Wallet</span>
+                            <span class="text-xs font-bold text-white block" data-i18n="connect_wallet">Connect Wallet</span>
                             <span class="text-[9px] text-gray-400 font-mono">BSC, TON, ETH</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
 
-                <!-- Withdraw -->
                 <div onclick="openWithdrawModal()" class="bg-[#121927] gold-border p-3.5 rounded-2xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/30"><i class="fa-solid fa-paper-plane"></i></div>
                         <div class="text-left">
-                            <span class="text-xs font-bold text-white block">Withdraw</span>
-                            <span class="text-[9px] text-gray-400 font-mono">Instant Payouts</span>
+                            <span class="text-xs font-bold text-white block" data-i18n="withdraw">Withdraw</span>
+                            <span class="text-[9px] text-gray-400 font-mono" data-i18n="instant_payouts">Instant Payouts</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
 
-                <!-- Transaction History -->
                 <div onclick="openTxHistoryModal()" class="bg-[#121927] gold-border p-3.5 rounded-2xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/30"><i class="fa-solid fa-clock-rotate-left"></i></div>
                         <div class="text-left">
-                            <span class="text-xs font-bold text-white block">Transaction History</span>
+                            <span class="text-xs font-bold text-white block" data-i18n="tx_history">Transaction History</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                 </div>
 
-                <!-- Withdraw History -->
                 <div onclick="openWdHistoryModal()" class="bg-[#121927] gold-border p-3.5 rounded-2xl cursor-pointer hover:border-yellow-400 transition-all flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/30"><i class="fa-solid fa-list-check"></i></div>
                         <div class="text-left">
-                            <span class="text-xs font-bold text-white block">Withdraw History</span>
+                            <span class="text-xs font-bold text-white block" data-i18n="wd_history">Withdraw History</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
@@ -323,27 +320,6 @@
                     <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
                         <span class="text-gray-300 font-bold">ETH:</span> <span id="bal-eth" class="text-purple-400 font-bold">0.000</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="bg-[#121927] p-4 rounded-xl gold-border mb-4">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Grafik Langsung AFEX</h4>
-                    <span class="text-[10px] text-gray-400 font-mono">Likuiditas Est: <strong class="text-green-400">0.001</strong></span>
-                </div>
-                <div class="w-full h-28 bg-[#080c14] rounded-lg p-2 border border-gray-800 relative overflow-hidden">
-                    <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 200 50">
-                        <defs>
-                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#EAB308" stop-opacity="0.3"/>
-                                <stop offset="100%" stop-color="#EAB308" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <path id="live-chart-area" d="M 0,40 Q 20,20 40,30 T 80,10 T 120,25 T 160,5 L 160,50 L 0,50 Z" fill="url(#chartGrad)" />
-                        <path id="live-chart-line" d="M 0,40 Q 20,20 40,30 T 80,10 T 120,25 T 160,5" fill="none" stroke="#EAB308" stroke-width="2" class="drop-shadow-[0_0_5px_rgba(234,179,8,0.8)]"/>
-                        <circle cx="160" cy="5" r="3" fill="#22C55E" class="animate-ping" />
-                        <circle cx="160" cy="5" r="2" fill="#EAB308" />
-                    </svg>
                 </div>
             </div>
         </div>
@@ -375,27 +351,27 @@
                 </button>
             </div>
 
-            <!-- SECURITY & KYC -->
+            <!-- SECURITY & KYC (LOCKED) -->
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1" data-i18n="sec_kyc">KEAMANAN & KYC</span>
                 <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
-                    <div onclick="openA2FModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openLockedFeature('a2f')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div><h4 class="text-xs font-bold text-white" data-i18n="a2f_title">Keamanan A2F (Email & OTP)</h4><p class="text-[10px] text-green-400 font-mono font-bold" id="a2f-status-lbl" data-i18n="status_unlocked">Terbuka</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="a2f_title">Keamanan A2F (Email & OTP)</h4><p class="text-[10px] text-yellow-400 font-mono" id="a2f-countdown-lbl">Terkunci</p></div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
+                        <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
                     
-                    <div onclick="openFaceScanModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <div onclick="openLockedFeature('face')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-face-smile"></i></div>
                             <div>
                                 <h4 class="text-xs font-bold text-white" data-i18n="face_title">Pengenalan Wajah (Pemindaian Wajah)</h4>
-                                <p class="text-[10px] text-red-500 font-mono font-bold" id="face-status-lbl" data-i18n="status_unverified">Belum Terverifikasi</p>
+                                <p class="text-[10px] text-yellow-400 font-mono" id="face-countdown-lbl">Terkunci</p>
                             </div>
                         </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
+                        <i class="fa-solid fa-lock text-xs text-yellow-400"></i>
                     </div>
 
                     <div onclick="openLockedFeature('id')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
@@ -484,33 +460,6 @@
         </button>
     </nav>
 
-    <!-- REAL CAMERA FACE SCAN MODAL -->
-    <div id="camera-modal" class="fixed inset-0 bg-[#080c14]/90 backdrop-blur-md z-[1000] hidden flex-col items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
-        <div class="bg-[#121927] w-full max-w-xs p-5 rounded-2xl gold-border text-center relative shadow-2xl pointer-events-auto">
-            <button onclick="closeCameraModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-base cursor-pointer">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            
-            <h3 class="text-sm font-bold text-yellow-400 mb-1" data-i18n="face_scan_title">Pemindaian Pengenalan Wajah</h3>
-            <p id="liveness-instruction" class="text-[11px] text-yellow-300 mb-3 font-bold animate-pulse">Memuat kamera...</p>
-            
-            <div class="relative w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden border-4 border-yellow-500/60 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                <div id="cam-loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black/80 z-10 text-yellow-400 text-xs font-bold animate-pulse">Membuka Kamera...</div>
-                <video id="webcam-video" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
-                <div class="absolute inset-0 border-2 border-dashed border-yellow-400/50 rounded-full pointer-events-none"></div>
-            </div>
-
-            <div class="flex gap-2">
-                <button onclick="captureFaceAndVerify()" class="flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-2.5 rounded-xl font-black cursor-pointer shadow-lg hover:opacity-90 flex items-center justify-center gap-1.5" data-i18n="btn_capture">
-                    Ambil Foto
-                </button>
-                <button onclick="closeCameraModal()" class="bg-gray-800 text-gray-300 text-xs py-2.5 px-4 rounded-xl font-bold cursor-pointer hover:bg-gray-700" data-i18n="btn_cancel">
-                    Batal
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- CUSTOM ANIMATED MODAL POPUP -->
     <div id="custom-modal" class="fixed inset-0 bg-[#080c14]/85 backdrop-blur-md z-[999] hidden items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
         <div class="bg-[#121927] w-full max-w-xs p-6 rounded-2xl gold-border text-center relative shadow-2xl pointer-events-auto">
@@ -523,12 +472,12 @@
         </div>
     </div>
 
-    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
+    <!-- FIREBASE CONFIGURATION & INITIALIZATION (AFEXNETWORK) -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC1e-qHoWNoEcUjaCeYjZ887hfO6Yk9XiY",
             authDomain: "afexmining2new.firebaseapp.com",
-            databaseURL: "https://afexmining2new-default-rtdb.firebaseio.com",
+            databaseURL: "https://afexnetwork-default-rtdb.firebaseio.com",
             projectId: "afexmining2new",
             storageBucket: "afexmining2new.firebasestorage.app",
             messagingSenderId: "186819219544",
@@ -550,7 +499,7 @@
         let userIdStr = userTg && userTg.id ? userTg.id.toString() : "GUEST_" + Math.floor(100000 + Math.random() * 900000);
         let displayName = userTg ? (userTg.username ? `@${userTg.username}` : (userTg.first_name || "Tamu")) : "Tamu";
 
-        /* DICTIONARY BAHASA LENGKAP */
+        /* DICTIONARY BAHASA LENGKAP (TERMASUK RUSSIAN & SEMUA ELEMEN POPUP) */
         const i18n = {
             en: { 
                 total_balance: "TOTAL BALANCE", checkin_title: "Daily Check-in", checkin_sub: "Claim Streak Rewards (Day 1 - 7)",
@@ -563,12 +512,11 @@
                 task_join_tg: "Join Telegram Channel", btn_start: "Start", invite_sub: "Invite and Get Reward", contest_sub: "Get Reward",
                 sec_kyc: "SECURITY & KYC", community: "COMMUNITY", about: "ABOUT", payouts_sub: "Live withdraw global users",
                 notification: "Notification", success: "Success", error: "Error", copied: "Copied!", btn_ok: "OK",
-                founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
+                founder_alert: "Founder is still locked, please wait for further information",
                 wallet_disconnected: "Wallet Disconnected", btn_connect: "Connect",
                 checkin_done: "Already checked in today. Please return tomorrow.", checkin_success: "Check-in successful for Day",
                 ad_claimed: "Reward Claimed! +15 AFEX, +0.00001 Speed/hr, and +1 Point added!", ad_not_ready: "AdsGuard active / No ads ready. Reward granted directly!",
-                founder_avail: "Founder available in {d} days {time}", lock_a2f: "A2F Security will be available in {d} days {time}.", 
-                lock_face: "Face Recognition will be available in {d} days {time}.", lock_id: "Identity Verification will be available in {d} days {time}.",
+                founder_avail: "Founder available in {d} days {time}", lock_feature: "This feature will be unlocked in {d} days {time}.",
                 locked_list: "Locked ({d} days {time})", swap_locked: "Swap feature will be active during Mainnet.",
                 wd_insufficient: "Oops, your balance is insufficient, please continue mining.", wd_processed: "Withdrawal processed successfully!",
                 wallet_manage: "Manage Wallet Addresses", tx_history: "Transaction History", wd_history: "Withdraw History",
@@ -578,9 +526,7 @@
                 a2f_title: "A2F Security (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Invite Friends", contests_title: "Contests & Leaderboard", proof_payouts: "Proof of Payouts",
                 about_afex: "About AFEX Token", privacy_policy: "Privacy Policy",
-                status_unlocked: "Unlocked", status_unverified: "Not Verified", status_pending: "Pending / In Review", status_verified: "Verified",
-                face_scan_title: "Face Recognition Scan", face_scan_desc: "Position your face inside the frame and capture.", btn_capture: "Capture Now", btn_cancel: "Cancel",
-                face_submitted: "Face scan submitted! Verification is under review by admin.", face_already_verified: "Your face verification is already completed & verified!"
+                status_unlocked: "Unlocked", status_unverified: "Not Verified", status_pending: "Pending / In Review", status_verified: "Verified"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -597,8 +543,7 @@
                 wallet_disconnected: "Dompet Belum Terhubung", btn_connect: "Hubungkan",
                 checkin_done: "Sudah check-in hari ini, silahkan kembali besok.", checkin_success: "Berhasil check-in Hari ke-",
                 ad_claimed: "Hadiah Diklaim! +15 AFEX, +0.00001 Kecepatan/jam, dan +1 Poin ditambahkan!", ad_not_ready: "AdsGuard aktif / Iklan dilewati. Hadiah langsung diberikan!",
-                founder_avail: "Pendiri tersedia dalam {d} hari {time}", lock_a2f: "Keamanan A2F akan tersedia dalam {d} hari {time}.", 
-                lock_face: "Pengenalan Wajah akan tersedia dalam {d} hari {time}.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari {time}.",
+                founder_avail: "Pendiri tersedia dalam {d} hari {time}", lock_feature: "Fitur ini akan dibuka dalam {d} hari {time}.", 
                 locked_list: "Terkunci ({d} hari {time})", swap_locked: "Fitur tukar akan aktif selama Mainnet.",
                 wd_insufficient: "Ups, saldo Anda tidak mencukupi, silakan lanjutkan menambang.", wd_processed: "Penarikan berhasil diproses!",
                 wallet_manage: "Kelola Alamat Dompet", tx_history: "Riwayat Transaksi", wd_history: "Riwayat Penarikan",
@@ -608,11 +553,36 @@
                 a2f_title: "Keamanan A2F (Email & OTP)", face_title: "Pengenalan Wajah (Pemindaian Wajah)", id_title: "Verifikasi Identitas (KTP/Paspor)",
                 invite_friends: "Undang Teman", contests_title: "Kontes & Papan Peringkat", proof_payouts: "Bukti Penarikan",
                 about_afex: "Tentang Token AFEX", privacy_policy: "Kebijakan Privasi",
-                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Tertunda / Dalam Peninjauan", status_verified: "Terverifikasi",
-                face_scan_title: "Pemindaian Pengenalan Wajah", face_scan_desc: "Posisikan wajah Anda di dalam bingkai lalu ambil foto.", btn_capture: "Ambil Foto", btn_cancel: "Batal",
-                face_submitted: "Pemindaian wajah dikirim! Verifikasi sedang ditinjau oleh admin.", face_already_verified: "Verifikasi wajah Anda sudah selesai & terverifikasi!"
+                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Tertunda / Dalam Peninjauan", status_verified: "Terverifikasi"
             },
-            vi: {
+            ru: {
+                total_balance: "ОБЩИЙ БАЛАНС", checkin_title: "Ежедневная отметка", checkin_sub: "Получить награду (День 1 - 7)",
+                ready_to_mine: "Готов к майнингу", session_timer: "Таймер сеанса:", tasks_title: "ЗАДАЧИ",
+                tasks_desc: "Выполняйте задания, чтобы заработать очки и награды.", swap_title: "ОБМЕН ТОКЕНОВ", swap_subtitle: "Скоро",
+                swap_heading: "Обмен токенов AFEX", swap_desc: "Мгновенный обмен токенов AFEX на USDT или TON.",
+                connect_wallet: "Подключить кошелек", withdraw: "Вывод", your_balances: "Балансы токенов",
+                nav_mine: "Главная", nav_task: "Задачи", nav_swap: "Обмен", nav_wallet: "Кошелек", nav_profile: "Профиль",
+                vip_pass: "VIP-БИЛЕТ ОСНОВАТЕЛЯ", btn_start_mine: "НАЧАТЬ АВТО-МАЙНИНГ 12Ч", task_watch_ad: "Смотреть рекламу", btn_watch: "Смотреть",
+                task_join_tg: "Вступить в Telegram", btn_start: "Старт", invite_sub: "Приглашайте и получайте", contest_sub: "Получить награду",
+                sec_kyc: "БЕЗОПАСНОСТЬ И KYC", community: "СООБЩЕСТВО", about: "О ПРОЕКТЕ", payouts_sub: "Выплаты пользователей в реальном времени",
+                notification: "Уведомление", success: "Успешно", error: "Ошибка", copied: "Скопировано!", btn_ok: "ОК",
+                founder_alert: "Основатель заблокирован, пожалуйста, дождитесь дальнейшей информации",
+                wallet_disconnected: "Кошелек не подключен", btn_connect: "Подключить",
+                checkin_done: "Вы уже отметились сегодня. Возвращайтесь завтра.", checkin_success: "Успешная отметка за День",
+                ad_claimed: "Награда получена! +15 AFEX, +0.00001 Скорость/час, +1 очко!", ad_not_ready: "Реклама недоступна. Награда выдана напрямую!",
+                founder_avail: "Основатель доступен через {d} дн. {time}", lock_feature: "Функция откроется через {d} дн. {time}.",
+                locked_list: "Заблокировано ({d} дн. {time})", swap_locked: "Функция обмена будет активна в мейннете.",
+                wd_insufficient: "Упс, недостаточно средств, продолжайте майнинг.", wd_processed: "Вывод успешно обработан!",
+                wallet_manage: "Управление кошельками", tx_history: "История транзакций", wd_history: "История выплат",
+                income_label: "Доход", view_levels: "Информация об уровнях >", deposit: "Депозит", claim: "Собрать",
+                ad_boost_label: "Буст скорости рекламы:", per_hour: "/ч", per_day: "/д", per_month: "/мес",
+                start_swap_btn: "НАЧАТЬ ОБМЕН", instant_payouts: "Моментальные выплаты", your_uid: "ВАШ UID",
+                a2f_title: "Безопасность A2F (Email и OTP)", face_title: "Распознавание лиц", id_title: "Верификация личности",
+                invite_friends: "Пригласить друзей", contests_title: "Конкурсы и таблицы лидеров", proof_payouts: "Доказательства выплат",
+                about_afex: "Об AFEX Token", privacy_policy: "Политика конфиденциальности",
+                status_unlocked: "Открыто", status_unverified: "Не верифицировано", status_pending: "На рассмотрении", status_verified: "Верифицировано"
+            },
+            vi: { 
                 total_balance: "TỔNG SỐ DƯ", checkin_title: "Điểm danh hàng ngày", checkin_sub: "Nhận thưởng chuỗi (Ngày 1 - 7)",
                 ready_to_mine: "Sẵn sàng đào", session_timer: "Bộ hẹn giờ:", tasks_title: "NHIỆM VỤ", 
                 tasks_desc: "Hoàn thành nhiệm vụ để kiếm điểm & phần thưởng.", swap_title: "ĐỔI TOKEN", swap_subtitle: "Sắp ra mắt", 
@@ -627,8 +597,7 @@
                 wallet_disconnected: "Ví chưa kết nối", btn_connect: "Kết nối",
                 checkin_done: "Đã điểm danh hôm nay. Vui lòng quay lại vào ngày mai.", checkin_success: "Điểm danh thành công ngày",
                 ad_claimed: "Đã nhận thưởng! +15 AFEX, +0.00001 Tốc độ/giờ, và +1 Điểm!", ad_not_ready: "AdsGuard hoạt động / Quảng cáo đã được bỏ qua. Nhận thưởng trực tiếp!",
-                founder_avail: "Nhà sáng lập có sẵn sau {d} ngày {time}", lock_a2f: "Bảo mật A2F sẽ có sau {d} ngày {time}.",
-                lock_face: "Nhận diện khuôn mặt sẽ có sau {d} ngày {time}.", lock_id: "Xác minh danh tính sẽ có sau {d} ngày {time}.",
+                founder_avail: "Nhà sáng lập có sẵn sau {d} ngày {time}", lock_feature: "Tính năng mở sau {d} ngày {time}.",
                 locked_list: "Đã khóa ({d} ngày {time})", swap_locked: "Tính năng đổi sẽ hoạt động trong Mainnet.",
                 wd_insufficient: "Số dư của bạn không đủ, vui lòng tiếp tục đào.", wd_processed: "Rút tiền thành công!",
                 wallet_manage: "Quản lý địa chỉ ví", tx_history: "Lịch sử giao dịch", wd_history: "Lịch sử rút tiền",
@@ -638,11 +607,9 @@
                 a2f_title: "Bảo mật A2F (Email & OTP)", face_title: "Nhận diện khuôn mặt (Quét mặt)", id_title: "Xác minh danh tính (CMND/Hộ chiếu)",
                 invite_friends: "Mời bạn bè", contests_title: "Cuộc thi & Bảng xếp hạng", proof_payouts: "Bằng chứng rút tiền",
                 about_afex: "Giới thiệu Token AFEX", privacy_policy: "Chính sách bảo mật",
-                status_unlocked: "Đã mở khóa", status_unverified: "Chưa xác minh", status_pending: "Đang chờ / Đang xem xét", status_verified: "Đã xác minh",
-                face_scan_title: "Quét nhận diện khuôn mặt", face_scan_desc: "Đặt khuôn mặt của bạn vào khung và chụp.", btn_capture: "Chụp ngay", btn_cancel: "Hủy",
-                face_submitted: "Đã gửi quét mặt! Đang chờ admin xem xét.", face_already_verified: "Xác minh khuôn mặt của bạn đã hoàn tất & được xác minh!"
+                status_unlocked: "Đã mở khóa", status_unverified: "Chưa xác minh", status_pending: "Đang chờ / Đang xem xét", status_verified: "Đã xác minh"
             },
-            tl: {
+            tl: { 
                 total_balance: "KABUYUAN NG BALANSE", checkin_title: "Pang-araw-araw na Check-in", checkin_sub: "Kunin ang Streak Rewards (Araw 1 - 7)",
                 ready_to_mine: "Handa nang Magmina", session_timer: "Orasan ng Sesyon:", tasks_title: "MGA GAWAIN", 
                 tasks_desc: "Kumpletuhin ang mga gawain upang kumita ng mga puntos at gantimpala.", swap_title: "TOKEN SWAP", swap_subtitle: "Malapit Na", 
@@ -657,22 +624,19 @@
                 wallet_disconnected: "Hindi Nakakonekta ang Wallet", btn_connect: "Ikonekta",
                 checkin_done: "Nag-check-in na ngayon. Mangyaring bumalik bukas.", checkin_success: "Matagumpay na check-in para sa Araw",
                 ad_claimed: "Nakuha ang Gantimpala! +15 AFEX, +0.00001 Bilis/oras, at +1 Puntos!", ad_not_ready: "Aktibo ang AdsGuard / Na-skip ang ad. Iginawad agad ang gantimpala!",
-                founder_avail: "Available ang Founder sa loob ng {d} na araw {time}", lock_a2f: "Magiging available ang A2F Security sa loob ng {d} na araw {time}.", 
-                lock_face: "Magiging available ang Face Recognition sa loob ng {d} na araw {time}.", lock_id: "Magiging available ang Identity Verification sa loob ng {d} na araw {time}.",
+                founder_avail: "Available ang Founder sa loob ng {d} na araw {time}", lock_feature: "Magiging available ito sa loob ng {d} na araw {time}.",
                 locked_list: "Naka-lock ({d} na araw {time})", swap_locked: "Magiging aktibo ang tampok na swap sa panahon ng Mainnet.",
                 wd_insufficient: "Naku, kulang ang iyong balanse, mangyaring ipagpatuloy ang pagmimina.", wd_processed: "Matagumpay na na-proseso ang withdrawal!",
                 wallet_manage: "Pamahalaan ang mga Wallet Address", tx_history: "Kasaysayan ng Transaksyon", wd_history: "Kasaysayan ng Withdrawal",
                 income_label: "Kita", view_levels: "Tingnan ang Impormasyon ng Antas >", deposit: "Mag-deposito", claim: "Kunin",
-                ad_boost_label: "Bilis ng Bonus sa Ad:", per_hour: "/oras", per_araw: "/araw", per_month: "/buwan",
+                ad_boost_label: "Bilis ng Bonus sa Ad:", per_hour: "/oras", per_day: "/araw", per_month: "/buwan",
                 start_swap_btn: "SIMULAN ANG SWAP", instant_payouts: "Instant na Payout", your_uid: "ANG IYONG UID",
                 a2f_title: "Seguridad ng A2F (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Mag-imbita ng mga Kaibigan", contests_title: "Mga Paligsahan at Leaderboard", proof_payouts: "Katibayan ng Payout",
                 about_afex: "Tungkol sa AFEX Token", privacy_policy: "Patakaran sa Pagkapribado",
-                status_unlocked: "Naka-unlock", status_unverified: "Hindi Na-verify", status_pending: "Nakatengga / Sinusuri", status_verified: "Na-verify",
-                face_scan_title: "Face Recognition Scan", face_scan_desc: "Ilagay ang iyong mukha sa loob ng frame at i-capture.", btn_capture: "I-capture Ngayon", btn_cancel: "Kanselahin",
-                face_submitted: "Naipadala ang face scan! Ang pag-verify ay sinusuri ng admin.", face_already_verified: "Nakumpleto at na-verify na ang iyong face verification!"
+                status_unlocked: "Naka-unlock", status_unverified: "Hindi Na-verify", status_pending: "Nakatengga / Sinusuri", status_verified: "Na-verify"
             },
-            th: {
+            th: { 
                 total_balance: "ยอดคงเหลือทั้งหมด", checkin_title: "เช็คอินรายวัน", checkin_sub: "รับรางวัลต่อเนื่อง (วันที่ 1 - 7)",
                 ready_to_mine: "พร้อมขุด", session_timer: "ตัวจับเวลาเซสชัน:", tasks_title: "ภารกิจ", 
                 tasks_desc: "ทำภารกิจให้สำเร็จเพื่อรับคะแนนและรางวัล", swap_title: "แลกเปลี่ยนโทเค็น", swap_subtitle: "เร็วๆ นี้", 
@@ -686,9 +650,8 @@
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "ยังไม่ได้เชื่อมต่อกระเป๋าเงิน", btn_connect: "เชื่อมต่อ",
                 checkin_done: "เช็คอินไปแล้ววันนี้ โปรดกลับมาใหม่พรุ่งนี้", checkin_success: "เช็คอินสำเร็จสำหรับวันที่",
-                ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.00001 ความเร็ว/ชม., และ +1 คะแนน!", audio_not_ready: "AdsGuard เปิดใช้งาน / ข้ามโฆษณาแล้ว ให้รางวัลทันที!",
-                founder_avail: "ผู้ก่อตั้งจะเปิดใช้งานในอีกด้ {d} วัน {time}", lock_a2f: "ความปลอดภัย A2F จะเปิดใช้งานในอีก {d} วัน {time}.", 
-                lock_face: "การจดจำใบหน้าจะเปิดใช้งานในอีก {d} วัน {time}.", lock_id: "การยืนยันตัวตนจะเปิดใช้งานในอีก {d} วัน {time}.",
+                ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.00001 ความเร็ว/ชม., และ +1 คะแนน!", ad_not_ready: "AdsGuard เปิดใช้งาน / ข้ามโฆษณาแล้ว ให้รางวัลทันที!",
+                founder_avail: "ผู้ก่อตั้งจะเปิดใช้งานในอีก {d} วัน {time}", lock_feature: "ฟีเจอร์นี้จะเปิดในอีก {d} วัน {time}.",
                 locked_list: "ล็อค ({d} วัน {time})", swap_locked: "ฟีเจอร์การแลกเปลี่ยนจะใช้งานได้ในช่วง Mainnet",
                 wd_insufficient: "อุ๊ป ยอดเงินของคุณไม่เพียงพอ โปรดขุดต่อ", wd_processed: "ดำเนินการถอนเงินสำเร็จ!",
                 wallet_manage: "จัดการที่อยู่กระเป๋าเงิน", tx_history: "ประวัติการทำธุรกรรม", wd_history: "ประวัติการถอนเงิน",
@@ -698,11 +661,9 @@
                 a2f_title: "ความปลอดภัย A2F (อีเมล & OTP)", face_title: "การจดจำใบหน้า (สแกนใบหน้า)", id_title: "การยืนยันตัวตน (บัตรประชาชน/หนังสือเดินทาง)",
                 invite_friends: "เชิญเพื่อน", contests_title: "การแข่งขัน & กระดานผู้นำ", proof_payouts: "หลักฐานการจ่ายเงิน",
                 about_afex: "เกี่ยวกับโทเค็น AFEX", privacy_policy: "นโยบายความเป็นส่วนตัว",
-                status_unlocked: "ปลดล็อคแล้ว", status_unverified: "ยังไม่ได้ยืนยัน", status_pending: "รอดำเนินการ / อยู่ระหว่างการตรวจสอบ", status_verified: "ยืนยันแล้ว",
-                face_scan_title: "สแกนจดจำใบหน้า", face_scan_desc: "วางใบหน้าของคุณให้อยู่ในกรอบแล้วจับภาพ", btn_capture: "จับภาพทันที", btn_cancel: "ยกเลิก",
-                face_submitted: "ส่งสแกนใบหน้าแล้ว! การยืนยันอยู่ระหว่างการตรวจสอบโดยผู้ดูแลระบบ", face_already_verified: "การยืนยันใบหน้าของคุณเสร็จสมบูรณ์และได้รับการยืนยันแล้ว!"
+                status_unlocked: "ปลดล็อคแล้ว", status_unverified: "ยังไม่ได้ยืนยัน", status_pending: "รอดำเนินการ / อยู่ระหว่างการตรวจสอบ", status_verified: "ยืนยันแล้ว"
             },
-            ms: {
+            ms: { 
                 total_balance: "JUMLAH BAKI", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Siri (Hari 1 - 7)",
                 ready_to_mine: "Bersedia untuk Menaraf", session_timer: "Pemasa Sesi:", tasks_title: "TUGASAN", 
                 tasks_desc: "Selesaikan tugasan untuk mendapatkan mata & ganjaran.", swap_title: "TUKAR TOKEN", swap_subtitle: "Akan Datang", 
@@ -717,8 +678,7 @@
                 wallet_disconnected: "Dompet Belum Disambungkan", btn_connect: "Sambung",
                 checkin_done: "Sudah daftar masuk hari ini. Sila kembali esok.", checkin_success: "Daftar masuk berjaya untuk Hari",
                 ad_claimed: "Ganjaran Dituntut! +15 AFEX, +0.00001 Kelajuan/jam, dan +1 Mata!", ad_not_ready: "AdsGuard aktif / Iklan dilangkau. Ganjaran terus diberikan!",
-                founder_avail: "Pengasas tersedia dalam {d} hari {time}", lock_a2f: "Keselamatan A2F akan tersedia dalam {d} hari {time}.", 
-                lock_face: "Pengecaman Muka akan tersedia dalam {d} hari {time}.", lock_id: "Pengesahan Identiti akan tersedia dalam {d} hari {time}.",
+                founder_avail: "Pengasas tersedia dalam {d} hari {time}", lock_feature: "Ciri ini akan dibuka dalam {d} hari {time}.",
                 locked_list: "Dikunci ({d} hari {time})", swap_locked: "Ciri tukar akan aktif semasa Mainnet.",
                 wd_insufficient: "Oops, baki anda tidak mencukupi, sila teruskan perlombongan.", wd_processed: "Pengeluaran berjaya diproses!",
                 wallet_manage: "Urus Alamat Dompet", tx_history: "Sejarah Transaksi", wd_history: "Sejarah Pengeluaran",
@@ -728,11 +688,9 @@
                 a2f_title: "Keselamatan A2F (Emel & OTP)", face_title: "Pengecaman Muka (Imbasan Muka)", id_title: "Pengesahan Identiti (IC/Pasport)",
                 invite_friends: "Jemput Rakan", contests_title: "Peraduan & Papan Pendahulu", proof_payouts: "Bukti Pembayaran",
                 about_afex: "Tentang Token AFEX", privacy_policy: "Dasar Privasi",
-                status_unlocked: "Dibuka", status_unverified: "Belum Disahkan", status_pending: "Tertunda / Dalam Semakan", status_verified: "Disahkan",
-                face_scan_title: "Imbasan Pengecaman Muka", face_scan_desc: "Letakkan muka anda di dalam bingkai dan tangkap.", btn_capture: "Tangkap Sekarang", btn_cancel: "Batal",
-                face_submitted: "Imbasan muka dihantar! Pengesahan sedang disemak oleh admin.", face_already_verified: "Pengesahan muka anda telah selesai & disahkan!"
+                status_unlocked: "Dibuka", status_unverified: "Belum Disahkan", status_pending: "Tertunda / Dalam Semakan", status_verified: "Disahkan"
             },
-            hi: {
+            hi: { 
                 total_balance: "कुल शेष", checkin_title: "दैनिक चेक-इन", checkin_sub: "स्ट्रीक पुरस्कार दावा करें (दिन 1 - 7)",
                 ready_to_mine: "माइन करने के लिए तैयार", session_timer: "सत्र टाइमर:", tasks_title: "कार्य", 
                 tasks_desc: "अंक और पुरस्कार अर्जित करने के लिए कार्य पूरे करें।", swap_title: "टोकन स्वैप", swap_subtitle: "जल्द आ रहा है", 
@@ -747,8 +705,7 @@
                 wallet_disconnected: "वॉलेट डिस्कनेक्टेड", btn_connect: "कनेक्ट",
                 checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
                 ad_claimed: "पुरस्कार का दावा किया गया! +15 AFEX, +0.00001 स्पीड/घंटा, और +1 पॉइंट!", ad_not_ready: "AdsGuard सक्रिय / विज्ञापन छोड़ दिया गया। पुरस्कार सीधे दिया गया!",
-                founder_avail: "{d} दिनों {time} में संस्थापक उपलब्ध होगा", lock_a2f: "A2F सुरक्षा {d} दिनों {time} में उपलब्ध होगी।", 
-                lock_face: "चेहरा पहचान {d} दिनों {time} में उपलब्ध होगी।", lock_id: "पहचान सत्यापन {d} दिनों {time} में उपलब्ध होगा।",
+                founder_avail: "{d} दिनों {time} में संस्थापक उपलब्ध होगा", lock_feature: "यह सुविधा {d} दिनों {time} में अनलॉक हो जाएगी।",
                 locked_list: "लॉक किया गया ({d} दिन {time})", swap_locked: "मेननेट के दौरान स्वैप सुविधा सक्रिय होगी।",
                 wd_insufficient: "उत, आपका शेष अपर्याप्त है, कृपया माइनिंग जारी रखें।", wd_processed: "निकासी सफलतापूर्वक संसाधित हुई!",
                 wallet_manage: "वॉलेट पते प्रबंधित करें", tx_history: "लेनदेन इतिहास", wd_history: "निकासी इतिहास",
@@ -758,41 +715,36 @@
                 a2f_title: "A2F सुरक्षा (ईमेल और OTP)", face_title: "चेहरा पहचान (फेस स्कैन)", id_title: "पहचान सत्यापन (आईडी/पासपोर्ट)",
                 invite_friends: "मित्रों को आमंत्रित करें", contests_title: "प्रतियोगिताएं और लीडरबोर्ड", proof_payouts: "भुगतान का प्रमाण",
                 about_afex: "AFEX टोकन के बारे में", privacy_policy: "गोपनीयता नीति",
-                status_unlocked: "अनलॉक", status_unverified: "सत्यापित नहीं", status_pending: "लंबित / समीक्षाधीन", status_verified: "सत्यापित",
-                face_scan_title: "फेस रिकग्निशन स्कैन", face_scan_desc: "अपने चेहरे को फ्रेम के अंदर रखें और कैप्चर करें।", btn_capture: "अभी कैप्चर करें", btn_cancel: "रद्द करें",
-                face_submitted: "फेस स्कैन सबमिट किया गया! सत्यापन व्यवस्थापक द्वारा समीक्षाधीन है।", face_already_verified: "आपका चेहरा सत्यापन पहले ही पूरा और सत्यापित हो चुका है!"
+                status_unlocked: "अनलॉक", status_unverified: "सत्यापित नहीं", status_pending: "लंबित / समीक्षाधीन", status_verified: "सत्यापित"
             },
-            ur: {
-                total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک کے انعامات کا دعویٰ کریں (دن 1 - 7)",
-                ready_to_mine: "مائن کرنے کے لیے تیار", session_timer: "سیشن ٹائمر:", tasks_title: "کام", 
-                tasks_desc: "پوائنٹس और انعامات حاصل کرنے کے لیے काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
+            ur: { 
+                total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک के انعامات का दावा करें (दिन 1 - 7)",
+                ready_to_mine: "مائن کرنے के लिए तैयार", session_timer: "सत्र टाइमर:", tasks_title: "کام", 
+                tasks_desc: "پوائنٹس और انعامات حاصل کرنے के लिए काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
                 swap_heading: "AFEX ٹोकन سویپ एक्सचेंज", swap_desc: "AFEX ٹوکن्स को فوری طور पर USDT या TON में سویپ کریں۔",
                 connect_wallet: "والٹ connect करें", withdraw: "رقم نکالیں", your_balances: "آپ के टोकन بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
-                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ شروع کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
-                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "शुरू करें", invite_sub: "دعوت دیں और انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
+                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू करें", task_watch_ad: "اشتہار देखें", btn_watch: "دیکھیں", 
+                task_join_tg: "ٹیلیگرام چینل में شامل ہوں", btn_start: "शुरू करें", invite_sub: "دعوت دیں और انعام حاصل करें", contest_sub: "انعام حاصل करें",
                 sec_kyc: "سیکیورٹی और के व वाई C", community: "کمیونٹی", about: "के बारे में", payouts_sub: "عالمی صارفین की لائیو نکاسی",
-                notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک ہے",
+                notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک है",
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
-                wallet_disconnected: "والٹ منقطع ہے", btn_connect: "جڑیں",
+                wallet_disconnected: "والٹ منقطع है", btn_connect: "جڑیں",
                 checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
-                ad_claimed: "انعام کا دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست دے دیا گیا!",
-                founder_avail: "{d} दिनों {time} में بانی دستیاب ہوں گے", lock_a2f: "A2F سیکیورٹی {d} दिनों {time} में دستیاب ہوگی।", 
-                lock_face: "चہرہ شناخت {d} दिनों {time} में دستیاب ہوگی।", lock_id: "شناختی تصدیق {d} दिनों {time} में دستیاب ہوگی।",
+                ad_claimed: "انعام का دعویٰ کیا गया! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، और +1 पॉइंट!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست दे دیا گیا!",
+                founder_avail: "{d} दिनों {time} में بانی دستیاب ہوں گے", lock_feature: "یہ خصوصیت {d} دنوں {time} میں کھل جائے گی۔",
                 locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ की خصوصیت فعال होगी।",
                 wd_insufficient: "افوہ، آپ का بیلنس ناکافی है, براہ کرم مائننگ जारी रखें।", wd_processed: "رقم کامیابی کے ساتھ نکال दी गई!",
-                wallet_manage: "والٹ के پते का انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
+                wallet_manage: "والٹ के पते کا انتظام करें", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
                 income_label: "آمدنی", view_levels: "لیول की معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ करें",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/माह",
-                start_swap_btn: "سویپ शुरू करें", instant_payouts: "فوری ادائیگی", your_uid: "آپ का UID",
+                start_swap_btn: "سویپ शुरू करें", instant_payouts: "फوری ادائیگی", your_uid: "آپ का UID",
                 a2f_title: "A2F سیکیورٹی (ایمیل और OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
                 invite_friends: "دوستों को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
-                about_afex: "AFEX ٹوکن کے بارے میں", privacy_policy: "رازداری की پالیسی",
-                status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ",
-                face_scan_title: "فیس ریکگنیشن اسکین", face_scan_desc: "अपने چہرے को فریم के अंदर रखें और कीپچر करें।", btn_capture: "ابھی کیپچر करें", btn_cancel: "منسوخ करें",
-                face_submitted: "فیس اسکین جمع कर दिया गया! تصدیق ایڈمن के زیر جائزہ ہے।", face_already_verified: "آپ کی چہرے की تصدیق پہلے ہی مکمل और تصدیق شدہ ہے!"
+                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری की پالیسی",
+                status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ"
             },
-            zh: {
+            zh: { 
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续奖励 (第 1 - 7 天)",
                 ready_to_mine: "准备开采", session_timer: "会话计时器:", tasks_title: "任务", 
                 tasks_desc: "完成任务以赚取积分和奖励。", swap_title: "代币兑换", swap_subtitle: "即将推出", 
@@ -807,8 +759,7 @@
                 wallet_disconnected: "钱包未连接", btn_connect: "连接",
                 checkin_done: "今天已签到。请明天再来。", checkin_success: "签到成功，第",
                 ad_claimed: "已领取奖励！+15 AFEX，+0.00001 速度/小时，以及 +1 积分！", ad_not_ready: "AdsGuard 已激活 / 广告已跳过。直接发放奖励！",
-                founder_avail: "创始人将在 {d} 天 {time} 后可用", lock_a2f: "A2F 安全性将在 {d} 天 {time} 后可用。", 
-                lock_face: "人脸识别将在 {d} 天 {time} 后可用。", lock_id: "身份验证将在 {d} 天 {time} 后可用。",
+                founder_avail: "创始人将在 {d} 天 {time} 后可用", lock_feature: "此功能将在 {d} 天 {time} 后解锁。",
                 locked_list: "已锁定 ({d} 天 {time})", swap_locked: "兑换功能将在主网期间激活。",
                 wd_insufficient: "哎呀，您的余额不足，请继续挖矿。", wd_processed: "提现处理成功！",
                 wallet_manage: "管理钱包地址", tx_history: "交易历史", wd_history: "提现历史",
@@ -818,11 +769,9 @@
                 a2f_title: "A2F 安全 (邮箱和 OTP)", face_title: "人脸识别 (人脸扫描)", id_title: "身份验证 (身份证/护照)",
                 invite_friends: "邀请好友", contests_title: "竞赛与排行榜", proof_payouts: "提现证明",
                 about_afex: "关于 AFEX 代币", privacy_policy: "隐私政策",
-                status_unlocked: "已解锁", status_unverified: "未验证", status_pending: "待处理 / 审核中", status_verified: "已验证",
-                face_scan_title: "人脸识别扫描", face_scan_desc: "将您的脸放在框内并拍摄。", btn_capture: "立即拍摄", btn_cancel: "取消",
-                face_submitted: "人脸扫描已提交！验证正在由管理员审核。", face_already_verified: "您的人脸验证已完成并已验证！"
+                status_unlocked: "已解锁", status_unverified: "未验证", status_pending: "待处理 / 审核中", status_verified: "已验证"
             },
-            ko: {
+            ko: { 
                 total_balance: "총 잔액", checkin_title: "일일 출석 체크", checkin_sub: "연속 보상 받기 (1 - 7일차)",
                 ready_to_mine: "채굴 준비 완료", session_timer: "세션 타이머:", tasks_title: "작업", 
                 tasks_desc: "작업을 완료하고 포인트와 보상을 받으세요.", swap_title: "토큰 스왑", swap_subtitle: "출시 예정", 
@@ -837,8 +786,7 @@
                 wallet_disconnected: "지갑 연결 안 됨", btn_connect: "연결",
                 checkin_done: "오늘 이미 출석했습니다. 내일 다시 방문해주세요.", checkin_success: "출석 성공 일차:",
                 ad_claimed: "보상 수령 완료! +15 AFEX, +0.00001 속도/시간, +1 포인트!", ad_not_ready: "AdsGuard 활성화됨 / 광고 건너뜀. 보상이 즉시 지급되었습니다!",
-                founder_avail: "{d}일 {time} 후에 창립자를 이용할 수 있습니다", lock_a2f: "A2F 보안은 {d}일 {time} 후에 이용 가능합니다.", 
-                lock_face: "안면 인식을 {d}일 {time} 후에 이용할 수 있습니다.", lock_id: "신원 인증은 {d}일 {time} 후에 이용할 수 있습니다.",
+                founder_avail: "{d}일 {time} 후에 창립자를 이용할 수 있습니다", lock_feature: "이 기능은 {d}일 {time} 후에 잠금 해제됩니다.",
                 locked_list: "잠김 ({d}일 {time})", swap_locked: "스왑 기능은 메인넷 기간에 활성화됩니다.",
                 wd_insufficient: "잔액이 부족합니다. 채굴을 계속 진행해주세요.", wd_processed: "출금이 성공적으로 처리되었습니다!",
                 wallet_manage: "지갑 주소 관리", tx_history: "거래 내역", wd_history: "출금 내역",
@@ -848,11 +796,9 @@
                 a2f_title: "A2F 보안 (이메일 및 OTP)", face_title: "안면 인식 (얼굴 스캔)", id_title: "신원 인증 (신분증/여권)",
                 invite_friends: "친구 초대", contests_title: "대회 및 리더보드", proof_payouts: "출금 증명",
                 about_afex: "AFEX 토큰 소개", privacy_policy: "개인정보 처리방침",
-                status_unlocked: "잠금 해제됨", status_unverified: "미인증", status_pending: "대기 중 / 검토 중", status_verified: "인증됨",
-                face_scan_title: "안면 인식 스캔", face_scan_desc: "프레임 안에 얼굴을 맞추고 캡처하세요.", btn_capture: "지금 캡처", btn_cancel: "취소",
-                face_submitted: "얼굴 스캔이 제출되었습니다! 관리자가 검토 중입니다.", face_already_verified: "얼굴 인증이 이미 완료되어 인증되었습니다!"
+                status_unlocked: "잠금 해제됨", status_unverified: "미인증", status_pending: "대기 중 / 검토 중", status_verified: "인증됨"
             },
-            ja: {
+            ja: { 
                 total_balance: "総残高", checkin_title: "デイリーチェックイン", checkin_sub: "連続ボーナスを受け取る (1〜7日目)",
                 ready_to_mine: "マイニング準備完了", session_timer: "セッションタイマー:", tasks_title: "タスク", 
                 tasks_desc: "タスクを完了してポイントと報酬を獲得しよう。", swap_title: "トークンスワップ", swap_subtitle: "近日公開", 
@@ -867,8 +813,7 @@
                 wallet_disconnected: "ウォレット未接続", btn_connect: "接続",
                 checkin_done: "本日は既にチェックイン済みです。明日またお越しください。", checkin_success: "チェックイン成功 日目:",
                 ad_claimed: "報酬を受け取りました！+15 AFEX、+0.00001 速度/時間、+1 ポイント！", ad_not_ready: "AdsGuard有効 / 広告スキップ。報酬が直接付与されました！",
-                founder_avail: "{d}日 {time} 後に創設者が利用可能になります", lock_a2f: "A2Fセキュリティは {d}日 {time} 後に利用可能になります。", 
-                lock_face: "顔認証は {d}日 {time} 後に利用可能になります。", lock_id: "本人確認は {d}日 {time} 後に利用可能になります。",
+                founder_avail: "{d}日 {time} 後に創設者が利用可能になります", lock_feature: "この機能は {d}日 {time} 後にロック解除されます。",
                 locked_list: "ロック中 ({d}日 {time})", swap_locked: "スワップ機能はメインネット期間中に有効になります。",
                 wd_insufficient: "残高が不足しています。マイニングを続けてください。", wd_processed: "出金が正常に処理されました！",
                 wallet_manage: "ウォレットアドレス管理", tx_history: "取引履歴", wd_history: "出金履歴",
@@ -878,11 +823,9 @@
                 a2f_title: "A2Fセキュリティ (メール & OTP)", face_title: "顔認証 (顔スキャン)", id_title: "本人確認 (身分証明書/パスポート)",
                 invite_friends: "友達を招待", contests_title: "コンテスト & リーダーボード", proof_payouts: "出金証明",
                 about_afex: "AFEXトークンについて", privacy_policy: "プライバシーポリシー",
-                status_unlocked: "ロック解除", status_unverified: "未認証", status_pending: "保留中 / 審査中", status_verified: "認証済み",
-                face_scan_title: "顔認証スキャン", face_scan_desc: "フレーム内に顔を合わせてキャプチャしてください。", btn_capture: "今すぐキャプチャ", btn_cancel: "キャンセル",
-                face_submitted: "顔スキャンが送信されました！管理者が審査中です。", face_already_verified: "顔認証は既に完了し、認証されています！"
+                status_unlocked: "ロック解除", status_unverified: "未認証", status_pending: "保留中 / 審査中", status_verified: "認証済み"
             },
-            af: {
+            af: { 
                 total_balance: "TOTALE BALANS", checkin_title: "Daaglikse Aanmelding", checkin_sub: "Vorder Reeksbelonings op (Dag 1 - 7)",
                 ready_to_mine: "Gereed om te Myne", session_timer: "Sessietimer:", tasks_title: "TAKE", 
                 tasks_desc: "Voltooi take om punte en belonings te verdien.", swap_title: "TOEKENOMRUILLING", swap_subtitle: "Binnekort Beskikbaar", 
@@ -897,8 +840,7 @@
                 wallet_disconnected: "Beursie Ontkoppel", btn_connect: "Koppel",
                 checkin_done: "Reeds vandag aangemeld. Kom asseblief môre terug.", checkin_success: "Aanmelding suksesvol vir Dag",
                 ad_claimed: "Beloning opgevorder! +15 AFEX, +0.00001 Spoed/uur, en +1 Punt!", ad_not_ready: "AdsGuard aktief / Advertensie oorgeslaan. Beloning direk toegeken!",
-                founder_avail: "Stigtersbeskikbaarheid oor {d} dae {time}", lock_a2f: "A2F-sekuriteit sal beskikbaar wees oor {d} dae {time}.", 
-                lock_face: "Gesigsherkenning sal beskikbaar wees oor {d} dae {time}.", lock_id: "Identiteitsverifikasie sal beskikbaar wees oor {d} dae {time}.",
+                founder_avail: "Stigtersbeskikbaarheid oor {d} dae {time}", lock_feature: "Hierdie funksie sal oor {d} dae {time} ontsluit word.",
                 locked_list: "Gesluit ({d} dae {time})", swap_locked: "Omruilfunksie sal aktief wees gedurende Mainnet.",
                 wd_insufficient: "Oeps, jou balans is onvoldoende, gaan asseblief voort om te myne.", wd_processed: "Onttrekking suksesvol verwerk!",
                 wallet_manage: "Bestuur Beursie-adresse", tx_history: "Transaksiegeskiedenis", wd_history: "Onttrekkinggeskiedenis",
@@ -908,11 +850,9 @@
                 a2f_title: "A2F-sekuriteit (E-pos & OTP)", face_title: "Gesigsherkenning (Gesigskandering)", id_title: "Identiteitsverifikasie (ID/Paspoort)",
                 invite_friends: "Nooi Vriende uit", contests_title: "Kompetisies & Leaderboard", proof_payouts: "Bewys van Uitbetalings",
                 about_afex: "Oor AFEX Token", privacy_policy: "Privaatheidsbeleid",
-                status_unlocked: "Ontsluit", status_unverified: "Ongeverifieer", status_pending: "Hangende / In Hersiening", status_verified: "Geverifieer",
-                face_scan_title: "Gesigsherkenningskandering", face_scan_desc: "Plaas jou gesig binne die raam en neem 'n foto.", btn_capture: "Neem Foto Nou", btn_cancel: "Kanselleer",
-                face_submitted: "Gesigskandering ingedien! Verifikasie word deur admin hersien.", face_already_verified: "Jou gesigsverifikasie is reeds voltooi & geverifieer!"
+                status_unlocked: "Ontsluit", status_unverified: "Ongeverifieer", status_pending: "Hangende / In Hersiening", status_verified: "Geverifieer"
             },
-            ar: {
+            ar: { 
                 total_balance: "الرصيد الإجمالي", checkin_title: "تسجيل الوصول اليومي", checkin_sub: "مطالبة مكافآت التتابع (اليوم 1 - 7)",
                 ready_to_mine: "جاهز للتعدين", session_timer: "مؤقت الجلسة:", tasks_title: "المهام", 
                 tasks_desc: "أكمل المهام لكسب النقاط والمكافآت.", swap_title: "تبديل الرموز", swap_subtitle: "قريباً", 
@@ -927,8 +867,7 @@
                 wallet_disconnected: "المحفظة غير متصلة", btn_connect: "اتصال",
                 checkin_done: "تم تسجيل الوصول اليوم بالفعل. يرجى العودة غداً.", checkin_success: "نجاح تسجيل الوصول لليوم",
                 ad_claimed: "تم مطالبة المكافأة! +15 AFEX، +0.00001 سرعة/ساعة، وتم إضافة +1 نقطة!", ad_not_ready: "AdsGuard نشط / تم تخطي الإعلان. تم منح المكافأة مباشرة!",
-                founder_avail: "المؤسس متاح خلال {d} أيام {time}", lock_a2f: "أمان A2F سيكون متاحاً خلال {d} أيام {time}.", 
-                lock_face: "التعرف على الوجه سيكون متاحاً خلال {d} أيام {time}.", lock_id: "التحقق من الهوية سيكون متاحاً خلال {d} أيام {time}.",
+                founder_avail: "المؤسس متاح خلال {d} أيام {time}", lock_feature: "سيتم فتح هذه الميزة خلال {d} أيام {time}.",
                 locked_list: "مقفل ({d} أيام {time})", swap_locked: "ستكون ميزة التبديل نشطة أثناء الشبكة الرئيسية.",
                 wd_insufficient: "عفواً، رصيدك غير كافٍ، يرجى متابعة التعدين.", wd_processed: "تم معالجة السحب بنجاح!",
                 wallet_manage: "إدارة عناوين المحفظة", tx_history: "سجل المعاملات", wd_history: "سجل السحب",
@@ -938,9 +877,7 @@
                 a2f_title: "أمان A2F (البريد الإلكتروني و OTP)", face_title: "التعرف على الوجه (مسح الوجه)", id_title: "التحقق من الهوية (الهوية/جواز السفر)",
                 invite_friends: "دعوة الأصدقاء", contests_title: "المسابقات لوحة المتصدرين", proof_payouts: "إثبات المدفوعات",
                 about_afex: "حول رمز AFEX", privacy_policy: "سياسة الخصوصية",
-                status_unlocked: "مفتوح", status_unverified: "غير متحقق", status_pending: "قيد الانتظار / قيد المراجعة", status_verified: "متحقق منه",
-                face_scan_title: "مسح التعرف على الوجه", face_scan_desc: "ضع وجهك داخل الإطار ثم التقط الصورة.", btn_capture: "التقاط الآن", btn_cancel: "إلغاء",
-                face_submitted: "تم إرسال مسح الوجه! التحقق قيد المراجعة من المسؤول.", face_already_verified: "تم إكمال التحقق من وجهك والتحقق منه بالفعل!"
+                status_unlocked: "مفتوح", status_unverified: "غير متحقق", status_pending: "قيد الانتظار / قيد المراجعة", status_verified: "متحقق منه"
             }
         };
 
@@ -951,6 +888,8 @@
 
         let targetDates = {
             founder: Date.now() + (45 * 24 * 60 * 60 * 1000),
+            a2f: Date.now() + (35 * 24 * 60 * 60 * 1000),
+            face: Date.now() + (38 * 24 * 60 * 60 * 1000),
             id: Date.now() + (40 * 24 * 60 * 60 * 1000)
         };
 
@@ -959,7 +898,6 @@
             usdtBalance: 0.00,
             adsWatchedToday: 0,
             tgTaskEndTime: 0,
-            faceVerificationStatus: 'unverified',
             userPoints: 0,
             usdtBaseRate: 0.000200,
             usdtSpeedBoost: 0.0000,
@@ -974,8 +912,6 @@
             payoutsList: [],
             txHistoryList: [],
             wdHistoryList: [],
-            userEmail: "",
-            isA2fVerified: false,
             connectedWallets: [],
             isWalletConnected: false
         };
@@ -997,9 +933,6 @@
             { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
         ];
 
-        let cameraStream = null;
-        let generatedOtp = "";
-
         function syncWithBackend() {
             const userRef = db.ref('users/' + userIdStr);
             userRef.on('value', (snapshot) => {
@@ -1012,24 +945,18 @@
                     miningData.usdtBalance = Number(data.usdtBalance) || 0;
                     miningData.userPoints = Number(data.userPoints) || 0;
                     miningData.referralCount = Number(data.referralCount) || 0;
-                    miningData.faceVerificationStatus = data.faceVerificationStatus || 'unverified';
-                    miningData.userEmail = data.userEmail || "";
-                    miningData.isA2fVerified = !!data.isA2fVerified;
                     miningData.lastCheckInTime = Number(data.lastCheckInTime) || 0;
                     miningData.checkInDay = Number(data.checkInDay) || 1;
                     miningData.connectedWallets = data.connectedWallets || [];
                     miningData.isWalletConnected = miningData.connectedWallets.length > 0;
 
                     updateUI();
-                    updateFaceScanUI();
-                    updateA2FUI();
                 } else {
                     userRef.set({
                         username: displayName,
                         balance: miningData.balance,
                         usdtBalance: miningData.usdtBalance,
                         userPoints: miningData.userPoints,
-                        faceVerificationStatus: miningData.faceVerificationStatus,
                         connectedWallets: []
                     });
                 }
@@ -1111,8 +1038,6 @@
             updateDynamicCountdowns(); 
             updateAdTaskUI();
             updateTgTaskUI();
-            updateFaceScanUI();
-            updateA2FUI();
             updateUI();
         }
 
@@ -1128,13 +1053,11 @@
             let userUsdt = miningData.usdtBalance;
             let currentLevel = 1;
             let levelRatePercent = 2.0;
-            let monthlyEstVal = 0.18;
 
             for (let i = levelRates.length - 1; i >= 0; i--) {
                 if (userUsdt >= levelRates[i].min) {
                     currentLevel = levelRates[i].level;
                     levelRatePercent = levelRates[i].percent;
-                    monthlyEstVal = levelRates[i].monthlyEst;
                     break;
                 }
             }
@@ -1173,15 +1096,16 @@
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
 
+                // USDT AUTO MINING BERJALAN OTOMATIS SAAT Masuk App
+                let currentHourly = miningData.usdtBaseRate + miningData.usdtSpeedBoost;
+                let perSecondRate = currentHourly / 3600;
+                miningData.usdtMinedPending += perSecondRate;
+
                 if (miningData.isMining && miningData.miningEndTime) {
                     let timeLeft = miningData.miningEndTime - now;
                     let elapsedTime = (12 * 3600 * 1000) - timeLeft;
                     let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
                     minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
-
-                    let currentHourly = miningData.usdtBaseRate + miningData.usdtSpeedBoost;
-                    let perSecondRate = currentHourly / 3600;
-                    miningData.usdtMinedPending += perSecondRate;
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
@@ -1227,6 +1151,10 @@
         function updateDynamicCountdowns() {
             let fData = getFormattedTime(targetDates.founder);
             document.getElementById('founder-countdown-text').innerText = t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr);
+            let a2fData = getFormattedTime(targetDates.a2f);
+            document.getElementById('a2f-countdown-lbl').innerText = t('locked_list').replace('{d}', a2fData.d).replace('{time}', a2fData.timeStr);
+            let faceData = getFormattedTime(targetDates.face);
+            document.getElementById('face-countdown-lbl').innerText = t('locked_list').replace('{d}', faceData.d).replace('{time}', faceData.timeStr);
             let idData = getFormattedTime(targetDates.id);
             document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', idData.d).replace('{time}', idData.timeStr);
         }
@@ -1347,7 +1275,7 @@
             if (adBadge) adBadge.innerText = `${miningData.adsWatchedToday}/25`;
         }
 
-        /* MANAGE WALLET ADDRESSES DENGAN 4 PILIHAN NETWORK SEPERTI DI GAMBAR REFERENSI */
+        /* MANAGE WALLET ADDRESSES DENGAN VALIDASI MULTI-NETWORK AMAN */
         function openConnectWalletModal() {
             let getSavedAddr = (netName) => {
                 let found = miningData.connectedWallets.find(w => w.network === netName);
@@ -1409,7 +1337,6 @@
         function saveSpecificWallet(network, inputId) {
             let address = document.getElementById(inputId).value.trim();
             if(!address) {
-                // Hapus jika input dikosongkan
                 miningData.connectedWallets = miningData.connectedWallets.filter(w => w.network !== network);
             } else {
                 let isTon = address.startsWith('UQ') || address.startsWith('EQ') || address.length > 40;
@@ -1426,7 +1353,6 @@
                     return showModal(t('error'), "Konfigurasi Ditolak! Alamat TRC-20 harus berawalan T.", "fa-circle-exclamation");
                 }
 
-                // Update atau tambah
                 let existingIndex = miningData.connectedWallets.findIndex(w => w.network === network);
                 if (existingIndex >= 0) {
                     miningData.connectedWallets[existingIndex].address = address;
@@ -1439,24 +1365,7 @@
             db.ref('users/' + userIdStr).update({ connectedWallets: miningData.connectedWallets });
             
             closeModal();
-            updateWalletUI();
             showModal(t('success'), "Konfigurasi dompet berhasil disimpan & divalidasi!", "fa-circle-check");
-        }
-
-        function updateWalletUI() {
-            let dot = document.getElementById('wallet-status-dot');
-            let txt = document.getElementById('wallet-status-text');
-            if(dot && txt) {
-                if (miningData.isWalletConnected) {
-                    dot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
-                    txt.innerText = `Terhubung (${miningData.connectedWallets.length} Wallet)`;
-                    txt.className = "text-xs font-bold text-green-400";
-                } else {
-                    dot.className = "w-3 h-3 rounded-full bg-red-500";
-                    txt.innerText = t('wallet_disconnected');
-                    txt.className = "text-xs font-bold text-red-400";
-                }
-            }
         }
 
         function openWithdrawModal() {
@@ -1590,165 +1499,6 @@
                 status: "pending",
                 timestamp: Date.now()
             });
-        }
-
-        function openA2FModal() {
-            if (miningData.isA2fVerified) {
-                return showModal("A2F Security", `Email Anda (${miningData.userEmail}) sudah terverifikasi dengan A2F.`, "fa-shield-halved");
-            }
-            showEmailInputModal();
-        }
-
-        function showEmailInputModal() {
-            let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Masukkan alamat email Anda untuk menerima kode OTP verifikasi A2F.</p>
-                <input type="email" id="a2f-email-input" placeholder="contoh@email.com" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono" value="${miningData.userEmail}">
-                <button onclick="sendA2FOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    KIRIM KODE OTP
-                </button>
-            </div>`;
-            showModal("A2F Security (Email)", html, "fa-shield-halved");
-        }
-
-        function sendA2FOtp() {
-            let email = document.getElementById('a2f-email-input').value.trim();
-            if(!email || !email.includes('@')) {
-                return showModal("Error", "Masukkan alamat email yang valid!", "fa-circle-exclamation");
-            }
-            miningData.userEmail = email;
-            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            showOtpVerifyModal(email);
-        }
-
-        function showOtpVerifyModal(email) {
-            let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Kode OTP telah dikirim ke <strong class="text-yellow-400">${email}</strong>.<br><span class="text-[10px] text-gray-400">(Simulasi Kode OTP: <strong class="text-green-400">${generatedOtp}</strong>)</span></p>
-                <input type="text" id="a2f-otp-input" placeholder="Masukkan 6 Digit OTP" maxlength="6" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-center tracking-widest text-base outline-none font-mono">
-                <button onclick="verifyA2FOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    VERIFIKASI OTP
-                </button>
-            </div>`;
-            showModal("Verifikasi OTP A2F", html, "fa-key");
-        }
-
-        async function verifyA2FOtp() {
-            let userOtp = document.getElementById('a2f-otp-input').value.trim();
-            if(userOtp !== generatedOtp) {
-                return showModal("Error", "Kode OTP salah! Silakan coba lagi.", "fa-circle-exclamation");
-            }
-
-            miningData.isA2fVerified = true;
-            closeModal();
-
-            db.ref('users/' + userIdStr).update({
-                userEmail: miningData.userEmail,
-                isA2fVerified: true
-            });
-
-            updateA2FUI();
-            showModal("Sukses", "A2F Security berhasil diaktifkan dengan Email & OTP!", "fa-circle-check");
-        }
-
-        function updateA2FUI() {
-            let a2fLbl = document.getElementById('a2f-status-lbl');
-            if(!a2fLbl) return;
-            if(miningData.isA2fVerified) {
-                a2fLbl.innerText = "Verified (" + miningData.userEmail + ")";
-                a2fLbl.className = "text-[10px] text-yellow-400 font-mono font-bold gold-glow";
-            } else {
-                a2fLbl.innerText = t('status_unlocked');
-                a2fLbl.className = "text-[10px] text-green-400 font-mono font-bold";
-            }
-        }
-
-        function openFaceScanModal() {
-            if (miningData.faceVerificationStatus === 'verified') return showModal(t('face_title'), t('face_already_verified'), "fa-circle-check");
-            if (miningData.faceVerificationStatus === 'pending') return showModal(t('face_title'), t('face_submitted'), "fa-clock");
-
-            let cameraModal = document.getElementById('camera-modal');
-            cameraModal.classList.remove('hidden', 'pointer-events-none');
-            cameraModal.classList.add('flex');
-            setTimeout(() => { cameraModal.classList.remove('opacity-0', 'scale-95'); cameraModal.classList.add('opacity-100', 'scale-100'); }, 10);
-
-            let spinner = document.getElementById('cam-loading-spinner');
-            if(spinner) spinner.style.display = 'flex';
-
-            let videoEl = document.getElementById('webcam-video');
-            videoEl.setAttribute('autoplay', '');
-            videoEl.setAttribute('playsinline', '');
-            videoEl.setAttribute('muted', '');
-
-            navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" } })
-            .then(stream => { 
-                cameraStream = stream; 
-                videoEl.srcObject = stream;
-                videoEl.play().catch(e => console.log("Video play error:", e));
-                videoEl.onloadedmetadata = () => {
-                    if(spinner) spinner.style.display = 'none';
-                    runLivenessGuidanceWithDetection();
-                };
-            })
-            .catch((err) => { 
-                console.error("Camera error:", err);
-                if(spinner) spinner.style.display = 'none';
-                closeCameraModal(); 
-                showModal(t('error'), "Kamera tidak dapat diakses atau diblokir izin browser.", "fa-video-slash"); 
-            });
-        }
-
-        function runLivenessGuidanceWithDetection() {
-            let instr = document.getElementById('liveness-instruction');
-            let steps = [
-                { text: "Mencari wajah...", color: "text-red-500" },
-                { text: "Wajah terdeteksi! Tahan posisi...", color: "text-green-400" },
-                { text: "Silahkan menoleh ke kanan...", color: "text-yellow-300" },
-                { text: "Silahkan menoleh ke kiri...", color: "text-yellow-300" },
-                { text: "Posisi valid! Mengambil foto otomatis...", color: "text-green-400" }
-            ];
-            let idx = 0;
-            let interval = setInterval(() => {
-                idx++;
-                if(idx < steps.length) {
-                    if(instr) {
-                        instr.innerText = steps[idx].text;
-                        instr.className = `text-[11px] mb-3 font-bold animate-pulse ${steps[idx].color}`;
-                    }
-                } else {
-                    clearInterval(interval);
-                    setTimeout(() => { captureFaceAndVerify(); }, 1000);
-                }
-            }, 1800);
-        }
-
-        function closeCameraModal() {
-            if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
-            let videoEl = document.getElementById('webcam-video');
-            if(videoEl) videoEl.srcObject = null;
-
-            let cameraModal = document.getElementById('camera-modal');
-            cameraModal.classList.remove('opacity-100', 'scale-100'); cameraModal.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => { cameraModal.classList.remove('flex'); cameraModal.classList.add('hidden', 'pointer-events-none'); }, 300);
-        }
-
-        async function captureFaceAndVerify() {
-            closeCameraModal();
-            miningData.faceVerificationStatus = 'pending';
-            updateFaceScanUI();
-            
-            db.ref('users/' + userIdStr).update({ faceVerificationStatus: 'pending' });
-            showModal(t('success'), t('face_submitted'), "fa-clock");
-        }
-
-        function updateFaceScanUI() {
-            let faceLbl = document.getElementById('face-status-lbl');
-            if(!faceLbl) return;
-            if (miningData.faceVerificationStatus === 'verified') {
-                faceLbl.innerText = t('status_verified'); faceLbl.className = "text-[10px] text-yellow-400 font-mono font-bold gold-glow";
-            } else if (miningData.faceVerificationStatus === 'pending') {
-                faceLbl.innerText = t('status_pending'); faceLbl.className = "text-[10px] text-yellow-400 font-mono font-bold animate-pulse";
-            } else {
-                faceLbl.innerText = t('status_unverified'); faceLbl.className = "text-[10px] text-red-500 font-mono font-bold";
-            }
         }
 
         function startTgTask() {
@@ -1903,7 +1653,6 @@
             showModal("Level Info", html, "fa-layer-group");
         }
 
-        /* JIKA BELUM ADA AKTIVITAS MINING/TRANSACTION, MAKA KOSONG */
         function openTxHistoryModal() {
             let txHtml = miningData.txHistoryList.length > 0
                 ? miningData.txHistoryList.map(tx => {
@@ -1928,7 +1677,6 @@
             showModal("Transaction History", html, "fa-clock-rotate-left");
         }
 
-        /* JIKA BELUM ADA WD, MAKA KOSONG */
         function openWdHistoryModal() {
             let wdHtml = miningData.wdHistoryList.length > 0
                 ? miningData.wdHistoryList.map(wd => {
@@ -1955,8 +1703,14 @@
 
         function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
         function openPrivacyModal() { showModal(t('privacy_policy'), "Data terenkripsi aman.", "fa-shield-cat"); }
-        function openLockedFeature(type) { showModal("Fitur Terkunci", "Fitur ini akan dibuka pada tahap Mainnet.", "fa-lock"); }
-        function handleFounderClick() { showModal("Founder VIP", t('founder_alert'), "fa-lock"); }
+        function openLockedFeature(type) { 
+            let dData = getFormattedTime(targetDates[type] || targetDates.founder);
+            showModal("Fitur Terkunci", t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), "fa-lock"); 
+        }
+        function handleFounderClick() { 
+            let fData = getFormattedTime(targetDates.founder);
+            showModal("Founder VIP", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
+        }
         function copyUID() { navigator.clipboard.writeText(userIdStr); showModal(t('notification'), t('copied'), "fa-circle-check"); }
 
         function switchTab(tabId, btnElement) {
