@@ -481,7 +481,7 @@
             
             <div class="relative w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden border-4 border-yellow-500/60 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                 <div id="cam-loading-spinner" class="absolute inset-0 flex items-center justify-center bg-black/80 z-10 text-yellow-400 text-xs font-bold animate-pulse">Membuka Kamera...</div>
-                <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
+                <video id="webcam-video" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
                 <div class="absolute inset-0 border-2 border-dashed border-yellow-400/50 rounded-full pointer-events-none"></div>
             </div>
 
@@ -508,11 +508,12 @@
         </div>
     </div>
 
-    <!-- FIREBASE CONFIGURATION & INITIALIZATION (DIPERBARUI SESUAI PERMINTAAN) -->
+    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC1e-qHoWNoEcUjaCeYjZ887hfO6Yk9XiY",
             authDomain: "afexmining2new.firebaseapp.com",
+            databaseURL: "https://afexmining2new-default-rtdb.firebaseio.com",
             projectId: "afexmining2new",
             storageBucket: "afexmining2new.firebasestorage.app",
             messagingSenderId: "186819219544",
@@ -527,8 +528,6 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxA4arh-MZweEH5faHIrJ32tWRZU-zUIcTEsaRXCqM/dev";
-
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
@@ -605,7 +604,7 @@
                 swap_heading: "Sàn Giao Dịch Token AFEX", swap_desc: "Đổi token AFEX ngay lập tức sang USDT hoặc TON.",
                 connect_wallet: "Kết nối ví", withdraw: "Rút tiền", your_balances: "Số dư Token của bạn",
                 nav_mine: "Trang chủ", nav_task: "Nhiệm vụ", nav_swap: "Đổi", nav_wallet: "Ví", nav_profile: "Hồ sơ",
-                vip_pass: "THẺ VIP NHÀ SÁNG LẬP", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", task_watch_ad: "Xem quảng cáo", btn_watch: "Xem",
+                vip_pass: "THẺ NHÀ SÁNG LẬP VIP", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", task_watch_ad: "Xem quảng cáo", btn_watch: "Xem",
                 task_join_tg: "Tham gia kênh Telegram", btn_start: "Bắt đầu", invite_sub: "Mời và nhận thưởng", contest_sub: "Nhận thưởng",
                 sec_kyc: "BẢO MẬT & KYC", community: "CỘNG ĐỒNG", about: "GIỚI THIỆU", payouts_sub: "Rút tiền trực tiếp người dùng toàn cầu",
                 notification: "Thông báo", success: "Thành công", error: "Lỗi", copied: "Đã sao chép!", btn_ok: "ĐỒNG Ý",
@@ -649,7 +648,7 @@
                 wd_insufficient: "Naku, kulang ang iyong balanse, mangyaring ipagpatuloy ang pagmimina.", wd_processed: "Matagumpay na na-proseso ang withdrawal!",
                 wallet_manage: "Pamahalaan ang mga Wallet Address", tx_history: "Kasaysayan ng Transaksyon", wd_history: "Kasaysayan ng Withdrawal",
                 income_label: "Kita", view_levels: "Tingnan ang Impormasyon ng Antas >", deposit: "Mag-deposito", claim: "Kunin",
-                ad_boost_label: "Bilis ng Bonus sa Ad:", per_hour: "/oras", per_day: "/araw", per_month: "/buwan",
+                ad_boost_label: "Bilis ng Bonus sa Ad:", per_hour: "/oras", per_araw: "/araw", per_month: "/buwan",
                 start_swap_btn: "SIMULAN ANG SWAP", instant_payouts: "Instant na Payout", your_uid: "ANG IYONG UID",
                 a2f_title: "Seguridad ng A2F (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Mag-imbita ng mga Kaibigan", contests_title: "Mga Paligsahan at Leaderboard", proof_payouts: "Katibayan ng Payout",
@@ -672,11 +671,11 @@
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "ยังไม่ได้เชื่อมต่อกระเป๋าเงิน", btn_connect: "เชื่อมต่อ",
                 checkin_done: "เช็คอินไปแล้ววันนี้ โปรดกลับมาใหม่พรุ่งนี้", checkin_success: "เช็คอินสำเร็จสำหรับวันที่",
-                ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.00001 ความเร็ว/ชม., และ +1 คะแนน!", ad_not_ready: "AdsGuard เปิดใช้งาน / ข้ามโฆษณาแล้ว ให้รางวัลทันที!",
+                ad_claimed: "รับรางวัลแล้ว! +15 AFEX, +0.00001 ความเร็ว/ชม., และ +1 คะแนน!", audio_not_ready: "AdsGuard เปิดใช้งาน / ข้ามโฆษณาแล้ว ให้รางวัลทันที!",
                 founder_avail: "ผู้ก่อตั้งจะเปิดใช้งานในอีก {d} วัน {time}", lock_a2f: "ความปลอดภัย A2F จะเปิดใช้งานในอีก {d} วัน {time}.", 
                 lock_face: "การจดจำใบหน้าจะเปิดใช้งานในอีก {d} วัน {time}.", lock_id: "การยืนยันตัวตนจะเปิดใช้งานในอีก {d} วัน {time}.",
                 locked_list: "ล็อค ({d} วัน {time})", swap_locked: "ฟีเจอร์การแลกเปลี่ยนจะใช้งานได้ในช่วง Mainnet",
-                wd_insufficient: "อุ๊p ยอดเงินของคุณไม่เพียงพอ โปรดขุดต่อ", wd_processed: "ดำเนินการถอนเงินสำเร็จ!",
+                wd_insufficient: "อุ๊ป ยอดเงินของคุณไม่เพียงพอ โปรดขุดต่อ", wd_processed: "ดำเนินการถอนเงินสำเร็จ!",
                 wallet_manage: "จัดการที่อยู่กระเป๋าเงิน", tx_history: "ประวัติการทำธุรกรรม", wd_history: "ประวัติการถอนเงิน",
                 income_label: "รายได้", view_levels: "ดูข้อมูลระดับ >", deposit: "ฝากเงิน", claim: "เคลม",
                 ad_boost_label: "ความเร็วโบนัสโฆษณา:", per_hour: "/ชม.", per_day: "/วัน", per_month: "/เดือน",
@@ -689,9 +688,9 @@
                 face_submitted: "ส่งสแกนใบหน้าแล้ว! การยืนยันอยู่ระหว่างการตรวจสอบโดยผู้ดูแลระบบ", face_already_verified: "การยืนยันใบหน้าของคุณเสร็จสมบูรณ์และได้รับการยืนยันแล้ว!"
             },
             ms: {
-                total_balance: "JUMLAH BAKI", checkin_title: " Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Siri (Hari 1 - 7)",
+                total_balance: "JUMLAH BAKI", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Siri (Hari 1 - 7)",
                 ready_to_mine: "Bersedia untuk Menaraf", session_timer: "Pemasa Sesi:", tasks_title: "TUGASAN", 
-                tasks_desc: "Selesaikan tugasan untuk mendapatkan mata & ganjaran.", swap_title: " TUKAR TOKEN", swap_subtitle: "Akan Datang", 
+                tasks_desc: "Selesaikan tugasan untuk mendapatkan mata & ganjaran.", swap_title: "TUKAR TOKEN", swap_subtitle: "Akan Datang", 
                 swap_heading: "Pertukaran Token AFEX", swap_desc: "Tukar token AFEX serta-merta kepada USDT atau TON.",
                 connect_wallet: "Sambungkan Dompet", withdraw: "Tarik Diri", your_balances: "Baki Token Anda",
                 nav_mine: "Utama", nav_task: "Tugasan", nav_swap: "Tukar", nav_wallet: "Dompet", nav_profile: "Profil", 
@@ -751,8 +750,8 @@
             ur: {
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک کے انعامات کا دعویٰ کریں (دن 1 - 7)",
                 ready_to_mine: "مائن کرنے کے لیے تیار", session_timer: "سیشن ٹائمر:", tasks_title: "کام", 
-                tasks_desc: "پوائنٹس और انعامات حاصل करने के लिए काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
-                swap_heading: "AFEX ٹोकन سویپ ایکسچینج", swap_desc: "AFEX ٹوکنز को فوری طور پر USDT یا TON में سویپ کریں۔",
+                tasks_desc: "پوائنٹس और انعامات حاصل کرنے के लिए काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
+                swap_heading: "AFEX ٹोकन سویپ एक्सचेंज", swap_desc: "AFEX ٹوکن्स को فوری طور पर USDT या TON में سویپ کریں۔",
                 connect_wallet: "والٹ connect करें", withdraw: "رقم نکالیں", your_balances: "آپ के टोकन بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
                 vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ شروع کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
@@ -762,21 +761,21 @@
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "والٹ منقطع ہے", btn_connect: "جڑیں",
                 checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
-                ad_claimed: "انعام का دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، और +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست دے دیا گیا!",
+                ad_claimed: "انعام کا دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست دے دیا گیا!",
                 founder_avail: "{d} دنوں {time} में بانی دستیاب ہوں گے", lock_a2f: "A2F سیکیورٹی {d} دنوں {time} में دستیاب ہوگی।", 
-                lock_face: "चہرہ شناخت {d} دنوں {time} में دستیاب ہوگی।", lock_id: "شناختی تصدیق {d} دنوں {time} में دستیاب ہوگی।",
-                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ की خصوصیت فعال ہوگی।",
-                wd_insufficient: "افوہ، آپ का بیلنس ناکافی है، براہ کرم مائننگ जारी रखें।", wd_processed: "رقم کامیابی کے ساتھ نکال दी گئی!",
-                wallet_manage: "والٹ के پتے का انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
-                income_label: "آمدنی", view_levels: "لیول की معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ کریں",
+                lock_face: "चہرہ شناخت {d} दिनों {time} में دستیاب होगी।", lock_id: "شناختی تصدیق {d} दिनों {time} में دستیاب ہوگی।",
+                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ की خصوصیت فعال होगी।",
+                wd_insufficient: "افوہ، آپ का بیلنس ناکافی है, براہ کرم مائننگ जारी रखें।", wd_processed: "رقم کامیابی کے ساتھ نکال दी گئی!",
+                wallet_manage: "والٹ کے پते का انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
+                income_label: "آمدنی", view_levels: "لیول की معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ करें",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/माह",
                 start_swap_btn: "سویپ शुरू करें", instant_payouts: "فوری ادائیگی", your_uid: "آپ का UID",
                 a2f_title: "A2F سیکیورٹی (ایمیل और OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
                 invite_friends: "دوستों को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
-                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری की پالیسی",
+                about_afex: "AFEX ٹوکن کے بارے میں", privacy_policy: "رازداری की پالیسی",
                 status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ",
                 face_scan_title: "فیس ریکگنیشن اسکین", face_scan_desc: "अपने چہرے को فریم के अंदर रखें और कीپچر करें।", btn_capture: "ابھی کیپچر करें", btn_cancel: "منسوخ करें",
-                face_submitted: "فیس اسکین جمع कर दिया गया! تصدیق ایڈمن के زیر جائزہ है।", face_already_verified: "آپ کی چہرے की تصدیق پہلے ही مکمل और تصدیق شدہ है!"
+                face_submitted: "فیس اسکین جمع कर दिया गया! تصدیق ایڈمن के زیر جائزہ ہے।", face_already_verified: "آپ کی چہرے की تصدیق پہلے ہی مکمل और تصدیق شدہ ہے!"
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续奖励 (第 1 - 7 天)",
@@ -926,7 +925,7 @@
                 about_afex: "حول رمز AFEX", privacy_policy: "سياسة الخصوصية",
                 status_unlocked: "مفتوح", status_unverified: "غير متحقق", status_pending: "قيد الانتظار / قيد المراجعة", status_verified: "متحقق منه",
                 face_scan_title: "مسح التعرف على الوجه", face_scan_desc: "ضع وجهك داخل الإطار ثم التقط الصورة.", btn_capture: "التقاط الآن", btn_cancel: "إلغاء",
-                face_submitted: "تم إرسال مسح الوجه! التحقق قيد المراجعة من قبل المسؤول.", face_already_verified: "تم إكمال التحقق من وجهك والتحقق منه بالفعل!"
+                face_submitted: "تم إرسال مسح الوجه! التحقق قيد المراجعة من المسؤول.", face_already_verified: "تم إكمال التحقق من وجهك والتحقق منه بالفعل!"
             }
         };
 
@@ -947,7 +946,7 @@
             tgTaskEndTime: 0,
             faceVerificationStatus: 'unverified',
             userPoints: 0,
-            usdtBaseRate: 0.000200, // $0.000200 per jam
+            usdtBaseRate: 0.000200, // $0.000200 per jam otomatis
             usdtSpeedBoost: 0.0000,
             usdtMinedPending: 0.0000,
             isMining: false,
@@ -958,10 +957,11 @@
             referralCount: 0,
             leaderboardList: [],
             payoutsList: [],
+            txHistoryList: [],
+            wdHistoryList: [],
             userEmail: "",
             isA2fVerified: false,
-            connectedWalletAddress: "",
-            connectedWalletNetwork: "",
+            connectedWallets: [], // Menyimpan banyak alamat wallet seperti awal
             isWalletConnected: false
         };
 
@@ -985,13 +985,12 @@
         let cameraStream = null;
         let generatedOtp = "";
 
-        // Load & Sync Backend Data
-        async function syncWithBackend() {
-            try {
-                const res = await fetch(`${API_URL}?action=GET_USER_STATUS&uid=${userIdStr}&username=${encodeURIComponent(displayName)}`);
-                const result = await res.json();
-                if (result.success && result.data) {
-                    const data = result.data;
+        // SYNC DENGAN FIREBASE REALTIME DATABASE (`afexmining2new-default-rtdb`)
+        function syncWithBackend() {
+            const userRef = db.ref('users/' + userIdStr);
+            userRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
                     miningData.balance = Number(data.balance) || miningData.balance;
                     miningData.isMining = !!data.isMining;
                     miningData.miningStartTime = Number(data.miningStartTime) || 0;
@@ -1000,24 +999,79 @@
                     miningData.userPoints = Number(data.userPoints) || 0;
                     miningData.referralCount = Number(data.referralCount) || 0;
                     miningData.faceVerificationStatus = data.faceVerificationStatus || 'unverified';
-                    miningData.leaderboardList = data.leaderboard || [];
-                    miningData.payoutsList = data.payouts || [];
                     miningData.userEmail = data.userEmail || "";
                     miningData.isA2fVerified = !!data.isA2fVerified;
                     miningData.lastCheckInTime = Number(data.lastCheckInTime) || 0;
                     miningData.checkInDay = Number(data.checkInDay) || 1;
-                    miningData.connectedWalletAddress = data.connectedWalletAddress || "";
-                    miningData.connectedWalletNetwork = data.connectedWalletNetwork || "";
-                    miningData.isWalletConnected = !!data.isWalletConnected;
+                    miningData.connectedWallets = data.connectedWallets || [];
+                    miningData.isWalletConnected = miningData.connectedWallets.length > 0;
 
                     updateUI();
                     updateFaceScanUI();
                     updateA2FUI();
                     updateWalletUI();
+                } else {
+                    userRef.set({
+                        username: displayName,
+                        balance: miningData.balance,
+                        usdtBalance: miningData.usdtBalance,
+                        userPoints: miningData.userPoints,
+                        faceVerificationStatus: miningData.faceVerificationStatus,
+                        connectedWallets: []
+                    });
                 }
-            } catch (e) {
-                console.error("Backend sync error:", e);
-            }
+            });
+
+            // Ambil Leaderboard Global
+            db.ref('leaderboard').on('value', (snapshot) => {
+                const lbData = snapshot.val();
+                if (lbData) {
+                    miningData.leaderboardList = Object.values(lbData).sort((a, b) => b.points - a.points);
+                }
+            });
+
+            // Ambil Payouts Global
+            db.ref('payouts').on('value', (snapshot) => {
+                const pData = snapshot.val();
+                if (pData) {
+                    miningData.payoutsList = Object.values(pData);
+                }
+            });
+
+            // Ambil Transaction History User (Menyaring pending di atas, sukses mengikuti yang lain)
+            db.ref('transactions/' + userIdStr).on('value', (snapshot) => {
+                const txData = snapshot.val();
+                if (txData) {
+                    let list = Object.values(txData);
+                    // Urutkan: Pending/Review di atas, lalu timestamp terbaru
+                    miningData.txHistoryList = list.sort((a, b) => {
+                        let aPending = (a.status === 'pending' || a.status === 'review');
+                        let bPending = (b.status === 'pending' || b.status === 'review');
+                        if (aPending && !bPending) return -1;
+                        if (!aPending && bPending) return 1;
+                        return b.timestamp - a.timestamp;
+                    });
+                } else {
+                    miningData.txHistoryList = [];
+                }
+            });
+
+            // Ambil Withdrawal History User (Skema sama seperti transaksi: pending di atas)
+            db.ref('withdrawals/' + userIdStr).on('value', (snapshot) => {
+                const wdData = snapshot.val();
+                if (wdData) {
+                    let list = Object.values(wdData);
+                    miningData.wdHistoryList = list.sort((a, b) => {
+                        let aPending = (a.status === 'pending' || a.status === 'review');
+                        let bPending = (b.status === 'pending' || b.status === 'review');
+                        if (aPending && !bPending) return -1;
+                        if (!aPending && bPending) return 1;
+                        return b.timestamp - a.timestamp;
+                    });
+                } else {
+                    miningData.wdHistoryList = [];
+                }
+            });
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1104,7 +1158,7 @@
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
 
-        // BACKGROUND MINING INTERVAL (Berjalan 12 jam AFEX & USDT $0.000200 per jam)
+        // BACKGROUND MINING INTERVAL (AFEX manual tekan, USDT otomatis berjalan terus)
         function startTimerInterval() {
             setInterval(() => {
                 let now = Date.now();
@@ -1119,7 +1173,7 @@
                     let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
                     minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
 
-                    // USDT Mined per second calculation based on hourly rate ($0.000200 / 3600)
+                    // USDT Mined per second berjalan otomatis tanpa tombol manual
                     let currentHourly = miningData.usdtBaseRate + miningData.usdtSpeedBoost;
                     let perSecondRate = currentHourly / 3600;
                     miningData.usdtMinedPending += perSecondRate;
@@ -1127,7 +1181,7 @@
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
                         statusLbl.innerText = t('ready_to_mine');
-                        mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
+                        mineBtn.innerText = "KLAIM HADIAH (+50 AFEX)";
                         mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                     } else {
                         let h = Math.floor((timeLeft % (1000 * 3600 * 24)) / (1000 * 3600));
@@ -1173,7 +1227,7 @@
             document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', idData.d).replace('{time}', idData.timeStr);
         }
 
-        // DAILY CHECK-IN (24H COOLDOWN & 7 BOXES REWARD)
+        // DAILY CHECK-IN
         function openCheckInModal() {
             let now = Date.now();
             let twentyFourHours = 24 * 3600 * 1000;
@@ -1224,15 +1278,23 @@
             updateUI();
             showModal(t('success'), `Berhasil klaim check-in! (+${afexAmt} AFEX & +${rateBonus} USDT/jam kecepatan)`, "fa-circle-check");
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "CHECKIN", uid: userIdStr, balance: miningData.balance, checkInDay: miningData.checkInDay, lastCheckInTime: miningData.lastCheckInTime })
-                });
-            } catch(e) { console.error(e); }
+            db.ref('users/' + userIdStr).update({
+                balance: miningData.balance,
+                checkInDay: miningData.checkInDay,
+                lastCheckInTime: miningData.lastCheckInTime,
+                usdtSpeedBoost: miningData.usdtSpeedBoost
+            });
+
+            // Catat ke Transaction History (Berhasil)
+            db.ref('transactions/' + userIdStr).push({
+                type: 'Check-in Reward',
+                amount: `+${afexAmt} AFEX`,
+                status: 'success',
+                timestamp: Date.now()
+            });
         }
 
-        // ADSGUARD BYPASS & EXACT AD REWARD
+        // ADSGUARD BYPASS & TASK REWARD MASUK TRANSACTION HISTORY
         function handleAdBlocker() {
             console.log("AdsGuard / Adblock detected or SDK failed to load. Fallback enabled.");
         }
@@ -1242,23 +1304,39 @@
             let giveAdReward = () => {
                 miningData.balance += 15;
                 miningData.userPoints += 1;
-                miningData.usdtSpeedBoost += 0.00001; // Tambah 0.0001 kecepatan rate per jam (0.00001 per iklan)
+                miningData.usdtSpeedBoost += 0.00001; 
                 miningData.adsWatchedToday += 1;
                 updateUI(); updateAdTaskUI();
                 showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 btn.disabled = false;
+
+                db.ref('users/' + userIdStr).update({
+                    balance: miningData.balance,
+                    userPoints: miningData.userPoints,
+                    usdtSpeedBoost: miningData.usdtSpeedBoost
+                });
+                db.ref('leaderboard/' + userIdStr).set({
+                    username: displayName,
+                    points: miningData.userPoints
+                });
+
+                // Masuk ke Transaction History
+                db.ref('transactions/' + userIdStr).push({
+                    type: 'Task Watch Ad',
+                    amount: '+15 AFEX',
+                    status: 'success',
+                    timestamp: Date.now()
+                });
             };
 
             if (typeof show_11929290 === 'function') {
                 show_11929290().then(() => {
                     giveAdReward();
                 }).catch(() => {
-                    // Jika AdsGuard aktif / gagal load, tetap berikan hadiah (poin 4 & bypass adsguard)
                     giveAdReward();
                     showModal(t('notification'), t('ad_not_ready'), "fa-shield-halved");
                 });
             } else {
-                // AdsGuard aktif atau tidak ada SDK, langsung berikan hadiah tanpa gagal
                 giveAdReward();
                 showModal(t('notification'), t('ad_not_ready'), "fa-shield-halved");
             }
@@ -1269,39 +1347,35 @@
             if (adBadge) adBadge.innerText = `${miningData.adsWatchedToday}/25`;
         }
 
-        // CONNECT / DISCONNECT WALLET & NETWORK VALIDATION
+        // MULTI WALLET CONNECTION & STRICT NETWORK VALIDATION
         function openConnectWalletModal() {
-            if (miningData.isWalletConnected) {
-                let html = `<div class="space-y-3 text-left text-xs">
-                    <p class="text-gray-300">Dompet Terhubung:</p>
-                    <p class="text-yellow-400 font-mono font-bold break-all">${miningData.connectedWalletAddress}</p>
-                    <p class="text-gray-400">Jaringan: <strong class="text-white">${miningData.connectedWalletNetwork}</strong></p>
-                    <button onclick="disconnectWallet()" class="w-full bg-red-500 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                        PUTUSKAN DOMPET
-                    </button>
-                </div>`;
-                showModal(t('connect_wallet'), html, "fa-wallet");
-            } else {
-                let html = `<div class="space-y-3 text-left text-xs">
-                    <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan</label>
-                        <select id="conn-network" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
-                            <option value="BEP-20">USDT (BEP-20)</option>
-                            <option value="TRC-20">USDT (TRC-20)</option>
-                            <option value="TON">USDT (TON)</option>
-                            <option value="ERC-20">USDT (ERC-20)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Alamat Dompet</label>
-                        <input type="text" id="conn-address" placeholder="Masukkan alamat wallet..." class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
-                    </div>
-                    <button onclick="executeConnectWallet()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                        HUBUNGKAN DOMPET
-                    </button>
-                </div>`;
-                showModal(t('connect_wallet'), html, "fa-wallet");
-            }
+            let walletsHtml = miningData.connectedWallets.length > 0
+                ? miningData.connectedWallets.map((w, idx) => `<div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center text-xs font-mono mb-1"><span class="text-yellow-400">${w.network}: ${w.address.substring(0,6)}...${w.address.substring(w.address.length-4)}</span> <button onclick="removeWallet(${idx})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button></div>`).join('')
+                : `<p class="text-xs text-gray-400">Belum ada wallet terhubung.</p>`;
+
+            let html = `<div class="space-y-3 text-left text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan</label>
+                    <select id="conn-network" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
+                        <option value="BEP-20">USDT (BEP-20)</option>
+                        <option value="TRC-20">USDT (TRC-20)</option>
+                        <option value="TON">USDT (TON)</option>
+                        <option value="ERC-20">USDT (ERC-20)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Alamat Dompet</label>
+                    <input type="text" id="conn-address" placeholder="Masukkan alamat wallet..." class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
+                </div>
+                <button onclick="executeConnectWallet()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
+                    TAMBAHKAN / HUBUNGKAN DOMPET
+                </button>
+                <div class="mt-3 border-t border-gray-800 pt-2">
+                    <span class="text-[10px] text-gray-400 block mb-1 font-bold">Daftar Dompet Tersimpan:</span>
+                    ${walletsHtml}
+                </div>
+            </div>`;
+            showModal(t('connect_wallet'), html, "fa-wallet");
         }
 
         function executeConnectWallet() {
@@ -1310,42 +1384,47 @@
 
             if (!address) return showModal(t('error'), "Alamat wallet tidak boleh kosong!", "fa-circle-exclamation");
 
-            // Validasi format alamat vs jaringan
             let isTon = address.startsWith('UQ') || address.startsWith('EQ') || address.length > 40;
             let isEvm = address.startsWith('0x');
+            let isTrc = address.startsWith('T');
 
+            // Validasi ketat konfigurasi alamat wallet sesuai jaringan
             if (network === 'TON' && !isTon) {
-                return showModal(t('error'), "Alamat salah! Harus berawalan UQ atau EQ sesuai dengan jaringan TON.", "fa-circle-exclamation");
+                return showModal(t('error'), "Konfigurasi Ditolak! Alamat TON harus berawalan UQ atau EQ.", "fa-circle-exclamation");
             }
             if ((network === 'BEP-20' || network === 'ERC-20') && !isEvm) {
-                return showModal(t('error'), "Alamat salah! Harus berawalan 0x sesuai dengan jaringan BEP-20 / ERC-20.", "fa-circle-exclamation");
+                return showModal(t('error'), "Konfigurasi Ditolak! Alamat BEP-20 / ERC-20 harus berawalan 0x.", "fa-circle-exclamation");
             }
-            if (network === 'TRC-20' && !address.startsWith('T')) {
-                return showModal(t('error'), "Alamat salah! Harus berawalan T sesuai dengan jaringan TRC-20.", "fa-circle-exclamation");
+            if (network === 'TRC-20' && !isTrc) {
+                return showModal(t('error'), "Konfigurasi Ditolak! Alamat TRC-20 harus berawalan T.", "fa-circle-exclamation");
             }
 
+            // Cek apakah wallet sudah ada
+            if (miningData.connectedWallets.some(w => w.address === address && w.network === network)) {
+                return showModal(t('error'), "Dompet dengan alamat dan jaringan ini sudah terhubung.", "fa-circle-exclamation");
+            }
+
+            miningData.connectedWallets.push({ network, address });
             miningData.isWalletConnected = true;
-            miningData.connectedWalletAddress = address;
-            miningData.connectedWalletNetwork = network;
+
+            db.ref('users/' + userIdStr).update({
+                connectedWallets: miningData.connectedWallets
+            });
+
             closeModal();
             updateWalletUI();
-            showModal(t('success'), "Dompet berhasil dihubungkan!", "fa-circle-check");
+            showModal(t('success'), "Dompet berhasil dihubungkan dan divalidasi!", "fa-circle-check");
         }
 
-        async function disconnectWallet() {
-            miningData.isWalletConnected = false;
-            miningData.connectedWalletAddress = "";
-            miningData.connectedWalletNetwork = "";
+        function removeWallet(index) {
+            miningData.connectedWallets.splice(index, 1);
+            miningData.isWalletConnected = miningData.connectedWallets.length > 0;
+            db.ref('users/' + userIdStr).update({
+                connectedWallets: miningData.connectedWallets
+            });
             closeModal();
             updateWalletUI();
-            showModal(t('notification'), "Dompet diputuskan.", "fa-wallet");
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "DISCONNECT_WALLET", uid: userIdStr })
-                });
-            } catch(e) { console.error(e); }
+            showModal(t('notification'), "Dompet berhasil dihapus.", "fa-wallet");
         }
 
         function updateWalletUI() {
@@ -1355,7 +1434,7 @@
 
             if (miningData.isWalletConnected) {
                 dot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
-                txt.innerText = `Terhubung (${miningData.connectedWalletNetwork})`;
+                txt.innerText = `Terhubung (${miningData.connectedWallets.length} Wallet)`;
                 txt.className = "text-xs font-bold text-green-400";
             } else {
                 dot.className = "w-3 h-3 rounded-full bg-red-500";
@@ -1364,26 +1443,24 @@
             }
         }
 
-        // WITHDRAWAL FLOW (NETWORK SELECTION, FEES, PENDING TO SUCCESS)
+        // WITHDRAWAL FLOW & SKEMA RIWAYAT (PENDING DI ATAS)
         function openWithdrawModal() {
             if (!miningData.isWalletConnected) {
                 return showModal(t('error'), "Gagal! Silahkan sambungkan wallet terlebih dahulu.", "fa-circle-exclamation");
             }
 
+            let walletOptions = miningData.connectedWallets.map(w => `<option value="${w.address}">${w.network}: ${w.address.substring(0,8)}...</option>`).join('');
+
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan Penarikan</label>
-                    <select id="wd-network" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
-                        <option value="BEP-20">USDT (BEP-20)</option>
-                        <option value="TRC-20">USDT (TRC-20)</option>
-                        <option value="TON">USDT (TON)</option>
-                        <option value="ERC-20">USDT (ERC-20)</option>
+                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Dompet Tujuan</label>
+                    <select id="wd-wallet-addr" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
+                        ${walletOptions}
                     </select>
                 </div>
                 <div>
                     <label class="text-[10px] text-gray-400 block mb-1">Jumlah Penarikan (USDT)</label>
                     <input type="number" id="wd-amount" placeholder="0.00" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
-                    <span class="text-[9px] text-gray-400 block mt-1">Catatan: BEP-20 min 0.1 (hanya sekali pertama), selanjutnya min 1.5. Jaringan lain min 5. Fee 2%.</span>
                 </div>
                 <button onclick="executeWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
                     KIRIM PENARIKAN
@@ -1393,12 +1470,12 @@
         }
 
         async function executeWithdraw() {
-            let network = document.getElementById('wd-network').value;
+            let targetAddr = document.getElementById('wd-wallet-addr').value;
             let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
-            let minLimit = (network === 'BEP-20') ? 0.10 : 5.00;
+            let minLimit = 5.00;
 
             if (amt < minLimit) {
-                return showModal(t('error'), `Minimal penarikan untuk ${network} adalah ${minLimit} USDT`, "fa-circle-exclamation");
+                return showModal(t('error'), `Minimal penarikan adalah ${minLimit} USDT`, "fa-circle-exclamation");
             }
             if (amt > miningData.usdtBalance) {
                 return showModal(t('error'), t('wd_insufficient'), "fa-circle-exclamation");
@@ -1410,25 +1487,20 @@
 
             closeModal();
             updateUI();
-            showModal(t('success'), `Penarikan ${amt} USDT berhasil diajukan! Diterima bersih: ${finalReceive.toFixed(2)} USDT (Fee 2%). Status: Pending.`, "fa-circle-check");
+            showModal(t('success'), `Penarikan ${amt} USDT berhasil diajukan! Status: Pending.`, "fa-circle-check");
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ 
-                        action: "SUBMIT_WD", 
-                        uid: userIdStr, 
-                        username: displayName, 
-                        amount: finalReceive, 
-                        walletAddress: miningData.connectedWalletAddress, 
-                        network: network,
-                        status: "pending"
-                    })
-                });
-            } catch(e) { console.error(e); }
+            db.ref('users/' + userIdStr).update({ usdtBalance: miningData.usdtBalance });
+            
+            // Masuk ke Withdrawal History dengan status pending (akan tampil di atas)
+            db.ref('withdrawals/' + userIdStr).push({
+                amount: finalReceive,
+                walletAddress: targetAddr,
+                status: 'pending',
+                timestamp: Date.now()
+            });
         }
 
-        // DEPOSIT USDT MODAL & PAYMENT FLOW
+        // DEPOSIT USDT MODAL & PENDING REVIEW DI ATAS HISTORY
         function openDepositUsdtModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
@@ -1488,12 +1560,24 @@
             closeModal();
             showModal(t('notification'), "Transaksi sedang di review silahkan tunggu dan cek berkala di menu transaction.", "fa-clock");
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "SUBMIT_DEPOSIT", uid: userIdStr, username: displayName, amount: amt, network: net, txHash: txHash })
-                });
-            } catch(e) { console.error(e); }
+            // Masuk ke Transaction History dengan status pending (posisi di paling atas)
+            db.ref('transactions/' + userIdStr).push({
+                type: `Deposit (${net})`,
+                amount: `+${amt} USDT`,
+                status: 'pending',
+                txHash: txHash,
+                timestamp: Date.now()
+            });
+
+            db.ref('deposits').push({
+                uid: userIdStr,
+                username: displayName,
+                amount: amt,
+                network: net,
+                txHash: txHash,
+                status: "pending",
+                timestamp: Date.now()
+            });
         }
 
         // A2F EMAIL & OTP VERIFICATION FLOW
@@ -1523,7 +1607,6 @@
             miningData.userEmail = email;
             generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
             
-            console.log("Kode OTP A2F untuk " + email + " adalah: " + generatedOtp);
             showOtpVerifyModal(email);
         }
 
@@ -1547,12 +1630,10 @@
             miningData.isA2fVerified = true;
             closeModal();
 
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "UPDATE_A2F", uid: userIdStr, email: miningData.userEmail, isVerified: true })
-                });
-            } catch(e) { console.error(e); }
+            db.ref('users/' + userIdStr).update({
+                userEmail: miningData.userEmail,
+                isA2fVerified: true
+            });
 
             updateA2FUI();
             showModal("Sukses", "A2F Security berhasil diaktifkan dengan Email & OTP!", "fa-circle-check");
@@ -1570,7 +1651,7 @@
             }
         }
 
-        // FACE SCAN LIVENESS, LOADING CAMERA & FACE DETECTION
+        // PERBAIKAN KAMERA KYC BLANK HITAM (DIBUAT ROBUST DENGAN FALLBACK CONTAINER & ATTRIBUTES)
         function openFaceScanModal() {
             if (miningData.faceVerificationStatus === 'verified') return showModal(t('face_title'), t('face_already_verified'), "fa-circle-check");
             if (miningData.faceVerificationStatus === 'pending') return showModal(t('face_title'), t('face_submitted'), "fa-clock");
@@ -1583,20 +1664,26 @@
             let spinner = document.getElementById('cam-loading-spinner');
             if(spinner) spinner.style.display = 'flex';
 
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            let videoEl = document.getElementById('webcam-video');
+            videoEl.setAttribute('autoplay', '');
+            videoEl.setAttribute('playsinline', '');
+            videoEl.setAttribute('muted', '');
+
+            navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" } })
             .then(stream => { 
                 cameraStream = stream; 
-                let videoEl = document.getElementById('webcam-video');
                 videoEl.srcObject = stream;
+                videoEl.play().catch(e => console.log("Video play error:", e));
                 videoEl.onloadedmetadata = () => {
                     if(spinner) spinner.style.display = 'none';
                     runLivenessGuidanceWithDetection();
                 };
             })
-            .catch(() => { 
+            .catch((err) => { 
+                console.error("Camera error:", err);
                 if(spinner) spinner.style.display = 'none';
                 closeCameraModal(); 
-                showModal(t('error'), "Kamera tidak diizinkan.", "fa-video-slash"); 
+                showModal(t('error'), "Kamera tidak dapat diakses atau diblokir izin browser.", "fa-video-slash"); 
             });
         }
 
@@ -1626,6 +1713,9 @@
 
         function closeCameraModal() {
             if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
+            let videoEl = document.getElementById('webcam-video');
+            if(videoEl) videoEl.srcObject = null;
+
             let cameraModal = document.getElementById('camera-modal');
             cameraModal.classList.remove('opacity-100', 'scale-100'); cameraModal.classList.add('opacity-0', 'scale-95');
             setTimeout(() => { cameraModal.classList.remove('flex'); cameraModal.classList.add('hidden', 'pointer-events-none'); }, 300);
@@ -1636,13 +1726,7 @@
             miningData.faceVerificationStatus = 'pending';
             updateFaceScanUI();
             
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "SUBMIT_FACE_SCAN", uid: userIdStr, username: displayName })
-                });
-            } catch(e) { console.error(e); }
-
+            db.ref('users/' + userIdStr).update({ faceVerificationStatus: 'pending' });
             showModal(t('success'), t('face_submitted'), "fa-clock");
         }
 
@@ -1667,6 +1751,19 @@
             miningData.tgTaskEndTime = now + (24 * 3600 * 1000);
             updateUI(); updateTgTaskUI();
             showModal(t('success'), "Telegram Task Completed! +25 AFEX & +0.01 USDT Claimed!", "fa-circle-check");
+
+            db.ref('users/' + userIdStr).update({
+                balance: miningData.balance,
+                usdtBalance: miningData.usdtBalance
+            });
+
+            // Masuk ke Transaction History
+            db.ref('transactions/' + userIdStr).push({
+                type: 'Telegram Task',
+                amount: '+25 AFEX',
+                status: 'success',
+                timestamp: Date.now()
+            });
         }
 
         function updateTgTaskUI() {
@@ -1692,15 +1789,23 @@
             if (miningData.usdtMinedPending <= 0.000001) return showModal(t('notification'), "Hasil mining masih terlalu sedikit.", "fa-circle-exclamation");
             
             miningData.usdtBalance += miningData.usdtMinedPending;
+            let claimedAmount = miningData.usdtMinedPending;
             miningData.usdtMinedPending = 0.0000;
             updateUI();
             showModal(t('success'), "Berhasil mengklaim saldo USDT hasil mining!", "fa-circle-check");
 
-            try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr, usdtBalance: miningData.usdtBalance }) });
-            } catch(e) { console.error(e); }
+            db.ref('users/' + userIdStr).update({ usdtBalance: miningData.usdtBalance });
+
+            // Masuk ke Transaction History
+            db.ref('transactions/' + userIdStr).push({
+                type: 'USDT Mining Claim',
+                amount: `+${claimedAmount.toFixed(4)} USDT`,
+                status: 'success',
+                timestamp: Date.now()
+            });
         }
 
+        // AFEX MANUAL MINING & USDT AUTOMATIS
         async function handleMiningAction() {
             let now = Date.now();
             if (!miningData.isMining) {
@@ -1708,23 +1813,32 @@
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
                 
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: "START_MINING", uid: userIdStr, username: displayName, startTime: miningData.miningStartTime, endTime: miningData.miningEndTime }) 
+                db.ref('users/' + userIdStr).update({
+                    isMining: true,
+                    miningStartTime: miningData.miningStartTime,
+                    miningEndTime: miningData.miningEndTime
                 });
-                showModal(t('notification'), "Mining 12 jam dimulai! Berjalan di latar belakang.", "fa-bolt");
+                showModal(t('notification'), "Penambangan AFEX 12 jam dimulai manual!", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
                 miningData.isMining = false;
                 miningData.balance += 50.00;
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr, balance: miningData.balance }) });
-                showModal(t('success'), "Klaim mining (+50 AFEX) berhasil!", "fa-circle-check");
+                db.ref('users/' + userIdStr).update({
+                    isMining: false,
+                    balance: miningData.balance
+                });
+                showModal(t('success'), "Klaim penambangan AFEX (+50 AFEX) berhasil!", "fa-circle-check");
+
+                db.ref('transactions/' + userIdStr).push({
+                    type: 'AFEX Mining Claim',
+                    amount: '+50 AFEX',
+                    status: 'success',
+                    timestamp: Date.now()
+                });
             } else {
-                showModal(t('notification'), "Mining sedang berlangsung.", "fa-bolt");
+                showModal(t('notification'), "Penambangan AFEX sedang berlangsung.", "fa-bolt");
             }
-            syncWithBackend();
         }
 
-        // REFERRAL DENGAN TOMBOL SHARE TELEGRAM
         function openInviteModal() {
             let refLink = `https://t.me/Fexboostbot?start=AFEX-${userIdStr}`;
             let shareText = encodeURIComponent(`Ayo gabung di AFEX Web3 Mining dan kumpulkan token serta USDT gratis bersama saya!`);
@@ -1743,7 +1857,6 @@
             showModal("Invite Friends", html, "fa-user-plus");
         }
 
-        // LEADERBOARD DENGAN POIN & PENGGUNA ASLI
         function openContestsModal() {
             let listHtml = miningData.leaderboardList.length > 0 
                 ? miningData.leaderboardList.map((u, i) => `<div class="flex justify-between py-1 border-b border-gray-800 text-xs font-mono"><span class="text-yellow-400">${i+1}. ${u.username}</span> <span class="text-white">${u.points} Pts</span></div>`).join('')
@@ -1756,7 +1869,6 @@
             showModal("Contests & Leaderboard", html, "fa-trophy");
         }
 
-        // LIVE PROOF OF PAYOUTS
         function openPayoutsModal() {
             let payoutsHtml = miningData.payoutsList.length > 0
                 ? miningData.payoutsList.map(p => `<div class="flex justify-between py-1 border-b border-gray-800 text-[11px] font-mono"><span class="text-gray-300">${p.username}</span> <span class="text-green-400 font-bold">+${p.amount} USDT</span></div>`).join('')
@@ -1785,8 +1897,56 @@
             showModal("Level Info", html, "fa-layer-group");
         }
 
-        function openTxHistoryModal() { showModal("Riwayat", "Semua penambahan token dan USDT secara otomatis tercatat di riwayat transaksi.", "fa-clock-rotate-left"); }
-        function openWdHistoryModal() { showModal("Riwayat WD", "Status penarikan akan berubah menjadi success setelah bot mengirim konfirmasi.", "fa-list-check"); }
+        // MENAMPILKAN RIWAYAT TRANSAKSI DENGAN STATUS PENDING DI ATAS
+        function openTxHistoryModal() {
+            let txHtml = miningData.txHistoryList.length > 0
+                ? miningData.txHistoryList.map(tx => {
+                    let isPending = (tx.status === 'pending' || tx.status === 'review');
+                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : "text-green-400 bg-green-500/10";
+                    return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+                        <div>
+                            <span class="text-white font-bold block">${tx.type}</span>
+                            <span class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-yellow-400 font-bold block">${tx.amount}</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded uppercase font-bold ${badgeColor}">${tx.status}</span>
+                        </div>
+                    </div>`;
+                }).join('')
+                : `<p class="text-xs text-gray-400 text-center py-4">Belum ada riwayat transaksi.</p>`;
+
+            let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">
+                ${txHtml}
+            </div>`;
+            showModal("Riwayat Transaksi", html, "fa-clock-rotate-left");
+        }
+
+        // MENAMPILKAN RIWAYAT PENARIKAN (WD) DENGAN SKEMA SAMA (PENDING DI ATAS)
+        function openWdHistoryModal() {
+            let wdHtml = miningData.wdHistoryList.length > 0
+                ? miningData.wdHistoryList.map(wd => {
+                    let isPending = (wd.status === 'pending' || wd.status === 'review');
+                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : "text-green-400 bg-green-500/10";
+                    return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+                        <div>
+                            <span class="text-white font-bold block">Penarikan USDT</span>
+                            <span class="text-[10px] text-gray-400">${new Date(wd.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-red-400 font-bold block">-${wd.amount.toFixed(2)} USDT</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded uppercase font-bold ${badgeColor}">${wd.status}</span>
+                        </div>
+                    </div>`;
+                }).join('')
+                : `<p class="text-xs text-gray-400 text-center py-4">Belum ada riwayat penarikan.</p>`;
+
+            let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">
+                ${wdHtml}
+            </div>`;
+            showModal("Riwayat Penarikan", html, "fa-list-check");
+        }
+
         function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
         function openPrivacyModal() { showModal(t('privacy_policy'), "Data terenkripsi aman.", "fa-shield-cat"); }
         function openLockedFeature(type) { showModal("Fitur Terkunci", "Fitur ini akan dibuka pada tahap Mainnet.", "fa-lock"); }
