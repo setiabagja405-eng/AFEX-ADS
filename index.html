@@ -703,7 +703,7 @@
                 swap_heading: "AFEX ٹوکن سویپ اور ایکسچینج", swap_desc: "AFEX ٹوکنز کو فوری طور پر USDT یا TON میں سویپ کریں۔",
                 connect_wallet: "والٹ connect کریں", withdraw: "رقم نکالیں", your_balances: "آپ کے ٹوکن بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
-                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू کریں", task_watch_ad: "اشتہار देखें", btn_watch: "دیکھیں", 
+                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
                 task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "شروع کریں", invite_sub: "دعوت دیں اور انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
                 sec_kyc: "سیکیورٹی اور کے وائی سی", community: "کمیونٹی", about: "کے بارے میں", payouts_sub: "عالمی صارفین کی لائیو نکاسی",
                 notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک ہے",
@@ -715,7 +715,7 @@
                 locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ کے دوران سویپ کی خصوصیت فعال ہوگی۔",
                 wd_insufficient: "افوہ، آپ کا بیلنس ناکافی ہے، براہ کرم مائننگ جاری رکھیں۔", wd_processed: "رقم کامیابی کے ساتھ نکال دی گئی!",
                 wallet_manage: "والٹ کے پتے کا انتظام کریں", tx_history: "ٹرانزیکشن ہسٹری", wd_history: "نکاسی کی تاریخ",
-                income_label: "آمدنی", view_levels: "لیول کی معلومات دیکھیں >", deposit: "جمع کریں", claim: "دعویٰ کریں",
+                income_label: "آمدنی", view_levels: "لیول کی معلومات دیکھیں >", deposit: "دعویٰ کریں", claim: "دعویٰ کریں",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/ماہ",
                 start_swap_btn: "سویپ شروع کریں", instant_payouts: "فوری ادائیگی", your_uid: "آپ کا UID",
                 a2f_title: "A2F سیکیورٹی (ای میل اور OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
@@ -912,6 +912,7 @@
             { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
         ];
 
+        // SINKRONISASI DATA DARI BACKEND MONGODB (RENDER)
         async function syncWithBackend() {
             try {
                 let res = await fetch(`${BACKEND_URL}/api/user/sync`, {
@@ -924,14 +925,47 @@
                 });
                 let data = await res.json();
 
-                // Update saldo UI dari response MongoDB
+                // Load seluruh state variabel dari MongoDB
                 miningData.balance = data.balanceAfex || 0;
                 miningData.usdtBalance = data.usdtBalance || 0;
                 miningData.userPoints = data.userPoints || 0;
+                miningData.lastCheckInTime = data.lastCheckInTime || 0;
+                miningData.checkInDay = data.checkInDay || 1;
+                miningData.usdtSpeedBoost = data.usdtSpeedBoost || 0;
+                miningData.isMining = !!data.isMining;
+                miningData.miningStartTime = data.miningStartTime || 0;
+                miningData.miningEndTime = data.miningEndTime || 0;
+                miningData.tgTaskEndTime = data.tgTaskEndTime || 0;
                 
                 updateUI();
             } catch (err) {
                 console.error("Gagal terhubung ke backend Render:", err);
+            }
+        }
+
+        // SIMPAN STATE TERBARU KE BACKEND MONGODB (RENDER)
+        async function saveToBackend() {
+            try {
+                await fetch(`${BACKEND_URL}/api/user/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: String(Telegram.WebApp.initDataUnsafe?.user?.id || userIdStr),
+                        username: Telegram.WebApp.initDataUnsafe?.user?.username || displayName,
+                        balanceAfex: miningData.balance,
+                        usdtBalance: miningData.usdtBalance,
+                        userPoints: miningData.userPoints,
+                        lastCheckInTime: miningData.lastCheckInTime,
+                        checkInDay: miningData.checkInDay,
+                        usdtSpeedBoost: miningData.usdtSpeedBoost,
+                        isMining: miningData.isMining,
+                        miningStartTime: miningData.miningStartTime,
+                        miningEndTime: miningData.miningEndTime,
+                        tgTaskEndTime: miningData.tgTaskEndTime
+                    })
+                });
+            } catch (err) {
+                console.error("Gagal menyimpan data ke backend Render:", err);
             }
         }
 
@@ -1133,6 +1167,7 @@
 
             closeModal();
             updateUI();
+            saveToBackend(); // Simpan perubahan ke MongoDB Render
             showModal(t('success'), `Berhasil klaim check-in! (+${afexAmt} AFEX & +${rateBonus} USDT/jam kecepatan)`, "fa-circle-check");
         }
 
@@ -1147,7 +1182,9 @@
                 miningData.userPoints += 1;
                 miningData.usdtSpeedBoost += 0.00001; 
                 miningData.adsWatchedToday += 1;
-                updateUI(); updateAdTaskUI();
+                updateUI(); 
+                updateAdTaskUI();
+                saveToBackend(); // Simpan perubahan ke MongoDB Render
                 showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 btn.disabled = false;
             };
@@ -1257,6 +1294,7 @@
             }
 
             miningData.isWalletConnected = miningData.connectedWallets.length > 0;
+            saveToBackend();
             
             closeModal();
             showModal(t('success'), "Konfigurasi dompet berhasil disimpan & divalidasi!", "fa-circle-check");
@@ -1305,6 +1343,7 @@
 
             closeModal();
             updateUI();
+            saveToBackend(); // Simpan saldo terpotong ke MongoDB Render
             showModal(t('success'), `Penarikan ${amt} USDT berhasil diajukan! Status: Pending.`, "fa-circle-check");
         }
 
@@ -1375,7 +1414,9 @@
             miningData.balance += 25;
             miningData.usdtBalance += 0.01;
             miningData.tgTaskEndTime = now + (24 * 3600 * 1000);
-            updateUI(); updateTgTaskUI();
+            updateUI(); 
+            updateTgTaskUI();
+            saveToBackend(); // Simpan perubahan ke MongoDB Render
             showModal(t('success'), "Telegram Task Completed! +25 AFEX & +0.01 USDT Claimed!", "fa-circle-check");
         }
 
@@ -1404,6 +1445,7 @@
             miningData.usdtBalance += miningData.usdtMinedPending;
             miningData.usdtMinedPending = 0.0000;
             updateUI();
+            saveToBackend(); // Simpan perubahan klaim USDT ke MongoDB Render
             showModal(t('success'), "Berhasil mengklaim saldo USDT hasil mining!", "fa-circle-check");
         }
 
@@ -1414,11 +1456,13 @@
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
                 
+                saveToBackend(); // Simpan status waktu penambangan ke MongoDB Render
                 showModal(t('notification'), "Penambangan AFEX 12 jam dimulai manual!", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
                 miningData.isMining = false;
                 miningData.balance += 50.00;
                 
+                saveToBackend(); // Simpan hasil akhir penambangan AFEX ke MongoDB Render
                 showModal(t('success'), "Klaim penambangan AFEX (+50 AFEX) berhasil!", "fa-circle-check");
             } else {
                 showModal(t('notification'), "Penambangan AFEX sedang berlangsung.", "fa-bolt");
