@@ -6,10 +6,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Ambil URI dari Environment Variable Render (MONGODB_URI)
+// 1. Rute Sambutan Utama (Agar tidak muncul "Cannot GET /" di browser)
+app.get('/', (req, res) => {
+    res.send('AFEX Backend API is Running Successfully!');
+});
+
+// 2. Ambil URI dari Environment Variable Render (MONGODB_URI)
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// 2. Hubungkan ke MongoDB Atlas
+// 3. Hubungkan ke MongoDB Atlas
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -17,7 +22,7 @@ mongoose.connect(MONGODB_URI, {
 .then(() => console.log('Berhasil terhubung ke MongoDB Atlas!'))
 .catch(err => console.error('Koneksi MongoDB gagal:', err));
 
-// 3. Buat Skema Pengguna (Mongoose Schema)
+// 4. Buat Skema Pengguna (Mongoose Schema)
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     username: String,
@@ -35,7 +40,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// 4. Route untuk Sync / Ambil Data Pengguna saat Buka Mini App
+// 5. Route untuk Sync / Ambil Data Pengguna saat Buka Mini App
 app.post('/api/user/sync', async (req, res) => {
     try {
         const { userId, username } = req.body;
@@ -43,7 +48,6 @@ app.post('/api/user/sync', async (req, res) => {
 
         let user = await User.findOne({ userId });
         if (!user) {
-            // Jika user baru pertama kali buka, buatkan data dokumen baru di MongoDB
             user = new User({ userId, username });
             await user.save();
         }
@@ -53,7 +57,7 @@ app.post('/api/user/sync', async (req, res) => {
     }
 });
 
-// 5. Route untuk Update & Simpan Data Pengguna (Saat Absen, Mining, dll)
+// 6. Route untuk Update & Simpan Data Pengguna (Saat Absen, Mining, dll)
 app.post('/api/user/update', async (req, res) => {
     try {
         const { 
@@ -64,7 +68,6 @@ app.post('/api/user/update', async (req, res) => {
 
         if (!userId) return res.status(400).json({ error: 'userId diperlukan' });
 
-        // Update atau buat data user secara otomatis (Upsert)
         const updatedUser = await User.findOneAndUpdate(
             { userId },
             { 
@@ -81,7 +84,7 @@ app.post('/api/user/update', async (req, res) => {
     }
 });
 
-// 6. Jalankan Server di Port Render
+// 7. Jalankan Server di Port Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server berjalan di port ${PORT}`);
