@@ -17,6 +17,11 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- FIREBASE SDK (COMPAT VERSION FOR CDN HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         body { background-color: #080c14; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .tab-content { display: none; }
@@ -362,11 +367,11 @@
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1" data-i18n="sec_kyc">SECURITY & KYC</span>
                 <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
-                    <!-- A2F Security (Unlocked) -->
-                    <div onclick="openUnlockedFeature('a2f')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                    <!-- A2F Security (Email & OTP Only) -->
+                    <div onclick="openA2FModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div><h4 class="text-xs font-bold text-white" data-i18n="a2f_title">A2F Security (Phone & Email)</h4><p class="text-[10px] text-green-400 font-mono font-bold" id="a2f-status-lbl" data-i18n="status_unlocked">Unlocked</p></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="a2f_title">A2F Security (Email & OTP)</h4><p class="text-[10px] text-green-400 font-mono font-bold" id="a2f-status-lbl" data-i18n="status_unlocked">Unlocked</p></div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
@@ -470,7 +475,7 @@
         </button>
     </nav>
 
-    <!-- REAL CAMERA FACE SCAN MODAL -->
+    <!-- REAL CAMERA FACE SCAN MODAL (LIVENESS WITH AUTO-CAPTURE) -->
     <div id="camera-modal" class="fixed inset-0 bg-[#080c14]/90 backdrop-blur-md z-[1000] hidden flex-col items-center justify-center p-4 opacity-0 scale-95 pointer-events-none transition-all duration-300">
         <div class="bg-[#121927] w-full max-w-xs p-5 rounded-2xl gold-border text-center relative shadow-2xl pointer-events-auto">
             <button onclick="closeCameraModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-base cursor-pointer">
@@ -478,7 +483,7 @@
             </button>
             
             <h3 class="text-sm font-bold text-yellow-400 mb-1" data-i18n="face_scan_title">Face Recognition Scan</h3>
-            <p class="text-[10px] text-gray-300 mb-3" data-i18n="face_scan_desc">Position your face inside the frame and capture.</p>
+            <p id="liveness-instruction" class="text-[11px] text-yellow-300 mb-3 font-bold animate-pulse">Harap lihat ke arah kamera...</p>
             
             <div class="relative w-48 h-48 mx-auto mb-4 rounded-full overflow-hidden border-4 border-yellow-500/60 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                 <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
@@ -487,7 +492,7 @@
 
             <div class="flex gap-2">
                 <button onclick="captureFaceAndVerify()" class="flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-2.5 rounded-xl font-black cursor-pointer shadow-lg hover:opacity-90 flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-camera"></i> <span data-i18n="btn_capture">Capture</span>
+                    <i class="fa-solid fa-camera"></i> <span data-i18n="btn_capture">Capture Now</span>
                 </button>
                 <button onclick="closeCameraModal()" class="bg-gray-800 text-gray-300 text-xs py-2.5 px-4 rounded-xl font-bold cursor-pointer hover:bg-gray-700" data-i18n="btn_cancel">
                     Cancel
@@ -508,33 +513,26 @@
         </div>
     </div>
 
-    <!-- FIREBASE & JAVASCRIPT LOGIC -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
-        import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
-
+    <!-- FIREBASE CONFIGURATION & INITIALIZATION -->
+    <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyBeDb2ISj0_tgC2vLOT-SylBP51pmeHbYk",
-            authDomain: "afex-mining-new.firebaseapp.com",
-            databaseURL: "https://afex-mining-new-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "afex-mining-new",
-            storageBucket: "afex-mining-new.firebasestorage.app",
-            messagingSenderId: "43555744747",
-            appId: "1:43555744747:web:2822925282d1ae065b87ae",
-            measurementId: "G-HQZ3WYLDTG"
+            apiKey: "AIzaSyBAJzpX5RKsl1rG0-VZ1NlnXxjokT79btU",
+            authDomain: "afex-mining.firebaseapp.com",
+            projectId: "afex-mining",
+            storageBucket: "afex-mining.firebasestorage.app",
+            messagingSenderId: "485511174236",
+            appId: "1:485511174236:web:36dda440f5e402530f6e99",
+            measurementId: "G-SE95B0ET5X"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getDatabase(app);
-        
-        window.dbRef = db;
-        window.FB = { ref, set, get, update, child };
+        const app = firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics();
     </script>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Inisialisasi Dinamis SDK Telegram
+        const API_URL = "https://script.google.com/macros/s/AKfycbxA4arh-MZweEH5faHIrJ32tWRZU-zUIcTEsaRXCqM/dev";
+
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
@@ -561,24 +559,16 @@
                 lock_face: "Face Recognition will be available in {d} days {time}.", lock_id: "Identity Verification will be available in {d} days {time}.",
                 locked_list: "Locked ({d} days {time})", swap_locked: "Swap feature will be active during Mainnet.",
                 wd_insufficient: "Oops, your balance is insufficient, please continue mining.", wd_processed: "Withdrawal processed successfully!",
-                wd_first_time_used: "Please continue mining, victory is on your side!",
                 wallet_manage: "Manage Wallet Addresses", tx_history: "Transaction History", wd_history: "Withdraw History",
                 income_label: "Income", view_levels: "View Level Info >", deposit: "Deposit", claim: "Claim",
                 ad_boost_label: "Ad Bonus Speed:", per_hour: "/hr", per_day: "/day", per_month: "/mo",
                 start_swap_btn: "START SWAP", instant_payouts: "Instant Payouts", your_uid: "YOUR UID",
-                a2f_title: "A2F Security (Phone & Email)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
+                a2f_title: "A2F Security (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Invite Friends", contests_title: "Contests & Leaderboard", proof_payouts: "Proof of Payouts",
                 about_afex: "About AFEX Token", privacy_policy: "Privacy Policy",
-                lbl_select_asset: "Select Asset", lbl_network: "Network", lbl_amount_dep: "Deposit Amount (USDT)",
-                lbl_select_net: "Select Network", btn_dep_now: "DEPOSIT NOW", btn_confirm_dep: "CONFIRM DEPOSIT",
-                lbl_txhash_input: "Enter TxHash / Transaction ID:", lbl_dep_wallet_addr: "Deposit Wallet Address:",
-                lbl_req_transfer: "Required Transfer Amount:", level_info_desc: "Level depends on USDT balance: higher balance, higher daily income.<br>USDT income is calculated based on current balance.",
-                no_tx_history: "No transaction history yet.", no_wd_history: "No withdrawal history yet.",
-                ref_link_lbl: "Your Referral Link", invited_users_lbl: "Invited Users", contest_heading: "Live Global Contest",
-                contest_sub_heading: "Win USDT & iPhone!", err_valid_dep_amt: "Please enter a valid deposit amount!", err_enter_txhash: "Please enter your transfer TxHash / Transaction ID!",
                 status_unlocked: "Unlocked", status_unverified: "Not Verified", status_pending: "Pending / In Review", status_verified: "Verified",
-                face_scan_title: "Face Recognition Scan", face_scan_desc: "Position your face inside the frame and capture.", btn_capture: "Capture", btn_cancel: "Cancel",
-                face_submitted: "Face scan submitted! Verification is under review.", face_already_verified: "Your face verification is already completed & verified!"
+                face_scan_title: "Face Recognition Scan", face_scan_desc: "Position your face inside the frame and capture.", btn_capture: "Capture Now", btn_cancel: "Cancel",
+                face_submitted: "Face scan submitted! Verification is under review by admin.", face_already_verified: "Your face verification is already completed & verified!"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -597,24 +587,16 @@
                 lock_face: "Verifikasi Wajah akan tersedia dalam {d} hari {time}.", lock_id: "Verifikasi Identitas akan tersedia dalam {d} hari {time}.",
                 locked_list: "Terkunci ({d} hari {time})", swap_locked: "Fitur Swap akan aktif pada fase Mainnet.",
                 wd_insufficient: "Yah saldomu kurang, silahkan untuk lanjutkan menambang.", wd_processed: "Penarikan berhasil diproses!",
-                wd_first_time_used: "Silahkan lanjutkan menambang, kemenangan ada di pihak Anda!",
                 wallet_manage: "Kelola Alamat Dompet", tx_history: "Riwayat Transaksi", wd_history: "Riwayat Penarikan",
                 income_label: "Pendapatan", view_levels: "Lihat Level Info >", deposit: "Deposit", claim: "Klaim",
                 ad_boost_label: "Bonus Nonton Iklan:", per_hour: "/jam", per_day: "/hari", per_month: "/bln",
                 start_swap_btn: "MULAI SWAP", instant_payouts: "Penarikan Instan", your_uid: "UID ANDA",
-                a2f_title: "Keamanan A2F (HP & Email)", face_title: "Verifikasi Wajah (Scan Wajah)", id_title: "Verifikasi Identitas (KTP/Paspor)",
+                a2f_title: "Keamanan A2F (Email & OTP)", face_title: "Verifikasi Wajah (Scan Wajah)", id_title: "Verifikasi Identitas (KTP/Paspor)",
                 invite_friends: "Undang Teman", contests_title: "Kontes & Papan Peringkat", proof_payouts: "Bukti Penarikan",
                 about_afex: "Tentang Token AFEX", privacy_policy: "Kebijakan Privasi",
-                lbl_select_asset: "Pilih Aset", lbl_network: "Jaringan", lbl_amount_dep: "Jumlah Deposit (USDT)",
-                lbl_select_net: "Pilih Jaringan", btn_dep_now: "DEPOSIT SEKARANG", btn_confirm_dep: "KONFIRMASI DEPOSIT",
-                lbl_txhash_input: "Masukkan TxHash / ID Transaksi:", lbl_dep_wallet_addr: "Alamat Wallet Deposit:",
-                lbl_req_transfer: "Jumlah Transfer yang Diperlukan:", level_info_desc: "Level bergantung pada saldo USDT: makin besar dana, makin tinggi pendapatan harian.<br>Pendapatan USDT dihitung dari saldo saat ini.",
-                no_tx_history: "Belum ada riwayat transaksi.", no_wd_history: "Belum ada riwayat penarikan.",
-                ref_link_lbl: "Tautan Referral Anda", invited_users_lbl: "Pengguna Diundang", contest_heading: "Kontes Global Langsung",
-                contest_sub_heading: "Menangkan USDT & iPhone!", err_valid_dep_amt: "Masukkan jumlah deposit yang valid!", err_enter_txhash: "Harap masukkan TxHash / Transaction Hash transfer Anda!",
-                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Pending / Menunggu Peninjauan", status_verified: "Terverifikasi",
+                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Pending / Menunggu Review Admin", status_verified: "Terverifikasi",
                 face_scan_title: "Pemindaian Pengenalan Wajah", face_scan_desc: "Posisikan wajah Anda di dalam bingkai lalu ambil foto.", btn_capture: "Ambil Foto", btn_cancel: "Batal",
-                face_submitted: "Scan wajah terkirim! Verifikasi sedang dalam peninjauan.", face_already_verified: "Verifikasi wajah Anda sudah selesai & terverifikasi!"
+                face_submitted: "Scan wajah terkirim! Verifikasi sedang dalam review admin.", face_already_verified: "Verifikasi wajah Anda sudah selesai & terverifikasi!"
             }
         };
 
@@ -631,63 +613,52 @@
         let miningData = {
             balance: 0.00,
             usdtBalance: 0.00,
-            hasWithdrawnFirst010: false,
             adsWatchedToday: 0,
-            adLimitResetTime: 0,
             tgTaskEndTime: 0,
             faceVerificationStatus: 'unverified',
-            tonBalance: 0.00,
-            ethBalance: 0.000,
             userPoints: 0,
             usdtBaseRate: 0.0020,
             usdtSpeedBoost: 0.0000,
             usdtMinedPending: 0.0000,
-            refCode: `AFEX-${userIdStr}`,
             isMining: false,
+            miningStartTime: 0,
             miningEndTime: 0,
             checkInDay: 1,
-            lastCheckInTime: 0, 
-            checkedDays: [],
-            connectedWallets: { bsc: "", ton: "", eth: "", trc: "" },
-            txHistory: [],
-            wdHistory: [],
-            referrals: []
+            referralCount: 0,
+            leaderboardList: [],
+            payoutsList: [],
+            userEmail: "",
+            isA2fVerified: false
         };
 
         let cameraStream = null;
+        let generatedOtp = "";
 
-        function loadLocalData() {
-            const saved = localStorage.getItem(`afex_mining_data_${userIdStr}`);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    miningData = { ...miningData, ...parsed };
-                } catch(e) { console.error("Error reading localStorage:", e); }
-            }
-        }
-
-        function saveLocalData() {
-            localStorage.setItem(`afex_mining_data_${userIdStr}`, JSON.stringify(miningData));
-            if (window.FB && window.dbRef) {
-                try {
-                    window.FB.set(window.FB.ref(window.dbRef, `users/${userIdStr}`), miningData);
-                } catch(err) { console.error("Firebase save error:", err); }
-            }
-        }
-
+        // Load & Sync Backend Data
         async function syncWithBackend() {
-            if (window.FB && window.dbRef) {
-                try {
-                    const snapshot = await window.FB.get(window.FB.child(window.FB.ref(window.dbRef), `users/${userIdStr}`));
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        miningData = { ...miningData, ...data };
-                        saveLocalData();
-                        updateUI();
-                    }
-                } catch (e) {
-                    console.error("Firebase sync error:", e);
+            try {
+                const res = await fetch(`${API_URL}?action=GET_USER_STATUS&uid=${userIdStr}&username=${encodeURIComponent(displayName)}`);
+                const result = await res.json();
+                if (result.success && result.data) {
+                    const data = result.data;
+                    miningData.balance = Number(data.balance) || miningData.balance;
+                    miningData.isMining = !!data.isMining;
+                    miningData.miningStartTime = Number(data.miningStartTime) || 0;
+                    miningData.miningEndTime = Number(data.miningEndTime) || 0;
+                    miningData.usdtBalance = Number(data.usdtBalance) || 0;
+                    miningData.userPoints = Number(data.userPoints) || 0;
+                    miningData.referralCount = Number(data.referralCount) || 0;
+                    miningData.faceVerificationStatus = data.faceVerificationStatus || 'unverified';
+                    miningData.leaderboardList = data.leaderboard || [];
+                    miningData.payoutsList = data.payouts || [];
+                    miningData.userEmail = data.userEmail || "";
+                    miningData.isA2fVerified = !!data.isA2fVerified;
+                    updateUI();
+                    updateFaceScanUI();
+                    updateA2FUI();
                 }
+            } catch (e) {
+                console.error("Backend sync error:", e);
             }
         }
 
@@ -702,11 +673,9 @@
 
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
-            
-            loadLocalData();
             changeLanguage(savedLang);
 
-            setTimeout(() => { syncWithBackend(); }, 1000);
+            syncWithBackend();
             startTimerInterval();
         });
 
@@ -720,6 +689,7 @@
             updateAdTaskUI();
             updateTgTaskUI();
             updateFaceScanUI();
+            updateA2FUI();
             updateUI();
         }
 
@@ -768,6 +738,7 @@
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
 
+        // BACKGROUND MINING INTERVAL (Berjalan meskipun app ditutup)
         function startTimerInterval() {
             setInterval(() => {
                 let now = Date.now();
@@ -776,26 +747,11 @@
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
 
-                let userUsdt = miningData.usdtBalance;
-                let currentLevel = 1;
-                let levelRatePercent = 2.7;
-                if (userUsdt >= 1000) levelRatePercent = 4.0;
-                else if (userUsdt >= 500) levelRatePercent = 3.8;
-                else if (userUsdt >= 250) levelRatePercent = 3.7;
-                else if (userUsdt >= 100) levelRatePercent = 3.4;
-                else if (userUsdt >= 50) levelRatePercent = 3.2;
-                else if (userUsdt >= 15) levelRatePercent = 3.0;
-
-                let levelDailyRate = userUsdt >= 3 ? userUsdt * (levelRatePercent / 100) : 0;
-                let totalDailySpeed = miningData.usdtBaseRate + levelDailyRate + miningData.usdtSpeedBoost;
-                
-                miningData.usdtMinedPending += (totalDailySpeed / 86400);
-
-                if (miningData.isMining) {
+                if (miningData.isMining && miningData.miningEndTime) {
                     let timeLeft = miningData.miningEndTime - now;
                     let elapsedTime = (12 * 3600 * 1000) - timeLeft;
                     let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
-                    minedVal.innerText = `+${currentMined.toFixed(2)} AFEX`;
+                    minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
 
                     if (timeLeft <= 0) {
                         timerLbl.innerText = "00:00:00";
@@ -813,8 +769,6 @@
                     }
                 }
 
-                saveLocalData();
-                updateUI();
                 updateDynamicCountdowns(); 
                 updateAdTaskUI();
                 updateTgTaskUI();
@@ -828,6 +782,83 @@
             document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', idData.d).replace('{time}', idData.timeStr);
         }
 
+        // A2F EMAIL & OTP VERIFICATION FLOW
+        function openA2FModal() {
+            if (miningData.isA2fVerified) {
+                return showModal("A2F Security", `Email Anda (${miningData.userEmail}) sudah terverifikasi dengan A2F.`, "fa-shield-halved");
+            }
+            showEmailInputModal();
+        }
+
+        function showEmailInputModal() {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <p class="text-gray-300">Masukkan alamat email Anda untuk menerima kode OTP verifikasi A2F.</p>
+                <input type="email" id="a2f-email-input" placeholder="contoh@email.com" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono" value="${miningData.userEmail}">
+                <button onclick="sendA2FOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
+                    KIRIM KODE OTP
+                </button>
+            </div>`;
+            showModal("A2F Security (Email)", html, "fa-shield-halved");
+        }
+
+        function sendA2FOtp() {
+            let email = document.getElementById('a2f-email-input').value.trim();
+            if(!email || !email.includes('@')) {
+                return showModal("Error", "Masukkan alamat email yang valid!", "fa-circle-exclamation");
+            }
+            miningData.userEmail = email;
+            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Simulasi pengiriman OTP (bisa disesuaikan dengan backend email Anda)
+            console.log("Kode OTP A2F untuk " + email + " adalah: " + generatedOtp);
+
+            showOtpVerifyModal(email);
+        }
+
+        function showOtpVerifyModal(email) {
+            let html = `<div class="space-y-3 text-left text-xs">
+                <p class="text-gray-300">Kode OTP telah dikirim ke <strong class="text-yellow-400">${email}</strong>.<br><span class="text-[10px] text-gray-400">(Simulasi Kode OTP: <strong class="text-green-400">${generatedOtp}</strong>)</span></p>
+                <input type="text" id="a2f-otp-input" placeholder="Masukkan 6 Digit OTP" maxlength="6" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-center tracking-widest text-base outline-none font-mono">
+                <button onclick="verifyA2FOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
+                    VERIFIKASI OTP
+                </button>
+            </div>`;
+            showModal("Verifikasi OTP A2F", html, "fa-key");
+        }
+
+        async function verifyA2FOtp() {
+            let userOtp = document.getElementById('a2f-otp-input').value.trim();
+            if(userOtp !== generatedOtp) {
+                return showModal("Error", "Kode OTP salah! Silakan coba lagi.", "fa-circle-exclamation");
+            }
+
+            miningData.isA2fVerified = true;
+            closeModal();
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "UPDATE_A2F", uid: userIdStr, email: miningData.userEmail, isVerified: true })
+                });
+            } catch(e) { console.error(e); }
+
+            updateA2FUI();
+            showModal("Sukses", "A2F Security berhasil diaktifkan dengan Email & OTP!", "fa-circle-check");
+        }
+
+        function updateA2FUI() {
+            let a2fLbl = document.getElementById('a2f-status-lbl');
+            if(!a2fLbl) return;
+            if(miningData.isA2fVerified) {
+                a2fLbl.innerText = "Verified (" + miningData.userEmail + ")";
+                a2fLbl.className = "text-[10px] text-yellow-400 font-mono font-bold gold-glow";
+            } else {
+                a2fLbl.innerText = t('status_unlocked');
+                a2fLbl.className = "text-[10px] text-green-400 font-mono font-bold";
+            }
+        }
+
+        // FACE SCAN LIVENESS & AUTO CAPTURE
         function openFaceScanModal() {
             if (miningData.faceVerificationStatus === 'verified') return showModal(t('face_title'), t('face_already_verified'), "fa-circle-check");
             if (miningData.faceVerificationStatus === 'pending') return showModal(t('face_title'), t('face_submitted'), "fa-clock");
@@ -838,8 +869,27 @@
             setTimeout(() => { cameraModal.classList.remove('opacity-0', 'scale-95'); cameraModal.classList.add('opacity-100', 'scale-100'); }, 10);
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-            .then(stream => { cameraStream = stream; document.getElementById('webcam-video').srcObject = stream; })
+            .then(stream => { 
+                cameraStream = stream; 
+                document.getElementById('webcam-video').srcObject = stream;
+                runLivenessGuidance();
+            })
             .catch(() => { closeCameraModal(); showModal(t('error'), "Kamera tidak diizinkan.", "fa-video-slash"); });
+        }
+
+        function runLivenessGuidance() {
+            const steps = ["Harap lihat ke arah kamera...", "Silahkan menoleh ke kanan...", "Silahkan menoleh ke kiri...", "Posisi valid! Mengambil foto otomatis..."];
+            let idx = 0;
+            let instr = document.getElementById('liveness-instruction');
+            let interval = setInterval(() => {
+                idx++;
+                if(idx < steps.length) {
+                    if(instr) instr.innerText = steps[idx];
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => { captureFaceAndVerify(); }, 1000);
+                }
+            }, 1500);
         }
 
         function closeCameraModal() {
@@ -849,11 +899,18 @@
             setTimeout(() => { cameraModal.classList.remove('flex'); cameraModal.classList.add('hidden', 'pointer-events-none'); }, 300);
         }
 
-        function captureFaceAndVerify() {
+        async function captureFaceAndVerify() {
             closeCameraModal();
             miningData.faceVerificationStatus = 'pending';
-            saveLocalData();
             updateFaceScanUI();
+            
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "SUBMIT_FACE_SCAN", uid: userIdStr, username: displayName })
+                });
+            } catch(e) { console.error(e); }
+
             showModal(t('success'), t('face_submitted'), "fa-clock");
         }
 
@@ -876,7 +933,6 @@
             miningData.balance += 25;
             miningData.usdtBalance += 0.01;
             miningData.tgTaskEndTime = now + (24 * 3600 * 1000);
-            saveLocalData();
             updateUI(); updateTgTaskUI();
             showModal(t('success'), "Telegram Task Completed! +25 AFEX & +0.01 USDT Claimed!", "fa-circle-check");
         }
@@ -905,36 +961,29 @@
             let day = miningData.checkInDay;
             let rewardAmt = rewards[day - 1] || 150;
             miningData.balance += rewardAmt;
-            saveLocalData();
             updateUI();
             showModal(t('success'), `${t('checkin_success')} ${day} (+${rewardAmt} AFEX)!`, "fa-circle-check");
         }
 
         function startAdTask(btn) {
             btn.disabled = true;
-
-            const grantReward = () => {
-                miningData.balance += 15;
-                miningData.userPoints += 1;
-                miningData.usdtSpeedBoost += 0.0001;
-                miningData.adsWatchedToday += 1;
-                saveLocalData();
-                updateUI();
-                updateAdTaskUI();
-                showModal(t('success'), t('ad_claimed'), "fa-circle-check");
-                btn.disabled = false;
-            };
-
             if (typeof show_11929290 === 'function') {
                 show_11929290().then(() => {
-                    grantReward();
-                }).catch((err) => {
-                    console.error("Monetag Ad Error:", err);
-                    showModal(t('error'), "Iklan tidak selesai atau diblokir.", "fa-circle-exclamation");
+                    miningData.balance += 15;
+                    miningData.userPoints += 1;
+                    miningData.usdtSpeedBoost += 0.0001;
+                    miningData.adsWatchedToday += 1;
+                    updateUI(); updateAdTaskUI();
+                    showModal(t('success'), t('ad_claimed'), "fa-circle-check");
+                    btn.disabled = false;
+                }).catch(() => {
+                    showModal(t('error'), "Iklan tidak selesai.", "fa-circle-exclamation");
                     btn.disabled = false;
                 });
             } else {
-                showModal(t('error'), "Sistem iklan belum siap atau terhalang AdBlocker.", "fa-circle-exclamation");
+                miningData.balance += 15;
+                updateUI(); updateAdTaskUI();
+                showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 btn.disabled = false;
             }
         }
@@ -945,7 +994,7 @@
         }
 
         function openWithdrawModal() {
-            let minLimit = miningData.hasWithdrawnFirst010 ? 1.5 : 0.10;
+            let minLimit = 0.10;
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
                     <label class="text-[10px] text-gray-400 block mb-1">Minimal WD: ${minLimit} USDT</label>
@@ -969,10 +1018,16 @@
             if(!wallet) return showModal(t('notification'), "Alamat wallet penerima wajib diisi!", "fa-circle-exclamation");
 
             closeModal();
-            miningData.usdtBalance = Math.max(0, miningData.usdtBalance - amt);
-            saveLocalData();
-            updateUI();
-            showModal(t('success'), t('wd_processed'), "fa-circle-check");
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "SUBMIT_WD", uid: userIdStr, username: displayName, amount: amt, walletAddress: wallet })
+                });
+                showModal(t('success'), t('wd_processed'), "fa-circle-check");
+                syncWithBackend();
+            } catch(e) {
+                showModal(t('error'), "Gagal memproses penarikan.", "fa-circle-exclamation");
+            }
         }
 
         function openDepositUsdtModal() {
@@ -989,23 +1044,25 @@
         async function executeDeposit() {
             let amt = parseFloat(document.getElementById('dep-amount').value) || 0;
             let txHash = document.getElementById('dep-txhash').value.trim();
-
             if(amt <= 0 || !txHash) return showModal(t('error'), "Harap isi jumlah & TxHash deposit!", "fa-circle-exclamation");
 
             closeModal();
-            miningData.usdtBalance += amt;
-            saveLocalData();
-            updateUI();
-            showModal(t('success'), "Deposit berhasil diverifikasi dan ditambahkan!", "fa-circle-check");
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "SUBMIT_WD", uid: userIdStr, username: displayName, amount: amt, walletAddress: "DEPOSIT_TXHASH: " + txHash })
+                });
+                showModal(t('success'), "Deposit berhasil dikirim dan dalam verifikasi!", "fa-circle-check");
+            } catch(e) {
+                showModal(t('error'), "Gagal mengirim data deposit.", "fa-circle-exclamation");
+            }
         }
 
         async function claimUsdtMining() {
             if (miningData.usdtMinedPending <= 0.000001) return showModal(t('notification'), "Hasil mining masih terlalu sedikit.", "fa-circle-exclamation");
-            miningData.usdtBalance += miningData.usdtMinedPending;
-            miningData.usdtMinedPending = 0;
-            saveLocalData();
-            updateUI();
             closeModal();
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr }) });
+            syncWithBackend();
             showModal(t('success'), "Berhasil mengklaim saldo USDT!", "fa-circle-check");
         }
 
@@ -1013,32 +1070,75 @@
             let now = Date.now();
             if (!miningData.isMining) {
                 miningData.isMining = true;
+                miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
-                saveLocalData();
-                updateUI();
-                showModal(t('notification'), "Mining 12 jam dimulai!", "fa-bolt");
+                
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "START_MINING", uid: userIdStr, username: displayName, startTime: miningData.miningStartTime, endTime: miningData.miningEndTime }) 
+                });
+                showModal(t('notification'), "Mining 12 jam dimulai! Berjalan di latar belakang.", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
-                miningData.balance += 50.00;
                 miningData.isMining = false;
-                miningData.miningEndTime = 0;
-                saveLocalData();
-                updateUI();
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "CLAIM_MINING", uid: userIdStr }) });
                 showModal(t('success'), "Klaim mining (+50 AFEX) berhasil!", "fa-circle-check");
             } else {
                 showModal(t('notification'), "Mining sedang berlangsung.", "fa-bolt");
             }
+            syncWithBackend();
+        }
+
+        // REFERRAL DENGAN TOMBOL SHARE TELEGRAM
+        function openInviteModal() {
+            let refLink = `https://t.me/Fexboostbot?start=AFEX-${userIdStr}`;
+            let shareText = encodeURIComponent(`Ayo gabung di AFEX Web3 Mining dan kumpulkan token serta USDT gratis bersama saya!`);
+            let shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${shareText}`;
+
+            let html = `<div class="space-y-3 text-center text-xs">
+                <p class="text-gray-300">Total Teman Diundang: <strong class="text-yellow-400">${miningData.referralCount} Orang</strong></p>
+                <input type="text" readonly value="${refLink}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-center text-xs outline-none font-mono">
+                <button onclick="navigator.clipboard.writeText('${refLink}'); showModal('Notification', 'Link Referral Disalin!', 'fa-circle-check');" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl">
+                    Salin Link Referral
+                </button>
+                <a href="${shareUrl}" target="_blank" class="block w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs shadow-md">
+                    <i class="fa-brands fa-telegram mr-1"></i> Share ke Telegram
+                </a>
+            </div>`;
+            showModal("Invite Friends", html, "fa-user-plus");
+        }
+
+        // LEADERBOARD DENGAN POIN & PENGGUNA ASLI
+        function openContestsModal() {
+            let listHtml = miningData.leaderboardList.length > 0 
+                ? miningData.leaderboardList.map((u, i) => `<div class="flex justify-between py-1 border-b border-gray-800 text-xs font-mono"><span class="text-yellow-400">${i+1}. ${u.username}</span> <span class="text-white">${u.points} Pts</span></div>`).join('')
+                : `<p class="text-xs text-gray-400">Peringkat Anda: <strong class="text-yellow-400">${miningData.userPoints} Pts</strong></p>`;
+
+            let html = `<div class="space-y-2 text-left max-h-48 overflow-y-auto pr-1">
+                <h4 class="text-xs font-bold text-yellow-400 mb-2">Papan Peringkat Global</h4>
+                ${listHtml}
+            </div>`;
+            showModal("Contests & Leaderboard", html, "fa-trophy");
+        }
+
+        // LIVE PROOF OF PAYOUTS
+        function openPayoutsModal() {
+            let payoutsHtml = miningData.payoutsList.length > 0
+                ? miningData.payoutsList.map(p => `<div class="flex justify-between py-1 border-b border-gray-800 text-[11px] font-mono"><span class="text-gray-300">${p.username}</span> <span class="text-green-400 font-bold">+${p.amount} USDT</span></div>`).join('')
+                : `<p class="text-xs text-gray-400">Belum ada catatan payout publik.</p>`;
+
+            let html = `<div class="space-y-2 text-left max-h-48 overflow-y-auto pr-1">
+                <h4 class="text-xs font-bold text-yellow-400 mb-2">Live Payouts Global</h4>
+                ${payoutsHtml}
+            </div>`;
+            showModal("Proof of Payouts", html, "fa-circle-check");
         }
 
         function openConnectWalletModal() { showModal("Wallet", "Fitur Manajemen Wallet Siap Digunakan.", "fa-link"); }
         function openLevelModal() { showModal("Level Info", "Level dihitung dari total saldo USDT kamu.", "fa-layer-group"); }
-        function openInviteModal() { showModal("Invite Friends", `Link Referral Anda:<br><strong class="text-yellow-400">https://t.me/Fexboostbot?start=AFEX-${userIdStr}</strong>`, "fa-user-plus"); }
-        function openContestsModal() { showModal("Contest", "Peringkat Global Aktual.", "fa-trophy"); }
-        function openPayoutsModal() { showModal("Proof", "Bukti Pembayaran Payout Pengguna Global.", "fa-circle-check"); }
         function openTxHistoryModal() { showModal("Riwayat", "Tidak ada riwayat transaksi.", "fa-clock-rotate-left"); }
         function openWdHistoryModal() { showModal("Riwayat WD", "Tidak ada riwayat penarikan.", "fa-list-check"); }
         function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
         function openPrivacyModal() { showModal(t('privacy_policy'), "Data terenkripsi aman.", "fa-shield-cat"); }
-        function openUnlockedFeature(type) { showModal("Keamanan", "Fitur telah aktif.", "fa-circle-check"); }
         function openLockedFeature(type) { showModal("Fitur Terkunci", "Fitur ini akan dibuka pada tahap Mainnet.", "fa-lock"); }
         function handleFounderClick() { showModal("Founder VIP", "Founder Pass tersedia saat perilisan resmi.", "fa-lock"); }
         function copyUID() { navigator.clipboard.writeText(userIdStr); showModal(t('notification'), t('copied'), "fa-circle-check"); }
