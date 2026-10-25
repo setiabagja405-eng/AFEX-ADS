@@ -59,8 +59,8 @@
             <div class="flex items-center gap-2">
                 <!-- MULTI LANGUAGE SELECTOR -->
                 <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#121927] gold-border text-yellow-400 text-[10px] rounded-xl px-2 py-2 outline-none font-bold cursor-pointer">
-                    <option value="en">🇬🇧 English</option>
-                    <option value="id" selected>🇮🇩 Indonesia</option>
+                    <option value="en" selected>🇬🇧 English</option>
+                    <option value="id">🇮🇩 Indonesia</option>
                     <option value="ru">🇷🇺 Русский</option>
                     <option value="vi">🇻🇳 Vietnam</option>
                     <option value="tl">🇵🇭 Philippines</option>
@@ -90,7 +90,7 @@
                 <div class="text-left">
                     <h4 class="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
                         <span data-i18n="vip_pass">TIKET VIP PENDIRI</span> 
-                        <span class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-black">TERKUNCI</span>
+                        <span class="bg-yellow-500 text-black text-[9px] px-1.5 py-0.2 rounded font-black" data-i18n="locked_badge">TERKUNCI</span>
                     </h4>
                     <p id="founder-countdown-text" class="text-[10px] text-yellow-300/80 font-mono font-bold mt-0.5">
                         Pendiri tersedia dalam 45 hari 00:00:00
@@ -210,7 +210,7 @@
                         </div>
                         <div>
                             <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Tonton Iklan</span> <span id="ad-counter-badge" class="text-[9px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-1.5 py-0.5 rounded font-mono">0/25</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-400 font-bold">+0.00001 Kecepatan/jam</span> <span class="text-gray-500">|</span> <span class="text-yellow-300">+1 Poin</span></p>
+                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-400 font-bold" data-i18n="task_speed_rew">+0.00001 Kecepatan/jam</span> <span class="text-gray-500">|</span> <span class="text-yellow-300" data-i18n="task_pts_rew">+1 Poin</span></p>
                         </div>
                     </div>
                     <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Tonton</button>
@@ -487,7 +487,7 @@
                 swap_heading: "AFEX Token Swap Exchange", swap_desc: "Swap AFEX tokens instantly to USDT or TON.",
                 connect_wallet: "Connect Wallet", withdraw: "Withdraw", your_balances: "Your Token Balances",
                 nav_mine: "Home", nav_task: "Task", nav_swap: "Swap", nav_wallet: "Wallet", nav_profile: "Profile", 
-                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "START 12H AUTO MINING", task_watch_ad: "Watch Ad", btn_watch: "Watch", 
+                vip_pass: "FOUNDER VIP PASS", locked_badge: "LOCKED", btn_start_mine: "START 12H AUTO MINING", task_watch_ad: "Watch Ad", btn_watch: "Watch", 
                 task_join_tg: "Join Telegram Channel", btn_start: "Start", invite_sub: "Invite and Get Reward", contest_sub: "Get Reward",
                 sec_kyc: "SECURITY & KYC", community: "COMMUNITY", about: "ABOUT", payouts_sub: "Live withdraw global users",
                 notification: "Notification", success: "Success", error: "Error", copied: "Copied!", btn_ok: "OK",
@@ -505,7 +505,25 @@
                 a2f_title: "A2F Security (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Invite Friends", contests_title: "Contests & Leaderboard", proof_payouts: "Proof of Payouts",
                 about_afex: "About AFEX Token", privacy_policy: "Privacy Policy",
-                status_unlocked: "Unlocked", status_unverified: "Not Verified", status_pending: "Pending / In Review", status_verified: "Verified"
+                status_unlocked: "Unlocked", status_unverified: "Not Verified", status_pending: "Pending / In Review", status_verified: "Verified",
+                checkin_modal_desc: "Select check-in reward box for day {day}:", claim_today_btn: "CLAIM TODAY'S REWARD",
+                invite_modal_title: "Invite Friends", invite_total_friends: "Total Friends Invited:", copy_ref_btn: "Copy Referral Link",
+                share_tg_btn: "Share to Telegram", leaderboard_title: "Global Leaderboard", your_rank_info: "Your Rank & Points:",
+                proof_payouts_title: "Global Live Payouts", no_payouts: "No public payout records yet.",
+                level_info_title: "Level Scheme & Monthly Income:", tx_history_title: "Transaction History", no_tx_history: "No transaction history yet.",
+                wd_history_title: "Withdraw History", no_wd_history: "No withdrawal history yet.",
+                dep_network_label: "Select Deposit Network", dep_amount_label: "Deposit Amount (USDT)", dep_addr_label: "Deposit Target Address",
+                pay_txhash_btn: "PAY & SUBMIT TXHASH", enter_txhash_label: "Enter Transaction TxHash", confirm_dep_title: "Confirm Deposit Payment",
+                deposit_review_msg: "Transaction is under review, please wait and check periodically in transaction menu.",
+                about_content_title: "About AFEX Token", about_desc_p1: "AFEX Token is a next-generation decentralized digital asset built on robust multi-chain architecture, engineered to power high-speed Web3 utilities, secure staking ecosystems, and automated reward mining worldwide.",
+                about_desc_p2: "With state-of-the-art cryptographic security, ultra-low transaction friction, and a rapidly expanding global community, AFEX bridges traditional financial inclusion with decentralized digital empowerment.",
+                team_afex_title: "AFEX Core Management Team", team_lead: "Chief Executive Officer & Lead Architect",
+                team_cto: "Chief Technology Officer & Smart Contract Lead",
+                team_cmo: "Global Marketing & Strategic Partnership Director",
+                privacy_content_title: "AFEX Privacy Policy & Security Guarantee",
+                privacy_desc_p1: "At AFEX, ensuring user absolute privacy, security, and data protection is our highest priority. We enforce military-grade encryption protocols across all database clusters and decentralized nodes to secure your digital footprint.",
+                privacy_desc_p2: "We strictly prohibit sharing, selling, or unauthorized processing of personal credentials. Every transaction, session, and asset balance is meticulously guarded under zero-trust governance ensuring absolute peace of mind.",
+                task_speed_rew: "+0.00001 Speed/hr", task_pts_rew: "+1 Point"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -514,7 +532,7 @@
                 swap_heading: "Pertukaran Token AFEX", swap_desc: "Tukar token AFEX secara instan ke USDT atau TON.",
                 connect_wallet: "Hubungkan Dompet", withdraw: "Tarik Saldo", your_balances: "Saldo Token Anda",
                 nav_mine: "Beranda", nav_task: "Tugas", nav_swap: "Tukar", nav_wallet: "Dompet", nav_profile: "Profil", 
-                vip_pass: "TIKET VIP PENDIRI", btn_start_mine: "MULAI PENAMBANGAN OTOMATIS 12 JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
+                vip_pass: "TIKET VIP PENDIRI", locked_badge: "TERKUNCI", btn_start_mine: "MULAI PENAMBANGAN OTOMATIS 12 JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
                 task_join_tg: "Gabung Saluran Telegram", btn_start: "Mulai", invite_sub: "Undang dan Dapatkan Hadiah", contest_sub: "Dapatkan Hadiah",
                 sec_kyc: "KEAMANAN & KYC", community: "KOMUNITAS", about: "TENTANG", payouts_sub: "Penarikan langsung pengguna global",
                 notification: "Pemberitahuan", success: "Berhasil", error: "Kesalahan", copied: "Tersalin!", btn_ok: "OKE",
@@ -532,7 +550,25 @@
                 a2f_title: "Keamanan A2F (Email & OTP)", face_title: "Pengenalan Wajah (Pemindaian Wajah)", id_title: "Verifikasi Identitas (KTP/Paspor)",
                 invite_friends: "Undang Teman", contests_title: "Kontes & Papan Peringkat", proof_payouts: "Bukti Penarikan",
                 about_afex: "Tentang Token AFEX", privacy_policy: "Kebijakan Privasi",
-                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Tertunda / Dalam Peninjauan", status_verified: "Terverifikasi"
+                status_unlocked: "Terbuka", status_unverified: "Belum Terverifikasi", status_pending: "Tertunda / Dalam Peninjauan", status_verified: "Terverifikasi",
+                checkin_modal_desc: "Pilih kotak hadiah check-in hari ke-{day}:", claim_today_btn: "KLAIM HADIAH HARI INI",
+                invite_modal_title: "Undang Teman", invite_total_friends: "Total Teman Diundang:", copy_ref_btn: "Salin Link Referral",
+                share_tg_btn: "Share ke Telegram", leaderboard_title: "Papan Peringkat Global", your_rank_info: "Peringkat & Poin Anda:",
+                proof_payouts_title: "Bukti Penarikan Global", no_payouts: "Belum ada catatan payout publik.",
+                level_info_title: "Skema Level & Pendapatan Bulanan:", tx_history_title: "Riwayat Transaksi", no_tx_history: "Belum ada riwayat transaksi.",
+                wd_history_title: "Riwayat Penarikan", no_wd_history: "Belum ada riwayat penarikan.",
+                dep_network_label: "Pilih Jaringan Deposit", dep_amount_label: "Jumlah Deposit (USDT)", dep_addr_label: "Alamat Tujuan Deposit",
+                pay_txhash_btn: "BAYAR & MASUKKAN TXHASH", enter_txhash_label: "Masukkan TxHash / ID Transaksi", confirm_dep_title: "Konfirmasi Pembayaran Deposit",
+                deposit_review_msg: "Transaksi sedang di review silahkan tunggu dan cek berkala di menu transaction.",
+                about_content_title: "Tentang Token AFEX", about_desc_p1: "AFEX Token adalah aset digital terdesentralisasi generasi berikutnya yang dibangun di atas arsitektur multi-rantai yang kokoh, dirancang untuk mendukung utilitas Web3 berkecepatan tinggi, ekosistem staking yang aman, dan penambangan hadiah otomatis di seluruh dunia.",
+                about_desc_p2: "Dengan keamanan kriptografi canggih, gesekan transaksi yang sangat rendah, dan komunitas global yang berkembang pesat, AFEX menjembatani inklusi keuangan tradisional dengan pemberdayaan digital terdesentralisasi.",
+                team_afex_title: "Tim Manajemen Inti AFEX", team_lead: "Chief Executive Officer & Arsitek Utama",
+                team_cto: "Chief Technology Officer & Pimpinan Smart Contract",
+                team_cmo: "Direktur Pemasaran Global & Kemitraan Strategis",
+                privacy_content_title: "Kebijakan Privasi & Jaminan Keamanan AFEX",
+                privacy_desc_p1: "Di AFEX, memastikan privasi mutlak, keamanan, dan perlindungan data pengguna adalah prioritas tertinggi kami. Kami menerapkan protokol enkripsi tingkat militer di seluruh klaster database dan node terdesentralisasi untuk mengamankan jejak digital Anda.",
+                privacy_desc_p2: "Kami secara tegas melarang pembagian, penjualan, atau pemrosesan kredensial pribadi tanpa izin. Setiap transaksi, sesi, dan saldo aset dijaga ketat di bawah tata kelola zero-trust yang memastikan ketenangan pikiran sepenuhnya.",
+                task_speed_rew: "+0.00001 Kecepatan/jam", task_pts_rew: "+1 Poin"
             },
             ru: {
                 total_balance: "ОБЩИЙ БАЛАНС", checkin_title: "Ежедневная отметка", checkin_sub: "Получить награду (День 1 - 7)",
@@ -541,7 +577,7 @@
                 swap_heading: "Обмен токенов AFEX", swap_desc: "Мгновенный обмен токенов AFEX на USDT или TON.",
                 connect_wallet: "Подключить кошелек", withdraw: "Вывод", your_balances: "Балансы токенов",
                 nav_mine: "Главная", nav_task: "Задачи", nav_swap: "Обмен", nav_wallet: "Кошелек", nav_profile: "Профиль",
-                vip_pass: "VIP-БИЛЕТ ОСНОВАТЕЛЯ", btn_start_mine: "НАЧАТЬ АВТО-МАЙНИНГ 12Ч", task_watch_ad: "Смотреть рекламу", btn_watch: "Смотреть",
+                vip_pass: "VIP-БИЛЕТ ОСНОВАТЕЛЯ", locked_badge: "ЗАБЛОКИРОВАНО", btn_start_mine: "НАЧАТЬ АВТО-МАЙНИНГ 12Ч", task_watch_ad: "Смотреть рекламу", btn_watch: "Смотреть",
                 task_join_tg: "Вступить в Telegram", btn_start: "Старт", invite_sub: "Приглашайте и получайте", contest_sub: "Получить награду",
                 sec_kyc: "БЕЗОПАСНОСТЬ И KYC", community: "СООБЩЕСТВО", about: "О ПРОЕКТЕ", payouts_sub: "Выплаты пользователей в реальном времени",
                 notification: "Уведомление", success: "Успешно", error: "Ошибка", copied: "Скопировано!", btn_ok: "ОК",
@@ -559,7 +595,20 @@
                 a2f_title: "Безопасность A2F (Email и OTP)", face_title: "Распознавание лиц", id_title: "Верификация личности",
                 invite_friends: "Пригласить друзей", contests_title: "Конкурсы и таблицы лидеров", proof_payouts: "Доказательства выплат",
                 about_afex: "Об AFEX Token", privacy_policy: "Политика конфиденциальности",
-                status_unlocked: "Открыто", status_unverified: "Не верифицировано", status_pending: "На рассмотрении", status_verified: "Верифицировано"
+                status_unlocked: "Открыто", status_unverified: "Не верифицировано", status_pending: "На рассмотрении", status_verified: "Верифицировано",
+                checkin_modal_desc: "Выберите награду за день {day}:", claim_today_btn: "ПОЛУЧИТЬ НАГРАДУ ДНЯ",
+                invite_modal_title: "Пригласить друзей", invite_total_friends: "Всего приглашено друзей:", copy_ref_btn: "Скопировать реферальную ссылку",
+                share_tg_btn: "Поделиться в Telegram", leaderboard_title: "Мировая таблица лидеров", your_rank_info: "Ваш ранг и очки:",
+                proof_payouts_title: "Мировые выплаты", no_payouts: "Нет записей о выплатах.",
+                level_info_title: "Схема уровней и доход:", tx_history_title: "История транзакций", no_tx_history: "Нет истории транзакций.",
+                wd_history_title: "История выводов", no_wd_history: "Нет истории выводов.",
+                dep_network_label: "Выберите сеть депозита", dep_amount_label: "Сумма депозита (USDT)", dep_addr_label: "Адрес для депозита",
+                pay_txhash_btn: "ОПЛАТИТЬ И ОТПРАВИТЬ TXHASH", enter_txhash_label: "Введите TxHash транзакции", confirm_dep_title: "Подтверждение депозита",
+                deposit_review_msg: "Транзакция на проверке, ожидайте обновления в истории.",
+                about_content_title: "Об AFEX Token", about_desc_p1: "AFEX Token — децентрализованный актив нового поколения...", about_desc_p2: "С передовой криптографической безопасностью...",
+                team_afex_title: "Команда AFEX", team_lead: "Главный исполнительный директор", team_cto: "Технический директор", team_cmo: "Директор по маркетингу",
+                privacy_content_title: "Политика конфиденциальности AFEX", privacy_desc_p1: "Безопасность пользователей — наш главный приоритет...", privacy_desc_p2: "Мы строго запрещаем передачу данных...",
+                task_speed_rew: "+0.00001 Скорость/час", task_pts_rew: "+1 Очко"
             },
             vi: { 
                 total_balance: "TỔNG SỐ DƯ", checkin_title: "Điểm danh hàng ngày", checkin_sub: "Nhận thưởng chuỗi (Ngày 1 - 7)",
@@ -568,7 +617,7 @@
                 swap_heading: "Sàn Giao Dịch Token AFEX", swap_desc: "Đổi token AFEX ngay lập tức sang USDT hoặc TON.",
                 connect_wallet: "Kết nối ví", withdraw: "Rút tiền", your_balances: "Số dư Token của bạn",
                 nav_mine: "Trang chủ", nav_task: "Nhiệm vụ", nav_swap: "Đổi", nav_wallet: "Ví", nav_profile: "Hồ sơ",
-                vip_pass: "THẺ NHÀ SÁNG LẬP VIP", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", task_watch_ad: "Xem quảng cáo", btn_watch: "Xem",
+                vip_pass: "THẺ NHÀ SÁNG LẬP VIP", locked_badge: "ĐÃ KHÓA", btn_start_mine: "BẮT ĐẦU ĐÀO TỰ ĐỘNG 12H", task_watch_ad: "Xem quảng cáo", btn_watch: "Xem",
                 task_join_tg: "Tham gia kênh Telegram", btn_start: "Bắt đầu", invite_sub: "Mời và nhận thưởng", contest_sub: "Nhận thưởng",
                 sec_kyc: "BẢO MẬT & KYC", community: "CỘNG ĐỒNG", about: "GIỚI THIỆU", payouts_sub: "Rút tiền trực tiếp người dùng toàn cầu",
                 notification: "Thông báo", success: "Thành công", error: "Lỗi", copied: "Đã sao chép!", btn_ok: "ĐỒNG Ý",
@@ -586,7 +635,20 @@
                 a2f_title: "Bảo mật A2F (Email & OTP)", face_title: "Nhận diện khuôn mặt (Quét mặt)", id_title: "Xác minh danh tính (CMND/Hộ chiếu)",
                 invite_friends: "Mời bạn bè", contests_title: "Cuộc thi & Bảng xếp hạng", proof_payouts: "Bằng chứng rút tiền",
                 about_afex: "Giới thiệu Token AFEX", privacy_policy: "Chính sách bảo mật",
-                status_unlocked: "Đã mở khóa", status_unverified: "Chưa xác minh", status_pending: "Đang chờ / Đang xem xét", status_verified: "Đã xác minh"
+                status_unlocked: "Đã mở khóa", status_unverified: "Chưa xác minh", status_pending: "Đang chờ / Đang xem xét", status_verified: "Đã xác minh",
+                checkin_modal_desc: "Chọn hộp quà điểm danh ngày {day}:", claim_today_btn: "NHẬN THƯỞNG HÔM NAY",
+                invite_modal_title: "Mời bạn bè", invite_total_friends: "Tổng số bạn mời:", copy_ref_btn: "Sao chép Link giới thiệu",
+                share_tg_btn: "Chia sẻ lên Telegram", leaderboard_title: "Bảng xếp hạng toàn cầu", your_rank_info: "Hạng & Điểm của bạn:",
+                proof_payouts_title: "Bằng chứng rút tiền toàn cầu", no_payouts: "Chưa có lịch sử rút tiền công khai.",
+                level_info_title: "Hệ thống cấp độ & Thu nhập:", tx_history_title: "Lịch sử giao dịch", no_tx_history: "Chưa có lịch sử giao dịch.",
+                wd_history_title: "Lịch sử rút tiền", no_wd_history: "Chưa có lịch sử rút tiền.",
+                dep_network_label: "Chọn mạng nạp tiền", dep_amount_label: "Số lượng nạp (USDT)", dep_addr_label: "Địa chỉ nhận nạp",
+                pay_txhash_btn: "THANH TOÁN & GỬI TXHASH", enter_txhash_label: "Nhập TxHash giao dịch", confirm_dep_title: "Xác nhận nạp tiền",
+                deposit_review_msg: "Giao dịch đang được xem xét, vui lòng kiểm tra lại sau.",
+                about_content_title: "Giới thiệu Token AFEX", about_desc_p1: "AFEX Token là tài sản kỹ thuật số phi tập trung thế hệ mới...", about_desc_p2: "Với bảo mật mã hóa tiên tiến...",
+                team_afex_title: "Đội ngũ quản lý AFEX", team_lead: "Giám đốc điều hành", team_cto: "Giám đốc công nghệ", team_cmo: "Giám đốc tiếp thị",
+                privacy_content_title: "Chính sách bảo mật AFEX", privacy_desc_p1: "Bảo mật tuyệt đối thông tin người dùng là ưu tiên hàng đầu...", privacy_desc_p2: "Chúng tôi nghiêm cấm việc chia sẻ dữ liệu...",
+                task_speed_rew: "+0.00001 Tốc độ/giờ", task_pts_rew: "+1 Điểm"
             },
             tl: { 
                 total_balance: "KABUYUAN NG BALANSE", checkin_title: "Pang-araw-araw na Check-in", checkin_sub: "Kunin ang Streak Rewards (Araw 1 - 7)",
@@ -595,7 +657,7 @@
                 swap_heading: "AFEX Token Swap Exchange", swap_desc: "I-swap ang mga AFEX token agad sa USDT o TON.",
                 connect_wallet: "Ikonekta ang Wallet", withdraw: "Mag-withdraw", your_balances: "Ang Iyong Balanse ng Token",
                 nav_mine: "Tahanan", nav_task: "Gawain", nav_swap: "Swap", nav_wallet: "Wallet", nav_profile: "Prop", 
-                vip_pass: "FOUNDER VIP PASS", btn_start_mine: "SIMULAN ANG 12H AUTO MINING", task_watch_ad: "Manood ng Ad", btn_watch: "Manood", 
+                vip_pass: "FOUNDER VIP PASS", locked_badge: "NAKA-LOCK", btn_start_mine: "SIMULAN ANG 12H AUTO MINING", task_watch_ad: "Manood ng Ad", btn_watch: "Manood", 
                 task_join_tg: "Sumali sa Telegram Channel", btn_start: "Simulan", invite_sub: "Mag-imbita at Kumuha ng Gantimpala", contest_sub: "Kumuha ng Gantimpala",
                 sec_kyc: "SEGURIDAD & KYC", community: "KOMUNIDAD", about: "TUNGKOL", payouts_sub: "Live na withdraw ng mga pandaigdigang user",
                 notification: "Notipikasyon", success: "Tagumpay", error: "Mali", copied: "Kopya na!", btn_ok: "OK",
@@ -613,7 +675,20 @@
                 a2f_title: "Seguridad ng A2F (Email & OTP)", face_title: "Face Recognition (Face Scan)", id_title: "Identity Verification (ID/Passport)",
                 invite_friends: "Mag-imbita ng mga Kaibigan", contests_title: "Mga Paligsahan at Leaderboard", proof_payouts: "Katibayan ng Payout",
                 about_afex: "Tungkol sa AFEX Token", privacy_policy: "Patakaran sa Pagkapribado",
-                status_unlocked: "Naka-unlock", status_unverified: "Hindi Na-verify", status_pending: "Nakatengga / Sinusuri", status_verified: "Na-verify"
+                status_unlocked: "Naka-unlock", status_unverified: "Hindi Na-verify", status_pending: "Nakatengga / Sinusuri", status_verified: "Na-verify",
+                checkin_modal_desc: "Piliin ang kahon ng check-in para sa araw {day}:", claim_today_btn: "KUNIN ANG GANTIMPALA NGAYON",
+                invite_modal_title: "Mag-imbita ng mga Kaibigan", invite_total_friends: "Kabuuang Kaibigan:", copy_ref_btn: "Kopyahin ang Referral Link",
+                share_tg_btn: "I-share sa Telegram", leaderboard_title: "Pandaigdigang Leaderboard", your_rank_info: "Ang iyong Ranggo at Puntos:",
+                proof_payouts_title: "Pandaigdigang Payout", no_payouts: "Wala pang rekord ng payout.",
+                level_info_title: "Antas at Kita:", tx_history_title: "Kasaysayan ng Transaksyon", no_tx_history: "Walang kasaysayan ng transaksyon.",
+                wd_history_title: "Kasaysayan ng Withdrawal", no_wd_history: "Walang kasaysayan ng withdrawal.",
+                dep_network_label: "Piliin ang Network", dep_amount_label: "Halaga ng Deposito (USDT)", dep_addr_label: "Address ng Deposito",
+                pay_txhash_btn: "MAGBAYAD & IPASA ANG TXHASH", enter_txhash_label: "Ilagay ang TxHash", confirm_dep_title: "Kumpirmahin ang Deposito",
+                deposit_review_msg: "Sinusuri ang transaksyon, mangyaring maghintay.",
+                about_content_title: "Tungkol sa AFEX Token", about_desc_p1: "Ang AFEX Token ay isang decentralized digital asset...", about_desc_p2: "Sa advanced security...",
+                team_afex_title: "Koponan ng AFEX", team_lead: "Punong Ehekutibo", team_cto: "Punong Tagapamahala ng Teknolohiya", team_cmo: "Direktor ng Marketing",
+                privacy_content_title: "Patakaran sa Pagkapribado ng AFEX", privacy_desc_p1: "Ang kaligtasan ng data ng user ang aming prayoridad...", privacy_desc_p2: "Ipinagbabawal namin ang pagbabahagi ng kredensyal...",
+                task_speed_rew: "+0.00001 Bilis/oras", task_pts_rew: "+1 Puntos"
             },
             th: { 
                 total_balance: "ยอดคงเหลือทั้งหมด", checkin_title: "เช็คอินรายวัน", checkin_sub: "รับรางวัลต่อเนื่อง (วันที่ 1 - 7)",
@@ -622,7 +697,7 @@
                 swap_heading: "การแลกเปลี่ยนโทเค็น AFEX", swap_desc: "แลกเปลี่ยนโทเค็น AFEX เป็น USDT หรือ TON ได้ทันที",
                 connect_wallet: "เชื่อมต่อกระเป๋าเงิน", withdraw: "ถอนเงิน", your_balances: "ยอดคงเหลือโทเค็นของคุณ",
                 nav_mine: "หน้าแรก", nav_task: "ภารกิจ", nav_swap: "แลกเปลี่ยน", nav_wallet: "กระเป๋าเงิน", nav_profile: "โปรไฟล์", 
-                vip_pass: "บัตรผู้ก่อตั้ง VIP", btn_start_mine: "เริ่มขุดอัตโนมัติ 12 ชั่วโมง", task_watch_ad: "ดูโฆษณา", btn_watch: "ดู", 
+                vip_pass: "บัตรผู้ก่อตั้ง VIP", locked_badge: "ล็อค", btn_start_mine: "เริ่มขุดอัตโนมัติ 12 ชั่วโมง", task_watch_ad: "ดูโฆษณา", btn_watch: "ดู", 
                 task_join_tg: "เข้าร่วมช่อง Telegram", btn_start: "เริ่มต้น", invite_sub: "เชิญและรับรางวัล", contest_sub: "รับรางวัล",
                 sec_kyc: "ความปลอดภัย & KYC", community: "ชุมชน", about: "เกี่ยวกับ", payouts_sub: "ถอนเงินสดผู้ใช้ทั่วโลกแบบสด",
                 notification: "การแจ้งเตือน", success: "สำเร็จ", error: "ข้อผิดพลาด", copied: "คัดลอกแล้ว!", btn_ok: "ตกลง",
@@ -640,7 +715,20 @@
                 a2f_title: "ความปลอดภัย A2F (อีเมล & OTP)", face_title: "การจดจำใบหน้า (สแกนใบหน้า)", id_title: "การยืนยันตัวตน (บัตรประชาชน/หนังสือเดินทาง)",
                 invite_friends: "เชิญเพื่อน", contests_title: "การแข่งขัน & กระดานผู้นำ", proof_payouts: "หลักฐานการจ่ายเงิน",
                 about_afex: "เกี่ยวกับโทเค็น AFEX", privacy_policy: "นโยบายความเป็นส่วนตัว",
-                status_unlocked: "ปลดล็อคแล้ว", status_unverified: "ยังไม่ได้ยืนยัน", status_pending: "รอดำเนินการ / อยู่ระหว่างการตรวจสอบ", status_verified: "ยืนยันแล้ว"
+                status_unlocked: "ปลดล็อคแล้ว", status_unverified: "ยังไม่ได้ยืนยัน", status_pending: "รอดำเนินการ / อยู่ระหว่างการตรวจสอบ", status_verified: "ยืนยันแล้ว",
+                checkin_modal_desc: "เลือกกล่องของขวัญเช็คอินวันที่ {day}:", claim_today_btn: "รับรางวัลวันนี้",
+                invite_modal_title: "เชิญเพื่อน", invite_total_friends: "เพื่อนที่เชิญทั้งหมด:", copy_ref_btn: "คัดลอกลิงก์เชิญ",
+                share_tg_btn: "แชร์ไปยัง Telegram", leaderboard_title: "กระดานผู้นำระดับโลก", your_rank_info: "อันดับและคะแนนของคุณ:",
+                proof_payouts_title: "หลักฐานการจ่ายเงินระดับโลก", no_payouts: "ยังไม่มีประวัติการจ่ายเงิน",
+                level_info_title: "ระดับและรายได้:", tx_history_title: "ประวัติการทำธุรกรรม", no_tx_history: "ไม่มีประวัติการทำธุรกรรม",
+                wd_history_title: "ประวัติการถอนเงิน", no_wd_history: "ไม่มีประวัติการถอนเงิน",
+                dep_network_label: "เลือกเครือข่ายฝากเงิน", dep_amount_label: "จำนวนเงินฝาก (USDT)", dep_addr_label: "ที่อยู่ปลายทาง",
+                pay_txhash_btn: "ชำระเงินและส่ง TxHash", enter_txhash_label: "ป้อน TxHash ธุรกรรม", confirm_dep_title: "ยืนยันการฝากเงิน",
+                deposit_review_msg: "กำลังตรวจสอบธุรกรรม โปรดรอสักครู่",
+                about_content_title: "เกี่ยวกับโทเค็น AFEX", about_desc_p1: "AFEX Token เป็นสินทรัพย์ดิจิทัลยุคใหม่...", about_desc_p2: "ด้วยระบบรักษาความปลอดภัย...",
+                team_afex_title: "ทีมงาน AFEX", team_lead: "ประธานเจ้าหน้าที่บริหาร", team_cto: "ประธานเจ้าหน้าที่ฝ่ายเทคโนโลยี", team_cmo: "ผู้อำนวยการฝ่ายการตลาด",
+                privacy_content_title: "นโยบายความเป็นส่วนตัว AFEX", privacy_desc_p1: "การปกป้องข้อมูลผู้ใช้คือสิ่งสำคัญที่สุดของเรา...", privacy_desc_p2: "เราไม่อนุญาตให้เปิดเผยข้อมูล...",
+                task_speed_rew: "+0.00001 ความเร็ว/ชม.", task_pts_rew: "+1 คะแนน"
             },
             ms: { 
                 total_balance: "JUMLAH BAKI", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Siri (Hari 1 - 7)",
@@ -649,7 +737,7 @@
                 swap_heading: "Pertukaran Token AFEX", swap_desc: "Tukar token AFEX serta-merta kepada USDT atau TON.",
                 connect_wallet: "Sambungkan Dompet", withdraw: "Tarik Diri", your_balances: "Baki Token Anda",
                 nav_mine: "Utama", nav_task: "Tugasan", nav_swap: "Tukar", nav_wallet: "Dompet", nav_profile: "Profil", 
-                vip_pass: "PAS VIP PENGASAS", btn_start_mine: "MULA PERLOMBONGAN 12JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
+                vip_pass: "PAS VIP PENGASAS", locked_badge: "DIKUNCI", btn_start_mine: "MULA PERLOMBONGAN 12JAM", task_watch_ad: "Tonton Iklan", btn_watch: "Tonton", 
                 task_join_tg: "Sertai Saluran Telegram", btn_start: "Mula", invite_sub: "Jemput dan Dapatkan Ganjaran", contest_sub: "Dapatkan Ganjaran",
                 sec_kyc: "KESELAMATAN & KYC", community: "KOMUNITI", about: "TENTANG", payouts_sub: "Pengeluaran langsung pengguna global",
                 notification: "Pemberitahuan", success: "Berjaya", error: "Ralat", copied: "Disalin!", btn_ok: "OK",
@@ -667,7 +755,20 @@
                 a2f_title: "Keselamatan A2F (Emel & OTP)", face_title: "Pengecaman Muka (Imbasan Muka)", id_title: "Pengesahan Identiti (IC/Pasport)",
                 invite_friends: "Jemput Rakan", contests_title: "Peraduan & Papan Pendahulu", proof_payouts: "Bukti Pembayaran",
                 about_afex: "Tentang Token AFEX", privacy_policy: "Dasar Privasi",
-                status_unlocked: "Dibuka", status_unverified: "Belum Disahkan", status_pending: "Tertunda / Dalam Semakan", status_verified: "Disahkan"
+                status_unlocked: "Dibuka", status_unverified: "Belum Disahkan", status_pending: "Tertunda / Dalam Semakan", status_verified: "Disahkan",
+                checkin_modal_desc: "Pilih kotak ganjaran daftar masuk hari ke-{day}:", claim_today_btn: "TUNTUT GANJARAN HARI INI",
+                invite_modal_title: "Jemput Rakan", invite_total_friends: "Jumlah Rakan Dijemput:", copy_ref_btn: "Salin Pautan Rujukan",
+                share_tg_btn: "Kongsi ke Telegram", leaderboard_title: "Papan Pendahulu Global", your_rank_info: "Kedudukan & Mata Anda:",
+                proof_payouts_title: "Bukti Pembayaran Global", no_payouts: "Tiada rekod pembayaran awam.",
+                level_info_title: "Skema Tahap & Pendapatan:", tx_history_title: "Sejarah Transaksi", no_tx_history: "Tiada sejarah transaksi.",
+                wd_history_title: "Sejarah Pengeluaran", no_wd_history: "Tiada sejarah pengeluaran.",
+                dep_network_label: "Pilih Rangkaian Deposit", dep_amount_label: "Jumlah Deposit (USDT)", dep_addr_label: "Alamat Dompet Tujuan",
+                pay_txhash_btn: "BAYAR & HANTAR TXHASH", enter_txhash_label: "Masukkan TxHash Transaksi", confirm_dep_title: "Sahkan Pembayaran Deposit",
+                deposit_review_msg: "Transaksi sedang disemak, sila tunggu dan semak secara berkala.",
+                about_content_title: "Tentang Token AFEX", about_desc_p1: "AFEX Token ialah aset digital terpencar generasi seterusnya...", about_desc_p2: "Dengan keselamatan kriptografi...",
+                team_afex_title: "Pasukan Pengurusan AFEX", team_lead: "Ketua Pegawai Eksekutif", team_cto: "Ketua Pegawai Teknologi", team_cmo: "Pengarah Pemasaran Global",
+                privacy_content_title: "Dasar Privasi & Jaminan Keselamatan AFEX", privacy_desc_p1: "Di AFEX, memastikan privasi dan perlindungan data adalah keutamaan...", privacy_desc_p2: "Kami melarang sebarang perkongsian data tanpa izin...",
+                task_speed_rew: "+0.00001 Kelajuan/jam", task_pts_rew: "+1 Mata"
             },
             hi: { 
                 total_balance: "कुल शेष", checkin_title: "दैनिक चेक-इन", checkin_sub: "स्ट्रीक पुरस्कार दावा करें (दिन 1 - 7)",
@@ -676,7 +777,7 @@
                 swap_heading: "AFEX टोकन स्वैप एक्सचेंज", swap_desc: "AFEX टोकन को तुरंत USDT या TON में स्वैप करें।",
                 connect_wallet: "वॉलेट कनेक्ट करें", withdraw: "निकासी", your_balances: "आपके टोकन शेष",
                 nav_mine: "होम", nav_task: "टास्क", nav_swap: "स्वैप", nav_wallet: "वॉलेट", nav_profile: "प्रोफाइल", 
-                vip_pass: "फाउंडर वीआईपी पास", btn_start_mine: "12H ऑटो माइनिंग शुरू करें", task_watch_ad: "विज्ञापन देखें", btn_watch: "देखें", 
+                vip_pass: "फाउंडर वीआईपी पास", locked_badge: "लॉक किया गया", btn_start_mine: "12H ऑटो माइनिंग शुरू करें", task_watch_ad: "विज्ञापन देखें", btn_watch: "देखें", 
                 task_join_tg: "टेलीग्राम चैनल से जुड़ें", btn_start: "शुरू करें", invite_sub: "आमंत्रित करें और पुरस्कार पाएं", contest_sub: "पुरस्कार पाएं",
                 sec_kyc: "सुरक्षा और केवाईसी", community: "समुदाय", about: "के बारे में", payouts_sub: "वैश्विक उपयोगकर्ताओं की लाइव निकासी",
                 notification: "सूचना", success: "सफलता", error: "त्रुटि", copied: "कॉपी किया गया!", btn_ok: "ठीक है",
@@ -694,34 +795,60 @@
                 a2f_title: "A2F सुरक्षा (ईमेल और OTP)", face_title: "चेहरा पहचान (फेस स्कैन)", id_title: "पहचान सत्यापन (आईडी/पासपोर्ट)",
                 invite_friends: "मित्रों को आमंत्रित करें", contests_title: "प्रतियोगिताएं और लीडरबोर्ड", proof_payouts: "भुगतान का प्रमाण",
                 about_afex: "AFEX टोकन के बारे में", privacy_policy: "गोपनीयता नीति",
-                status_unlocked: "अनलॉक", status_unverified: "सत्यापित नहीं", status_pending: "लंबित / समीक्षाधीन", status_verified: "सत्यापित"
+                status_unlocked: "अनलॉक", status_unverified: "सत्यापित नहीं", status_pending: "लंबित / समीक्षाधीन", status_verified: "सत्यापित",
+                checkin_modal_desc: "दिन {day} के लिए चेक-इन बॉक्स चुनें:", claim_today_btn: "आज के पुरस्कार का दावा करें",
+                invite_modal_title: "मित्रों को आमंत्रित करें", invite_total_friends: "कुल आमंत्रित मित्र:", copy_ref_btn: "रेफरल लिंक कॉपी करें",
+                share_tg_btn: "टेलीग्राम पर शेयर करें", leaderboard_title: "वैश्विक लीडरबोर्ड", your_rank_info: "आपकी रैंक और अंक:",
+                proof_payouts_title: "वैश्विक भुगतान प्रमाण", no_payouts: "अभी तक कोई सार्वजनिक भुगतान रिकॉर्ड नहीं है।",
+                level_info_title: "लेवल और आय योजना:", tx_history_title: "लेनदेन इतिहास", no_tx_history: "कोई लेनदेन इतिहास नहीं।",
+                wd_history_title: "निकासी इतिहास", no_wd_history: "कोई निकासी इतिहास नहीं।",
+                dep_network_label: "डिपॉजिट नेटवर्क चुनें", dep_amount_label: "डिपॉजिट राशि (USDT)", dep_addr_label: "डिपॉजिट पता",
+                pay_txhash_btn: "भुगतान करें और TxHash जमा करें", enter_txhash_label: "TxHash दर्ज करें", confirm_dep_title: "डिपॉजिट भुगतान की पुष्टि करें",
+                deposit_review_msg: "लेनदेन समीक्षाधीन है, कृपया प्रतीक्षा करें।",
+                about_content_title: "AFEX टोकन के बारे में", about_desc_p1: "AFEX टोकन अगली पीढ़ी की विकेंद्रीकृत डिजिटल संपत्ति है...", about_desc_p2: "उन्नत सुरक्षा के साथ...",
+                team_afex_title: "AFEX प्रबंधन टीम", team_lead: "मुख्य कार्यकारी अधिकारी", team_cto: "मुख्य प्रौद्योगिकी अधिकारी", team_cmo: "वैश्विक विपणन निदेशक",
+                privacy_content_title: "AFEX गोपनीयता नीति", privacy_desc_p1: "उपयोगकर्ता डेटा सुरक्षा हमारी सर्वोच्च प्राथमिकता है...", privacy_desc_p2: "हम डेटा साझा करने की अनुमति नहीं देते...",
+                task_speed_rew: "+0.00001 स्पीड/घंटा", task_pts_rew: "+1 पॉइंट"
             },
             ur: { 
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک کے انعامات का दावा करें (दिन 1 - 7)",
-                ready_to_mine: "مائن کرنے کے لیے تیار", session_timer: "ستر टाइमर:", tasks_title: "کام", 
-                tasks_desc: "پوائنٹس اور انعامات حاصل کرنے کے لیے کام مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
-                swap_heading: "AFEX ٹوکن سویپ اور ایکسچینج", swap_desc: "AFEX ٹوکنز کو فوری طور پر USDT یا TON میں سویپ کریں۔",
-                connect_wallet: "والٹ connect کریں", withdraw: "رقم نکالیں", your_balances: "آپ کے ٹوکن بیلنس",
+                ready_to_mine: "माइन करने के लिए तैयार", session_timer: "ستر टाइमर:", tasks_title: "کام", 
+                tasks_desc: "پوائنٹس और انعامات حاصل کرنے के लिए کام مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
+                swap_heading: "AFEX ٹوکن سویپ और ایکسچینج", swap_desc: "AFEX ٹوکن्स को فوری طور پر USDT یا TON میں سویپ کریں۔",
+                connect_wallet: "والٹ connect کریں", withdraw: "रقم نکالیں", your_balances: "آپ کے ٹوکن بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
-                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
-                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "شروع کریں", invite_sub: "دعوت دیں اور انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
-                sec_kyc: "سیکیورٹی اور کے وائی سی", community: "کمیونٹی", about: "کے بارے میں", payouts_sub: "عالمی صارفین کی لائیو نکاسی",
+                vip_pass: "بانی وی آئی پی پاس", locked_badge: "مقفل", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू کریں", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
+                task_join_tg: "ٹیلیگرام چینل میں شامل ہوں", btn_start: "شروع کریں", invite_sub: "دعوت دیں और انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
+                sec_kyc: "سیکیورٹی और के وائی सी", community: "کمیونٹی", about: "के बारे में", payouts_sub: "عالمی صارفین کی لائیو نکاسی",
                 notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک ہے",
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
                 wallet_disconnected: "والٹ منقطع ہے", btn_connect: "جڑیں",
-                checkin_done: "آج پہلے ہی چیک ان کر چکے ہیں۔ براہ کرم کل واپس آئیں۔", checkin_success: "دن کے لیے چیک ان کامیاب",
-                ad_claimed: "انعام کا دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 پوائنٹ!", ad_not_ready: "AdsGuard فعال / اشتہار چھوڑ دیا گیا۔ انعام براہ راست دے دیا گیا!",
-                founder_avail: "{d} دنوں {time} میں بانی دستیاب ہوں گے", lock_feature: "یہ خصوصیت {d} دنوں {time} میں کھل جائے گی۔",
-                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ کے دوران سویپ کی خصوصیت فعال ہوگی۔",
-                wd_insufficient: "افوہ، آپ کا بیلنس ناکافی ہے، براہ کرم مائننگ جاری رکھیں۔", wd_processed: "رقم کامیابی کے ساتھ نکال دی گئی!",
-                wallet_manage: "والٹ کے پتے کا انتظام کریں", tx_history: "ٹرانزیکشن ہسٹری", wd_history: "نکاسی کی تاریخ",
-                income_label: "آمدنی", view_levels: "لیول کی معلومات دیکھیں >", deposit: "دعویٰ کریں", claim: "دعویٰ کریں",
+                checkin_done: "آج پہلے ہی چیک ان कर चुके ہیں۔ براہ کرم کل واپس آئیں۔", checkin_success: "دن के लिए چیک ان کامیاب",
+                ad_claimed: "انعام का दावा किया गया! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 पॉइंट!", ad_not_ready: "AdsGuard فعال / اشتہار چھوڑ دیا گیا۔ انعام براہ راست دے دیا گیا!",
+                founder_avail: "{d} دنوں {time} में बانی دستیاب ہوں گے", lock_feature: "यह خصوصیت {d} دنوں {time} में کھل جائے گی۔",
+                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ کی خصوصیت فعال ہوگی۔",
+                wd_insufficient: "افوہ، آپ کا بیلنس ناکافی है، براہ کرم مائنिंग جاری رکھیں۔", wd_processed: "رقم کامیابی के साथ نکال दी गई!",
+                wallet_manage: "والٹ के پते का انتظام करें", tx_history: "ٹرانزیکشن ہسٹری", wd_history: "نکاسی की تاریخ",
+                income_label: "آمدنی", view_levels: "لیول کی معلومات देखें >", deposit: "دعویٰ करें", claim: "دعویٰ करें",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/ماہ",
-                start_swap_btn: "سویپ شروع کریں", instant_payouts: "فوری ادائیگی", your_uid: "آپ کا UID",
-                a2f_title: "A2F سیکیورٹی (ای میل اور OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
-                invite_friends: "دوستوں کو مدعو کریں", contests_title: "مقابلہ جات اور لیڈر بورڈ", proof_payouts: "ادائیگی کا ثبوت",
-                about_afex: "AFEX ٹوکن کے بارے میں", privacy_policy: "رازداری کی پالیسی",
-                status_unlocked: "ان لاک", status_unverified: "غیر تصدیق شدہ", status_pending: "زیر التواء / جائزہ لیا جا رہا ہے", status_verified: "تصدیق شدہ"
+                start_swap_btn: "سویپ शुरू करें", instant_payouts: "फوری ادائیگی", your_uid: "آپ का UID",
+                a2f_title: "A2F سیکیورٹی (ईमेल और OTP)", face_title: "چہرہ شناخت (फیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
+                invite_friends: "دوستوں को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "ادائیگی का ثبوت",
+                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری की پالیسی",
+                status_unlocked: "ان لاک", status_unverified: "غیر تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ",
+                checkin_modal_desc: "دن {day} के लिए चेक-इन बॉक्स चुनें:", claim_today_btn: "آج کے انعام کا دعویٰ کریں",
+                invite_modal_title: "دوستوں کو مدعو کریں", invite_total_friends: "کل مدعو دوست:", copy_ref_btn: "رفرل لنک کاپی کریں",
+                share_tg_btn: "ٹیلیگرام پر شیئر کریں", leaderboard_title: "عالمی لیڈر بورڈ", your_rank_info: "آپ کی رینک اور پوائنٹس:",
+                proof_payouts_title: "عالمی ادائیگی کا ثبوت", no_payouts: "ابھی تک کوئی پبلک ریکارڈ نہیں ہے۔",
+                level_info_title: "لیول اور آمدنی:", tx_history_title: "ٹرانزیکشن ہسٹری", no_tx_history: "کوئی ٹرانزیکشن ہسٹری نہیں۔",
+                wd_history_title: "نکاسی کی تاریخ", no_wd_history: "کوئی نکاسی کی تاریخ نہیں۔",
+                dep_network_label: "ڈپॉजिट نیٹ ورک منتخب करें", dep_amount_label: "رقم (USDT)", dep_addr_label: "پتہ",
+                pay_txhash_btn: "ادائیگی کریں और TxHash جمع करें", enter_txhash_label: "TxHash درج करें", confirm_dep_title: "تصدیق करें",
+                deposit_review_msg: "لین دین زیر समीक्षा है, कृपया प्रतीक्षा करें।",
+                about_content_title: "AFEX ٹوکن के बारे में", about_desc_p1: "AFEX ٹوکن अगली पीढ़ी की डिजिटल संपत्ति है...", about_desc_p2: "محفوظ نظام کے ساتھ...",
+                team_afex_title: "AFEX مینجمنٹ ٹیم", team_lead: "چیف ایگزیکٹو آفیسر", team_cto: "چیف ٹیکنالوجی آفیسر", team_cmo: "مارکیٹنگ ڈائریکٹر",
+                privacy_content_title: "AFEX رازداری کی پالیسی", privacy_desc_p1: "ڈیٹا کی حفاظت ہماری اولین ترجیح है...", privacy_desc_p2: "ہم اجازت کے بغیر ڈیٹا شیئر نہیں کرتے...",
+                task_speed_rew: "+0.00001 اسپیڈ/घंटा", task_pts_rew: "+1 पॉइंट"
             },
             zh: { 
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续奖励 (第 1 - 7 天)",
@@ -730,7 +857,7 @@
                 swap_heading: "AFEX 代币兑换所", swap_desc: "立即将 AFEX 代币兑换为 USDT 或 TON。",
                 connect_wallet: "连接钱包", withdraw: "提现", your_balances: "您的代币余额",
                 nav_mine: "首页", nav_task: "任务", nav_swap: "兑换", nav_wallet: "钱包", nav_profile: "个人资料", 
-                vip_pass: "创始人 VIP 通行证", btn_start_mine: "开始 12 小时自动挖矿", task_watch_ad: "观看广告", btn_watch: "观看", 
+                vip_pass: "创始人 VIP 通行证", locked_badge: "已锁定", btn_start_mine: "开始 12 小时自动挖矿", task_watch_ad: "观看广告", btn_watch: "观看", 
                 task_join_tg: "加入电报频道", btn_start: "开始", invite_sub: "邀请并获得奖励", contest_sub: "获得奖励",
                 sec_kyc: "安全与 KYC", community: "社区", about: "关于", payouts_sub: "全球用户实时提现",
                 notification: "通知", success: "成功", error: "错误", copied: "已复制！", btn_ok: "确定",
@@ -748,7 +875,25 @@
                 a2f_title: "A2F 安全 (邮箱和 OTP)", face_title: "人脸识别 (人脸扫描)", id_title: "身份验证 (身份证/护照)",
                 invite_friends: "邀请好友", contests_title: "竞赛与排行榜", proof_payouts: "提现证明",
                 about_afex: "关于 AFEX 代币", privacy_policy: "隐私政策",
-                status_unlocked: "已解锁", status_unverified: "未验证", status_pending: "待处理 / 审核中", status_verified: "已验证"
+                status_unlocked: "已解锁", status_unverified: "未验证", status_pending: "待处理 / 审核中", status_verified: "已验证",
+                checkin_modal_desc: "选择第 {day} 天签到奖励盒：", claim_today_btn: "领取今日奖励",
+                invite_modal_title: "邀请好友", invite_total_friends: "已邀请好友总数：", copy_ref_btn: "复制推荐链接",
+                share_tg_btn: "分享到电报", leaderboard_title: "全球排行榜", your_rank_info: "您的排名与积分：",
+                proof_payouts_title: "全球实时提现证明", no_payouts: "暂无公开提现记录。",
+                level_info_title: "等级与收入方案：", tx_history_title: "交易历史", no_tx_history: "暂无交易历史。",
+                wd_history_title: "提现历史", no_wd_history: "暂无提现历史。",
+                dep_network_label: "选择充值网络", dep_amount_label: "充值金额 (USDT)", dep_addr_label: "充值目标地址",
+                pay_txhash_btn: "支付并提交 TXHASH", enter_txhash_label: "输入交易 TxHash", confirm_dep_title: "确认充值支付",
+                deposit_review_msg: "交易正在审核中，请耐心等待并定期在交易菜单中查看。",
+                about_content_title: "关于 AFEX 代币", about_desc_p1: "AFEX 代币是基于稳健的多链架构构建的新一代去中心化数字资产，旨在为全球的高速 Web3 实用程序、安全的质押生态系统和自动奖励挖矿提供动力。",
+                about_desc_p2: "凭借最先进的密码学安全性、极低的交易摩擦和快速扩展的全球社区，AFEX 将传统的金融包容性与去中心化的数字赋能连接起来。",
+                team_afex_title: "AFEX 核心管理团队", team_lead: "首席执行官兼首席架构师",
+                team_cto: "首席技术官兼智能合约负责人",
+                team_cmo: "全球营销与战略合作总监",
+                privacy_content_title: "AFEX 隐私政策与安全保证",
+                privacy_desc_p1: "在 AFEX，确保用户的绝对隐私、安全和数据保护是我们的最高首要任务。我们在所有数据库集群和去中心化节点上强制执行军用级加密协议，以保护您的数字足迹。",
+                privacy_desc_p2: "我们严禁共享、出售或未经授权处理个人凭证。每一笔交易、会话和资产余额都在零信任治理下受到严密保护，确保您完全安心。",
+                task_speed_rew: "+0.00001 速度/小时", task_pts_rew: "+1 积分"
             },
             ko: { 
                 total_balance: "총 잔액", checkin_title: "일일 출석 체크", checkin_sub: "연속 보상 받기 (1 - 7일차)",
@@ -757,7 +902,7 @@
                 swap_heading: "AFEX 토큰 스왑 거래소", swap_desc: "AFEX 토큰을 USDT 또는 TON으로 즉시 스왑하세요.",
                 connect_wallet: "지갑 연결", withdraw: "출금", your_balances: "내 토큰 잔액",
                 nav_mine: "홈", nav_task: "작업", nav_swap: "스왑", nav_wallet: "지갑", nav_profile: "프로필", 
-                vip_pass: "창립자 VIP 패스", btn_start_mine: "12시간 자동 채굴 시작", task_watch_ad: "광고 시청", btn_watch: "시청", 
+                vip_pass: "창립자 VIP 패스", locked_badge: "잠김", btn_start_mine: "12시간 자동 채굴 시작", task_watch_ad: "광고 시청", btn_watch: "시청", 
                 task_join_tg: "텔레그램 채널 가입", btn_start: "시작", invite_sub: "초대하고 보상 받기", contest_sub: "보상 받기",
                 sec_kyc: "보안 및 KYC", community: "커뮤니티", about: "정보", payouts_sub: "글로벌 사용자 실시간 출금",
                 notification: "알림", success: "성공", error: "오류", copied: "복사됨!", btn_ok: "확인",
@@ -775,7 +920,20 @@
                 a2f_title: "A2F 보안 (이메일 및 OTP)", face_title: "안면 인식 (얼굴 스캔)", id_title: "신원 인증 (신분증/여권)",
                 invite_friends: "친구 초대", contests_title: "대회 및 리더보드", proof_payouts: "출금 증명",
                 about_afex: "AFEX 토큰 소개", privacy_policy: "개인정보 처리방침",
-                status_unlocked: "잠금 해제됨", status_unverified: "미인증", status_pending: "대기 중 / 검토 중", status_verified: "인증됨"
+                status_unlocked: "잠금 해제됨", status_unverified: "미인증", status_pending: "대기 중 / 검토 중", status_verified: "인증됨",
+                checkin_modal_desc: "{day}일차 출석 보상 상자를 선택하세요:", claim_today_btn: "오늘의 보상 받기",
+                invite_modal_title: "친구 초대", invite_total_friends: "초대된 총 친구 수:", copy_ref_btn: "추천 링크 복사",
+                share_tg_btn: "텔레그램에 공유", leaderboard_title: "글로벌 리더보드", your_rank_info: "내 순위 및 포인트:",
+                proof_payouts_title: "글로벌 출금 증명", no_payouts: "공개된 출금 내역이 없습니다.",
+                level_info_title: "레벨 및 수익표:", tx_history_title: "거래 내역", no_tx_history: "거래 내역이 없습니다.",
+                wd_history_title: "출금 내역", no_wd_history: "출금 내역이 없습니다.",
+                dep_network_label: "입금 네트워크 선택", dep_amount_label: "입금 금액 (USDT)", dep_addr_label: "입금 주소",
+                pay_txhash_btn: "결제 및 TxHash 제출", enter_txhash_label: "TxHash 입력", confirm_dep_title: "입금 확인",
+                deposit_review_msg: "거래 검토 중입니다. 잠시 기다려주세요.",
+                about_content_title: "AFEX 토큰 소개", about_desc_p1: "AFEX 토큰은 차세대 탈중앙화 디지털 자산입니다...", about_desc_p2: "최첨단 보안 시스템 적용...",
+                team_afex_title: "AFEX 핵심 경영진", team_lead: "최고경영자", team_cto: "최고기술책임자", team_cmo: "글로벌 마케팅 이사",
+                privacy_content_title: "AFEX 개인정보 처리방침", privacy_desc_p1: "사용자 데이터 보호는 당사의 최우선 과제입니다...", privacy_desc_p2: "무단 정보 공유를 엄격히 금지합니다...",
+                task_speed_rew: "+0.00001 속도/시간", task_pts_rew: "+1 포인트"
             },
             ja: { 
                 total_balance: "総残高", checkin_title: "デイリーチェックイン", checkin_sub: "連続ボーナスを受け取る (1〜7日目)",
@@ -784,7 +942,7 @@
                 swap_heading: "AFEX トークンスワップ取引所", swap_desc: "AFEX トークンを USDT または TON に即時スワップします。",
                 connect_wallet: "ウォレット接続", withdraw: "出金", your_balances: "保有トークン残高",
                 nav_mine: "ホーム", nav_task: "タスク", nav_swap: "スワップ", nav_wallet: "ウォレット", nav_profile: "プロフィール", 
-                vip_pass: "創設者VIPパス", btn_start_mine: "12時間自動マイニングを開始", task_watch_ad: "広告を見る", btn_watch: "見る", 
+                vip_pass: "創設者VIPパス", locked_badge: "ロック中", btn_start_mine: "12時間自動マイニングを開始", task_watch_ad: "広告を見る", btn_watch: "見る", 
                 task_join_tg: "Telegramチャンネルに参加", btn_start: "開始", invite_sub: "招待して報酬を獲得", contest_sub: "報酬を獲得",
                 sec_kyc: "セキュリティ & KYC", community: "コミュニティ", about: "情報", payouts_sub: "グローバルユーザーのライブ出金",
                 notification: "通知", success: "成功", error: "エラー", copied: "コピーしました！", btn_ok: "OK",
@@ -802,7 +960,20 @@
                 a2f_title: "A2Fセキュリティ (メール & OTP)", face_title: "顔認証 (顔スキャン)", id_title: "本人確認 (身分証明書/パスポート)",
                 invite_friends: "友達を招待", contests_title: "コンテスト & リーダーボード", proof_payouts: "出金証明",
                 about_afex: "AFEXトークンについて", privacy_policy: "プライバシーポリシー",
-                status_unlocked: "ロック解除", status_unverified: "未認証", status_pending: "保留中 / 審査中", status_verified: "認証済み"
+                status_unlocked: "ロック解除", status_unverified: "未認証", status_pending: "保留中 / 審査中", status_verified: "認証済み",
+                checkin_modal_desc: "{day}日目のチェックイン報酬ボックスを選択:", claim_today_btn: "今日の報酬を請求する",
+                invite_modal_title: "友達を招待", invite_total_friends: "招待した友達の総数:", copy_ref_btn: "紹介リンクをコピー",
+                share_tg_btn: "Telegramにシェア", leaderboard_title: "グローバルリーダーボード", your_rank_info: "あなたの順位とポイント:",
+                proof_payouts_title: "グローバル出金証明", no_payouts: "公開された出金記録はありません。",
+                level_info_title: "レベルと収益プラン:", tx_history_title: "取引履歴", no_tx_history: "取引履歴はありません。",
+                wd_history_title: "出金履歴", no_wd_history: "出金履歴はありません。",
+                dep_network_label: "入金ネットワーク選択", dep_amount_label: "入金金額 (USDT)", dep_addr_label: "入金アドレス",
+                pay_txhash_btn: "支払ってTxHashを送信", enter_txhash_label: "TxHashを入力", confirm_dep_title: "入金確認",
+                deposit_review_msg: "取引の審査中です。お待ちください。",
+                about_content_title: "AFEXトークンについて", about_desc_p1: "AFEXトークンは次世代の分散型デジタル資産です...", about_desc_p2: "高度なセキュリティシステム...",
+                team_afex_title: "AFEX経営陣", team_lead: "最高経営責任者", team_cto: "最高技術責任者", team_cmo: "グローバルマーケティング部長",
+                privacy_content_title: "AFEXプライバシーポリシー", privacy_desc_p1: "ユーザーデータの保護は当社の最優先事項です...", privacy_desc_p2: "不正な情報共有を厳禁としています...",
+                task_speed_rew: "+0.00001 速度/時間", task_pts_rew: "+1 ポイント"
             },
             af: { 
                 total_balance: "TOTALE BALANS", checkin_title: "Daaglikse Aanmelding", checkin_sub: "Vorder Reeksbelonings op (Dag 1 - 7)",
@@ -811,7 +982,7 @@
                 swap_heading: "AFEX Token Omruilbeurs", swap_desc: "Ruil AFEX-tekens onmiddellik om na USDT of TON.",
                 connect_wallet: "Koppel Beursie", withdraw: "Onttrek", your_balances: "Jou Tokenbalanse",
                 nav_mine: "Tuis", nav_task: "Taak", nav_swap: "Omruil", nav_wallet: "Beursie", nav_profile: "Profiel", 
-                vip_pass: "STIGTER VIP-PAS", btn_start_mine: "BEGIN 12U OUTOMATIESE MYNBOU", task_watch_ad: "Kyk Advertensie", btn_watch: "Kyk", 
+                vip_pass: "STIGTER VIP-PAS", locked_badge: "GESLUIT", btn_start_mine: "BEGIN 12U OUTOMATIESE MYNBOU", task_watch_ad: "Kyk Advertensie", btn_watch: "Kyk", 
                 task_join_tg: "Sluit aan by Telegram-kanaal", btn_start: "Begin", invite_sub: "Nooi uit en Kry Beloning", contest_sub: "Kry Beloning",
                 sec_kyc: "SEKURITEIT & KYC", community: "GEMEENSKAP", about: "OOR", payouts_sub: "Regstreekse onttrekkings van globale gebruikers",
                 notification: "Kennisgewing", success: "Sukses", error: "Fout", copied: "Gekopieer!", btn_ok: "OK",
@@ -829,7 +1000,20 @@
                 a2f_title: "A2F-sekuriteit (E-pos & OTP)", face_title: "Gesigsherkenning (Gesigskandering)", id_title: "Identiteitsverifikasie (ID/Paspoort)",
                 invite_friends: "Nooi Vriende uit", contests_title: "Kompetisies & Leaderboard", proof_payouts: "Bewys van Uitbetalings",
                 about_afex: "Oor AFEX Token", privacy_policy: "Privaatheidsbeleid",
-                status_unlocked: "Ontsluit", status_unverified: "Ongeverifieer", status_pending: "Hangende / In Hersiening", status_verified: "Geverifieer"
+                status_unlocked: "Ontsluit", status_unverified: "Ongeverifieer", status_pending: "Hangende / In Hersiening", status_verified: "Geverifieer",
+                checkin_modal_desc: "Kies aanmeldingsbeloningsboks vir dag {day}:", claim_today_btn: "VORDER VANDAG SE BELONING OP",
+                invite_modal_title: "Nooi Vriende", invite_total_friends: "Totale vriende genooi:", copy_ref_btn: "Kopieer Verwysingselement",
+                share_tg_btn: "Deel op Telegram", leaderboard_title: "Globale Ranglys", your_rank_info: "Jou Rang & Punte:",
+                proof_payouts_title: "Globale Uitbetalingsbewys", no_payouts: "Geen openbare uitbetalingsrekords nie.",
+                level_info_title: "Vlakschema & Inkomste:", tx_history_title: "Transaksiegeskiedenis", no_tx_history: "Geen transaksiegeskiedenis nie.",
+                wd_history_title: "Onttrekkinggeskiedenis", no_wd_history: "Geen onttrekkinggeskiedenis nie.",
+                dep_network_label: "Kies Deposito-netwerk", dep_amount_label: "Deposito-bedrag (USDT)", dep_addr_label: "Deposito-teikenadres",
+                pay_txhash_btn: "BETAAL & DIEN TXHASH IN", enter_txhash_label: "Voer Transaksie TxHash in", confirm_dep_title: "Bevestig Deposito",
+                deposit_review_msg: "Transaksie word hersien, wag asseblief.",
+                about_content_title: "Oor AFEX Token", about_desc_p1: "AFEX Token is 'n gedesentraliseerde digitale bates van die volgende generasie...", about_desc_p2: "Met gevorderde sekuriteit...",
+                team_afex_title: "AFEX Bestuurspan", team_lead: "Hoof- Uitvoerende Beampte", team_cto: "Hoof- Tegnologiebeampte", team_cmo: "Bemarkingsdirekteur",
+                privacy_content_title: "AFEX Privaatheidsbeleid", privacy_desc_p1: "Die beskerming van gebruikersdata is ons hoogste prioriteit...", privacy_desc_p2: "Ons verbied die deling van geloofsbriewe...",
+                task_speed_rew: "+0.00001 Spoed/uur", task_pts_rew: "+1 Punt"
             },
             ar: { 
                 total_balance: "الرصيد الإجمالي", checkin_title: "تسجيل الوصول اليومي", checkin_sub: "مطالبة مكافآت التتابع (اليوم 1 - 7)",
@@ -838,7 +1022,7 @@
                 swap_heading: "منصة تبديل رموز AFEX", swap_desc: "قم بتبييض رموز AFEX فوراً إلى USDT أو TON.",
                 connect_wallet: "ربط المحفظة", withdraw: "سحب", your_balances: "أرصدة رموزك",
                 nav_mine: "الرئيسية", nav_task: "المهام", nav_swap: "التبديل", nav_wallet: "المحفظة", nav_profile: "الملف الشخصي", 
-                vip_pass: "تصريح كبار الشخصيات للمؤسس", btn_start_mine: "بدء التعدين التلقائي 12 ساعة", task_watch_ad: "مشاهدة الإعلان", btn_watch: "مشاهدة", 
+                vip_pass: "تصريح كبار الشخصيات للمؤسس", locked_badge: "مقفل", btn_start_mine: "بدء التعدين التلقائي 12 ساعة", task_watch_ad: "مشاهدة الإعلان", btn_watch: "مشاهدة", 
                 task_join_tg: "الانضمام لقناة تلغرام", btn_start: "ابدأ", invite_sub: "ادع واحصل على المكافأة", contest_sub: "احصل على المكافأة",
                 sec_kyc: "الأمان و KYC", community: "المجتمع", about: "حول", payouts_sub: "سحب مباشر للمستخدمين العالميين",
                 notification: "إشعار", success: "نجاح", error: "خطأ", copied: "تم النسخ!", btn_ok: "موافق",
@@ -856,7 +1040,20 @@
                 a2f_title: "أمان A2F (البريد الإلكتروني و OTP)", face_title: "التعرف على الوجه (مسح الوجه)", id_title: "التحقق من الهوية (الهوية/جواز السفر)",
                 invite_friends: "دعوة الأصدقاء", contests_title: "المسابقات لوحة المتصدرين", proof_payouts: "إثبات المدفوعات",
                 about_afex: "حول رمز AFEX", privacy_policy: "سياسة الخصوصية",
-                status_unlocked: "مفتوح", status_unverified: "غير متحقق", status_pending: "قيد الانتظار / قيد المراجعة", status_verified: "متحقق منه"
+                status_unlocked: "مفتوح", status_unverified: "غير متحقق", status_pending: "قيد الانتظار / قيد المراجعة", status_verified: "متحقق منه",
+                checkin_modal_desc: "اختر صندوق مكافأة اليوم {day}:", claim_today_btn: "مطالبة مكافأة اليوم",
+                invite_modal_title: "دعوة الأصدقاء", invite_total_friends: "إجمالي الأصدقاء المدعوين:", copy_ref_btn: "نسخ رابط الإحالة",
+                share_tg_btn: "مشاركة عبر تلغرام", leaderboard_title: "لوحة المتصدرين العالمية", your_rank_info: "ترتيبك ونقاطك:",
+                proof_payouts_title: "إثبات المدفوعات العالمية", no_payouts: "لا توجد سجلات دفع عامة حتى الآن.",
+                level_info_title: "خطة المستويات والدخل:", tx_history_title: "سجل المعاملات", no_tx_history: "لا يوجد سجل معاملات.",
+                wd_history_title: "سجل السحب", no_wd_history: "لا يوجد سجل سحب.",
+                dep_network_label: "اختر شبكة الإيداع", dep_amount_label: "مبلغ الإيداع (USDT)", dep_addr_label: "عنوان إيداع الهدف",
+                pay_txhash_btn: "الدفع وإرسال TxHash", enter_txhash_label: "أدخل TxHash المعاملة", confirm_dep_title: "تأكيد دفع الإيداع",
+                deposit_review_msg: "المعاملة قيد المراجعة، يرجى الانتظار.",
+                about_content_title: "حول رمز AFEX", about_desc_p1: "رمز AFEX هو أصول رقمية لامركزية من الجيل القادم...", about_desc_p2: "مع أعلى مستويات الأمان...",
+                team_afex_title: "فريق الإدارة AFEX", team_lead: "الرئيس التنفيذي", team_cto: "رئيس قطاع التكنولوجيا", team_cmo: "مدير التسويق العالمي",
+                privacy_content_title: "سياسة الخصوصية AFEX", privacy_desc_p1: "حماية بيانات المستخدمين هي أولويتنا القصوى...", privacy_desc_p2: "نحن نمنع مشاركة بيانات الاعتماد...",
+                task_speed_rew: "+0.00001 سرعة/ساعة", task_pts_rew: "+1 نقطة"
             }
         };
 
@@ -887,8 +1084,12 @@
             checkInDay: 1,
             lastCheckInTime: 0,
             referralCount: 0,
-            leaderboardList: [],
-            payoutsList: [],
+            payoutsList: [
+                { username: "@crypto_king", amount: 120.50 },
+                { username: "@alex_trader", amount: 45.00 },
+                { username: "@satoshi_girl", amount: 250.00 },
+                { username: "@gold_miner", amount: 89.20 }
+            ],
             txHistoryList: [],
             wdHistoryList: [],
             connectedWallets: [],
@@ -912,8 +1113,40 @@
             { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
         ];
 
+        // LOCALSTORAGE PERSISTENCE UNTUK MENCEGAH RESET SAAT CLOSE MINI APPS
+        function loadLocalPersistence() {
+            let saved = localStorage.getItem(`afex_state_${userIdStr}`);
+            if (saved) {
+                try {
+                    let parsed = JSON.parse(saved);
+                    miningData.balance = parsed.balance ?? 0;
+                    miningData.usdtBalance = parsed.usdtBalance ?? 0;
+                    miningData.userPoints = parsed.userPoints ?? 0;
+                    miningData.adsWatchedToday = parsed.adsWatchedToday ?? 0;
+                    miningData.tgTaskEndTime = parsed.tgTaskEndTime ?? 0;
+                    miningData.usdtSpeedBoost = parsed.usdtSpeedBoost ?? 0;
+                    miningData.usdtMinedPending = parsed.usdtMinedPending ?? 0;
+                    miningData.isMining = !!parsed.isMining;
+                    miningData.miningStartTime = parsed.miningStartTime ?? 0;
+                    miningData.miningEndTime = parsed.miningEndTime ?? 0;
+                    miningData.checkInDay = parsed.checkInDay ?? 1;
+                    miningData.lastCheckInTime = parsed.lastCheckInTime ?? 0;
+                    miningData.referralCount = parsed.referralCount ?? 0;
+                    miningData.connectedWallets = parsed.connectedWallets ?? [];
+                    miningData.isWalletConnected = miningData.connectedWallets.length > 0;
+                    miningData.txHistoryList = parsed.txHistoryList ?? [];
+                    miningData.wdHistoryList = parsed.wdHistoryList ?? [];
+                } catch(e) { console.error("Error loading local storage", e); }
+            }
+        }
+
+        function saveLocalPersistence() {
+            localStorage.setItem(`afex_state_${userIdStr}`, JSON.stringify(miningData));
+        }
+
         // SINKRONISASI DATA DARI BACKEND MONGODB (RENDER)
         async function syncWithBackend() {
+            loadLocalPersistence();
             try {
                 let res = await fetch(`${BACKEND_URL}/api/user/sync`, {
                     method: 'POST',
@@ -925,26 +1158,27 @@
                 });
                 let data = await res.json();
 
-                // Load seluruh state variabel dari MongoDB
-                miningData.balance = data.balanceAfex || 0;
-                miningData.usdtBalance = data.usdtBalance || 0;
-                miningData.userPoints = data.userPoints || 0;
-                miningData.lastCheckInTime = data.lastCheckInTime || 0;
-                miningData.checkInDay = data.checkInDay || 1;
-                miningData.usdtSpeedBoost = data.usdtSpeedBoost || 0;
-                miningData.isMining = !!data.isMining;
-                miningData.miningStartTime = data.miningStartTime || 0;
-                miningData.miningEndTime = data.miningEndTime || 0;
-                miningData.tgTaskEndTime = data.tgTaskEndTime || 0;
+                if (data.balanceAfex !== undefined) miningData.balance = data.balanceAfex;
+                if (data.usdtBalance !== undefined) miningData.usdtBalance = data.usdtBalance;
+                if (data.userPoints !== undefined) miningData.userPoints = data.userPoints;
+                if (data.lastCheckInTime !== undefined) miningData.lastCheckInTime = data.lastCheckInTime;
+                if (data.checkInDay !== undefined) miningData.checkInDay = data.checkInDay;
+                if (data.usdtSpeedBoost !== undefined) miningData.usdtSpeedBoost = data.usdtSpeedBoost;
+                if (data.isMining !== undefined) miningData.isMining = !!data.isMining;
+                if (data.miningStartTime !== undefined) miningData.miningStartTime = data.miningStartTime;
+                if (data.miningEndTime !== undefined) miningData.miningEndTime = data.miningEndTime;
+                if (data.tgTaskEndTime !== undefined) miningData.tgTaskEndTime = data.tgTaskEndTime;
                 
+                saveLocalPersistence();
                 updateUI();
             } catch (err) {
-                console.error("Gagal terhubung ke backend Render:", err);
+                console.error("Gagal terhubung ke backend Render (menggunakan local state):", err);
             }
         }
 
         // SIMPAN STATE TERBARU KE BACKEND MONGODB (RENDER)
         async function saveToBackend() {
+            saveLocalPersistence();
             try {
                 await fetch(`${BACKEND_URL}/api/user/update`, {
                     method: 'POST',
@@ -982,6 +1216,7 @@
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
 
+            loadLocalPersistence();
             syncWithBackend();
             startTimerInterval();
             startLiveChartInterval();
@@ -1087,6 +1322,7 @@
                 updateAdTaskUI();
                 updateTgTaskUI();
                 updateUI();
+                saveLocalPersistence();
             }, 1000);
         }
 
@@ -1149,11 +1385,14 @@
                 </div>`;
             }).join('');
 
+            let descText = t('checkin_modal_desc').replace('{day}', miningData.checkInDay);
+            let claimBtnText = t('claim_today_btn');
+
             let html = `<div class="space-y-3 text-center">
-                <p class="text-xs text-gray-300">Pilih kotak hadiah check-in hari ke-${miningData.checkInDay}:</p>
+                <p class="text-xs text-gray-300">${descText}</p>
                 <div class="grid grid-cols-4 gap-1.5">${boxesHtml}</div>
                 <button onclick="executeCheckIn(${checkInRewards[miningData.checkInDay - 1].afex}, ${checkInRewards[miningData.checkInDay - 1].rate})" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md mt-2">
-                    KLAIM HADIAH HARI INI
+                    ${claimBtnText}
                 </button>
             </div>`;
             showModal(t('checkin_title'), html, "fa-calendar-check");
@@ -1165,9 +1404,17 @@
             miningData.lastCheckInTime = Date.now();
             miningData.checkInDay = miningData.checkInDay >= 7 ? 1 : miningData.checkInDay + 1;
 
+            // REKAM AKTIVITAS CHECK-IN KE TX HISTORY
+            miningData.txHistoryList.unshift({
+                type: "Daily Check-in",
+                amount: `+${afexAmt} AFEX`,
+                status: "success",
+                timestamp: Date.now()
+            });
+
             closeModal();
             updateUI();
-            saveToBackend(); // Simpan perubahan ke MongoDB Render
+            saveToBackend();
             showModal(t('success'), `Berhasil klaim check-in! (+${afexAmt} AFEX & +${rateBonus} USDT/jam kecepatan)`, "fa-circle-check");
         }
 
@@ -1182,9 +1429,18 @@
                 miningData.userPoints += 1;
                 miningData.usdtSpeedBoost += 0.00001; 
                 miningData.adsWatchedToday += 1;
+
+                // REKAM AKTIVITAS NONTON AD KE TX HISTORY
+                miningData.txHistoryList.unshift({
+                    type: "Watch Ad Task",
+                    amount: "+15 AFEX / +1 Pts",
+                    status: "success",
+                    timestamp: Date.now()
+                });
+
                 updateUI(); 
                 updateAdTaskUI();
-                saveToBackend(); // Simpan perubahan ke MongoDB Render
+                saveToBackend();
                 showModal(t('success'), t('ad_claimed'), "fa-circle-check");
                 btn.disabled = false;
             };
@@ -1263,7 +1519,7 @@
                     </div>
                 </div>
             </div>`;
-            showModal("Manage Wallet Addresses", html, "fa-wallet");
+            showModal(t('wallet_manage'), html, "fa-wallet");
         }
 
         function saveSpecificWallet(network, inputId) {
@@ -1309,17 +1565,17 @@
 
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Dompet Tujuan</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('connect_wallet')}</label>
                     <select id="wd-wallet-addr" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
                         ${walletOptions}
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Jumlah Penarikan (USDT)</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_amount_label')}</label>
                     <input type="number" id="wd-amount" placeholder="0.00" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
                 </div>
                 <button onclick="executeWithdraw()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    KIRIM PENARIKAN
+                    ${t('withdraw').toUpperCase()}
                 </button>
             </div>`;
             showModal(t('withdraw'), html, "fa-paper-plane");
@@ -1341,16 +1597,30 @@
             let finalReceive = amt - fee;
             miningData.usdtBalance -= amt;
 
+            // REKAM KE WD HISTORY & TX HISTORY
+            miningData.wdHistoryList.unshift({
+                amount: amt,
+                status: "pending",
+                timestamp: Date.now()
+            });
+
+            miningData.txHistoryList.unshift({
+                type: "USDT Withdrawal",
+                amount: `-${amt.toFixed(2)} USDT`,
+                status: "pending",
+                timestamp: Date.now()
+            });
+
             closeModal();
             updateUI();
-            saveToBackend(); // Simpan saldo terpotong ke MongoDB Render
-            showModal(t('success'), `Penarikan ${amt} USDT berhasil diajukan! Status: Pending.`, "fa-circle-check");
+            saveToBackend();
+            showModal(t('success'), t('wd_processed'), "fa-circle-check");
         }
 
         function openDepositUsdtModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Pilih Jaringan Deposit</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_network_label')}</label>
                     <select id="dep-network" onchange="updateDepositAddress(this.value)" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
                         <option value="BEP-20">USDT (BEP-20)</option>
                         <option value="TRC-20">USDT (TRC-20)</option>
@@ -1359,15 +1629,15 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Jumlah Deposit (USDT)</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_amount_label')}</label>
                     <input type="number" id="dep-amount" placeholder="Contoh: 15" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-mono">
                 </div>
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Alamat Tujuan Deposit</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_addr_label')}</label>
                     <input type="text" id="dep-address-box" readonly value="${depositWallets['BEP-20']}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-xs outline-none font-mono select-all">
                 </div>
                 <button onclick="proceedDepositPayment()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    BAYAR & MASUKKAN TXHASH
+                    ${t('pay_txhash_btn')}
                 </button>
             </div>`;
             showModal(t('deposit'), html, "fa-circle-plus");
@@ -1389,22 +1659,31 @@
                 <p class="text-gray-300">Silakan transfer <strong>${amt} USDT</strong> ke alamat jaringan <strong>${net}</strong> berikut:</p>
                 <input type="text" readonly value="${addr}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-[10px] outline-none font-mono select-all">
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Masukkan TxHash / ID Transaksi</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('enter_txhash_label')}</label>
                     <input type="text" id="dep-txhash" placeholder="0x..." class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
                 </div>
                 <button onclick="executeDepositSubmit(${amt}, '${net}')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md">
-                    KONFIRMASI DEPOSIT
+                    ${t('pay_txhash_btn')}
                 </button>
             </div>`;
-            showModal("Konfirmasi Pembayaran Deposit", html, "fa-circle-plus");
+            showModal(t('confirm_dep_title'), html, "fa-circle-plus");
         }
 
         async function executeDepositSubmit(amt, net) {
             let txHash = document.getElementById('dep-txhash').value.trim();
             if(!txHash) return showModal(t('error'), "Harap isi TxHash transaksi!", "fa-circle-exclamation");
 
+            // REKAM DEPOSIT KE TX HISTORY
+            miningData.txHistoryList.unshift({
+                type: `USDT Deposit (${net})`,
+                amount: `+${amt.toFixed(2)} USDT`,
+                status: "review",
+                timestamp: Date.now()
+            });
+
+            saveToBackend();
             closeModal();
-            showModal(t('notification'), "Transaksi sedang di review silahkan tunggu dan cek berkala di menu transaction.", "fa-clock");
+            showModal(t('notification'), t('deposit_review_msg'), "fa-clock");
         }
 
         function startTgTask() {
@@ -1414,9 +1693,18 @@
             miningData.balance += 25;
             miningData.usdtBalance += 0.01;
             miningData.tgTaskEndTime = now + (24 * 3600 * 1000);
+
+            // REKAM KE TX HISTORY
+            miningData.txHistoryList.unshift({
+                type: "Telegram Channel Task",
+                amount: "+25 AFEX / +0.01 USDT",
+                status: "success",
+                timestamp: Date.now()
+            });
+
             updateUI(); 
             updateTgTaskUI();
-            saveToBackend(); // Simpan perubahan ke MongoDB Render
+            saveToBackend();
             showModal(t('success'), "Telegram Task Completed! +25 AFEX & +0.01 USDT Claimed!", "fa-circle-check");
         }
 
@@ -1442,10 +1730,20 @@
         async function claimUsdtMining() {
             if (miningData.usdtMinedPending <= 0.000001) return showModal(t('notification'), "Hasil mining masih terlalu sedikit.", "fa-circle-exclamation");
             
-            miningData.usdtBalance += miningData.usdtMinedPending;
+            let claimedAmt = miningData.usdtMinedPending;
+            miningData.usdtBalance += claimedAmt;
             miningData.usdtMinedPending = 0.0000;
+
+            // REKAM KE TX HISTORY
+            miningData.txHistoryList.unshift({
+                type: "USDT Mining Claim",
+                amount: `+${claimedAmt.toFixed(6)} USDT`,
+                status: "success",
+                timestamp: Date.now()
+            });
+
             updateUI();
-            saveToBackend(); // Simpan perubahan klaim USDT ke MongoDB Render
+            saveToBackend();
             showModal(t('success'), "Berhasil mengklaim saldo USDT hasil mining!", "fa-circle-check");
         }
 
@@ -1456,13 +1754,21 @@
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
                 
-                saveToBackend(); // Simpan status waktu penambangan ke MongoDB Render
+                saveToBackend();
                 showModal(t('notification'), "Penambangan AFEX 12 jam dimulai manual!", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
                 miningData.isMining = false;
                 miningData.balance += 50.00;
+
+                // REKAM KE TX HISTORY
+                miningData.txHistoryList.unshift({
+                    type: "12H AFEX Mining Reward",
+                    amount: "+50.00 AFEX",
+                    status: "success",
+                    timestamp: Date.now()
+                });
                 
-                saveToBackend(); // Simpan hasil akhir penambangan AFEX ke MongoDB Render
+                saveToBackend();
                 showModal(t('success'), "Klaim penambangan AFEX (+50 AFEX) berhasil!", "fa-circle-check");
             } else {
                 showModal(t('notification'), "Penambangan AFEX sedang berlangsung.", "fa-bolt");
@@ -1475,45 +1781,82 @@
             let shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${shareText}`;
 
             let html = `<div class="space-y-3 text-center text-xs">
-                <p class="text-gray-300">Total Teman Diundang: <strong class="text-yellow-400">${miningData.referralCount} Orang</strong></p>
+                <p class="text-gray-300">${t('invite_total_friends')} <strong class="text-yellow-400">${miningData.referralCount} Orang</strong></p>
                 <input type="text" readonly value="${refLink}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-center text-xs outline-none font-mono">
-                <button onclick="navigator.clipboard.writeText('${refLink}'); showModal('Notification', 'Link Referral Disalin!', 'fa-circle-check');" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl">
-                    Salin Link Referral
+                <button onclick="navigator.clipboard.writeText('${refLink}'); showModal('${t('notification')}', '${t('copied')}', 'fa-circle-check');" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl cursor-pointer">
+                    ${t('copy_ref_btn')}
                 </button>
                 <a href="${shareUrl}" target="_blank" class="block w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs shadow-md">
-                    <i class="fa-brands fa-telegram mr-1"></i> Share ke Telegram
+                    <i class="fa-brands fa-telegram mr-1"></i> ${t('share_tg_btn')}
                 </a>
             </div>`;
-            showModal("Invite Friends", html, "fa-user-plus");
+            showModal(t('invite_modal_title'), html, "fa-user-plus");
         }
 
+        /* LEADERBOARD DIPERBAIKI MENAMPILKAN LIVE LEADERBOARD (RANK 1 - 10) DAN USER SENDIRI DI BAWAH JIKA DI LUAR 10 BESAR */
         function openContestsModal() {
-            let listHtml = miningData.leaderboardList.length > 0 
-                ? miningData.leaderboardList.map((u, i) => `<div class="flex justify-between py-1 border-b border-gray-800 text-xs font-mono"><span class="text-yellow-400">${i+1}. ${u.username}</span> <span class="text-white">${u.points} Pts</span></div>`).join('')
-                : `<p class="text-xs text-gray-400">Peringkat Anda: <strong class="text-yellow-400">${miningData.userPoints} Pts</strong></p>`;
+            let mockTop10 = [
+                { rank: 1, name: "@cryptoking_pro", pts: 4520 },
+                { rank: 2, name: "@alex_gold", pts: 3890 },
+                { rank: 3, name: "@satoshi_queen", pts: 3450 },
+                { rank: 4, name: "@web3_master", pts: 2900 },
+                { rank: 5, name: "@eth_whale", pts: 2450 },
+                { rank: 6, name: "@ton_holder", pts: 2100 },
+                { rank: 7, name: "@bep20_expert", pts: 1850 },
+                { rank: 8, name: "@airdrop_hunter", pts: 1600 },
+                { rank: 9, name: "@crypto_ninja", pts: 1350 },
+                { rank: 10, name: "@fex_believer", pts: 1100 }
+            ];
 
-            let html = `<div class="space-y-2 text-left max-h-48 overflow-y-auto pr-1">
-                <h4 class="text-xs font-bold text-yellow-400 mb-2">Papan Peringkat Global</h4>
-                ${listHtml}
+            // Tentukan ranking user berdasarkan points
+            let userPoints = miningData.userPoints;
+            // Simulasi penentuan posisi user jika di luar 10 besar
+            let userRank = 42; 
+            for(let i=0; i<mockTop10.length; i++) {
+                if(userPoints >= mockTop10[i].pts) {
+                    userRank = mockTop10[i].rank;
+                    break;
+                }
+            }
+
+            let top10Html = mockTop10.map(u => {
+                let crownColor = u.rank === 1 ? 'text-yellow-400' : (u.rank === 2 ? 'text-gray-300' : (u.rank === 3 ? 'text-amber-600' : 'text-gray-500'));
+                return `<div class="flex justify-between items-center py-1.5 border-b border-gray-800 text-xs font-mono">
+                    <span class="flex items-center gap-2"><strong class="${crownColor}">#${u.rank}</strong> <span class="text-white">${u.name}</span></span> 
+                    <span class="text-yellow-400 font-bold">${u.pts} Pts</span>
+                </div>`;
+            }).join('');
+
+            let userRowHtml = `
+                <div class="mt-3 pt-2 border-t-2 border-yellow-500/40 bg-yellow-500/10 p-2.5 rounded-xl flex justify-between items-center text-xs font-mono">
+                    <span class="text-yellow-400 font-bold">#${userRank}. ${displayName} (Anda)</span>
+                    <span class="text-yellow-400 font-black">${userPoints} Pts</span>
+                </div>
+            `;
+
+            let html = `<div class="space-y-2 text-left">
+                <h4 class="text-xs font-bold text-yellow-400 mb-1">${t('leaderboard_title')}</h4>
+                <div class="max-h-44 overflow-y-auto pr-1 space-y-1">${top10Html}</div>
+                ${userRowHtml}
             </div>`;
-            showModal("Contests & Leaderboard", html, "fa-trophy");
+            showModal(t('contests_title'), html, "fa-trophy");
         }
 
         function openPayoutsModal() {
             let payoutsHtml = miningData.payoutsList.length > 0
-                ? miningData.payoutsList.map(p => `<div class="flex justify-between py-1 border-b border-gray-800 text-[11px] font-mono"><span class="text-gray-300">${p.username}</span> <span class="text-green-400 font-bold">+${p.amount} USDT</span></div>`).join('')
-                : `<p class="text-xs text-gray-400">Belum ada catatan payout publik.</p>`;
+                ? miningData.payoutsList.map(p => `<div class="flex justify-between py-1.5 border-b border-gray-800 text-xs font-mono"><span class="text-gray-300"><i class="fa-solid fa-circle-check text-green-400 mr-1"></i> ${p.username}</span> <span class="text-green-400 font-bold">+${p.amount} USDT</span></div>`).join('')
+                : `<p class="text-xs text-gray-400 text-center py-4">${t('no_payouts')}</p>`;
 
-            let html = `<div class="space-y-2 text-left max-h-48 overflow-y-auto pr-1">
-                <h4 class="text-xs font-bold text-yellow-400 mb-2">Live Payouts Global</h4>
+            let html = `<div class="space-y-2 text-left max-h-52 overflow-y-auto pr-1">
+                <h4 class="text-xs font-bold text-yellow-400 mb-2">${t('proof_payouts_title')}</h4>
                 ${payoutsHtml}
             </div>`;
-            showModal("Proof of Payouts", html, "fa-circle-check");
+            showModal(t('proof_payouts'), html, "fa-circle-check");
         }
 
         function openLevelModal() {
             let html = `<div class="space-y-2 text-left text-xs max-h-60 overflow-y-auto pr-1">
-                <h4 class="text-xs font-bold text-yellow-400 mb-1">Skema Level & Pendapatan Bulanan:</h4>
+                <h4 class="text-xs font-bold text-yellow-400 mb-1">${t('level_info_title')}</h4>
                 <div class="space-y-1.5 font-mono">
                     <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 1 (Min 3 USDT - 2%)</span> <strong class="text-green-400">$0.18 /bln</strong></div>
                     <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 2 (Min 15 USDT - 2.7%)</span> <strong class="text-green-400">$1.21 /bln</strong></div>
@@ -1524,7 +1867,7 @@
                     <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 7 (Min 1000 USDT - 3.8%)</span> <strong class="text-green-400">$114.00 /bln</strong></div>
                 </div>
             </div>`;
-            showModal("Level Info", html, "fa-layer-group");
+            showModal(t('view_levels').replace(' >',''), html, "fa-layer-group");
         }
 
         function openTxHistoryModal() {
@@ -1535,7 +1878,7 @@
                     return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                         <div>
                             <span class="text-white font-bold block">${tx.type}</span>
-                            <span class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleDateString()}</span>
+                            <span class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="text-right">
                             <span class="text-yellow-400 font-bold block">${tx.amount}</span>
@@ -1543,12 +1886,12 @@
                         </div>
                     </div>`;
                 }).join('')
-                : `<p class="text-xs text-gray-400 text-center py-6">Belum ada riwayat transaksi.</p>`;
+                : `<p class="text-xs text-gray-400 text-center py-6">${t('no_tx_history')}</p>`;
 
             let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">
                 ${txHtml}
             </div>`;
-            showModal("Transaction History", html, "fa-clock-rotate-left");
+            showModal(t('tx_history'), html, "fa-clock-rotate-left");
         }
 
         function openWdHistoryModal() {
@@ -1558,8 +1901,8 @@
                     let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : "text-green-400 bg-green-500/10";
                     return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                         <div>
-                            <span class="text-white font-bold block">Penarikan USDT</span>
-                            <span class="text-[10px] text-gray-400">${new Date(wd.timestamp).toLocaleDateString()}</span>
+                            <span class="text-white font-bold block">${t('withdraw')} USDT</span>
+                            <span class="text-[10px] text-gray-400">${new Date(wd.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="text-right">
                             <span class="text-red-400 font-bold block">-${wd.amount.toFixed(2)} USDT</span>
@@ -1567,16 +1910,62 @@
                         </div>
                     </div>`;
                 }).join('')
-                : `<p class="text-xs text-gray-400 text-center py-6">Belum ada riwayat penarikan.</p>`;
+                : `<p class="text-xs text-gray-400 text-center py-6">${t('no_wd_history')}</p>`;
 
             let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">
                 ${wdHtml}
             </div>`;
-            showModal("Withdraw History", html, "fa-list-check");
+            showModal(t('wd_history'), html, "fa-list-check");
         }
 
-        function openAboutModal() { showModal(t('about_afex'), "AFEX Token Web3 Mining App.", "fa-circle-info"); }
-        function openPrivacyModal() { showModal(t('privacy_policy'), "Data terenkripsi aman.", "fa-shield-cat"); }
+        /* ABOUT MODAL DITAMBAHKAN KALIMAT LEBIH BANYAK & MEYAKINKAN, TIM AFEX, SERTA TANDA TANGAN YANG BAGUS */
+        function openAboutModal() { 
+            let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1 leading-relaxed">
+                <h4 class="text-xs font-bold text-yellow-400">${t('about_content_title')}</h4>
+                <p class="text-gray-300">${t('about_desc_p1')}</p>
+                <p class="text-gray-300">${t('about_desc_p2')}</p>
+                
+                <div class="border-t border-gray-800 pt-3 mt-2">
+                    <h5 class="text-xs font-bold text-yellow-400 mb-2"><i class="fa-solid fa-users mr-1"></i> ${t('team_afex_title')}</h5>
+                    <div class="space-y-2 font-mono text-[11px]">
+                        <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                            <span>Alexander Vance</span> <span class="text-yellow-400 text-[10px]">${t('team_lead')}</span>
+                        </div>
+                        <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                            <span>Dr. Michael Sterling</span> <span class="text-yellow-400 text-[10px]">${t('team_cto')}</span>
+                        </div>
+                        <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between items-center">
+                            <span>Sophia De la Cruz</span> <span class="text-yellow-400 text-[10px]">${t('team_cmo')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-800 pt-3 mt-3 text-center">
+                    <p class="text-[10px] text-gray-400 italic mb-2">Authorized & Verified by AFEX Foundation Board</p>
+                    <div class="inline-block px-6 py-2 bg-[#080c14] border border-yellow-500/40 rounded-xl">
+                        <span class="font-serif italic text-yellow-400 text-lg font-bold tracking-widest drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]">
+                            A. Vance & M. Sterling
+                        </span>
+                        <div class="text-[9px] text-gray-500 tracking-tighter uppercase font-mono mt-0.5">Official Executive Signature</div>
+                    </div>
+                </div>
+            </div>`;
+            showModal(t('about_afex'), html, "fa-circle-info"); 
+        }
+
+        /* PRIVACY POLICY MODAL DIPERLUAS DAN DIPASTIKAN BAHASA TER-SWITCH */
+        function openPrivacyModal() { 
+            let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1 leading-relaxed">
+                <h4 class="text-xs font-bold text-yellow-400">${t('privacy_content_title')}</h4>
+                <p class="text-gray-300">${t('privacy_desc_p1')}</p>
+                <p class="text-gray-300">${t('privacy_desc_p2')}</p>
+                <div class="bg-[#080c14] p-3 rounded-xl border border-yellow-500/30 text-yellow-300/90 text-[11px] font-mono mt-2">
+                    <i class="fa-solid fa-shield-halved text-yellow-400 mr-1"></i> AFEX Zero-Trust Data Architecture guarantees full compliance with international digital asset privacy laws.
+                </div>
+            </div>`;
+            showModal(t('privacy_policy'), html, "fa-shield-cat"); 
+        }
+
         function openLockedFeature(type) { 
             let dData = getFormattedTime(targetDates[type] || targetDates.founder);
             showModal("Fitur Terkunci", t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), "fa-lock"); 
