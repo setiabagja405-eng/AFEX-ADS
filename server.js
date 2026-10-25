@@ -14,10 +14,10 @@ app.get('/', (req, res) => {
 // 2. Ambil URI dari Environment Variable Render (MONGODB_URI)
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// 3. Hubungkan ke MongoDB Atlas
+// 3. Hubungkan ke MongoDB Atlas dengan konfigurasi stabil
 mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
 })
 .then(() => console.log('Berhasil terhubung ke MongoDB Atlas!'))
 .catch(err => console.error('Koneksi MongoDB gagal:', err));
