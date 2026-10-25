@@ -485,8 +485,9 @@
             measurementId: "G-0WC0BJLJ7N"
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const analytics = firebase.analytics();
+        // Inisialisasi Firebase App, Analytics, dan Realtime Database Instance
+        const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+        const analytics = firebase.analytics ? firebase.analytics() : null;
         const db = firebase.database();
     </script>
 
@@ -721,28 +722,28 @@
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "اسٹریک के انعامات का दावा करें (दिन 1 - 7)",
                 ready_to_mine: "مائن کرنے के लिए तैयार", session_timer: "सत्र टाइमर:", tasks_title: "کام", 
                 tasks_desc: "پوائنٹس और انعامات حاصل کرنے के लिए काम مکمل کریں۔", swap_title: "ٹوکن سویپ", swap_subtitle: "جلد آرہا ہے", 
-                swap_heading: "AFEX ٹोकन سویپ एक्सचेंज", swap_desc: "AFEX ٹوکن्स को فوری طور पर USDT या TON में سویپ کریں۔",
-                connect_wallet: "والٹ connect करें", withdraw: "رقم نکالیں", your_balances: "آپ के टोकन بیلنس",
+                swap_heading: "AFEX ٹوکن سویپ एक्सचेंज", swap_desc: "AFEX ٹوکنس को فوری طور پر USDT या TON में سویپ کریں۔",
+                connect_wallet: "والٹ connect کریں", withdraw: "رقم نکالیں", your_balances: "آپ के टोकन بیلنس",
                 nav_mine: "ہوم", nav_task: "ٹاسک", nav_swap: "سویپ", nav_wallet: "والٹ", nav_profile: "پروفائل", 
-                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू करें", task_watch_ad: "اشتہار देखें", btn_watch: "دیکھیں", 
-                task_join_tg: "ٹیلیگرام چینل में شامل ہوں", btn_start: "शुरू करें", invite_sub: "دعوت دیں और انعام حاصل करें", contest_sub: "انعام حاصل करें",
-                sec_kyc: "سیکیورٹی और के व वाई C", community: "کمیونٹی", about: "के बारे में", payouts_sub: "عالمی صارفین की لائیو نکاسی",
-                notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک है",
+                vip_pass: "بانی وی آئی پی پاس", btn_start_mine: "12 گھنٹے کی آٹو مائننگ शुरू करें", task_watch_ad: "اشتہار دیکھیں", btn_watch: "دیکھیں", 
+                task_join_tg: "ٹیلیگرام چینل में شامل ہوں", btn_start: "شुरू करें", invite_sub: "دعوت دیں اور انعام حاصل کریں", contest_sub: "انعام حاصل کریں",
+                sec_kyc: "سیکیورٹی اور کے و वाई C", community: "کمیونٹی", about: "کے بارے میں", payouts_sub: "عالمی صارفین की لائیو نکاسی",
+                notification: "اطلاع", success: "کامیابی", error: "خرابی", copied: "کاپی ہو گیا!", btn_ok: "ٹھیک ہے",
                 founder_alert: "Founder masih terkunci silahkan tunggu informasi selanjutnya",
-                wallet_disconnected: "والٹ منقطع है", btn_connect: "جڑیں",
+                wallet_disconnected: "والٹ منقطع ہے", btn_connect: "جڑیں",
                 checkin_done: "आज पहले ही चेक-इन कर चुके हैं। कृपया कल वापस आएं।", checkin_success: "दिन के लिए चेक-इन सफल",
-                ad_claimed: "انعام का دعویٰ کیا गया! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، और +1 पॉइंट!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ दिया गया। انعام براہ راست दे دیا گیا!",
-                founder_avail: "{d} दिनों {time} में بانی دستیاب ہوں گے", lock_feature: "یہ خصوصیت {d} دنوں {time} میں کھل جائے گی۔",
-                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ के دوران سویپ की خصوصیت فعال होगी।",
-                wd_insufficient: "افوہ، آپ का بیلنس ناکافی है, براہ کرم مائننگ जारी रखें।", wd_processed: "رقم کامیابی کے ساتھ نکال दी गई!",
-                wallet_manage: "والٹ के पते کا انتظام करें", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "निकासी की تاریخ",
-                income_label: "آمدنی", view_levels: "لیول की معلومات देखें >", deposit: "جمع करें", claim: "دعویٰ करें",
+                ad_claimed: "انعام کا دعویٰ کیا گیا! +15 AFEX، +0.00001 اسپیڈ/گھنٹہ، اور +1 point!", ad_not_ready: "AdsGuard فعال / اشتہار छोड़ دیا گیا। انعام براہ راست دے دیا گیا!",
+                founder_avail: "{d} دنوں {time} میں بانی دستیاب ہوں گے", lock_feature: "یہ خصوصیت {d} دنوں {time} میں کھل جائے گی۔",
+                locked_list: "مقفل ({d} دن {time})", swap_locked: "مین نیٹ کے دوران سویپ کی خصوصیت فعال ہوگی۔",
+                wd_insufficient: "افوہ، آپ کا بیلنس ناکافی ہے, براہ کرم مائننگ جاری رکھیں۔", wd_processed: "رقم کامیابی کے ساتھ نکال دی گئی!",
+                wallet_manage: "والٹ کے پتے کا انتظام کریں", tx_history: "ٹرान्ज़یکشن ہسٹری", wd_history: "نیکا س کی تاریخ",
+                income_label: "آمدنی", view_levels: "لیول کی معلومات دیکھیں >", deposit: "جمع کریں", claim: "دعویٰ کریں",
                 ad_boost_label: "اشتہار بونس اسپیڈ:", per_hour: "/گھنٹہ", per_day: "/دن", per_month: "/माह",
-                start_swap_btn: "سویپ शुरू करें", instant_payouts: "फوری ادائیگی", your_uid: "آپ का UID",
-                a2f_title: "A2F سیکیورٹی (ایمیل और OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
-                invite_friends: "دوستों को مدعو करें", contests_title: "مقابلہ جات और لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
-                about_afex: "AFEX ٹوکن के बारे में", privacy_policy: "رازداری की پالیسی",
-                status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ लिया जा रहा है", status_verified: "تصدیق شدہ"
+                start_swap_btn: "سویپ शुरू کریں", instant_payouts: "فوری ادائیگی", your_uid: "آپ کا UID",
+                a2f_title: "A2F سیکیورٹی (ایمیل اور OTP)", face_title: "چہرہ شناخت (فیس اسکین)", id_title: "شناختی تصدیق (شناختی کارڈ/پاسپورٹ)",
+                invite_friends: "دوستوں کو مدعو کریں", contests_title: "مقابلہ جات اور لیڈر بورڈ", proof_payouts: "भुगतान का प्रमाण",
+                about_afex: "AFEX ٹوکن کے بارے میں", privacy_policy: "رازداری کی پالیسی",
+                status_unlocked: "ان لاک", status_unverified: "غير تصدیق شدہ", status_pending: "زیر التواء / جائزہ لیا جا رہا ہے", status_verified: "تصدیق شدہ"
             },
             zh: { 
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续奖励 (第 1 - 7 天)",
@@ -933,42 +934,63 @@
             { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
         ];
 
+        /* BACKEND SINKRONISASI DENGAN FIREBASE REALTIME DATABASE */
         function syncWithBackend() {
             const userRef = db.ref('users/' + userIdStr);
+
+            // Listener Realtime untuk data profil pengguna
             userRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    miningData.balance = Number(data.balance) || miningData.balance;
+                    miningData.balance = typeof data.balance !== 'undefined' ? Number(data.balance) : miningData.balance;
+                    miningData.usdtBalance = typeof data.usdtBalance !== 'undefined' ? Number(data.usdtBalance) : miningData.usdtBalance;
                     miningData.isMining = !!data.isMining;
                     miningData.miningStartTime = Number(data.miningStartTime) || 0;
                     miningData.miningEndTime = Number(data.miningEndTime) || 0;
-                    miningData.usdtBalance = Number(data.usdtBalance) || 0;
                     miningData.userPoints = Number(data.userPoints) || 0;
                     miningData.referralCount = Number(data.referralCount) || 0;
                     miningData.lastCheckInTime = Number(data.lastCheckInTime) || 0;
                     miningData.checkInDay = Number(data.checkInDay) || 1;
-                    miningData.connectedWallets = data.connectedWallets || [];
+                    miningData.usdtSpeedBoost = Number(data.usdtSpeedBoost) || 0.0000;
+                    miningData.usdtMinedPending = Number(data.usdtMinedPending) || miningData.usdtMinedPending;
+                    miningData.tgTaskEndTime = Number(data.tgTaskEndTime) || 0;
+                    miningData.adsWatchedToday = Number(data.adsWatchedToday) || 0;
+                    miningData.connectedWallets = Array.isArray(data.connectedWallets) ? data.connectedWallets : [];
                     miningData.isWalletConnected = miningData.connectedWallets.length > 0;
 
                     updateUI();
                 } else {
-                    userRef.set({
+                    // Pendaftaran awal pengguna baru ke Firebase RTDB
+                    const initialUserData = {
                         username: displayName,
-                        balance: miningData.balance,
-                        usdtBalance: miningData.usdtBalance,
-                        userPoints: miningData.userPoints,
+                        balance: 0.00,
+                        usdtBalance: 0.00,
+                        userPoints: 0,
+                        isMining: false,
+                        miningStartTime: 0,
+                        miningEndTime: 0,
+                        lastCheckInTime: 0,
+                        checkInDay: 1,
+                        usdtSpeedBoost: 0.0000,
+                        usdtMinedPending: 0.0000,
+                        tgTaskEndTime: 0,
+                        adsWatchedToday: 0,
+                        referralCount: 0,
                         connectedWallets: []
-                    });
+                    };
+                    userRef.set(initialUserData);
                 }
             });
 
+            // Listener Papan Peringkat Realtime
             db.ref('leaderboard').on('value', (snapshot) => {
                 const lbData = snapshot.val();
                 if (lbData) {
-                    miningData.leaderboardList = Object.values(lbData).sort((a, b) => b.points - a.points);
+                    miningData.leaderboardList = Object.values(lbData).sort((a, b) => (b.points || 0) - (a.points || 0));
                 }
             });
 
+            // Listener Bukti Penarikan Realtime
             db.ref('payouts').on('value', (snapshot) => {
                 const pData = snapshot.val();
                 if (pData) {
@@ -976,6 +998,7 @@
                 }
             });
 
+            // Listener Transaksi Pengguna
             db.ref('transactions/' + userIdStr).on('value', (snapshot) => {
                 const txData = snapshot.val();
                 if (txData) {
@@ -992,6 +1015,7 @@
                 }
             });
 
+            // Listener Penarikan Pengguna
             db.ref('withdrawals/' + userIdStr).on('value', (snapshot) => {
                 const wdData = snapshot.val();
                 if (wdData) {
@@ -1242,7 +1266,8 @@
                 db.ref('users/' + userIdStr).update({
                     balance: miningData.balance,
                     userPoints: miningData.userPoints,
-                    usdtSpeedBoost: miningData.usdtSpeedBoost
+                    usdtSpeedBoost: miningData.usdtSpeedBoost,
+                    adsWatchedToday: miningData.adsWatchedToday
                 });
                 db.ref('leaderboard/' + userIdStr).set({
                     username: displayName,
@@ -1513,7 +1538,8 @@
 
             db.ref('users/' + userIdStr).update({
                 balance: miningData.balance,
-                usdtBalance: miningData.usdtBalance
+                usdtBalance: miningData.usdtBalance,
+                tgTaskEndTime: miningData.tgTaskEndTime
             });
 
             db.ref('transactions/' + userIdStr).push({
@@ -1552,7 +1578,10 @@
             updateUI();
             showModal(t('success'), "Berhasil mengklaim saldo USDT hasil mining!", "fa-circle-check");
 
-            db.ref('users/' + userIdStr).update({ usdtBalance: miningData.usdtBalance });
+            db.ref('users/' + userIdStr).update({ 
+                usdtBalance: miningData.usdtBalance,
+                usdtMinedPending: 0.0000 
+            });
 
             db.ref('transactions/' + userIdStr).push({
                 type: 'USDT Mining Claim',
