@@ -1511,7 +1511,7 @@
             let lang = document.getElementById('lang-select').value || 'en';
             return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : (i18n['en'][key] || key);
         }
-let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) || {
+        let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) || {
             founder: Date.UTC(2026, 11, 31, 23, 59, 59),
             a2f: Date.UTC(2026, 10, 30, 23, 59, 59),
             face: Date.UTC(2026, 11, 15, 23, 59, 59),
@@ -1695,6 +1695,138 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
         function syncWithBackend() {
             console.log("Menunggu implementasi sinkronisasi backend...");
             // Logika API / fetch ke server bisa ditambahkan di sini nanti
+            // =========================================================================
+        // MULTILEVEL REFERRAL & MILESTONE REWARD SYSTEM (LOCAL STORAGE)
+        // =========================================================================
+
+        let referralConfig = JSON.parse(localStorage.getItem('afex_referral_config')) || {
+            levels: {
+                1: 2.0,  // 2%
+                2: 3.0,  // 3%
+                3: 4.0,  // 4%
+                4: 5.0,  // 5%
+                5: 6.0,  // 6%
+                6: 8.0,  // 8%
+                7: 10.0  // 10%
+            },
+            milestones: [
+                { count: 100, reward: 0.10, claimed: false },
+                { count: 500, reward: 1.00, claimed: false },
+                { count: 1000, reward: 5.00, claimed: false },
+                { count: 2500, reward: 20.00, claimed: false },
+                { count: 5000, reward: 50.00, claimed: false }
+            ]
+        };
+
+        function checkAndRegisterReferral() {
+            let startParam = tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : null;
+            if (!startParam) {
+                const urlParams = new URLSearchParams(window.location.search);
+                startParam = urlParams.get('ref');
+            }
+
+            if (startParam && startParam.startsWith('AFEX-')) {
+                let inviterUid = startParam.replace('AFEX-', '');
+                if (inviterUid !== userIdStr) {
+                    let referralRegistry = JSON.parse(localStorage.getItem(`afex_referrals_${inviterUid}`)) || [];
+                    let existingRef = referralRegistry.find(r => r.uid === userIdStr);
+                    if (!existingRef) {
+                        referralRegistry.push({
+                            uid: userIdStr,
+                            username: displayName,
+                            joinTimestamp: Date.now(),
+                            lastActiveTimestamp: Date.now(),
+                            totalMiningHours: 0,
+                            status: 'pending' // pending, valid, invalid
+                        });
+                        localStorage.setItem(`afex_referrals_${inviterUid}`, JSON.stringify(referralRegistry));
+                    }
+                }
+            }
+        }
+
+        function processReferralValidationRules() {
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.startsWith('afex_referrals_')) {
+                    let list = JSON.parse(localStorage.getItem(key)) || [];
+                    let updated = false;
+
+                    list.forEach(ref => {
+                        if (ref.status === 'pending') {
+                            let now = Date.now();
+                            let lastActive = ref.lastActiveTimestamp || ref.joinTimestamp;
+                            let diffHoursSinceLastActive = (now - lastActive) / (1000 * 3600);
+
+                            // Syarat 1: Jika 2 hari (48 jam) tidak aktif -> INVALID
+                            if (diffHoursSinceLastActive >= 48) {
+                                ref.status = 'invalid';
+                                updated = true;
+                            } 
+                            else {
+                                // Syarat 2: Progress Mining (Aktif Mining ditambahkan jamnya)
+                                let hoursPassed = (now - (ref.lastCheckTimestamp || ref.joinTimestamp)) / (1000 * 3600);
+                                if (hoursPassed > 0 && hoursPassed < 24) {
+                                    ref.totalMiningHours = (ref.totalMiningHours || 0) + hoursPassed;
+                                    ref.lastActiveTimestamp = now;
+                                    ref.lastCheckTimestamp = now;
+                                    updated = true;
+                                }
+
+                                // Syarat 3: Jika sudah mencapai 72 Jam (3 Hari) Mining -> VALID & BERI REWARD
+                                if (ref.totalMiningHours >= 72) {
+                                    ref.status = 'valid';
+                                    
+                                    let inviterUid = key.replace('afex_referrals_', '');
+                                    if (!ref.rewardClaimed && inviterUid === userIdStr) {
+                                        miningData.balance += 50; 
+                                        miningData.userPoints += 15; 
+                                        saveToBackend();
+                                        ref.rewardClaimed = true;
+                                    }
+                                    updated = true;
+                                }
+                            }
+                        }
+                    });
+
+                    if (updated) {
+                        localStorage.setItem(key, JSON.stringify(list));
+                    }
+                }
+            }
+        }
+
+        function calculateMultilevelReferralEarnings(friendBalance, level) {
+            let percentages = referralConfig.levels;
+            let rate = percentages[level] || 2.0;
+            return (friendBalance * (rate / 100));
+        }
+
+        function claimMilestoneGift(milestoneIndex) {
+            let validReferralCount = miningData.referredList ? miningData.referredList.filter(r => r.status === 'valid').length : 0;
+            let milestone = referralConfig.milestones[milestoneIndex];
+            if (!milestone) return;
+
+            if (validReferralCount >= milestone.count && !milestone.claimed) {
+                milestone.claimed = true;
+                miningData.usdtBalance += milestone.reward; 
+                
+                miningData.txHistoryList.unshift({
+                    type: `Milestone Reward (${milestone.count} Users)`,
+                    amount: `+$${milestone.reward.toFixed(2)} USDT`,
+                    status: "success",
+                    timestamp: Date.now()
+                });
+
+                localStorage.setItem('afex_referral_config', JSON.stringify(referralConfig));
+                saveToBackend();
+                updateUI();
+                showModal("🎁 Kado Milestone Claimed!", `Selamat! Anda berhasil mendapatkan hadiah sebesar $${milestone.reward.toFixed(2)} USDT.`, "fa-gift");
+            } else if (validReferralCount < milestone.count) {
+                showModal("Belum Tercapai", `Dibutuhkan ${milestone.count} pengguna valid untuk membuka kado ini.`, "fa-lock");
+            }
+        }
         }
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
@@ -1718,6 +1850,8 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000); // 12 Jam durasi baru
                 saveLocalPersistence();
+                checkAndRegisterReferral();
+            processReferralValidationRules();
             }
             syncWithBackend();
             startTimerInterval();
