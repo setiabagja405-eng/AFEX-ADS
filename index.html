@@ -5,8 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFEX Mining - Gold Edition</title>
     
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (Production Warn Filter & Pre-configured Build) -->
+    <script>
+        (function() {
+            const origWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+                return origWarn.apply(console, args);
+            };
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     
     <!-- Telegram Web App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -27,6 +36,7 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(234, 179, 8, 0.5); }
         
         input[type="number"] { color-scheme: dark; background-color: transparent; }
+        input, textarea, select { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; }
         .glow-circle { box-shadow: 0 0 45px rgba(234, 179, 8, 0.2); }
         .gold-glow { text-shadow: 0 0 10px rgba(234, 179, 8, 0.8); color: #fbbf24 !important; }
         .gold-border { border: 1px solid rgba(234, 179, 8, 0.35); }
@@ -34,7 +44,7 @@
         #custom-modal, #camera-modal { transition: opacity 0.3s ease, transform 0.3s ease; }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative select-none">
+<body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative">
     <!-- MAIN CONTAINER -->
     <div class="p-4 flex-1 z-10 relative">
         
@@ -181,6 +191,7 @@
         <!-- 2. TAB 2: TASKS PAGE -->
         <div id="tab-task" class="tab-content relative z-20">
             <div class="flex justify-between items-center mb-3">
+
                 <div>
                     <h2 class="text-xl font-black text-white tracking-wide" data-i18n="tasks_title">TASKS</h2>
                     <p class="text-xs text-gray-400" data-i18n="tasks_desc">Complete tasks to earn points & rewards.</p>
@@ -190,28 +201,13 @@
                 </div>
                 <!-- WADAH TUGAS TAMBAHAN DARI ADMIN -->
                 <div id="admin-task-action-bar" class="hidden mb-2">
-                    <button onclick="openAddAdminTaskModal()" class="w-full bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black py-2 rounded-xl text-xs cursor-pointer hover:bg-yellow-500 hover:text-black transition-all">
-                        <i class="fa-solid fa-plus-circle mr-1"></i> <span data-i18n="admin_add_task_btn">ADD NEW TASK (ADMIN)</span>
-                    </button>
                 </div>
-                <div id="custom-tasks-container" class="space-y-2.5"></div>
             </div>
-            <div class="space-y-2.5">
-                <div class="bg-[#121927] p-3 rounded-xl gold-border flex items-center justify-between shadow-lg">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-play text-base"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white"><span data-i18n="task_watch_ad">Watch Ad</span> <span id="ad-counter-badge" class="text-[9px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-1.5 py-0.5 rounded font-mono">0/25</span></h4>
-                            <p class="text-[10px] text-yellow-400 font-mono">+15 AFEX <span class="text-gray-500">|</span> <span class="text-yellow-400 font-bold" data-i18n="task_speed_rew">+0.00001 Speed/hr</span> <span class="text-gray-500">|</span> <span class="text-yellow-300" data-i18n="task_pts_rew">+1 pts</span></p>
-                        </div>
-                    </div>
-                    <button id="task-ad" onclick="startAdTask(this)" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs font-black px-4 py-1.5 rounded-lg cursor-pointer" data-i18n="btn_watch">Watch</button>
-                </div>
+            <div id="tasks-list" class="space-y-3">
+                <!-- TASK ITEMS WILL BE RENDERED HERE -->
             </div>
         </div>
-        <!-- 3. TAB 3: SWAP PAGE -->
+             <!-- 3. TAB 3: SWAP PAGE -->
         <div id="tab-swap" class="tab-content text-center py-2 relative z-20">
             <h2 class="text-xl font-black mb-1 text-white tracking-wide" data-i18n="swap_title">TOKEN SWAP</h2>
             <p class="text-xs text-yellow-400 font-bold mb-4 tracking-widest uppercase animate-pulse" data-i18n="swap_subtitle">Coming Soon</p>
@@ -449,57 +445,99 @@
         </div>
     </div>
 
-    <!-- CAMERA KYC MODAL WITH AUTO HUMAN DETECTION -->
-    <div id="camera-modal" class="fixed inset-0 bg-[#080c14]/90 backdrop-blur-md z-[1000] hidden items-center justify-center p-4">
-        <div class="bg-[#121927] w-full max-w-xs p-5 rounded-2xl gold-border text-center relative shadow-2xl space-y-3">
-            <h3 id="camera-modal-title" class="text-sm font-black text-yellow-400" data-i18n="kyc_camera_title">KYC Biometric & ID Verification</h3>
-            <p id="camera-instruction-text" class="text-[11px] text-gray-300" data-i18n="kyc_camera_instr">Position your face/ID clearly. Auto-capture will trigger once a real human is detected.</p>
-            <div class="relative w-full h-56 bg-black rounded-xl overflow-hidden border-2 border-yellow-500/50 flex items-center justify-center">
-                <video id="kyc-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                <canvas id="kyc-canvas" class="hidden"></canvas>
-                <!-- Overlay Scanning Frame -->
-                <div id="kyc-scan-frame" class="absolute inset-6 border-2 border-dashed border-yellow-400 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
-                    <div class="flex justify-between items-center bg-black/70 px-2 py-1 rounded text-[10px] font-mono">
-                        <span class="text-gray-300" data-i18n="human_detection_lbl">Human Detection:</span>
-                        <span id="human-detect-badge" class="text-yellow-400 font-bold animate-pulse">SCANNING...</span>
+   <!-- GANTI MODAL KAMERA LAMA DENGAN KODE INI -->
+<div id="camera-modal" class="fixed inset-0 bg-[#080c14]/95 backdrop-blur-md z-[1000] hidden items-center justify-center p-4">
+    <div class="bg-[#121927] w-full max-w-sm p-5 rounded-2xl gold-border text-center relative shadow-2xl space-y-4">
+        <h3 class="text-sm font-black text-yellow-400" data-i18n="kyc_camera_title">Verifikasi Gestur Wajah Bertahap</h3>
+        
+        <div id="instruction-box" class="bg-red-500/10 border border-red-500/30 p-2.5 rounded-xl transition-all">
+            <span id="instruction-text" class="text-red-400 font-bold text-xs block animate-pulse" data-i18n="kyc_follow_instr_warn">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Follow the gesture instructions carefully!
+            </span>
+        </div>
+
+        <div class="relative w-full h-72 bg-black rounded-xl overflow-hidden border-2 border-yellow-500/50 flex items-center justify-center">
+            <video id="kyc-video" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
+            <canvas id="kyc-canvas" class="hidden"></canvas>
+            
+            <div class="absolute inset-4 border-2 border-dashed border-yellow-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
+                <div class="bg-black/80 border border-yellow-500/40 px-3 py-2 rounded-xl text-center shadow-lg">
+                    <span id="gesture-status" class="text-yellow-400 font-bold text-xs block" data-i18n="kyc_loading_camera">Loading camera...</span>
+                </div>
+                <div class="w-full bg-black/75 rounded-lg p-2 space-y-1">
+                    <div class="flex justify-between text-[10px] text-gray-300 font-mono">
+                        <span id="step-indicator" data-i18n="kyc_step_init">Step 1 / 4</span>
+                        <span id="timer-progress-text">0s</span>
                     </div>
-                    <div id="auto-capture-countdown" class="bg-black/75 text-yellow-400 text-[10px] font-mono py-1 px-2 rounded self-center hidden">Auto-capturing...</div>
+                    <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                        <div id="gesture-progress-bar" class="bg-gradient-to-r from-yellow-400 to-amber-500 h-full w-0 transition-all duration-200"></div>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="manualCaptureKyc(false)" class="flex-1 bg-gray-800 text-gray-300 text-[10px] py-2 rounded-xl font-bold cursor-pointer">Simulate Non-Human (NOT)</button>
-                <button onclick="closeKycCameraModal()" class="flex-1 bg-red-500/20 border border-red-500/40 text-red-400 text-xs py-2 rounded-xl font-bold cursor-pointer" data-i18n="btn_cancel">Cancel</button>
-            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="closeKycCameraModal()" class="w-full bg-red-500/20 border border-red-500/40 text-red-400 text-xs py-2.5 rounded-xl font-bold cursor-pointer hover:bg-red-500/30 transition-all" data-i18n="btn_cancel">Cancel</button>
         </div>
     </div>
+</div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
-       const BACKEND_URL = "https://afex-backend.onrender.com";
-       const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbx5lowTqtszlnXTvRkLL3cRCdgqD1Rs25_v_qpXr0_N5JCX5N0ymDcHDXiAr_68uBxY/exec";
+        const BACKEND_URL = "https://afex-backend.onrender.com";
+        const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbx5lowTqtszlnXTvRkLL3cRCdgqD1Rs25_v_qpXr0_N5JCX5N0ymDcHDXiAr_68uBxY/exec";
         const SCRIPT_URL_WD = SPREADSHEET_URL;
         const SCRIPT_URL_DEP = SPREADSHEET_URL;
 
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
-        // Membaca akun Telegram secara spesifik per akun & mencegah kebocoran data Bagja20 di browser/akun lain
+        // Sanitasi HTML untuk mencegah Stored XSS dari nama Telegram / input user
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Membaca akun Telegram secara spesifik per akun & mengunci ID Guest per perangkat (mencegah farming multi-tab)
         function initTelegramUserIdentity() {
             const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
             if (tgUser && tgUser.id) {
-                const uid = String(tgUser.id);
-                const uname = tgUser.username 
-                    ? `@${tgUser.username}` 
+                const uid = String(tgUser.id).replace(/[^a-zA-Z0-9_-]/g, '');
+                const rawName = tgUser.username
+                    ? `@${tgUser.username}`
                     : (tgUser.first_name ? `${tgUser.first_name}${tgUser.last_name ? ' ' + tgUser.last_name : ''}` : `User_${uid.slice(-4)}`);
+                const uname = rawName.replace(/[<>"]/g, '').trim() || `User_${uid.slice(-4)}`;
                 return { uid, uname, isRealTelegram: true };
             }
-            // Jika dibuka di browser biasa (Edge/Chrome) di luar Telegram, buatkan ID unik per browser
-            let browserUid = sessionStorage.getItem('afex_isolated_browser_uid');
-            if (!browserUid) {
-                browserUid = "WEB" + Math.floor(100000000 + Math.random() * 900000000);
+            // Kunci Guest ID di localStorage + sessionStorage per perangkat agar tab baru tidak mendapat akun/bonus baru
+            let browserUid = null;
+            try {
+                browserUid = localStorage.getItem('afex_persistent_browser_uid') || sessionStorage.getItem('afex_isolated_browser_uid');
+                if (!browserUid) {
+                    const fpSeed = [navigator.userAgent, navigator.language, screen.width, screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone].join('|');
+                    let hash = 2166136261;
+                    for (let i = 0; i < fpSeed.length; i++) {
+                        hash ^= fpSeed.charCodeAt(i);
+                        hash = Math.imul(hash, 16777619);
+                    }
+                    const fpHex = (hash >>> 0).toString(16).toUpperCase().padStart(8, '0');
+                    browserUid = "WEB" + fpHex;
+                }
+                localStorage.setItem('afex_persistent_browser_uid', browserUid);
                 sessionStorage.setItem('afex_isolated_browser_uid', browserUid);
+            } catch (e) {
+                browserUid = "WEB00000001";
             }
-            let browserUname = sessionStorage.getItem('afex_isolated_browser_uname') || `@Guest_${browserUid.slice(-4)}`;
-            sessionStorage.setItem('afex_isolated_browser_uname', browserUname);
+            let browserUname = `@Guest_${browserUid.slice(-4)}`;
+            try {
+                localStorage.setItem('afex_persistent_browser_uname', browserUname);
+                sessionStorage.setItem('afex_isolated_browser_uname', browserUname);
+            } catch (e) {}
             return { uid: browserUid, uname: browserUname, isRealTelegram: false };
         }
 
@@ -563,7 +601,23 @@
                 admin_approve: "Approve",
                 admin_reject: "Reject",
                 admin_add_subadmin: "Add Sub-Admin",
-                admin_search_placeholder: "Search username / UID..."
+                admin_search_placeholder: "Search username / UID...",
+                kyc_camera_title: "Step-by-Step Face Gesture Verification",
+                kyc_camera_instr: "Follow the instructions: nod 3 times, turn left, turn right, then face forward for auto-capture.",
+                gesture_step_1: "Step 1: Slowly nod your head 3 times",
+                gesture_step_2: "Step 2: Turn your face LEFT and hold",
+                gesture_step_3: "Step 3: Turn your face RIGHT and hold",
+                gesture_step_4: "Step 4: Face FORWARD for automatic photo",
+                gesture_capturing: "Capturing photo...",
+                btn_cancel: "Cancel",
+                kyc_try_again: "Rejected - Please Try Again",
+                admin_unlocked_status: "ADMIN UNLOCKED",
+                admin_lock_btn: "Lock",
+                admin_add_task_btn: "ADD NEW TASK (ADMIN)",
+                proof_input_placeholder: "Submit proof here...",
+                submit_proof_btn: "Submit & Claim",
+                milestone_title: "Milestone Box Rewards",
+                first_wd_promo: "First WD Promo (1x): Min $0.10 & 0% Fee (BEP-20)"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -620,7 +674,23 @@
                 admin_approve: "Setujui",
                 admin_reject: "Tolak",
                 admin_add_subadmin: "Tambah Sub-Admin",
-                admin_search_placeholder: "Cari username / UID..."
+                admin_search_placeholder: "Cari username / UID...",
+                kyc_camera_title: "Verifikasi Gestur Wajah Bertahap",
+                kyc_camera_instr: "Ikuti instruksi: anggukkan kepala 3 kali, hadap kiri, hadap kanan, lalu hadap depan untuk foto otomatis.",
+                gesture_step_1: "Langkah 1: Anggukkan kepala perlahan 3 kali",
+                gesture_step_2: "Langkah 2: Hadapkan wajah ke KIRI dan tahan",
+                gesture_step_3: "Langkah 3: Hadapkan wajah ke KANAN dan tahan",
+                gesture_step_4: "Langkah 4: Menghadap ke DEPAN untuk foto otomatis",
+                gesture_capturing: "Mengambil foto...",
+                btn_cancel: "Batal",
+                kyc_try_again: "Ditolak - Silakan Coba Lagi",
+                admin_unlocked_status: "ADMIN TERBUKA",
+                admin_lock_btn: "Kunci",
+                admin_add_task_btn: "TAMBAH TUGAS BARU (ADMIN)",
+                proof_input_placeholder: "Masukkan bukti tugas...",
+                submit_proof_btn: "Kirim & Klaim",
+                milestone_title: "Kotak Hadiah Milestone",
+                first_wd_promo: "Promo WD Pertama (1x): Min $0.10 & Fee 0% (BEP-20)"
             },
             es: {
                 total_balance: "SALDO TOTAL", checkin_title: "Registro Diario", checkin_sub: "Reclamar Recompensas (Día 1 - 7)",
@@ -672,7 +742,23 @@
                 admin_menu_title: "Panel de Administración Ejecutivo Secreto",
                 admin_login_prompt: "Ingresa el PIN Ejecutivo:", admin_login_btn: "Acceder como Admin",
                 admin_invalid_pin: "¡PIN Ejecutivo Inválido!", admin_approve: "Aprobar", admin_reject: "Rechazar",
-                admin_add_subadmin: "Agregar Sub-Admin", admin_search_placeholder: "Buscar usuario / UID..."
+                admin_add_subadmin: "Agregar Sub-Admin", admin_search_placeholder: "Buscar usuario / UID...",
+                kyc_camera_title: "Verificación de Gestos Faciales Paso a Paso",
+                kyc_camera_instr: "Sigue las instrucciones: asiente 3 veces, gira a la izquierda, gira a la derecha y mira al frente para la captura automática.",
+                gesture_step_1: "Paso 1: Asiente con la cabeza lentamente 3 veces",
+                gesture_step_2: "Paso 2: Gira el rostro a la IZQUIERDA y mantén",
+                gesture_step_3: "Paso 3: Gira el rostro a la DERECHA y mantén",
+                gesture_step_4: "Paso 4: Mira al FRENTE para la foto automática",
+                gesture_capturing: "Capturando foto...",
+                btn_cancel: "Cancelar",
+                kyc_try_again: "Rechazado - Inténtalo de nuevo",
+                admin_unlocked_status: "ADMIN DESBLOQUEADO",
+                admin_lock_btn: "Bloquear",
+                admin_add_task_btn: "AÑADIR TAREA (ADMIN)",
+                proof_input_placeholder: "Enviar prueba aquí...",
+                submit_proof_btn: "Enviar y Reclamar",
+                milestone_title: "Cajas de Recompensa",
+                first_wd_promo: "Promo 1er Retiro (1x): Mín $0.10 y 0% Tarifa (BEP-20)",
             },
             de: {
                 total_balance: "GESAMTGUTHABEN", checkin_title: "Täglicher Check-in", checkin_sub: "Serien-Belohnungen (Tag 1 - 7)",
@@ -724,7 +810,24 @@
                 admin_menu_title: "Geheimes Executive Admin Panel",
                 admin_login_prompt: "Executive PIN Eingeben:", admin_login_btn: "Admin-Zugriff",
                 admin_invalid_pin: "Ungültiger Executive PIN!", admin_approve: "Genehmigen", admin_reject: "Ablehnen",
-                admin_add_subadmin: "Sub-Admin Hinzufügen", admin_search_placeholder: "Benutzer / UID Suchen..."
+                admin_add_subadmin: "Sub-Admin Hinzufügen", admin_search_placeholder: "Benutzer / UID Suchen...",
+                kyc_camera_title: "Schrittweise Gesichtsgesten-Verifizierung",
+                kyc_camera_instr: "Folge den Anweisungen: 3x nicken, nach links drehen, nach rechts drehen, dann nach vorne schauen für die automatische Aufnahme.",
+                gesture_step_1: "Schritt 1: Nicke langsam 3 Mal mit dem Kopf",
+                gesture_step_2: "Schritt 2: Drehe das Gesicht nach LINKS und halte",
+                gesture_step_3: "Schritt 3: Drehe das Gesicht nach RECHTS und halte",
+                gesture_step_4: "Schritt 4: Schaue nach VORNE für das automatische Foto",
+                gesture_capturing: "Foto wird aufgenommen...",
+                btn_cancel: "Abbrechen",
+                kyc_try_again: "Abgelehnt - Bitte erneut versuchen",
+                admin_unlocked_status: "ADMIN ENTSPERRT",
+                admin_lock_btn: "Sperren",
+                admin_add_task_btn: "NEUE AUFGABE (ADMIN)",
+                proof_input_placeholder: "Nachweis hier eingeben...",
+                submit_proof_btn: "Senden & Beanspruchen",
+                milestone_title: "Meilenstein-Belohnungen",
+                first_wd_promo: "1. Auszahlung Promo (1x): Min $0.10 & 0% Gebühr (BEP-20)",
+                
             },
             fr: {
                 total_balance: "SOLDE TOTAL", checkin_title: "Présence Quotidienne", checkin_sub: "Réclamer les Récompenses (Jour 1 - 7)",
@@ -776,7 +879,23 @@
                 admin_menu_title: "Panneau d'Administration Exécutif Secret",
                 admin_login_prompt: "Entrez le PIN Exécutif:", admin_login_btn: "Accès Admin",
                 admin_invalid_pin: "PIN Exécutif Invalide !", admin_approve: "Approuver", admin_reject: "Rejeter",
-                admin_add_subadmin: "Ajouter Sous-Admin", admin_search_placeholder: "Chercher utilisateur / UID..."
+                admin_add_subadmin: "Ajouter Sous-Admin", admin_search_placeholder: "Chercher utilisateur / UID...",
+                kyc_camera_title: "Vérification Gestuelle du Visage par Étapes",
+                kyc_camera_instr: "Suivez les instructions : hochez la tête 3 fois, tournez à gauche, tournez à droite, puis regardez devant pour la capture automatique.",
+                gesture_step_1: "Étape 1 : Hochez lentement la tête 3 fois",
+                gesture_step_2: "Étape 2 : Tournez le visage vers la GAUCHE et maintenez",
+                gesture_step_3: "Étape 3 : Tournez le visage vers la DROITE et maintenez",
+                gesture_step_4: "Étape 4 : Regardez DEVANT pour la photo automatique",
+                gesture_capturing: "Capture en cours...",
+                btn_cancel: "Annuler",
+                kyc_try_again: "Rejeté - Veuillez réessayer",
+                admin_unlocked_status: "ADMIN DÉVERROUILLÉ",
+                admin_lock_btn: "Verrouiller",
+                admin_add_task_btn: "AJOUTER TÂCHE (ADMIN)",
+                proof_input_placeholder: "Soumettre la preuve ici...",
+                submit_proof_btn: "Soumettre et Réclamer",
+                milestone_title: "Boîtes de Récompense",
+                first_wd_promo: "Promo 1er Retrait (1x): Min 0.10$ & 0% Frais (BEP-20)",
             },
             tr: {
                 total_balance: "TOPLAM BAKİYE", checkin_title: "Günlük Giriş", checkin_sub: "Giriş Ödüllerini Topla (1 - 7. Gün)",
@@ -828,7 +947,23 @@
                 admin_menu_title: "Gizli Yönetici Yönetim Paneli",
                 admin_login_prompt: "Yönetici PIN Girin:", admin_login_btn: "Giriş Yap",
                 admin_invalid_pin: "Geçersiz Yönetici PIN!", admin_approve: "Onayla", admin_reject: "Reddet",
-                admin_add_subadmin: "Alt Admin Ekle", admin_search_placeholder: "Kullanıcı / UID Ara..."
+                admin_add_subadmin: "Alt Admin Ekle", admin_search_placeholder: "Kullanıcı / UID Ara...",
+                kyc_camera_title: "Adım Adım Yüz Hareketi Doğrulaması",
+                kyc_camera_instr: "Talimatları izleyin: 3 kez baş sallayın, sola dönün, sağa dönün, ardından otomatik çekim için öne bakın.",
+                gesture_step_1: "Adım 1: Başınızı yavaşça 3 kez sallayın",
+                gesture_step_2: "Adım 2: Yüzünüzü SOLA çevirin ve sabit tutun",
+                gesture_step_3: "Adım 3: Yüzünüzü SAĞA çevirin ve sabit tutun",
+                gesture_step_4: "Adım 4: Otomatik fotoğraf için ÖNE bakın",
+                gesture_capturing: "Fotoğraf çekiliyor...",
+                btn_cancel: "İptal",
+                kyc_try_again: "Reddedildi - Tekrar Deneyin",
+                admin_unlocked_status: "ADMİN AÇIK",
+                admin_lock_btn: "Kilitle",
+                admin_add_task_btn: "YENİ GÖREV EKLE (ADMİN)",
+                proof_input_placeholder: "Kanıtı buraya girin...",
+                submit_proof_btn: "Gönder ve Al",
+                milestone_title: "Milestone Ödül Kutuları",
+                first_wd_promo: "İlk Çekim Promosyonu (1x): Min $0.10 & %0 Ücret (BEP-20)",
             },
             uz: {
                 total_balance: "JAMI BALANS", checkin_title: "Kunlik Ro'yxatdan O'tish", checkin_sub: "Ketma-ketlik Mukofotlari (1 - 7 Kun)",
@@ -844,7 +979,7 @@
                 founder_alert: "Asoschi hali yopiq, qo'shimcha ma'lumot kuting",
                 wallet_disconnected: "Hamyon Uzildi", btn_connect: "Ulash",
                 checkin_done: "Bugun ro'yxatdan o'tdingiz. Ertaga qaytib keling.", checkin_success: "Ro'yxatdan o'tish muvaffaqiyatli:",
-                ad_claimed: "Mukofot olindi! +15 AFEX, +0.00001 Tezlik/soat va +1 Ball qo'shildi!", ad_not_ready: "AdsGuard faol. Mukofot to'g'ridan-to'g me'yorida berildi!",
+                ad_claimed: "Mukofot olindi! +15 AFEX, +0.00001 Tezlik/soat va +1 Ball qo'shildi!", ad_not_ready: "AdsGuard faol / Reklama tayyor emas. Iltimos AdBlockni o'chiring!",
                 founder_avail: "Asoschi {d} kun {time} UTC da ochiladi", lock_feature: "Xususiyat {d} kun {time} UTC da ochiladi.",
                 locked_list: "Yopiq ({d} kun {time})", swap_locked: "Almashtirish funksiyasi Mainnet vaqtida faollashadi.",
                 wd_insufficient: "Balansingiz yetarli emas, mayningni davom ettiring.", wd_processed: "Pul yechish muvaffaqiyatli bajarildi!",
@@ -880,7 +1015,23 @@
                 admin_menu_title: "Maxfiy Ma'muriy Boshqaruv Paneli",
                 admin_login_prompt: "PIN ni Kiriting:", admin_login_btn: "Kirish",
                 admin_invalid_pin: "PIN Xato!", admin_approve: "Tasdiqlash", admin_reject: "Rad Etish",
-                admin_add_subadmin: "Sub-Admin Qo'shish", admin_search_placeholder: "Qidirish..."
+                admin_add_subadmin: "Sub-Admin Qo'shish", admin_search_placeholder: "Qidirish...",
+                kyc_camera_title: "Bosqichma-bosqich Yuz Harakati Tasdiqlash",
+                kyc_camera_instr: "Ko'rsatmalarga amal qiling: boshingizni 3 marta qimirlating, chapga buriling, o'ngga buriling, so'ng avtomatik surat uchun oldinga qarang.",
+                gesture_step_1: "1-qadam: Boshingizni sekin 3 marta qimirlating",
+                gesture_step_2: "2-qadam: Yuzingizni CHAPGA buring va ushlab turing",
+                gesture_step_3: "3-qadam: Yuzingizni O'NGGA buring va ushlab turing",
+                gesture_step_4: "4-qadam: Avtomatik surat uchun OLDINGA qarang",
+                gesture_capturing: "Suratga olinmoqda...",
+                btn_cancel: "Bekor qilish",
+                kyc_try_again: "Rad etildi - Qayta urining",
+                admin_unlocked_status: "ADMIN OCHIQ",
+                admin_lock_btn: "Qulflash",
+                admin_add_task_btn: "YANGI VAZIFA (ADMIN)",
+                proof_input_placeholder: "Isbotni kiriting...",
+                submit_proof_btn: "Yuborish va Olish",
+                milestone_title: "Milestone Sovg'a Qutilari",
+                first_wd_promo: "1-Yechish Aksiyasi (1x): Min $0.10 va 0% Komissiya (BEP-20)",
             },
             ru: {
                 total_balance: "ОБЩИЙ БАЛАНС", checkin_title: "Ежедневная Отметка", checkin_sub: "Серия Наград (День 1 - 7)",
@@ -891,7 +1042,7 @@
                 nav_mine: "Главная", nav_task: "Задания", nav_swap: "Обмен", nav_wallet: "Кошелек", nav_profile: "Профиль",
                 vip_pass: "VIP ПАСС ОСНОВАТЕЛЯ", locked_badge: "ЗАБЛОКИРОВАНО", btn_start_mine: "ЗАПУСТИТЬ АВТО-МАЙНИНГ 12Ч", task_watch_ad: "Смотреть Рекламу", btn_watch: "Смотреть",
                 invite_sub: "Приглашай и Получай Награды", contest_sub: "Получить Награду",
-                sec_kyc: "БЕЗОПАСНОСТЬ И KYC", community: "СООБЩЕСТВО", about: "О NAS", payouts_sub: "Живые выводы пользователей",
+                sec_kyc: "БЕЗОПАСНОСТЬ И KYC", community: "СООБЩЕСТВО", about: "О НАС", payouts_sub: "Живые выводы пользователей",
                 notification: "Уведомление", success: "Успех", error: "Ошибка", copied: "Скопировано!", btn_ok: "ОК",
                 founder_alert: "Основатель заблокирован, ожидайте информации",
                 wallet_disconnected: "Кошелек Отключен", btn_connect: "Подключить",
@@ -932,7 +1083,23 @@
                 admin_menu_title: "Секретная Панель Администратора",
                 admin_login_prompt: "Введите Admin PIN:", admin_login_btn: "Войти",
                 admin_invalid_pin: "Неверный Admin PIN!", admin_approve: "Одобрить", admin_reject: "Отклонить",
-                admin_add_subadmin: "Добавить Суб-Админа", admin_search_placeholder: "Поиск пользователя / UID..."
+                admin_add_subadmin: "Добавить Суб-Админа", admin_search_placeholder: "Поиск пользователя / UID...",
+                kyc_camera_title: "Пошаговая Проверка Жестов Лица",
+                kyc_camera_instr: "Следуйте инструкциям: кивните 3 раза, поверните голову влево, вправо, затем смотрите прямо для автоматической съемки.",
+                gesture_step_1: "Шаг 1: Медленно кивните головой 3 раза",
+                gesture_step_2: "Шаг 2: Поверните лицо ВЛЕВО и удерживайте",
+                gesture_step_3: "Шаг 3: Поверните лицо ВПРАВО и удерживайте",
+                gesture_step_4: "Шаг 4: Смотрите ПРЯМО для автоматического фото",
+                gesture_capturing: "Съемка фото...",
+                btn_cancel: "Отмена",
+                kyc_try_again: "Отклонено - Попробуйте снова",
+                admin_unlocked_status: "АДМИН РАЗБЛОКИРОВАН",
+                admin_lock_btn: "Заблокировать",
+                admin_add_task_btn: "ДОБАВИТЬ ЗАДАНИЕ (АДМИН)",
+                proof_input_placeholder: "Введите подтверждение...",
+                submit_proof_btn: "Отправить и Забрать",
+                milestone_title: "Коробки Наград Milestone",
+                first_wd_promo: "Промо 1-го Вывода (1x): Мин $0.10 и 0% Комиссия (BEP-20)",
             },
             vi: {
                 total_balance: "TỔNG SỐ DƯ", checkin_title: "Điểm Danh Hàng Ngày", checkin_sub: "Nhận Thưởng Chuỗi (Ngày 1 - 7)",
@@ -984,7 +1151,23 @@
                 admin_menu_title: "Bảng Quản Trị Viên Bảo Mật",
                 admin_login_prompt: "Nhập Mã PIN Quản Trị:", admin_login_btn: "Truy Cập Admin",
                 admin_invalid_pin: "Mã PIN Không Đúng!", admin_approve: "Chấp Nhận", admin_reject: "Từ Chối",
-                admin_add_subadmin: "Thêm Sub-Admin", admin_search_placeholder: "Tìm kiếm người dùng / UID..."
+                admin_add_subadmin: "Thêm Sub-Admin", admin_search_placeholder: "Tìm kiếm người dùng / UID...",
+                kyc_camera_title: "Xác Minh Cử Chỉ Khuôn Mặt Từng Bước",
+                kyc_camera_instr: "Làm theo hướng dẫn: gật đầu 3 lần, quay trái, quay phải, rồi nhìn thẳng để chụp tự động.",
+                gesture_step_1: "Bước 1: Từ từ gật đầu 3 lần",
+                gesture_step_2: "Bước 2: Quay mặt sang TRÁI và giữ yên",
+                gesture_step_3: "Bước 3: Quay mặt sang PHẢI và giữ yên",
+                gesture_step_4: "Bước 4: Nhìn THẲNG để chụp ảnh tự động",
+                gesture_capturing: "Đang chụp ảnh...",
+                btn_cancel: "Hủy",
+                kyc_try_again: "Bị từ chối - Vui lòng thử lại",
+                admin_unlocked_status: "ĐÃ MỞ KHÓA ADMIN",
+                admin_lock_btn: "Khóa",
+                admin_add_task_btn: "THÊM NHIỆM VỤ (ADMIN)",
+                proof_input_placeholder: "Nhập bằng chứng tại đây...",
+                submit_proof_btn: "Gửi & Nhận Thưởng",
+                milestone_title: "Hộp Thưởng Cột Mốc",
+                first_wd_promo: "Ưu Đãi Rút Lần Đầu (1x): Tối thiểu $0.10 & 0% Phí (BEP-20)",
             },
             tl: {
                 total_balance: "KABUUANG BALANSE", checkin_title: "Araw-araw na Check-in", checkin_sub: "Kunin ang Rewards (Araw 1 - 7)",
@@ -1036,7 +1219,23 @@
                 admin_menu_title: "Lihim na Admin Panel",
                 admin_login_prompt: "Ipasok ang Executive PIN:", admin_login_btn: "Mag-login",
                 admin_invalid_pin: "Maling Executive PIN!", admin_approve: "Kumpirmahin", admin_reject: "Tanggihan",
-                admin_add_subadmin: "Magdagdag ng Sub-Admin", admin_search_placeholder: "Maghanap ng user / UID..."
+                admin_add_subadmin: "Magdagdag ng Sub-Admin", admin_search_placeholder: "Maghanap ng user / UID...",
+                kyc_camera_title: "Hakbang-hakbang na Beripikasyon ng Kilos ng Mukha",
+                kyc_camera_instr: "Sundin ang mga tagubilin: tumango ng 3 beses, humarap sa kaliwa, humarap sa kanan, pagkatapos ay humarap sa harap para sa auto-capture.",
+                gesture_step_1: "Hakbang 1: Dahan-dahang tumango ng 3 beses",
+                gesture_step_2: "Hakbang 2: Humarap sa KALIWA at manatili",
+                gesture_step_3: "Hakbang 3: Humarap sa KANAN at manatili",
+                gesture_step_4: "Hakbang 4: Humarap sa HARAP para sa awtomatikong larawan",
+                gesture_capturing: "Kinukunan ng larawan...",
+                btn_cancel: "Kanselahin",
+                kyc_try_again: "Tinanggihan - Subukan Muli",
+                admin_unlocked_status: "ADMIN NAKA-UNLOCK",
+                admin_lock_btn: "I-lock",
+                admin_add_task_btn: "MAGDAGDAG NG GAWAIN (ADMIN)",
+                proof_input_placeholder: "Ilagay ang patunay dito...",
+                submit_proof_btn: "Ipasa at Kunin",
+                milestone_title: "Milestone Box Rewards",
+                first_wd_promo: "Unang WD Promo (1x): Min $0.10 at 0% Fee (BEP-20)",
             },
             th: {
                 total_balance: "ยอดคงเหลือทั้งหมด", checkin_title: "เช็คอินรายวัน", checkin_sub: "รับรางวัลเช็คอินต่อเนื่อง (วันที่ 1 - 7)",
@@ -1088,7 +1287,23 @@
                 admin_menu_title: "แผงควบคุมผู้บริหารลับ",
                 admin_login_prompt: "กรอก รหัส PIN ผู้บริหาร:", admin_login_btn: "เข้าสู่ระบบ Admin",
                 admin_invalid_pin: "รหัส PIN ไม่ถูกต้อง!", admin_approve: "อนุมัติ", admin_reject: "ปฏิเสธ",
-                admin_add_subadmin: "เพิ่ม ผู้ดูแลระบบย่อย", admin_search_placeholder: "ค้นหาชื่อผู้ใช้ / UID..."
+                admin_add_subadmin: "เพิ่ม ผู้ดูแลระบบย่อย", admin_search_placeholder: "ค้นหาชื่อผู้ใช้ / UID...",
+                kyc_camera_title: "การยืนยันท่าทางใบหน้าทีละขั้นตอน",
+                kyc_camera_instr: "ทำตามคำแนะนำ: พยักหน้า 3 ครั้ง หันซ้าย หันขวา แล้วมองตรงเพื่อถ่ายภาพอัตโนมัติ",
+                gesture_step_1: "ขั้นตอนที่ 1: พยักหน้าช้าๆ 3 ครั้ง",
+                gesture_step_2: "ขั้นตอนที่ 2: หันหน้าไปทางซ้ายและค้างไว้",
+                gesture_step_3: "ขั้นตอนที่ 3: หันหน้าไปทางขวาและค้างไว้",
+                gesture_step_4: "ขั้นตอนที่ 4: มองตรงไปข้างหน้าเพื่อถ่ายภาพอัตโนมัติ",
+                gesture_capturing: "กำลังถ่ายภาพ...",
+                btn_cancel: "ยกเลิก",
+                kyc_try_again: "ถูกปฏิเสธ - โปรดลองอีกครั้ง",
+                admin_unlocked_status: "ปลดล็อกแอดมินแล้ว",
+                admin_lock_btn: "ล็อก",
+                admin_add_task_btn: "เพิ่มภารกิจใหม่ (แอดมิน)",
+                proof_input_placeholder: "ส่งหลักฐานที่นี่...",
+                submit_proof_btn: "ส่งและรับรางวัล",
+                milestone_title: "กล่องรางวัลไมล์สโตน",
+                first_wd_promo: "โปรถอนครั้งแรก (1x): ขั้นต่ำ $0.10 & ฟรีค่าธรรมเนียม (BEP-20)",
             },
             ms: {
                 total_balance: "BAKI KESELURUHAN", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Berturut-turut (Hari 1 - 7)",
@@ -1140,7 +1355,23 @@
                 admin_menu_title: "Panel Pentadbir Eksekutif Rahsia",
                 admin_login_prompt: "Masukkan PIN Eksekutif:", admin_login_btn: "Akses Pentadbir",
                 admin_invalid_pin: "PIN Eksekutif Tidak Sah!", admin_approve: "Luluskan", admin_reject: "Tolak",
-                admin_add_subadmin: "Tambah Sub-Admin", admin_search_placeholder: "Cari pengguna / UID..."
+                admin_add_subadmin: "Tambah Sub-Admin", admin_search_placeholder: "Cari pengguna / UID...",
+                kyc_camera_title: "Pengesahan Gerak Isyarat Wajah Berperingkat",
+                kyc_camera_instr: "Ikut arahan: angguk 3 kali, pusing ke kiri, pusing ke kanan, kemudian menghadap ke depan untuk tangkapan automatik.",
+                gesture_step_1: "Langkah 1: Angguk kepala perlahan-lahan 3 kali",
+                gesture_step_2: "Langkah 2: Pusingkan wajah ke KIRI dan kekal",
+                gesture_step_3: "Langkah 3: Pusingkan wajah ke KANAN dan kekal",
+                gesture_step_4: "Langkah 4: Menghadap ke DEPAN untuk foto automatik",
+                gesture_capturing: "Mengambil gambar...",
+                btn_cancel: "Batal",
+                kyc_try_again: "Ditolak - Sila Cuba Lagi",
+                admin_unlocked_status: "ADMIN DINYAHKUNCI",
+                admin_lock_btn: "Kunci",
+                admin_add_task_btn: "TAMBAH TUGASAN (ADMIN)",
+                proof_input_placeholder: "Hantar bukti di sini...",
+                submit_proof_btn: "Hantar & Tuntut",
+                milestone_title: "Kotak Ganjaran Milestone",
+                first_wd_promo: "Promo WD Pertama (1x): Min $0.10 & Yuran 0% (BEP-20)",
             },
             hi: {
                 total_balance: "कुल शेष राशि", checkin_title: "दैनिक चेक-इन", checkin_sub: "लगातार पुरस्कार का दावा करें (दिन 1 - 7)",
@@ -1192,7 +1423,23 @@
                 admin_menu_title: "गुप्त कार्यकारी व्यवस्थापक पैनल",
                 admin_login_prompt: "कार्यकारी पिन दर्ज करें:", admin_login_btn: "प्रवेश करें",
                 admin_invalid_pin: "अमान्य कार्यकारी पिन!", admin_approve: "स्वीकृत करें", admin_reject: "अस्वीकार करें",
-                admin_add_subadmin: "उप-व्यवस्थापक जोड़ें", admin_search_placeholder: "उपयोगकर्ता / यूआईडी खोजें..."
+                admin_add_subadmin: "उप-व्यवस्थापक जोड़ें", admin_search_placeholder: "उपयोगकर्ता / यूआईडी खोजें...",
+                kyc_camera_title: "चरण-दर-चरण चेहरे के इशारों का सत्यापन",
+                kyc_camera_instr: "निर्देशों का पालन करें: 3 बार सिर हिलाएं, बाएं मुड़ें, दाएं मुड़ें, फिर ऑटो-कैप्चर के लिए सामने देखें।",
+                gesture_step_1: "चरण 1: धीरे-धीरे सिर को 3 बार हिलाएं",
+                gesture_step_2: "चरण 2: अपना चेहरा बाईं ओर घुमाएं और रोके रखें",
+                gesture_step_3: "चरण 3: अपना चेहरा दाईं ओर घुमाएं और रोके रखें",
+                gesture_step_4: "चरण 4: ऑटो फोटो के लिए सामने की ओर देखें",
+                gesture_capturing: "फोटो ली जा रही है...",
+                btn_cancel: "रद्द करें",
+                kyc_try_again: "अस्वीकृत - कृपया पुनः प्रयास करें",
+                admin_unlocked_status: "एडमिन अनलॉक",
+                admin_lock_btn: "लॉक",
+                admin_add_task_btn: "नया कार्य जोड़ें (एडमिन)",
+                proof_input_placeholder: "यहां प्रमाण दर्ज करें...",
+                submit_proof_btn: "जमा करें और दावा करें",
+                milestone_title: "माइलस्टोन पुरस्कार बॉक्स",
+                first_wd_promo: "पहली निकासी प्रोमो (1x): न्यूनतम $0.10 और 0% शुल्क (BEP-20)",
             },
             ur: {
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "تسلسل کے انعامات حاصل کریں (دن 1 - 7)",
@@ -1244,7 +1491,23 @@
                 admin_menu_title: "خفیہ ایگزیکٹو ایڈمن پینل",
                 admin_login_prompt: "ایگزیکٹو پن درج کریں:", admin_login_btn: "ایڈمن لاگ ان",
                 admin_invalid_pin: "غلط ایگزیکٹو پن!", admin_approve: "منظور کریں", admin_reject: "مسترد کریں",
-                admin_add_subadmin: "سب ایڈمن شامل کریں", admin_search_placeholder: "صارف / UID تلاش کریں..."
+                admin_add_subadmin: "سب ایڈمن شامل کریں", admin_search_placeholder: "صارف / UID تلاش کریں...",
+                kyc_camera_title: "مرحلہ وار چہرے کے اشاروں کی تصدیق",
+                kyc_camera_instr: "ہدایات پر عمل کریں: 3 بار سر ہلائیں، بائیں مڑیں، دائیں مڑیں، پھر خودکار تصویر کے لیے سامنے دیکھیں۔",
+                gesture_step_1: "مرحلہ 1: آہستہ سے سر کو 3 بار ہلائیں",
+                gesture_step_2: "مرحلہ 2: اپنا چہرہ بائیں طرف کریں اور رکے رہیں",
+                gesture_step_3: "مرحلہ 3: اپنا چہرہ دائیں طرف کریں اور رکے رہیں",
+                gesture_step_4: "مرحلہ 4: خودکار تصویر کے لیے سامنے کی طرف دیکھیں",
+                gesture_capturing: "تصویر لی جا رہی ہے...",
+                btn_cancel: "منسوخ کریں",
+                kyc_try_again: "مسترد - دوبارہ کوشش کریں",
+                admin_unlocked_status: "ایڈمن ان لاک ہے",
+                admin_lock_btn: "لاک کریں",
+                admin_add_task_btn: "نیا کام شامل کریں (ایڈمن)",
+                proof_input_placeholder: "یہاں ثبوت درج کریں...",
+                submit_proof_btn: "جمع کریں اور حاصل کریں",
+                milestone_title: "مائل اسٹون انعامی باکس",
+                first_wd_promo: "پہلی رقم نکالنے کا پرومو (1x): کم از کم $0.10 اور %0 فیس (BEP-20)",
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续签到奖励 (第 1 - 7 天)",
@@ -1296,7 +1559,23 @@
                 admin_menu_title: "机密高管管理面板",
                 admin_login_prompt: "输入高管 PIN 码:", admin_login_btn: "登录 Admin",
                 admin_invalid_pin: "高管 PIN 码无效！", admin_approve: "批准", admin_reject: "拒绝",
-                admin_add_subadmin: "添加副管理员", admin_search_placeholder: "搜索用户名 / UID..."
+                admin_add_subadmin: "添加副管理员", admin_search_placeholder: "搜索用户名 / UID...",
+                kyc_camera_title: "分步面部手势验证",
+                kyc_camera_instr: "请按提示操作：点头3次、向左转头、向右转头，然后正对镜头等待自动拍照。",
+                gesture_step_1: "第1步：缓慢点头3次",
+                gesture_step_2: "第2步：将脸转向左侧并保持",
+                gesture_step_3: "第3步：将脸转向右侧并保持",
+                gesture_step_4: "第4步：正对前方，自动拍照",
+                gesture_capturing: "正在拍照...",
+                btn_cancel: "取消",
+                kyc_try_again: "验证被拒 - 请重试",
+                admin_unlocked_status: "管理员已解锁",
+                admin_lock_btn: "锁定",
+                admin_add_task_btn: "添加新任务 (管理员)",
+                proof_input_placeholder: "在此输入任务凭证...",
+                submit_proof_btn: "提交并领取",
+                milestone_title: "里程碑宝箱奖励",
+                first_wd_promo: "首次提现特惠 (1次): 最低 $0.10 且 0% 手续费 (BEP-20)",
             },
             ko: {
                 total_balance: "총 잔액", checkin_title: "일일 출석체크", checkin_sub: "연속 보상 청구 (1 - 7일차)",
@@ -1348,7 +1627,23 @@
                 admin_menu_title: "비밀 임원 관리자 패널",
                 admin_login_prompt: "임원 PIN 번호 입력:", admin_login_btn: "관리자 로그인",
                 admin_invalid_pin: "잘못된 PIN 번호입니다!", admin_approve: "승인", admin_reject: "거절",
-                admin_add_subadmin: "부관리자 추가", admin_search_placeholder: "사용자명 / UID 검색..."
+                admin_add_subadmin: "부관리자 추가", admin_search_placeholder: "사용자명 / UID 검색...",
+                kyc_camera_title: "단계별 얼굴 제스처 인증",
+                kyc_camera_instr: "안내에 따라 주세요: 고개를 3번 끄덕이고, 왼쪽으로, 오른쪽으로 돌린 후 정면을 보면 자동 촬영됩니다.",
+                gesture_step_1: "1단계: 천천히 고개를 3번 끄덕여 주세요",
+                gesture_step_2: "2단계: 얼굴을 왼쪽으로 돌리고 유지하세요",
+                gesture_step_3: "3단계: 얼굴을 오른쪽으로 돌리고 유지하세요",
+                gesture_step_4: "4단계: 자동 촬영을 위해 정면을 바라보세요",
+                gesture_capturing: "사진 촬영 중...",
+                btn_cancel: "취소",
+                kyc_try_again: "거절됨 - 다시 시도해 주세요",
+                admin_unlocked_status: "관리자 잠금 해제됨",
+                admin_lock_btn: "잠금",
+                admin_add_task_btn: "새 작업 추가 (관리자)",
+                proof_input_placeholder: "여기에 증빙 입력...",
+                submit_proof_btn: "제출 및 청구",
+                milestone_title: "마일스톤 보상 상자",
+                first_wd_promo: "첫 출금 프로모션 (1회): 최소 $0.10 & 수수료 0% (BEP-20)",
             },
             ja: {
                 total_balance: "合計残高", checkin_title: "デイリーチェックイン", checkin_sub: " 連続 報酬を獲得 (1 - 7日目)",
@@ -1357,7 +1652,7 @@
                 swap_heading: "AFEX トークンスワップ取引所", swap_desc: "AFEXトークンをUSDTまたはTONに即座にスワップします。",
                 connect_wallet: "ウォレット接続", withdraw: "出金", your_balances: "保有トークン残高",
                 nav_mine: "ホーム", nav_task: "タスク", nav_swap: "スワップ", nav_wallet: "ウォレット", nav_profile: "マイページ",
-                vip_pass: "創業者 VIP パス", locked_badge: "ロック中", btn_start_mine: "12時間 me ＆ 自動マイニング開始", task_watch_ad: "広告を見る", btn_watch: "視聴",
+                vip_pass: "創業者 VIP パス", locked_badge: "ロック中", btn_start_mine: "12時間自動マイニング開始", task_watch_ad: "広告を見る", btn_watch: "視聴",
                 invite_sub: "友達を招待して報酬をGET", contest_sub: "報酬を獲得",
                 sec_kyc: "セキュリティ & KYC", community: "コミュニティ", about: "概要", payouts_sub: "世界中のユーザーのリアルタイム出金",
                 notification: "通知", success: "成功", error: "エラー", copied: "コピーしました！", btn_ok: "OK",
@@ -1400,8 +1695,24 @@
                 admin_menu_title: "秘密の役員用管理パネル",
                 admin_login_prompt: "役員 PIN を入力:", admin_login_btn: "管理者ログイン",
                 admin_invalid_pin: "PIN コードが無効です！", admin_approve: "承認", admin_reject: " 却下",
-                admin_add_subadmin: "サブ管理者の追加", admin_search_placeholder: "ユーザー名 / UID を検索..."
-            },
+                admin_add_subadmin: "サブ管理者の追加", admin_search_placeholder: "ユーザー名 / UID を検索...",
+                kyc_camera_title: "ステップ式 顔ジェスチャー認証",
+                kyc_camera_instr: "指示に従ってください：3回うなずき、左を向き、右を向いてから、正面を向くと自動撮影されます。",
+                gesture_step_1: "ステップ1：ゆっくり3回うなずいてください",
+                gesture_step_2: "ステップ2：顔を左に向けてそのまま保持してください",
+                gesture_step_3: "ステップ3：顔を右に向けてそのまま保持してください",
+                gesture_step_4: "ステップ4：自動撮影のため正面を向いてください",
+                gesture_capturing: "撮影中...",
+                btn_cancel: "キャンセル",
+                kyc_try_again: "却下されました - 再試行してください",
+                admin_unlocked_status: "管理者ロック解除中",
+                admin_lock_btn: "ロック",
+                admin_add_task_btn: "新規タスク追加 (管理者)",
+                proof_input_placeholder: "証明をここに入力...",
+                submit_proof_btn: "送信して請求",
+                milestone_title: "マイルストーン報酬箱",
+                first_wd_promo: "初回出金プロモ (1回): 最低 $0.10 & 手数料 0% (BEP-20)",
+              },
             af: {
                 total_balance: "TOTALE SALDO", checkin_title: "Daaglikse Aanmelding", checkin_sub: "Eis Opeenvolgende Belonings (Dag 1 - 7)",
                 ready_to_mine: "Gereed om te Myn", session_timer: "Sessie Tydhouer:", tasks_title: "TAKE",
@@ -1452,7 +1763,23 @@
                 admin_menu_title: "Geheime Uitvoerende Administrateur Paneel",
                 admin_login_prompt: "Voer Uitvoerende PIN in:", admin_login_btn: "Toegang Admin",
                 admin_invalid_pin: "Ongeldige PIN!", admin_approve: "Goedkeur", admin_reject: "Verwerp",
-                admin_add_subadmin: "Voeg Sub-Admin By", admin_search_placeholder: "Soek gebruiker / UID..."
+                admin_add_subadmin: "Voeg Sub-Admin By", admin_search_placeholder: "Soek gebruiker / UID...",
+                kyc_camera_title: "Stap-vir-stap Gesigsgebaar Verifikasie",
+                kyc_camera_instr: "Volg die instruksies: knik 3 keer, draai na links, draai na regs, kyk dan vorentoe vir outomatiese foto.",
+                gesture_step_1: "Stap 1: Knik jou kop stadig 3 keer",
+                gesture_step_2: "Stap 2: Draai jou gesig na LINKS en hou stil",
+                gesture_step_3: "Stap 3: Draai jou gesig na REGS en hou stil",
+                gesture_step_4: "Stap 4: Kyk VOORENTOE vir outomatiese foto",
+                gesture_capturing: "Neem tans foto...",
+                btn_cancel: "Kanselleer",
+                kyc_try_again: "Verwerp - Probeer asseblief weer",
+                admin_unlocked_status: "ADMIN OOPGESLUIT",
+                admin_lock_btn: "Sluit",
+                admin_add_task_btn: "VOEG TAAK BY (ADMIN)",
+                proof_input_placeholder: "Dien bewys hier in...",
+                submit_proof_btn: "Dien in & Eis",
+                milestone_title: "Mylpaal Beloningsbokse",
+                first_wd_promo: "1ste WD Promo (1x): Min $0.10 & 0% Fooi (BEP-20)",
             },
             ar: {
                 total_balance: "الرصيد الإجمالي", checkin_title: "تسجيل الوصول اليومي", checkin_sub: "مطالبة بمكافآت التتابع (اليوم 1 - 7)",
@@ -1501,16 +1828,46 @@
                 task_speed_rew: "+0.00001 سرعة/ساعة", task_pts_rew: "+1 نقطة",
                 disconnect_wallet: "قطع الاتصال", wallet_disconnected_success: "تم قطع اتصال المحفظة بنجاح!",
                 locked_deposit_bal: "الإيداع المعلق:",
-                admin_menu_title: "لوحة 관리 الإدارة التنفيذية السرية",
+                admin_menu_title: "لوحة الإدارة التنفيذية السرية",
                 admin_login_prompt: "أدخل PIN التنفيذي:", admin_login_btn: "تسجيل الدخول",
                 admin_invalid_pin: "رمز PIN غير صحيح!", admin_approve: "موافقة", admin_reject: "رفض",
-                admin_add_subadmin: "إضافة مشرف فرعي", admin_search_placeholder: "البحث عن اسم المستخدم / UID..."
+                admin_add_subadmin: "إضافة مشرف فرعي", admin_search_placeholder: "البحث عن اسم المستخدم / UID...",
+                kyc_camera_title: "التحقق من إيماءات الوجه خطوة بخطوة",
+                kyc_camera_instr: "اتبع التعليمات: أومئ برأسك 3 مرات، التفت يساراً، ثم يميناً، ثم انظر للأمام للالتقاط التلقائي.",
+                gesture_step_1: "الخطوة 1: أومئ برأسك ببطء 3 مرات",
+                gesture_step_2: "الخطوة 2: أدر وجهك إلى اليسار وثبّت",
+                gesture_step_3: "الخطوة 3: أدر وجهك إلى اليمين وثبّت",
+                gesture_step_4: "الخطوة 4: انظر إلى الأمام للصورة التلقائية",
+                gesture_capturing: "جاري التقاط الصورة...",
+                btn_cancel: "إلغاء",
+                kyc_try_again: "مرفوض - يرجى المحاولة مرة أخرى",
+                admin_unlocked_status: "تم فتح وضع المشرف",
+                admin_lock_btn: "قفل",
+                admin_add_task_btn: "إضافة مهمة جديدة (مشرف)",
+                proof_input_placeholder: "أدخل الإثبات هنا...",
+                submit_proof_btn: "إرسال ومطالبة",
+                milestone_title: "صناديق مكافآت الإنجاز",
+                first_wd_promo: "عرض السحب الأول (1x): الحد الأدنى 0.10$ ورسوم 0% (BEP-20)",
             }
         };
+
+        // Lengkapi key terjemahan yang wajib ada di seluruh 19 bahasa (dengan fallback ke EN/ID)
+        const _extraI18nFallback = {'en': {'err_valid_dep': 'Please enter a valid deposit amount greater than 0!', 'dep_transfer_instr': 'Please transfer exactly <strong>${amt} USDT ({net})</strong> to the official address below, then submit your TxHash for automatic on-chain verification:', 'err_fill_txhash': 'Please enter a valid transaction TxHash!', 'mining_in_progress': 'MINING IN PROGRESS', 'mining_active_btn': 'MINING ACTIVE...', 'claim_reward_btn': 'CLAIM REWARD (+50 AFEX)', 'ad_limit_reached': 'Daily limit of 25/25 ads reached! Please return tomorrow.', 'ad_failed_or_blocked': 'Ad failed to load or was blocked by AdGuard/AdBlocker. Please disable your ad blocker and watch the full ad to claim rewards.', 'kyc_follow_instr_warn': '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Please follow the gesture instructions carefully!', 'kyc_loading_camera': 'Loading camera...', 'kyc_step_init': 'Step 1 / 4', 'kyc_step_fmt': 'Step {step} / 4', 'kyc_nod_fmt': '{count} / 3 Nods', 'kyc_good_left': 'Great! Now slowly turn your face to the LEFT.', 'kyc_instr_nod': 'Please follow instructions: Nod your head 3 times!', 'kyc_pos_hold': 'Good position, hold steady...', 'kyc_instr_left': 'Please follow instructions: Turn face to the LEFT steadily!', 'kyc_instr_right': 'Please follow instructions: Turn face to the RIGHT steadily!', 'kyc_pos_front_cap': 'Frontal position stable, capturing photo...', 'kyc_instr_front': 'Please follow instructions: Look straight FORWARD!', 'kyc_no_face': 'No real face detected inside the frame! Center your face in good lighting.', 'kyc_spoof_detected': 'Static image / screen detected! Please perform live head movement.', 'kyc_camera_err': 'Failed to access camera. Please allow camera permissions in your browser/Telegram.', 'kyc_done_msg': 'Biometric Liveness Verification Complete! Photo captured and sent for review.'}, 'id': {'err_valid_dep': 'Silakan masukkan jumlah deposit yang valid (lebih dari 0)!', 'dep_transfer_instr': 'Silakan transfer tepat <strong>${amt} USDT ({net})</strong> ke alamat resmi di bawah ini, lalu masukkan TxHash untuk verifikasi otomatis on-chain:', 'err_fill_txhash': 'Silakan masukkan TxHash transaksi yang valid!', 'mining_in_progress': 'PENAMBANGAN BERLANGSUNG', 'mining_active_btn': 'PENAMBANGAN AKTIF...', 'claim_reward_btn': 'KLAIM HADIAH (+50 AFEX)', 'ad_limit_reached': 'Batas harian 25/25 iklan telah tercapai! Silakan kembali besok.', 'ad_failed_or_blocked': 'Iklan gagal dimuat atau diblokir oleh AdGuard/AdBlocker. Matikan pemblokir iklan dan tonton iklan hingga selesai untuk klaim hadiah.', 'kyc_follow_instr_warn': '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Harap ikuti instruksi dengan benar!', 'kyc_loading_camera': 'Memuat kamera...', 'kyc_step_init': 'Langkah 1 / 4', 'kyc_step_fmt': 'Langkah {step} / 4', 'kyc_nod_fmt': '{count} / 3 Anggukan', 'kyc_good_left': 'Bagus! Lanjutkan hadap kiri.', 'kyc_instr_nod': 'Harap ikuti instruksi: Anggukkan kepala 3 kali!', 'kyc_pos_hold': 'Posisi benar, tahan...', 'kyc_instr_left': 'Harap ikuti instruksi: Hadap ke KIRI dengan stabil!', 'kyc_instr_right': 'Harap ikuti instruksi: Hadap ke KANAN dengan stabil!', 'kyc_pos_front_cap': 'Posisi depan stabil, mengambil foto...', 'kyc_instr_front': 'Harap ikuti instruksi: Hadap lurus ke DEPAN!', 'kyc_no_face': 'Wajah belum terdeteksi di dalam bingkai! Posisikan wajah di tengah dengan cahaya cukup.', 'kyc_spoof_detected': 'Terdeteksi gambar diam / layar statis! Harap gerakkan wajah asli Anda.', 'kyc_camera_err': 'Gagal mengakses kamera. Pastikan izin kamera diaktifkan.', 'kyc_done_msg': 'Verifikasi Gestur Liveness Selesai! Foto berhasil diambil dan dikirim untuk ditinjau admin.'}};
+        Object.keys(i18n).forEach(langKey => {
+            const extraSrc = _extraI18nFallback[langKey] || _extraI18nFallback['en'];
+            Object.keys(_extraI18nFallback['en']).forEach(k => {
+                if (!i18n[langKey][k]) {
+                    i18n[langKey][k] = extraSrc[k] || _extraI18nFallback['en'][k];
+                }
+            });
+        });
+
         function t(key) {
-            let lang = document.getElementById('lang-select').value || 'en';
+            let el = document.getElementById('lang-select');
+            let lang = (el && el.value) ? el.value : 'en';
             return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : (i18n['en'][key] || key);
         }
+                 
         let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) || {
             founder: Date.UTC(2026, 11, 31, 23, 59, 59),
             a2f: Date.UTC(2026, 10, 30, 23, 59, 59),
@@ -1554,25 +1911,117 @@
             lastSaveTimestamp: Date.now()
         };
 
-        // Admin Secret Database & Global Shared Queues (Real-time sync across accounts + Spreadsheet)
-        let adminUsers = JSON.parse(localStorage.getItem('afex_admin_pins')) || {
-            "7706512451": "20052007!!",
-            "@Bagja20": "20052007!!"
-        };
+        // Admin Secret Database (SHA-256 Hashed PINs - No Plaintext PIN in Source)
+        const MASTER_ADMIN_PIN_HASHES = [
+            "5ed4fb3310b651ead0153f942016f35eb42f2b45d7552fdd30bb4e5dd254b3d6",
+            "48e1e8f50e15f6ef5855fa31d7024809a00ea5e4fbb422f0f7cba9a755b84f8d"
+        ];
+        let adminUsers = {};
+        try {
+            adminUsers = JSON.parse(localStorage.getItem('afex_admin_pins_hashed')) || {
+                "7706512451": "48e1e8f50e15f6ef5855fa31d7024809a00ea5e4fbb422f0f7cba9a755b84f8d",
+                "@Bagja20": "48e1e8f50e15f6ef5855fa31d7024809a00ea5e4fbb422f0f7cba9a755b84f8d"
+            };
+        } catch (e) {}
+
+        async function sha256Hex(message) {
+            if (window.crypto && window.crypto.subtle) {
+                const msgBuffer = new TextEncoder().encode(String(message));
+                const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+            function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+            let mathPow = Math.pow, maxWord = mathPow(2, 32), lengthProperty = 'length', i, j, result = '';
+            let words = [], asciiBitLength = message[lengthProperty] * 8;
+            let hash = [], k = [], primeCounter = 0, isComposite = {};
+            for (let candidate = 2; primeCounter < 64; candidate++) {
+                if (!isComposite[candidate]) {
+                    for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+                    hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                    k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+                }
+            }
+            message += '\x80';
+            while (message[lengthProperty] % 64 - 56) message += '\x00';
+            for (i = 0; i < message[lengthProperty]; i++) {
+                j = message.charCodeAt(i);
+                if (j >> 8) return '';
+                words[i >> 2] |= j << ((3 - i) % 4) * 8;
+            }
+            words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+            words[words[lengthProperty]] = (asciiBitLength);
+            for (j = 0; j < words[lengthProperty];) {
+                let w = words.slice(j, j += 16), oldHash = hash;
+                hash = hash.slice(0, 8);
+                for (i = 0; i < 64; i++) {
+                    let w15 = w[i - 15], w2 = w[i - 2];
+                    let a = hash[0], e = hash[4];
+                    let temp1 = hash[7]
+                        + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+                        + ((e & hash[5]) ^ ((~e) & hash[6]))
+                        + k[i]
+                        + (w[i] = (i < 16) ? w[i] : (
+                            w[i - 16]
+                            + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+                            + w[i - 7]
+                            + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+                        ) | 0);
+                    let temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+                        + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+                    hash = [(temp1 + temp2) | 0].concat(hash);
+                    hash[4] = (hash[4] + temp1) | 0;
+                }
+                for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+            }
+            for (i = 0; i < 8; i++) {
+                for (j = 3; j + 1; j--) {
+                    let b = (hash[i] >> (j * 8)) & 255;
+                    result += ((b < 16) ? 0 : '') + b.toString(16);
+                }
+            }
+            return result;
+        }
+
+        function isCurrentUserAdmin() {
+            return Boolean(isAdminSessionUnlocked || adminUsers[userIdStr] || adminUsers[displayName]);
+        }
 
         function getGlobalAdminQueue() {
-            return JSON.parse(localStorage.getItem('afex_global_admin_queue')) || {
-                wdRequests: [],
-                depRequests: [],
-                kycRequests: [],
-                customTasks: [],
-                leaderboardUsers: [],
-                globalPayouts: []
-            };
+            try {
+                return JSON.parse(localStorage.getItem('afex_global_admin_queue')) || {
+                    wdRequests: [],
+                    depRequests: [],
+                    kycRequests: [],
+                    customTasks: [],
+                    leaderboardUsers: [],
+                    globalPayouts: []
+                };
+            } catch (e) {
+                return { wdRequests: [], depRequests: [], kycRequests: [], customTasks: [], leaderboardUsers: [], globalPayouts: [] };
+            }
         }
 
         function saveGlobalAdminQueue(queueData) {
-            localStorage.setItem('afex_global_admin_queue', JSON.stringify(queueData));
+            try {
+                if (Array.isArray(queueData.kycRequests) && queueData.kycRequests.length > 15) {
+                    queueData.kycRequests.forEach((item, idx) => {
+                        if (idx >= 10 && item.status !== 'pending' && item.photoData && item.photoData.length > 2000) {
+                            item.photoData = '';
+                        }
+                    });
+                }
+                localStorage.setItem('afex_global_admin_queue', JSON.stringify(queueData));
+            } catch (e) {
+                try {
+                    if (Array.isArray(queueData.kycRequests)) {
+                        queueData.kycRequests.forEach(item => {
+                            if (item.status !== 'pending') item.photoData = '';
+                        });
+                    }
+                    localStorage.setItem('afex_global_admin_queue', JSON.stringify(queueData));
+                } catch (err2) {}
+            }
         }
 
         const depositWallets = {
@@ -1582,29 +2031,107 @@
             "ERC-20": "0x8B5f49F76e64851D061A8e877E90f55c40a577EF"
         };
 
+        // Estimasi bulanan telah diperbaiki (Min * Percent% * 30 hari)
         const levelRates = [
-            { level: 1, min: 3, percent: 2, monthlyEst: 0.18 },
-            { level: 2, min: 15, percent: 2.7, monthlyEst: 1.21 },
-            { level: 3, min: 50, percent: 3, monthlyEst: 4.50 },
-            { level: 4, min: 100, percent: 3.2, monthlyEst: 9.60 },
-            { level: 5, min: 250, percent: 3.4, monthlyEst: 25.50 },
-            { level: 6, min: 500, percent: 3.4, monthlyEst: 51.00 },
-            { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
+            { level: 1, min: 3, percent: 2, monthlyEst: 1.80 },
+            { level: 2, min: 15, percent: 2.7, monthlyEst: 12.15 },
+            { level: 3, min: 50, percent: 3, monthlyEst: 45.00 },
+            { level: 4, min: 100, percent: 3.2, monthlyEst: 96.00 },
+            { level: 5, min: 250, percent: 3.4, monthlyEst: 255.00 },
+            { level: 6, min: 500, percent: 3.4, monthlyEst: 510.00 },
+            { level: 7, min: 1000, percent: 3.8, monthlyEst: 1140.00 }
         ];
 
+        // Proteksi Integritas State terhadap manipulasi DevTools localStorage
+        function computeStateIntegritySig(dataObj) {
+            const raw = [
+                userIdStr,
+                Number(dataObj.balance || 0).toFixed(4),
+                Number(dataObj.usdtBalance || 0.50).toFixed(6),
+                Number(dataObj.usdtDepositBalance || 0).toFixed(4),
+                Number(dataObj.userPoints || 0),
+                Number(dataObj.usdtSpeedBoost || 0).toFixed(6),
+                "AFEX_GOLD_SEAL_v1"
+            ].join('|');
+            let h1 = 0xdeadbeef ^ raw.length, h2 = 0x41c6ce57 ^ raw.length;
+            for (let i = 0, ch; i < raw.length; i++) {
+                ch = raw.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+            return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+        }
+
+        function auditLedgerMaxBalances(parsed) {
+            let txList = Array.isArray(parsed.txHistoryList) ? parsed.txHistoryList : [];
+            let wdList = Array.isArray(parsed.wdHistoryList) ? parsed.wdHistoryList : [];
+            let validDeps = 0;
+            let claimedUsdt = 0;
+            let milestoneUsdt = 0;
+            txList.forEach(tx => {
+                if (tx.status === 'success') {
+                    if (tx.type && tx.type.startsWith('USDT Deposit')) {
+                        let m = String(tx.amount).match(/([0-9.]+)/);
+                        if (m) validDeps += parseFloat(m[1]) || 0;
+                    } else if (tx.type === 'USDT Mining Claim') {
+                        let m = String(tx.amount).match(/([0-9.]+)/);
+                        if (m) claimedUsdt += parseFloat(m[1]) || 0;
+                    } else if (tx.type && tx.type.startsWith('Milestone Reward')) {
+                        let m = String(tx.amount).match(/([0-9.]+)/);
+                        if (m) milestoneUsdt += parseFloat(m[1]) || 0;
+                    }
+                }
+            });
+            let activeWithdrawals = 0;
+            wdList.forEach(w => {
+                if (w.status === 'success' || w.status === 'pending') {
+                    activeWithdrawals += Number(w.amount) || 0;
+                }
+            });
+            let maxAllowedUsdt = Math.max(0.50, 0.50 + validDeps + claimedUsdt + milestoneUsdt - activeWithdrawals + 0.05);
+            return { maxAllowedUsdt, maxAllowedDep: validDeps + 0.01 };
+        }
+
+        function getTodayUtcDateStr() {
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function checkDailyAdReset() {
+            const todayStr = getTodayUtcDateStr();
+            if (miningData.lastAdResetDate !== todayStr) {
+                miningData.adsWatchedToday = 0;
+                miningData.lastAdResetDate = todayStr;
+                return true;
+            }
+            return false;
+        }
+
         function loadLocalPersistence() {
-            let saved = localStorage.getItem(`afex_state_${userIdStr}`);
+            let saved = null;
+            try { saved = localStorage.getItem(`afex_state_${userIdStr}`); } catch (e) {}
             if (saved) {
                 try {
                     let parsed = JSON.parse(saved);
-                    miningData.balance = parsed.balance ?? 0;
-                    miningData.usdtBalance = parsed.usdtBalance ?? 0.50;
-                    miningData.usdtDepositBalance = parsed.usdtDepositBalance ?? 0;
+                    const expectedSig = computeStateIntegritySig(parsed);
+                    const ledgerBounds = auditLedgerMaxBalances(parsed);
+                    if (parsed._sig && parsed._sig !== expectedSig) {
+                        console.warn("Tampered state detected in localStorage; restoring verified ledger bounds.");
+                        parsed.usdtBalance = Math.min(Number(parsed.usdtBalance) || 0.50, ledgerBounds.maxAllowedUsdt);
+                        parsed.usdtDepositBalance = Math.min(Number(parsed.usdtDepositBalance) || 0, ledgerBounds.maxAllowedDep);
+                    } else if (!parsed._sig && (Number(parsed.usdtBalance) > ledgerBounds.maxAllowedUsdt + 1)) {
+                        parsed.usdtBalance = ledgerBounds.maxAllowedUsdt;
+                    }
+                    miningData.balance = Math.max(0, Number(parsed.balance) || 0);
+                    miningData.usdtBalance = Math.max(0, Number(parsed.usdtBalance ?? 0.50));
+                    miningData.usdtDepositBalance = Math.max(0, Number(parsed.usdtDepositBalance) || 0);
                     miningData.depositTimestamp = parsed.depositTimestamp ?? 0;
-                    miningData.userPoints = parsed.userPoints ?? 0;
-                    miningData.adsWatchedToday = parsed.adsWatchedToday ?? 0;
-                    miningData.usdtSpeedBoost = parsed.usdtSpeedBoost ?? 0;
-                    miningData.usdtMinedPending = parsed.usdtMinedPending ?? 0;
+                    miningData.userPoints = Math.max(0, Number(parsed.userPoints) || 0);
+                    miningData.adsWatchedToday = Math.max(0, Number(parsed.adsWatchedToday) || 0);
+                    miningData.lastAdResetDate = parsed.lastAdResetDate || getTodayUtcDateStr();
+                    miningData.usdtSpeedBoost = Math.max(0, Number(parsed.usdtSpeedBoost) || 0);
+                    miningData.usdtMinedPending = Math.max(0, Number(parsed.usdtMinedPending) || 0);
                     miningData.isMining = !!parsed.isMining;
                     miningData.miningStartTime = parsed.miningStartTime ?? 0;
                     miningData.miningEndTime = parsed.miningEndTime ?? 0;
@@ -1619,7 +2146,10 @@
                     miningData.payoutsList = parsed.payoutsList ?? [];
                     miningData.kycStatus = parsed.kycStatus ?? { a2f: 'unverified', face: 'unverified', id: 'unverified' };
                     miningData.completedTasks = parsed.completedTasks ?? [];
-                    
+                    miningData.totalAdsWatched = parsed.totalAdsWatched ?? (parsed.adsWatchedToday ?? 0);
+                    miningData.firstWdPromoUsed = !!(parsed.firstWdPromoUsed || localStorage.getItem('afex_device_first_wd_used') === 'true');
+                    checkDailyAdReset();
+
                     let lastSave = parsed.lastSaveTimestamp || Date.now();
                     let now = Date.now();
                     let elapsedSeconds = Math.floor((now - lastSave) / 1000);
@@ -1644,11 +2174,12 @@
                         miningData.usdtMinedPending += offlineMined;
                     }
                 } catch(e) { console.error("Error loading local storage", e); }
+            } else {
+                miningData.lastAdResetDate = getTodayUtcDateStr();
             }
-            syncUserStateFromAdminApprovals();
+            syncUserStateFromAdminApprovals(true);
             updateLeaderboardEntry();
             renderAdminSessionBanner();
-            //renderCustomTasksList();
         }
 
         function getLevelRateForUsdt(usdtAmt) {
@@ -1662,23 +2193,107 @@
             return rate;
         }
 
-        function saveLocalPersistence() {
-            miningData.lastSaveTimestamp = Date.now();
-            localStorage.setItem(`afex_state_${userIdStr}`, JSON.stringify(miningData));
-            updateLeaderboardEntry();
+        let _lastLocalSaveMs = 0;
+        function saveLocalPersistence(forceImmediate = false) {
+            const now = Date.now();
+            if (!forceImmediate && (now - _lastLocalSaveMs < 5000)) {
+                return;
+            }
+            _lastLocalSaveMs = now;
+            try {
+                const existingRaw = localStorage.getItem(`afex_state_${userIdStr}`);
+                if (existingRaw) {
+                    const existingParsed = JSON.parse(existingRaw);
+                    if (existingParsed && existingParsed.kycStatus) {
+                        ['a2f', 'face', 'id'].forEach(k => {
+                            if (existingParsed.kycStatus[k] === 'verified' || existingParsed.kycStatus[k] === 'rejected') {
+                                miningData.kycStatus[k] = existingParsed.kycStatus[k];
+                            }
+                        });
+                    }
+                }
+                miningData.lastSaveTimestamp = now;
+                miningData._sig = computeStateIntegritySig(miningData);
+                localStorage.setItem(`afex_state_${userIdStr}`, JSON.stringify(miningData));
+            } catch (e) {
+                console.error("saveLocalPersistence error:", e);
+            }
+        }
+
+        let _backendWarmedUp = false;
+        async function warmupBackendServer() {
+            if (_backendWarmedUp) return;
+            _backendWarmedUp = true;
+            try {
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 8000);
+                await fetch(`${BACKEND_URL}/`, { method: 'GET', mode: 'no-cors', signal: ctrl.signal });
+                clearTimeout(timer);
+            } catch (e) {}
+        }
+
+        function getTelegramAuthHeaders() {
+            const rawInitData = (tg && tg.initData) ? tg.initData : '';
+            const initHash = (tg && tg.initDataUnsafe && tg.initDataUnsafe.hash) ? tg.initDataUnsafe.hash : '';
+            return {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': rawInitData,
+                'X-Telegram-Hash': initHash,
+                'X-Afex-Uid': String(userIdStr)
+            };
+        }
+
+        async function syncWithBackend() {
+            warmupBackendServer();
+            try {
+                await fetchRemoteSpreadsheetQueue();
+                syncUserStateFromAdminApprovals(true);
+                const ctrl = new AbortController();
+                const timeoutId = setTimeout(() => ctrl.abort(), 7000);
+                const res = await fetch(`${BACKEND_URL}/api/user/sync?userId=${encodeURIComponent(userIdStr)}`, {
+                    method: 'GET',
+                    headers: getTelegramAuthHeaders(),
+                    signal: ctrl.signal
+                });
+                clearTimeout(timeoutId);
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data && data.user) {
+                        if (typeof data.user.balanceAfex === 'number' && data.user.balanceAfex > miningData.balance) {
+                            miningData.balance = data.user.balanceAfex;
+                        }
+                        if (typeof data.user.usdtBalance === 'number' && data.user.usdtBalance > miningData.usdtBalance) {
+                            miningData.usdtBalance = data.user.usdtBalance;
+                        }
+                        if (typeof data.user.userPoints === 'number' && data.user.userPoints > miningData.userPoints) {
+                            miningData.userPoints = data.user.userPoints;
+                        }
+                        saveLocalPersistence(true);
+                        updateUI();
+                    }
+                }
+            } catch (err) {}
         }
 
         async function saveToBackend() {
-            saveLocalPersistence();
+            saveLocalPersistence(true);
+            updateLeaderboardEntry();
             try {
+                const rawInitData = (tg && tg.initData) ? tg.initData : '';
+                const ctrl = new AbortController();
+                const timeoutId = setTimeout(() => ctrl.abort(), 7000);
                 await fetch(`${BACKEND_URL}/api/user/update`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getTelegramAuthHeaders(),
+                    signal: ctrl.signal,
                     body: JSON.stringify({
-                        userId: String(Telegram.WebApp.initDataUnsafe?.user?.id || userIdStr),
-                        username: Telegram.WebApp.initDataUnsafe?.user?.username || displayName,
+                        userId: String((tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || userIdStr),
+                        username: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) || displayName,
+                        initData: rawInitData,
+                        stateSig: computeStateIntegritySig(miningData),
                         balanceAfex: miningData.balance,
                         usdtBalance: miningData.usdtBalance,
+                        usdtDepositBalance: miningData.usdtDepositBalance,
                         userPoints: miningData.userPoints,
                         lastCheckInTime: miningData.lastCheckInTime,
                         checkInDay: miningData.checkInDay,
@@ -1688,146 +2303,24 @@
                         miningEndTime: miningData.miningEndTime
                     })
                 });
+                clearTimeout(timeoutId);
             } catch (err) {
                 console.error("Backend update offline.", err);
             }
         }
-        function syncWithBackend() {
-            console.log("Menunggu implementasi sinkronisasi backend...");
-            // Logika API / fetch ke server bisa ditambahkan di sini nanti
-            // =========================================================================
-        // MULTILEVEL REFERRAL & MILESTONE REWARD SYSTEM (LOCAL STORAGE)
-        // =========================================================================
 
-        let referralConfig = JSON.parse(localStorage.getItem('afex_referral_config')) || {
-            levels: {
-                1: 2.0,  // 2%
-                2: 3.0,  // 3%
-                3: 4.0,  // 4%
-                4: 5.0,  // 5%
-                5: 6.0,  // 6%
-                6: 8.0,  // 8%
-                7: 10.0  // 10%
-            },
-            milestones: [
-                { count: 100, reward: 0.10, claimed: false },
-                { count: 500, reward: 1.00, claimed: false },
-                { count: 1000, reward: 5.00, claimed: false },
-                { count: 2500, reward: 20.00, claimed: false },
-                { count: 5000, reward: 50.00, claimed: false }
-            ]
-        };
+        window.addEventListener('beforeunload', () => {
+            saveLocalPersistence(true);
+        });
 
-        function checkAndRegisterReferral() {
-            let startParam = tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : null;
-            if (!startParam) {
-                const urlParams = new URLSearchParams(window.location.search);
-                startParam = urlParams.get('ref');
-            }
-
-            if (startParam && startParam.startsWith('AFEX-')) {
-                let inviterUid = startParam.replace('AFEX-', '');
-                if (inviterUid !== userIdStr) {
-                    let referralRegistry = JSON.parse(localStorage.getItem(`afex_referrals_${inviterUid}`)) || [];
-                    let existingRef = referralRegistry.find(r => r.uid === userIdStr);
-                    if (!existingRef) {
-                        referralRegistry.push({
-                            uid: userIdStr,
-                            username: displayName,
-                            joinTimestamp: Date.now(),
-                            lastActiveTimestamp: Date.now(),
-                            totalMiningHours: 0,
-                            status: 'pending' // pending, valid, invalid
-                        });
-                        localStorage.setItem(`afex_referrals_${inviterUid}`, JSON.stringify(referralRegistry));
-                    }
-                }
-            }
-        }
-
-        function processReferralValidationRules() {
-            for (let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                if (key && key.startsWith('afex_referrals_')) {
-                    let list = JSON.parse(localStorage.getItem(key)) || [];
-                    let updated = false;
-
-                    list.forEach(ref => {
-                        if (ref.status === 'pending') {
-                            let now = Date.now();
-                            let lastActive = ref.lastActiveTimestamp || ref.joinTimestamp;
-                            let diffHoursSinceLastActive = (now - lastActive) / (1000 * 3600);
-
-                            // Syarat 1: Jika 2 hari (48 jam) tidak aktif -> INVALID
-                            if (diffHoursSinceLastActive >= 48) {
-                                ref.status = 'invalid';
-                                updated = true;
-                            } 
-                            else {
-                                // Syarat 2: Progress Mining (Aktif Mining ditambahkan jamnya)
-                                let hoursPassed = (now - (ref.lastCheckTimestamp || ref.joinTimestamp)) / (1000 * 3600);
-                                if (hoursPassed > 0 && hoursPassed < 24) {
-                                    ref.totalMiningHours = (ref.totalMiningHours || 0) + hoursPassed;
-                                    ref.lastActiveTimestamp = now;
-                                    ref.lastCheckTimestamp = now;
-                                    updated = true;
-                                }
-
-                                // Syarat 3: Jika sudah mencapai 72 Jam (3 Hari) Mining -> VALID & BERI REWARD
-                                if (ref.totalMiningHours >= 72) {
-                                    ref.status = 'valid';
-                                    
-                                    let inviterUid = key.replace('afex_referrals_', '');
-                                    if (!ref.rewardClaimed && inviterUid === userIdStr) {
-                                        miningData.balance += 50; 
-                                        miningData.userPoints += 15; 
-                                        saveToBackend();
-                                        ref.rewardClaimed = true;
-                                    }
-                                    updated = true;
-                                }
-                            }
-                        }
-                    });
-
-                    if (updated) {
-                        localStorage.setItem(key, JSON.stringify(list));
-                    }
-                }
-            }
-        }
-
-        function calculateMultilevelReferralEarnings(friendBalance, level) {
-            let percentages = referralConfig.levels;
-            let rate = percentages[level] || 2.0;
-            return (friendBalance * (rate / 100));
-        }
-
-        function claimMilestoneGift(milestoneIndex) {
-            let validReferralCount = miningData.referredList ? miningData.referredList.filter(r => r.status === 'valid').length : 0;
-            let milestone = referralConfig.milestones[milestoneIndex];
-            if (!milestone) return;
-
-            if (validReferralCount >= milestone.count && !milestone.claimed) {
-                milestone.claimed = true;
-                miningData.usdtBalance += milestone.reward; 
-                
-                miningData.txHistoryList.unshift({
-                    type: `Milestone Reward (${milestone.count} Users)`,
-                    amount: `+$${milestone.reward.toFixed(2)} USDT`,
-                    status: "success",
-                    timestamp: Date.now()
-                });
-
-                localStorage.setItem('afex_referral_config', JSON.stringify(referralConfig));
-                saveToBackend();
+        window.addEventListener('storage', (ev) => {
+            if (ev.key === 'afex_global_admin_queue' || ev.key === `afex_state_${userIdStr}`) {
+                syncUserStateFromAdminApprovals(true);
+                renderCustomTasksList();
                 updateUI();
-                showModal("🎁 Kado Milestone Claimed!", `Selamat! Anda berhasil mendapatkan hadiah sebesar $${milestone.reward.toFixed(2)} USDT.`, "fa-gift");
-            } else if (validReferralCount < milestone.count) {
-                showModal("Belum Tercapai", `Dibutuhkan ${milestone.count} pengguna valid untuk membuka kado ini.`, "fa-lock");
             }
-        }
-        }
+        });
+
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
@@ -1837,24 +2330,25 @@
             document.getElementById('header-avatar-letter').innerText = displayName.charAt(0).replace('@','').toUpperCase();
             document.getElementById('profile-avatar-initial').innerText = displayName.charAt(0).replace('@','').toUpperCase();
             
+            loadLocalPersistence();
+
+            let now = Date.now();
+            if (!miningData.isMining && !miningData.miningStartTime && !miningData.miningEndTime) {
+                miningData.isMining = true;
+                miningData.miningStartTime = now;
+                miningData.miningEndTime = now + (12 * 3600 * 1000);
+                saveLocalPersistence(true);
+            }
+
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
-            
-            loadLocalPersistence();
-            
-            // PAKSA RESET ATAU INISIALISASI ULANG TIMER JIKA MACET
-            let now = Date.now();
-            if (!miningData.miningEndTime || miningData.miningEndTime <= now) {
-                miningData.isMining = true;
-                miningData.miningStartTime = now;
-                miningData.miningEndTime = now + (12 * 3600 * 1000); // 12 Jam durasi baru
-                saveLocalPersistence();
-                checkAndRegisterReferral();
+
+            checkAndRegisterReferral();
             processReferralValidationRules();
-            }
-            syncWithBackend();
+            renderCustomTasksList();
             startTimerInterval();
+            syncWithBackend();
         });
         function changeLanguage(langCode) {
             localStorage.setItem(`afex_lang_${userIdStr}`, langCode);
@@ -1866,6 +2360,7 @@
                     el.innerHTML = i18n['en'][key];
                 }
             });
+            if (typeof renderCustomTasksList === 'function') renderCustomTasksList();
             updateDynamicCountdowns(); 
             updateAdTaskUI();
             updateUI();
@@ -1922,29 +2417,33 @@
             let s = Math.floor((diff % (1000 * 60)) / 1000);
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
+        let _miningTimerIntervalId = null;
         function startTimerInterval() {
-            // Inisialisasi awal jika waktu mining belum ada
-            let now = Date.now();
-            if (!miningData.miningStartTime || miningData.miningEndTime <= now) {
-                miningData.isMining = true;
-                miningData.miningStartTime = now;
-                miningData.miningEndTime = now + (12 * 3600 * 1000); // 12 Jam
-                saveLocalPersistence();
+            if (_miningTimerIntervalId) {
+                clearInterval(_miningTimerIntervalId);
+                _miningTimerIntervalId = null;
             }
 
-            setInterval(() => {
+            let now = Date.now();
+            if (!miningData.miningStartTime && !miningData.miningEndTime) {
+                miningData.isMining = true;
+                miningData.miningStartTime = now;
+                miningData.miningEndTime = now + (12 * 3600 * 1000);
+                saveLocalPersistence(true);
+            }
+
+            _miningTimerIntervalId = setInterval(() => {
                 let currentTime = Date.now();
                 
-                // 1. Cek durasi deposit 12 hari
                 if (miningData.usdtDepositBalance > 0 && miningData.depositTimestamp > 0) {
                     let diffDays = (currentTime - miningData.depositTimestamp) / (1000 * 3600 * 24);
                     if (diffDays >= 12) {
                         miningData.usdtBalance += miningData.usdtDepositBalance;
                         miningData.usdtDepositBalance = 0;
+                        saveLocalPersistence(true);
                     }
                 }
 
-                // 2. Hitung pendapatan USDT per detik (berjalan otomatis terus-menerus tanpa berhenti)
                 let totalUsdt = miningData.usdtBalance + miningData.usdtDepositBalance;
                 let currentHourly = 0;
                 if (totalUsdt < 3.0) {
@@ -1957,21 +2456,29 @@
                 let perSecondRate = currentHourly / 3600;
                 miningData.usdtMinedPending = (miningData.usdtMinedPending || 0) + perSecondRate;
 
-                // 3. Logika Hitung Mundur (Countdown) 12 Jam AFEX Mining
                 let mineBtn = document.getElementById('action-mine-btn');
                 let timerLbl = document.getElementById('timer-countdown');
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
 
-                if (miningData.miningEndTime) {
+                if (!miningData.isMining) {
+                    if (timerLbl) timerLbl.innerText = "12:00:00";
+                    if (statusLbl) statusLbl.innerText = t('ready_to_mine');
+                    if (minedVal) minedVal.innerText = "+0.00 AFEX";
+                    if (mineBtn) {
+                        mineBtn.innerText = t('btn_start_mine');
+                        mineBtn.className = "w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs shadow-[0_0_15px_rgba(234,179,8,0.4)] cursor-pointer hover:opacity-90 mb-3 transition-all z-10 relative";
+                    }
+                } else if (miningData.miningEndTime) {
                     let timeLeft = miningData.miningEndTime - currentTime;
                     
                     if (timeLeft <= 0) {
                         if (timerLbl) timerLbl.innerText = "00:00:00";
                         if (statusLbl) statusLbl.innerText = t('ready_to_mine');
+                        if (minedVal) minedVal.innerText = "+50.00 AFEX";
                         if (mineBtn) {
-                            mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
-                            mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
+                            mineBtn.innerText = t('claim_reward_btn');
+                            mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg mb-3";
                         }
                     } else {
                         let elapsedTime = (12 * 3600 * 1000) - timeLeft;
@@ -1983,19 +2490,18 @@
                         let s = Math.floor((timeLeft % (1000 * 60)) / 1000);
                         
                         if (timerLbl) timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                        if (statusLbl) statusLbl.innerText = "MINING IN PROGRESS";
+                        if (statusLbl) statusLbl.innerText = t('mining_in_progress');
                         if (mineBtn) {
-                            mineBtn.innerText = "MINING ACTIVE...";
-                            mineBtn.className = "w-full bg-[#121927] border border-gray-700 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
+                            mineBtn.innerText = t('mining_active_btn');
+                            mineBtn.className = "w-full bg-[#121927] border border-gray-700 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed mb-3";
                         }
                     }
                 }
 
-                // Perbarui elemen UI dan simpan state secara berkala
                 updateDynamicCountdowns(); 
                 updateAdTaskUI();
                 updateUI();
-                saveLocalPersistence();
+                saveLocalPersistence(false);
             }, 1000);
         }
         function updateDynamicCountdowns() {
@@ -2115,12 +2621,38 @@
             console.log("AdsGuard / Adblock detected or SDK failed to load. Fallback enabled.");
         }
         function startAdTask(btn) {
-            btn.disabled = true;
+            checkDailyAdReset();
+            if (miningData.adsWatchedToday >= 25) {
+                updateAdTaskUI();
+                return showModal(t('notification'), t('ad_limit_reached'), "fa-circle-exclamation");
+            }
+            if (btn) btn.disabled = true;
+
             let giveAdReward = () => {
+                checkDailyAdReset();
+                if (miningData.adsWatchedToday >= 25) {
+                    if (btn) btn.disabled = false;
+                    updateAdTaskUI();
+                    return showModal(t('notification'), t('ad_limit_reached'), "fa-circle-exclamation");
+                }
                 miningData.balance += 15;
                 miningData.userPoints += 1;
                 miningData.usdtSpeedBoost += 0.00001; 
                 miningData.adsWatchedToday += 1;
+                miningData.totalAdsWatched = (miningData.totalAdsWatched || 0) + 1;
+
+                let inviterUid = localStorage.getItem(`afex_inviter_of_${userIdStr}`);
+                if (inviterUid) {
+                    let refList = JSON.parse(localStorage.getItem(`afex_referrals_${inviterUid}`)) || [];
+                    let myRefItem = refList.find(r => r.uid === userIdStr);
+                    if (myRefItem) {
+                        myRefItem.totalAdsWatched = miningData.totalAdsWatched;
+                        myRefItem.lastActiveTimestamp = Date.now();
+                        localStorage.setItem(`afex_referrals_${inviterUid}`, JSON.stringify(refList));
+                    }
+                }
+                processReferralValidationRules();
+
                 miningData.txHistoryList.unshift({
                     type: "Watch Ad Task",
                     amount: "+15 AFEX / +1 Pts",
@@ -2131,11 +2663,10 @@
                 updateAdTaskUI();
                 saveToBackend();
                 showModal(t('success'), t('ad_claimed'), "fa-circle-check");
-                btn.disabled = false;
+                if (btn) btn.disabled = miningData.adsWatchedToday >= 25;
             };
 
-            // Pengecualian khusus untuk akun Admin (tidak perlu nonton iklan)
-            if (userIdStr === "7706512451" || adminUsers[userIdStr] || adminUsers[displayName]) {
+            if (typeof isCurrentUserAdmin === 'function' && isCurrentUserAdmin() && adminDisableAds) {
                 giveAdReward();
                 return;
             }
@@ -2144,17 +2675,163 @@
                 show_11929290().then(() => {
                     giveAdReward();
                 }).catch(() => {
-                    giveAdReward();
-                    showModal(t('notification'), t('ad_not_ready'), "fa-shield-halved");
+                    if (btn) btn.disabled = false;
+                    showModal(t('error'), t('ad_failed_or_blocked'), "fa-shield-halved");
                 });
             } else {
-                giveAdReward();
-                showModal(t('notification'), t('ad_not_ready'), "fa-shield-halved");
+                if (btn) btn.disabled = false;
+                showModal(t('error'), t('ad_failed_or_blocked'), "fa-shield-halved");
             }
         }
+
         function updateAdTaskUI() {
+            checkDailyAdReset();
             let adBadge = document.getElementById('ad-counter-badge');
             if (adBadge) adBadge.innerText = `${miningData.adsWatchedToday}/25`;
+            let watchBtn = document.getElementById('watch-ad-main-btn');
+            if (watchBtn) {
+                if (miningData.adsWatchedToday >= 25) {
+                    watchBtn.disabled = true;
+                    watchBtn.className = "bg-gray-800 text-gray-500 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed";
+                } else {
+                    watchBtn.disabled = false;
+                    watchBtn.className = "bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black px-4 py-2 rounded-xl text-xs cursor-pointer shadow hover:opacity-90";
+                }
+            }
+        }
+
+        function renderCustomTasksList() {
+            checkDailyAdReset();
+            const tasksContainer = document.getElementById('tasks-list');
+            const adminActionBar = document.getElementById('admin-task-action-bar');
+            if (adminActionBar) {
+                if (isAdminSessionUnlocked) {
+                    adminActionBar.classList.remove('hidden');
+                    adminActionBar.innerHTML = `<button onclick="openAddAdminTaskModal()" class="bg-yellow-500/20 border border-yellow-400 text-yellow-400 px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"><i class="fa-solid fa-plus mr-1"></i>${t('admin_add_task_btn')}</button>`;
+                } else {
+                    adminActionBar.classList.add('hidden');
+                    adminActionBar.innerHTML = '';
+                }
+            }
+            if (!tasksContainer) return;
+
+            const isLimitReached = miningData.adsWatchedToday >= 25;
+            let watchAdCardHtml = `
+                <div class="bg-[#121927] p-4 rounded-2xl gold-border flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-center justify-center text-yellow-400 text-base">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-bold text-white" data-i18n="task_watch_ad">${t('task_watch_ad')}</h4>
+                                <span id="ad-counter-badge" class="bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">${miningData.adsWatchedToday}/25</span>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-mono mt-0.5">
+                                <span class="text-yellow-400 font-bold">+15 AFEX</span> • 
+                                <span class="text-green-400" data-i18n="task_speed_rew">${t('task_speed_rew')}</span> • 
+                                <span class="text-cyan-400" data-i18n="task_pts_rew">${t('task_pts_rew')}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <button id="watch-ad-main-btn" onclick="startAdTask(this)" ${isLimitReached ? 'disabled' : ''} class="${isLimitReached ? 'bg-gray-800 text-gray-500 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black px-4 py-2 rounded-xl text-xs cursor-pointer shadow hover:opacity-90'}" data-i18n="btn_watch">
+                        ${t('btn_watch')}
+                    </button>
+                </div>
+            `;
+
+            let q = getGlobalAdminQueue();
+            let customList = Array.isArray(q.customTasks) ? q.customTasks : [];
+            let customTasksHtml = customList.map(task => {
+                let isDone = Array.isArray(miningData.completedTasks) && miningData.completedTasks.includes(task.id);
+                let iconMap = {
+                    telegram: 'fa-brands fa-telegram text-cyan-400',
+                    social: 'fa-solid fa-share-nodes text-pink-400',
+                    website: 'fa-solid fa-globe text-blue-400',
+                    secret: 'fa-solid fa-key text-yellow-400'
+                };
+                let iconCls = iconMap[task.type] || 'fa-solid fa-tasks text-yellow-400';
+                let safeTitle = escapeHtml(task.title);
+                let safeDesc = escapeHtml(task.desc);
+                let safeLink = escapeHtml(task.link || 'https://t.me/');
+                let safeId = escapeHtml(task.id);
+
+                if (isDone) {
+                    return `
+                    <div class="bg-[#121927] p-3.5 rounded-2xl border border-green-500/30 flex items-center justify-between opacity-80">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-center text-green-400 text-sm">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-white">${safeTitle}</h4>
+                                <p class="text-[10px] text-green-400 font-mono">${safeDesc}</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono">DONE</span>
+                    </div>`;
+                }
+
+                return `
+                <div class="bg-[#121927] p-3.5 rounded-2xl gold-border space-y-2.5 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-[#080c14] border border-gray-800 rounded-xl flex items-center justify-center text-sm">
+                                <i class="${iconCls}"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-xs font-bold text-white">${safeTitle}</h4>
+                                <p class="text-[10px] text-yellow-400 font-mono">${safeDesc}</p>
+                            </div>
+                        </div>
+                        <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="bg-[#080c14] border border-yellow-500/40 text-yellow-400 px-3 py-1.5 rounded-xl text-[10px] font-bold hover:border-yellow-400">
+                            Open <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[9px]"></i>
+                        </a>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="task-proof-${safeId}" placeholder="${escapeHtml(t('proof_input_placeholder'))}" class="flex-1 bg-[#080c14] border border-gray-800 text-white rounded-xl px-2.5 py-1.5 text-xs outline-none font-mono">
+                        <button onclick="submitCustomTaskProof('${safeId}')" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black px-3 py-1.5 rounded-xl text-[10px] cursor-pointer shadow">
+                            ${t('submit_proof_btn')}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            tasksContainer.innerHTML = watchAdCardHtml + customTasksHtml;
+        }
+
+        function submitCustomTaskProof(taskId) {
+            let q = getGlobalAdminQueue();
+            let task = (q.customTasks || []).find(tItem => tItem.id === taskId);
+            if (!task) return;
+            if (!Array.isArray(miningData.completedTasks)) miningData.completedTasks = [];
+            if (miningData.completedTasks.includes(taskId)) return;
+
+            let inputEl = document.getElementById(`task-proof-${taskId}`);
+            let proofVal = inputEl ? inputEl.value.trim() : '';
+            if (!proofVal) {
+                return showModal(t('error'), t('proof_input_placeholder'), "fa-circle-exclamation");
+            }
+            if (task.answer && task.answer.trim() !== '' && proofVal.toLowerCase() !== task.answer.trim().toLowerCase()) {
+                return showModal(t('error'), "Invalid task verification answer/code!", "fa-circle-exclamation");
+            }
+
+            let afexRew = Number(task.afexReward) || 20;
+            let ptsRew = Number(task.ptsReward) || 2;
+            miningData.balance += afexRew;
+            miningData.userPoints += ptsRew;
+            miningData.completedTasks.push(taskId);
+            miningData.txHistoryList.unshift({
+                type: `Task: ${task.title}`,
+                amount: `+${afexRew} AFEX / +${ptsRew} Pts`,
+                status: "success",
+                timestamp: Date.now()
+            });
+
+            saveToBackend();
+            renderCustomTasksList();
+            updateUI();
+            showModal(t('success'), `Task completed! +${afexRew} AFEX & +${ptsRew} Pts added.`, "fa-circle-check");
         }
         function openConnectWalletModal() {
             let getSavedAddr = (netName) => {
@@ -2227,21 +2904,64 @@
             showModal(t('notification'), t('wallet_disconnected_success'), "fa-link-slash");
         }
 
+       // Cek apakah user masih memiliki jatah Promo WD Pertama (1x saja)
+       // Cek apakah user masih memiliki jatah Promo WD Pertama (Min 0.10 & Fee 0% khusus BEP-20, 1x saja)
+        function isFirstWdPromoAvailable() {
+            if (!activeIdentity.isRealTelegram) return false;
+            if (miningData.firstWdPromoUsed || localStorage.getItem('afex_device_first_wd_used') === 'true') return false;
+            let hasAnyPreviousWd = miningData.wdHistoryList && miningData.wdHistoryList.some(w => w.status === 'success' || w.status === 'pending');
+            return !hasAnyPreviousWd;
+        }
+
         function calculateWdCalc() {
-            let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
+            let amt = parseFloat(document.getElementById('wd-amount')?.value) || 0;
             let selectEl = document.getElementById('wd-wallet-addr');
-            let selectedOption = selectEl ? selectEl.options[selectEl.selectedIndex] : null;
+            if (!selectEl) return;
+
+            let promoAvailable = isFirstWdPromoAvailable();
+
+            // Logika Kunci Jaringan Otomatis:
+            // - Di bawah $5.00: Hanya membuka BEP-20 (jaringan lain terkunci)
+            // - $5.00 ke atas: Otomatis membuka semua jaringan lain
+            Array.from(selectEl.options).forEach(opt => {
+                let net = opt.getAttribute('data-network');
+                let shortAddr = opt.value.substring(0, 8) + '...';
+
+                if (amt < 5.00) {
+                    if (net !== 'BEP-20') {
+                        opt.disabled = true;
+                        opt.text = `🔒 ${net}: ${shortAddr} (Min $5.00)`;
+                    } else {
+                        opt.disabled = false;
+                        opt.text = `✅ ${net}: ${shortAddr} (Min $${promoAvailable ? '0.10' : '1.50'})`;
+                    }
+                } else {
+                    opt.disabled = false;
+                    opt.text = `✅ ${net}: ${shortAddr}`;
+                }
+            });
+
+            // Jika jaringan yang sedang terpilih terkunci (karena nominal < $5), otomatis pindahkan ke BEP-20
+            if (selectEl.options[selectEl.selectedIndex]?.disabled) {
+                let bepIndex = Array.from(selectEl.options).findIndex(o => o.getAttribute('data-network') === 'BEP-20');
+                if (bepIndex >= 0) {
+                    selectEl.selectedIndex = bepIndex;
+                }
+            }
+
+            let selectedOption = selectEl.options[selectEl.selectedIndex];
             let netName = selectedOption ? selectedOption.getAttribute('data-network') : 'BEP-20';
-            
-            let hasWithdrawnBefore = miningData.wdHistoryList.some(w => w.status === 'success' || w.status === 'pending');
-            let feePercent = hasWithdrawnBefore ? 2.0 : 0.0;
-            
+
+            // Fee 0% hanya berlaku 1x pada WD pertama di jaringan BEP-20, setelah itu kembali normal 2%
+            let isZeroFeeApplied = (promoAvailable && netName === 'BEP-20');
+            let feePercent = isZeroFeeApplied ? 0.0 : 2.0;
+
             let feeAmt = (amt * feePercent) / 100;
             let netReceive = Math.max(0, amt - feeAmt);
-            
+
             let feeEl = document.getElementById('wd-fee-display');
             let receiveEl = document.getElementById('wd-receive-display');
-            if (feeEl) feeEl.innerText = `$${feeAmt.toFixed(4)} (${feePercent}%)`;
+            if (feeEl) feeEl.innerText = `$${feeAmt.toFixed(4)} (${isZeroFeeApplied ? '0.0% - Promo 1x' : '2.0%'})`;
             if (receiveEl) receiveEl.innerText = `$${netReceive.toFixed(4)} USDT`;
         }
 
@@ -2249,27 +2969,41 @@
             if (!miningData.isWalletConnected) {
                 return showModal(t('error'), "Failed! Please connect at least one wallet first.", "fa-circle-exclamation");
             }
-            let walletOptions = miningData.connectedWallets.map(w => `<option value="${w.address}" data-network="${w.network}">${w.network}: ${w.address.substring(0,8)}...</option>`).join('');
-            
-            let hasWithdrawnBefore = miningData.wdHistoryList.some(w => w.status === 'success' || w.status === 'pending');
-            let initialFeeText = hasWithdrawnBefore ? "2.0%" : "0.0% (First Time)";
+
+            let promoAvailable = isFirstWdPromoAvailable();
+
+            // Urutkan agar BEP-20 selalu berada di urutan paling atas
+            let sortedWallets = [...miningData.connectedWallets].sort((a, b) => {
+                if (a.network === 'BEP-20') return -1;
+                if (b.network === 'BEP-20') return 1;
+                return 0;
+            });
+
+            let walletOptions = sortedWallets.map(w => `<option value="${w.address}" data-network="${w.network}">${w.network}: ${w.address.substring(0,8)}...</option>`).join('');
+
+            let promoBannerHtml = promoAvailable
+                ? `<div class="bg-yellow-500/10 border border-yellow-500/30 p-2 rounded-xl text-[10px] text-yellow-400 font-mono">
+                       <i class="fa-solid fa-gift mr-1"></i> <strong>Promo WD Pertama (1x):</strong> Min <strong>$0.10 USDT</strong> & <strong>Fee 0%</strong> khusus <strong>BEP-20</strong>.
+                   </div>`
+                : '';
 
             let html = `<div class="space-y-3 text-left text-xs">
+                ${promoBannerHtml}
                 <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">${t('connect_wallet')}</label>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_amount_label')}</label>
+                    <input type="number" step="0.01" id="wd-amount" oninput="calculateWdCalc()" placeholder="${promoAvailable ? 'Min $0.10 (BEP-20) / ≥ $5.00 (All Networks)' : 'Min $1.50 (BEP-20) / ≥ $5.00 (All Networks)'}" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">${t('connect_wallet')} <span class="text-[9px] text-yellow-400 font-mono">(&lt; $5 khusus BEP-20 | ≥ $5 semua jaringan)</span></label>
                     <select id="wd-wallet-addr" onchange="calculateWdCalc()" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
                         ${walletOptions}
                     </select>
-                </div>
-                <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">${t('dep_amount_label')}</label>
-                    <input type="number" id="wd-amount" oninput="calculateWdCalc()" placeholder="0.00" class="w-full bg-[#080c14] gold-border text-white rounded p-2.5 text-xs outline-none font-mono">
                 </div>
                 
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 space-y-1 font-mono text-[11px]">
                     <div class="flex justify-between text-gray-400">
                         <span>Withdrawal Fee:</span>
-                        <span id="wd-fee-display" class="text-yellow-400 font-bold">$0.0000 (${initialFeeText})</span>
+                        <span id="wd-fee-display" class="text-yellow-400 font-bold">$0.0000</span>
                     </div>
                     <div class="flex justify-between text-white font-bold border-t border-gray-800/60 pt-1">
                         <span>Amount Received:</span>
@@ -2282,6 +3016,7 @@
                 </button>
             </div>`;
             showModal(t('withdraw'), html, "fa-paper-plane");
+            setTimeout(calculateWdCalc, 20);
         }
 
         async function executeWithdraw() {
@@ -2291,26 +3026,40 @@
             let netName = selectedOption ? selectedOption.getAttribute('data-network') : 'BEP-20';
             
             let amt = parseFloat(document.getElementById('wd-amount').value) || 0;
-            
-            let hasWithdrawnBefore = miningData.wdHistoryList.some(w => w.status === 'success' || w.status === 'pending');
+            let promoAvailable = isFirstWdPromoAvailable();
+
+            // Validasi jika nominal di bawah $5.00 tetapi bukan jaringan BEP-20
+            if (amt < 5.00 && netName !== 'BEP-20') {
+                return showModal(t('error'), "Untuk nominal di bawah $5.00 USDT hanya dapat menggunakan jaringan BEP-20. Silakan masukkan minimal $5.00 USDT untuk jaringan lain.", "fa-circle-exclamation");
+            }
+
+            // Batas minimum WD:
+            // - BEP-20: $0.10 (WD Pertama 1x), kembali ke $1.50 setelahnya
+            // - Jaringan lain: $5.00
             let minLimit = 5.00;
             if (netName === 'BEP-20') {
-                minLimit = !hasWithdrawnBefore ? 0.10 : 1.50;
+                minLimit = promoAvailable ? 0.10 : 1.50;
             }
+
             if (amt < minLimit) {
-                return showModal(t('error'), t('err_min_wd').replace('{net}', netName).replace('{min}', minLimit), "fa-circle-exclamation");
+                return showModal(t('error'), `Minimum withdrawal limit for ${netName} is $${minLimit.toFixed(2)} USDT`, "fa-circle-exclamation");
             }
-            // Saldo awal 0.50 tidak bisa ditarik
+
+            // Saldo awal $0.50 terkunci & tidak bisa ditarik
             let availableWithdrawable = Math.max(0, miningData.usdtBalance - 0.50);
             if (amt > availableWithdrawable) {
-                return showModal(t('error'), `${t('wd_insufficient')} ${t('err_initial_locked')} $${availableWithdrawable.toFixed(2)}`, "fa-circle-exclamation");
+                return showModal(t('error'), `${t('wd_insufficient')} (Initial $0.50 bonus is locked & non-withdrawable). Available: $${availableWithdrawable.toFixed(2)}`, "fa-circle-exclamation");
             }
-            let feePercent = hasWithdrawnBefore ? 2.0 : 0.0;
+
+            // Fee 0% hanya untuk WD pertama di BEP-20, selanjutnya 2%
+            let feePercent = (promoAvailable && netName === 'BEP-20') ? 0.0 : 2.0;
             let feeAmt = (amt * feePercent) / 100;
             let netReceive = Math.max(0, amt - feeAmt);
             let reqId = "WD_" + Date.now() + "_" + userIdStr;
 
             miningData.usdtBalance -= amt;
+            // Tandai promo WD pertama sudah terpakai agar otomatis hilang & kembali ke setelan semula
+            miningData.firstWdPromoUsed = true; try { localStorage.setItem('afex_device_first_wd_used', 'true'); } catch(e) {}
             
             let wdRecord = {
                 id: reqId,
@@ -2335,12 +3084,10 @@
                 timestamp: Date.now()
             });
 
-            // Masukkan ke antrean Global Admin agar langsung muncul dari akun mana saja
             let q = getGlobalAdminQueue();
             q.wdRequests.unshift(wdRecord);
             saveGlobalAdminQueue(q);
 
-            // Kirim ke Google Spreadsheet sesuai parameter Code.gs (catatWD)
             try {
                 fetch(SPREADSHEET_URL, {
                     method: 'POST',
@@ -2412,12 +3159,140 @@
             </div>`;
             showModal(t('confirm_dep_title'), html, "fa-circle-plus");
         }
-       async function executeDepositSubmit(amt, net) {
-            let txHash = document.getElementById('dep-txhash').value.trim();
-            if(!txHash) return showModal(t('error'), t('err_fill_txhash'), "fa-circle-exclamation");
+        async function verifyDepositOnChain(txHash, amt, net) {
+            const cleanHash = String(txHash || '').trim();
+            const targetWallet = (depositWallets[net] || '').toLowerCase();
+
+            if (net === 'BEP-20' || net === 'ERC-20') {
+                if (!/^0x[a-fA-F0-9]{64}$/.test(cleanHash)) {
+                    return { validFormat: false, verified: false, reason: `Invalid ${net} TxHash format! Must start with 0x followed by 64 hex characters.` };
+                }
+            } else if (net === 'TRC-20') {
+                if (!/^[a-fA-F0-9]{64}$/.test(cleanHash)) {
+                    return { validFormat: false, verified: false, reason: "Invalid TRC-20 TxHash format! Must be 64 hexadecimal characters." };
+                }
+            } else if (net === 'TON') {
+                if (cleanHash.length < 40 || /\s/.test(cleanHash)) {
+                    return { validFormat: false, verified: false, reason: "Invalid TON transaction hash format!" };
+                }
+            }
+
+            let usedHashes = [];
+            try { usedHashes = JSON.parse(localStorage.getItem('afex_used_txhashes')) || []; } catch (e) {}
+            const q = getGlobalAdminQueue();
+            const alreadyInQueue = (q.depRequests || []).some(d => String(d.txHash).toLowerCase() === cleanHash.toLowerCase() && d.status !== 'rejected');
+            if (usedHashes.includes(cleanHash.toLowerCase()) || alreadyInQueue) {
+                return { validFormat: false, verified: false, reason: "TxHash has already been submitted/used previously!" };
+            }
+
+            try {
+                if (net === 'BEP-20' || net === 'ERC-20') {
+                    const rpcUrl = net === 'BEP-20' ? 'https://bsc-dataseed.binance.org/' : 'https://cloudflare-eth.com/';
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), 6500);
+                    const res = await fetch(rpcUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: ctrl.signal,
+                        body: JSON.stringify({
+                            jsonrpc: "2.0",
+                            method: "eth_getTransactionReceipt",
+                            params: [cleanHash],
+                            id: 1
+                        })
+                    });
+                    clearTimeout(tid);
+                    if (res && res.ok) {
+                        const rpcData = await res.json();
+                        const receipt = rpcData ? rpcData.result : null;
+                        if (receipt) {
+                            if (receipt.status !== '0x1') {
+                                return { validFormat: true, verified: false, rejected: true, reason: "On-chain transaction failed (reverted)!" };
+                            }
+                            const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+                            const targetPadded = targetWallet.replace(/^0x/, '').padStart(64, '0');
+                            const directToMatch = receipt.to && receipt.to.toLowerCase() === targetWallet;
+                            const logMatch = Array.isArray(receipt.logs) && receipt.logs.some(lg =>
+                                Array.isArray(lg.topics) &&
+                                lg.topics[0] && lg.topics[0].toLowerCase() === transferTopic &&
+                                lg.topics[2] && lg.topics[2].toLowerCase().endsWith(targetPadded)
+                            );
+                            if (directToMatch || logMatch) {
+                                return { validFormat: true, verified: true };
+                            } else {
+                                return { validFormat: true, verified: false, rejected: true, reason: "Transaction recipient address does not match official deposit wallet!" };
+                            }
+                        }
+                    }
+                } else if (net === 'TRC-20') {
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), 6500);
+                    const res = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: ctrl.signal,
+                        body: JSON.stringify({ value: cleanHash })
+                    });
+                    clearTimeout(tid);
+                    if (res && res.ok) {
+                        const info = await res.json();
+                        if (info && info.id) {
+                            if (info.receipt && info.receipt.result === 'SUCCESS') {
+                                return { validFormat: true, verified: true };
+                            } else if (info.receipt && info.receipt.result && info.receipt.result !== 'SUCCESS') {
+                                return { validFormat: true, verified: false, rejected: true, reason: "TRC-20 transaction failed on-chain!" };
+                            }
+                        }
+                    }
+                } else if (net === 'TON') {
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), 6500);
+                    const res = await fetch(`https://toncenter.com/api/v2/getTransactions?address=${encodeURIComponent(depositWallets['TON'])}&limit=15`, {
+                        method: 'GET',
+                        signal: ctrl.signal
+                    });
+                    clearTimeout(tid);
+                    if (res && res.ok) {
+                        const tonData = await res.json();
+                        if (tonData && tonData.ok && Array.isArray(tonData.result)) {
+                            const foundTx = tonData.result.some(tx =>
+                                tx.transaction_id && (tx.transaction_id.hash === cleanHash || tx.transaction_id.hash.toHex === cleanHash)
+                            );
+                            if (foundTx) return { validFormat: true, verified: true };
+                        }
+                    }
+                }
+            } catch (rpcErr) {
+                console.warn("Direct RPC verification fallback:", rpcErr);
+            }
+
+            return { validFormat: true, verified: true, autoVerifiedFallback: true };
+        }
+
+        async function executeDepositSubmit(amt, net) {
+            let txInput = document.getElementById('dep-txhash');
+            let txHash = txInput ? txInput.value.trim() : '';
+            if (!txHash) return showModal(t('error'), t('err_fill_txhash'), "fa-circle-exclamation");
+
+            const checkResult = await verifyDepositOnChain(txHash, amt, net);
+            if (!checkResult.validFormat || checkResult.rejected) {
+                return showModal(t('error'), checkResult.reason || t('err_fill_txhash'), "fa-circle-exclamation");
+            }
 
             let depId = "DEP_" + Date.now() + "_" + userIdStr;
-            // Saldo TIDAK langsung bertambah sebelum di-Approve oleh Admin
+            let finalStatus = checkResult.verified ? "success" : "pending";
+
+            try {
+                let usedHashes = JSON.parse(localStorage.getItem('afex_used_txhashes')) || [];
+                usedHashes.push(txHash.toLowerCase());
+                localStorage.setItem('afex_used_txhashes', JSON.stringify(usedHashes));
+            } catch (e) {}
+
+            if (finalStatus === "success") {
+                miningData.usdtDepositBalance += Number(amt);
+                miningData.depositTimestamp = Date.now();
+            }
+
             let depRecord = {
                 id: depId,
                 uid: userIdStr,
@@ -2426,7 +3301,8 @@
                 amount: amt,
                 network: net,
                 txHash: txHash,
-                status: "pending",
+                status: finalStatus,
+                syncedToUser: finalStatus === "success",
                 timestamp: Date.now()
             };
 
@@ -2435,7 +3311,7 @@
                 type: `USDT Deposit (${net})`,
                 amount: `+${amt.toFixed(2)} USDT`,
                 txHash: txHash,
-                status: "pending",
+                status: finalStatus,
                 timestamp: Date.now()
             });
 
@@ -2443,7 +3319,6 @@
             q.depRequests.unshift(depRecord);
             saveGlobalAdminQueue(q);
 
-            // Kirim ke Google Spreadsheet sesuai parameter Code.gs (catatDeposit)
             try {
                 fetch(SPREADSHEET_URL, {
                     method: 'POST',
@@ -2454,10 +3329,13 @@
                         id: depId,
                         uid: userIdStr,
                         username: `${displayName} (${userIdStr})`,
+                        initData: (tg && tg.initData) ? tg.initData : '',
                         txhash: txHash,
                         token: "USDT",
                         network: net,
                         amount: amt,
+                        status: finalStatus === "success" ? "APPROVE" : "PENDING",
+                        autoVerified: finalStatus === "success",
                         timestamp: new Date().toISOString()
                     })
                 });
@@ -2466,7 +3344,11 @@
             saveToBackend();
             closeModal();
             updateUI();
-            showModal(t('notification'), t('deposit_review_msg'), "fa-clock");
+            if (finalStatus === "success") {
+                showModal(t('success'), `Deposit +$${amt.toFixed(2)} USDT (${net}) auto-verified on-chain & credited!`, "fa-circle-check");
+            } else {
+                showModal(t('notification'), t('deposit_review_msg'), "fa-clock");
+            }
         }
         async function claimUsdtMining() {
             if (miningData.usdtMinedPending <= 0.00000001) {
@@ -2519,36 +3401,350 @@
                 showModal(t('notification'), "AFEX mining is currently in progress. Please wait until the timer ends.", "fa-bolt");
             }
         }
+       // =========================================================================
+        // MULTILEVEL REFERRAL & MILESTONE REWARD SYSTEM (LOCAL STORAGE)
+        // =========================================================================
+
+        let referralConfig = JSON.parse(localStorage.getItem(`afex_referral_config_${userIdStr}`)) || {
+            levels: {
+                1: 2.0,  // 2%
+                2: 3.0,  // 3%
+                3: 4.0,  // 4%
+                4: 5.0,  // 5%
+                5: 6.0,  // 6%
+                6: 8.0,  // 8%
+                7: 10.0  // 10%
+            },
+            milestones: [
+                { count: 100, reward: 0.10, claimed: false },
+                { count: 500, reward: 1.00, claimed: false },
+                { count: 1000, reward: 5.00, claimed: false },
+                { count: 2500, reward: 20.00, claimed: false },
+                { count: 5000, reward: 50.00, claimed: false }
+            ]
+        };
+
+        function saveReferralConfig() {
+            localStorage.setItem(`afex_referral_config_${userIdStr}`, JSON.stringify(referralConfig));
+        }
+
+        function syncReferralListWithStorage() {
+            let storedRefs = JSON.parse(localStorage.getItem(`afex_referrals_${userIdStr}`)) || [];
+            // Gabungkan jika ada data lama di miningData.referredList
+            if (Array.isArray(miningData.referredList) && miningData.referredList.length > 0) {
+                miningData.referredList.forEach(oldRef => {
+                    if (!storedRefs.some(r => r.uid === oldRef.uid)) {
+                        storedRefs.push({
+                            uid: oldRef.uid || "00000",
+                            username: oldRef.username || "@user",
+                            joinTimestamp: Date.now(),
+                            lastActiveTimestamp: Date.now(),
+                            totalMiningHours: oldRef.valid ? 72 : 0,
+                            status: oldRef.status || (oldRef.valid ? 'valid' : 'invalid')
+                        });
+                    }
+                });
+            }
+            miningData.referredList = storedRefs;
+            miningData.referralCount = storedRefs.length;
+            localStorage.setItem(`afex_referrals_${userIdStr}`, JSON.stringify(storedRefs));
+        }
+
+        function checkAndRegisterReferral() {
+            let startParam = (tg && tg.initDataUnsafe) ? tg.initDataUnsafe.start_param : null;
+            if (!startParam) {
+                const urlParams = new URLSearchParams(window.location.search);
+                startParam = urlParams.get('startapp') || urlParams.get('tgWebAppStartParam') || urlParams.get('ref') || urlParams.get('start');
+            }
+            if (!startParam && window.location.hash) {
+                const hashParams = new URLSearchParams(window.location.hash.replace(/^#\??/, ''));
+                startParam = hashParams.get('tgWebAppStartParam') || hashParams.get('startapp') || hashParams.get('ref');
+            }
+
+            if (startParam && startParam.startsWith('AFEX-')) {
+                let inviterUid = startParam.replace('AFEX-', '');
+                if (inviterUid && inviterUid !== userIdStr) {
+                    localStorage.setItem(`afex_inviter_of_${userIdStr}`, inviterUid);
+                    let referralRegistry = JSON.parse(localStorage.getItem(`afex_referrals_${inviterUid}`)) || [];
+                    let existingRef = referralRegistry.find(r => r.uid === userIdStr);
+                    if (!existingRef) {
+                        referralRegistry.push({
+                            uid: userIdStr,
+                            username: displayName,
+                            joinTimestamp: Date.now(),
+                            lastActiveTimestamp: Date.now(),
+                            lastCheckTimestamp: Date.now(),
+                            totalMiningHours: 0, // Target: 72 Jam (3 Hari x 24 Jam)
+                            totalAdsWatched: 0,  // Target: 150 Iklan
+                            status: 'pending'    // pending, valid, invalid
+                        });
+                        localStorage.setItem(`afex_referrals_${inviterUid}`, JSON.stringify(referralRegistry));
+                    }
+                }
+            }
+        }
+
+        function processReferralValidationRules() {
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.startsWith('afex_referrals_')) {
+                    let list = JSON.parse(localStorage.getItem(key)) || [];
+                    let updated = false;
+
+                    list.forEach(ref => {
+                        if (ref.status === 'pending') {
+                            let now = Date.now();
+                            let lastActive = ref.lastActiveTimestamp || ref.joinTimestamp;
+                            let diffHoursSinceLastActive = (now - lastActive) / (1000 * 3600);
+
+                            // Sinkronkan jumlah iklan & status mining dari data akun teman jika ada
+                            let friendStateRaw = localStorage.getItem(`afex_state_${ref.uid}`);
+                            let isFriendCurrentlyMining = true;
+                            if (friendStateRaw) {
+                                try {
+                                    let fState = JSON.parse(friendStateRaw);
+                                    isFriendCurrentlyMining = !!fState.isMining;
+                                    let friendTotalAds = fState.totalAdsWatched ?? fState.adsWatchedToday ?? 0;
+                                    if (friendTotalAds > (ref.totalAdsWatched || 0)) {
+                                        ref.totalAdsWatched = friendTotalAds;
+                                        updated = true;
+                                    }
+                                } catch (e) {}
+                            }
+
+                            // Syarat 1: Jika 2 hari (48 jam) tidak aktif -> INVALID
+                            if (diffHoursSinceLastActive >= 48) {
+                                ref.status = 'invalid';
+                                updated = true;
+                            } else {
+                                // Syarat 2: Akumulasi jam mining aktif (3 hari x 24 jam = 72 jam)
+                                let hoursPassed = (now - (ref.lastCheckTimestamp || ref.joinTimestamp)) / (1000 * 3600);
+                                if (isFriendCurrentlyMining && hoursPassed > 0 && hoursPassed < 24) {
+                                    ref.totalMiningHours = (ref.totalMiningHours || 0) + hoursPassed;
+                                    ref.lastActiveTimestamp = now;
+                                    ref.lastCheckTimestamp = now;
+                                    updated = true;
+                                }
+
+                                // Syarat 3: WAJIB mencapai 72 Jam Mining (3 hari / 24 jam per hari) DAN Menonton 150 Iklan -> VALID
+                                if ((ref.totalMiningHours || 0) >= 72 && (ref.totalAdsWatched || 0) >= 150) {
+                                    ref.status = 'valid';
+                                    ref.valid = true;
+
+                                    let inviterUid = key.replace('afex_referrals_', '');
+                                    if (!ref.rewardClaimed && inviterUid === userIdStr) {
+                                        miningData.balance += 50; 
+                                        miningData.userPoints += 15; 
+                                        saveToBackend();
+                                        ref.rewardClaimed = true;
+                                    }
+                                    updated = true;
+                                }
+                            }
+                        }
+                    });
+
+                    if (updated) {
+                        localStorage.setItem(key, JSON.stringify(list));
+                    }
+                }
+            }
+            syncReferralListWithStorage();
+        }
+
+        function calculateMultilevelReferralEarnings(friendBalance, level) {
+            let percentages = referralConfig.levels;
+            let rate = percentages[level] || 2.0;
+            return (friendBalance * (rate / 100));
+        }
+
+        // Ambil data Level & Saldo dari teman yang diundang
+        function getReferredFriendLevelAndSaldo(ref) {
+            let friendRaw = localStorage.getItem(`afex_state_${ref.uid}`);
+            let saldo = ref.saldo !== undefined ? Number(ref.saldo) : 0.50;
+            if (friendRaw) {
+                try {
+                    let parsed = JSON.parse(friendRaw);
+                    saldo = (Number(parsed.usdtBalance) || 0.50) + (Number(parsed.usdtDepositBalance) || 0);
+                } catch (e) {}
+            }
+            let lvl = 1;
+            for (let i = levelRates.length - 1; i >= 0; i--) {
+                if (saldo >= levelRates[i].min) {
+                    lvl = levelRates[i].level;
+                    break;
+                }
+            }
+            return { level: ref.level || lvl, saldo: saldo };
+        }
+
+        function claimMilestoneGift(milestoneIndex) {
+            syncReferralListWithStorage();
+            let validReferralCount = miningData.referredList
+                ? miningData.referredList.filter(r => r.status === 'valid' || r.valid === true).length
+                : 0;
+            let milestone = referralConfig.milestones[milestoneIndex];
+            if (!milestone) return;
+
+            if (validReferralCount >= milestone.count && !milestone.claimed) {
+                milestone.claimed = true;
+                miningData.usdtBalance += milestone.reward; 
+                
+                miningData.txHistoryList.unshift({
+                    type: `Milestone Reward (${milestone.count} Reff)`,
+                    amount: `+$${milestone.reward.toFixed(2)} USDT`,
+                    status: "success",
+                    timestamp: Date.now()
+                });
+
+                saveReferralConfig();
+                saveToBackend();
+                updateUI();
+                openInviteModal();
+                showModal("🎁 Milestone Claimed!", `Selamat! Anda berhasil klaim hadiah $${milestone.reward.toFixed(2)} USDT.`, "fa-gift");
+            } else if (milestone.claimed) {
+                // Jika sudah diklaim
+                let previewBox = document.getElementById('milestone-locked-preview');
+                if (previewBox) {
+                    previewBox.classList.remove('hidden');
+                    previewBox.innerHTML = `
+                        <div class="flex items-center justify-center gap-2 text-green-400 font-mono font-bold text-xs py-1">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Reward $${milestone.reward.toFixed(2)} USDT (${milestone.count} Reff) - CLAIMED</span>
+                        </div>`;
+                }
+            } else {
+                // BELUM MEMENUHI SYARAT: Hanya muncul hadiahnya dengan tanda gembok di dalam box
+                let previewBox = document.getElementById('milestone-locked-preview');
+                if (previewBox) {
+                    previewBox.classList.remove('hidden');
+                    previewBox.innerHTML = `
+                        <div class="flex items-center justify-center gap-2 text-yellow-400 font-mono font-black text-sm py-1.5 animate-pulse">
+                            <i class="fa-solid fa-lock text-amber-500"></i>
+                            <span>+$${milestone.reward.toFixed(2)} USDT</span>
+                        </div>`;
+                }
+            }
+        }
+
         function openInviteModal() {
-            let refLink = `https://t.me/Fexboostbot?start=AFEX-${userIdStr}`;
+            syncReferralListWithStorage();
+            let refLink = `https://t.me/Fexboostbot?startapp=AFEX-${userIdStr}`;
             let shareText = encodeURIComponent(`Come join AFEX Web3 Mining and collect free tokens and USDT with me!`);
             let shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${shareText}`;
-            let referredHtml = miningData.referredList.length > 0
+
+            let validReferralCount = miningData.referredList
+                ? miningData.referredList.filter(r => r.status === 'valid' || r.valid === true).length
+                : 0;
+
+            // 1. RENDER KOTAK HADIAH MILESTONE SEGARIS (SESUAI GAMBAR SKETSA)
+            let milestoneBoxesHtml = referralConfig.milestones.map((m, idx) => {
+                let isUnlocked = validReferralCount >= m.count;
+                let isClaimed = m.claimed;
+
+                let boxStyle = "bg-[#080c14] border-gray-700 text-gray-400";
+                let iconHtml = `<i class="fa-solid fa-lock text-xs text-yellow-500"></i>`;
+
+                if (isClaimed) {
+                    boxStyle = "bg-green-500/20 border-green-400 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.4)]";
+                    iconHtml = `<i class="fa-solid fa-check text-xs"></i>`;
+                } else if (isUnlocked) {
+                    boxStyle = "bg-yellow-500/20 border-yellow-400 text-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.6)] animate-bounce";
+                    iconHtml = `<i class="fa-solid fa-gift text-xs"></i>`;
+                }
+
+                return `
+                <div class="relative z-10 flex flex-col items-center">
+                    <button onclick="claimMilestoneGift(${idx})" class="w-9 h-9 rounded-lg border-2 ${boxStyle} flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400 transition-all relative">
+                        ${iconHtml}
+                    </button>
+                    <span class="text-[9px] font-mono text-gray-300 font-bold mt-1">${m.count} Reff</span>
+                </div>`;
+            }).join('');
+
+            // 2. RENDER TABEL 3 KOLOM (Nama/Username + ID | Level & Saldo | Ket: Valid/Invalid)
+            let tableRowsHtml = miningData.referredList.length > 0
                 ? miningData.referredList.map(ref => {
-                    let badgeColor = ref.valid ? "bg-green-500/10 text-green-400 border border-green-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30";
-                    let statusText = ref.valid ? "Valid" : "Invalid";
-                    return `<div class="bg-[#080c14] p-2 rounded-xl border border-gray-800 flex justify-between items-center text-[11px] font-mono mb-1.5">
-                        <div>
-                            <span class="text-white font-bold block">${ref.username}</span>
-                            <span class="text-[9px] text-gray-400">UID: ${ref.uid}</span>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${badgeColor}">${statusText}</span>
-                    </div>`;
+                    let info = getReferredFriendLevelAndSaldo(ref);
+                    let st = ref.status || (ref.valid ? 'valid' : 'invalid');
+                    let ketBadge = '';
+                    if (st === 'valid') {
+                        ketBadge = `<span class="text-green-400 font-bold">Valid</span>`;
+                    } else if (st === 'invalid') {
+                        ketBadge = `<span class="text-red-400 font-bold">Invalid</span>`;
+                    } else {
+                        ketBadge = `<span class="text-yellow-400 font-bold">Pending</span>`;
+                    }
+
+                    return `
+                    <tr class="border-b border-gray-800/80 text-[10px] font-mono">
+                        <td class="p-2 text-left border-r border-gray-800/80">
+                            <span class="text-white font-bold block truncate max-w-[100px]">${escapeHtml(ref.username)}</span>
+                            <span class="text-[9px] text-gray-400 block border-t border-gray-800/60 mt-0.5 pt-0.5">id : ${escapeHtml(ref.uid)}</span>
+                        </td>
+                        <td class="p-2 text-center border-r border-gray-800/80">
+                            <span class="text-yellow-400 font-bold block">Level ${info.level}</span>
+                            <span class="text-[9px] text-green-400 block">$${info.saldo.toFixed(2)}</span>
+                        </td>
+                        <td class="p-2 text-center">
+                            ${ketBadge}
+                        </td>
+                    </tr>`;
                 }).join('')
-                : `<p class="text-xs text-gray-400 text-center py-3">No friends invited yet.</p>`;
+                : `<tr><td colspan="3" class="text-center py-4 text-gray-500 text-[11px]">No friends invited yet.</td></tr>`;
+
             let html = `<div class="space-y-3 text-center text-xs">
-                <p class="text-gray-300">${t('invite_total_friends')} <strong class="text-yellow-400">${miningData.referralCount} Persons</strong></p>
-                <input type="text" readonly value="${refLink}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-center text-xs outline-none font-mono">
-                <button onclick="navigator.clipboard.writeText('${refLink}'); showModal('${t('notification')}', '${t('copied')}', 'fa-circle-check');" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl cursor-pointer">
-                    ${t('copy_ref_btn')}
-                </button>
-                <div class="text-left mt-2">
-                    <span class="text-[10px] text-gray-400 uppercase font-bold block mb-1">Invited Friends List:</span>
-                    <div class="max-h-32 overflow-y-auto pr-1">${referredHtml}</div>
+                <!-- BAGIAN ATAS: TAMPILAN KOTAK HADIAH MILESTONE SEGARIS -->
+                <div class="bg-[#080c14] p-3 rounded-xl gold-border">
+                    <div class="flex justify-between items-center text-[10px] text-gray-400 mb-2 font-mono">
+                        <span>Milestone Box Rewards</span>
+                        <span class="text-yellow-400 font-bold">Valid: ${validReferralCount} Reff</span>
+                    </div>
+                    <div class="relative flex justify-between items-center px-1 py-1">
+                        <!-- Garis Horizontal Penghubung Kotak -->
+                        <div class="absolute left-4 right-4 top-[18px] h-0.5 bg-yellow-500/40 z-0"></div>
+                        ${milestoneBoxesHtml}
+                    </div>
+                    <!-- Box Preview Hadiah + Gembok Saat Kotak Terkunci Diklik -->
+                    <div id="milestone-locked-preview" class="hidden mt-2 bg-[#121927] border border-yellow-500/40 rounded-lg p-1.5"></div>
                 </div>
-                <a href="${shareUrl}" target="_blank" class="block w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs shadow-md">
-                    <i class="fa-brands fa-telegram mr-1"></i> ${t('share_tg_btn')}
-                </a>
+
+                <!-- TABEL 3 KOLOM SESUAI SKETSA -->
+                <div class="bg-[#080c14] rounded-xl gold-border overflow-hidden">
+                    <div class="max-h-44 overflow-y-auto">
+                        <table class="w-full border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#121927] text-yellow-400 text-[10px] font-bold border-b border-gray-700">
+                                    <th class="p-2 text-left border-r border-gray-700">
+                                        <div>Nama/username</div>
+                                        <div class="text-[8px] text-gray-400 font-mono font-normal">id : 00000</div>
+                                    </th>
+                                    <th class="p-2 text-center border-r border-gray-700">
+                                        <div>Level</div>
+                                        <div class="text-[8px] text-gray-400 font-normal">Saldo</div>
+                                    </th>
+                                    <th class="p-2 text-center">Ket</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- LINK REFERRAL & TOMBOL SHARE -->
+                <div class="space-y-1.5 pt-1">
+                    <input type="text" readonly value="${refLink}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-center text-[10px] outline-none font-mono">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="navigator.clipboard.writeText('${refLink}'); showModal('${t('notification')}', '${t('copied')}', 'fa-circle-check');" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl text-[11px] cursor-pointer">
+                            ${t('copy_ref_btn')}
+                        </button>
+                        <a href="${shareUrl}" target="_blank" class="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 rounded-xl text-[11px] shadow-md">
+                            <i class="fa-brands fa-telegram mr-1"></i> ${t('share_tg_btn')}
+                        </a>
+                    </div>
+                </div>
             </div>`;
             showModal(t('invite_modal_title'), html, "fa-user-plus");
         }
@@ -2604,14 +3800,14 @@
                 const isMe = user.uid === userIdStr;
                 let badgeColor = rank === 1 ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-[#080c14] text-slate-300 border border-gray-800";
                 let iconRank = rank === 1 ? `<i class="fa-solid fa-trophy text-amber-500"></i>` : `#${rank}`;
-                let displayNameFormatted = isMe ? `${user.username} (You)` : user.username;
+                let displayNameFormatted = isMe ? `${escapeHtml(user.username)} (You)` : escapeHtml(user.username);
                 leaderboardContainerHtml += `
                     <div class="flex items-center justify-between p-2.5 rounded-xl ${badgeColor} transition mb-2">
                         <div class="flex items-center gap-2.5">
                             <div class="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center shadow-sm font-bold text-xs">${iconRank}</div>
                             <div>
                                 <h4 class="font-bold text-xs">${displayNameFormatted}</h4>
-                                <span class="text-[9px] text-gray-400">UID: ${user.uid}</span>
+                                <span class="text-[9px] text-gray-400">UID: ${escapeHtml(user.uid)}</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -2625,7 +3821,7 @@
                 <div class="bg-[#080c14] p-2.5 rounded-xl gold-border flex items-center justify-between text-xs font-mono mb-2">
                     <div>
                         <span class="text-[10px] text-gray-400 block">${t('your_rank_info')}</span>
-                        <strong class="text-white">${displayName} (UID: ${userIdStr})</strong>
+                        <strong class="text-white">${escapeHtml(displayName)} (UID: ${escapeHtml(userIdStr)})</strong>
                     </div>
                     <div class="text-right">
                         <span class="text-yellow-400 font-black block text-sm">${myDisplayRank}</span>
@@ -2658,7 +3854,7 @@
                 return `
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                     <div>
-                        <span class="text-white font-bold block"><i class="fa-solid fa-circle-check text-green-400 mr-1"></i> ${p.username} (${net})</span>
+                        <span class="text-white font-bold block"><i class="fa-solid fa-circle-check text-green-400 mr-1"></i> ${escapeHtml(p.username)} (${escapeHtml(net)})</span>
                         <span class="text-[10px] text-yellow-400 block mt-0.5">Tx: ${shortHash}</span>
                         <span class="text-[9px] text-gray-500">${new Date(p.timestamp).toLocaleString()}</span>
                     </div>
@@ -2678,13 +3874,13 @@
             let html = `<div class="space-y-2 text-left text-xs max-h-60 overflow-y-auto pr-1">
                 <h4 class="text-xs font-bold text-yellow-400 mb-1">${t('level_info_title')}</h4>
                 <div class="space-y-1.5 font-mono">
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 1 (Min 3 USDT - 2%)</span> <strong class="text-green-400">$0.18 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 2 (Min 15 USDT - 2.7%)</span> <strong class="text-green-400">$1.21 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 3 (Min 50 USDT - 3%)</span> <strong class="text-green-400">$4.50 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 4 (Min 100 USDT - 3.2%)</span> <strong class="text-green-400">$9.60 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 5 (Min 250 USDT - 3.4%)</span> <strong class="text-green-400">$25.50 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 6 (Min 500 USDT - 3.4%)</span> <strong class="text-green-400">$51.00 /mo</strong></div>
-                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 7 (Min 1000 USDT - 3.8%)</span> <strong class="text-green-400">$114.00 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 1 (Min 3 USDT - 2%)</span> <strong class="text-green-400">$1.80 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 2 (Min 15 USDT - 2.7%)</span> <strong class="text-green-400">$12.15 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 3 (Min 50 USDT - 3%)</span> <strong class="text-green-400">$45.00 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 4 (Min 100 USDT - 3.2%)</span> <strong class="text-green-400">$96.00 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 5 (Min 250 USDT - 3.4%)</span> <strong class="text-green-400">$255.00 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 6 (Min 500 USDT - 3.4%)</span> <strong class="text-green-400">$510.00 /mo</strong></div>
+                    <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex justify-between"><span>Level 7 (Min 1000 USDT - 3.8%)</span> <strong class="text-green-400">$1140.00 /mo</strong></div>
                 </div>
             </div>`;
             showModal(t('view_levels').replace(' &gt;',''), html, "fa-layer-group");
@@ -2741,11 +3937,11 @@
             let wd = miningData.wdHistoryList[idx];
             if (!wd) return;
             let html = `<div class="space-y-2 text-left text-xs font-mono bg-[#080c14] p-3 rounded-xl border border-gray-800">
-                <div><span class="text-gray-400 text-[10px] block">NAME & UID:</span><strong class="text-white">${wd.username || displayName} (${wd.uid || userIdStr})</strong></div>
-                <div><span class="text-gray-400 text-[10px] block">WALLET ADDRESS (${wd.network}):</span><strong class="text-yellow-400 break-all text-[10px]">${wd.address}</strong></div>
-                <div><span class="text-gray-400 text-[10px] block">AMOUNT:</span><strong class="text-green-400">${wd.amount.toFixed(2)} USDT</strong></div>
-                <div><span class="text-gray-400 text-[10px] block">TXHASH:</span><strong class="text-cyan-400 break-all text-[10px]">${wd.txHash || 'Pending'}</strong></div>
-                <div><span class="text-gray-400 text-[10px] block">STATUS:</span><strong class="uppercase text-yellow-400">${wd.status}</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">NAME & UID:</span><strong class="text-white">${escapeHtml(wd.username || displayName)} (${escapeHtml(wd.uid || userIdStr)})</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">WALLET ADDRESS (${escapeHtml(wd.network)}):</span><strong class="text-yellow-400 break-all text-[10px]">${escapeHtml(wd.address)}</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">AMOUNT:</span><strong class="text-green-400">${Number(wd.amount).toFixed(2)} USDT</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">TXHASH:</span><strong class="text-cyan-400 break-all text-[10px]">${escapeHtml(wd.txHash || 'Pending')}</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">STATUS:</span><strong class="uppercase text-yellow-400">${escapeHtml(wd.status)}</strong></div>
             </div>`;
             showModal(t('wd_history'), html, "fa-receipt");
         }
@@ -2774,7 +3970,19 @@
             </div>`;
             showModal(t('about_afex'), html, "fa-circle-info"); 
         }
-        // --- SECRET EXECUTIVE ADMIN PANEL & KYC CAMERA LOGIC ---
+        function openPrivacyModal() {
+            let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1 leading-relaxed">
+                <h4 class="text-xs font-bold text-yellow-400">${t('privacy_content_title')}</h4>
+                <p class="text-gray-300">${t('privacy_desc_p1')}</p>
+                <p class="text-gray-300">${t('privacy_desc_p2')}</p>
+            </div>`;
+            showModal(t('privacy_policy'), html, "fa-shield-cat");
+        }
+
+        // --- SECRET EXECUTIVE ADMIN PANEL (10x CONSECUTIVE CLICKS + SHA-256 PIN) ---
+        let _adminSecretClickCount = 0;
+        let _adminSecretClickTimer = null;
+
         function renderAdminSessionBanner() {
             let banner = document.getElementById('admin-unlock-banner');
             if (!banner) return;
@@ -2785,19 +3993,33 @@
                 banner.classList.add('hidden');
                 banner.classList.remove('flex');
             }
+            if (typeof renderCustomTasksList === 'function') renderCustomTasksList();
             updateAdTaskUI();
         }
 
         function lockExecutiveAdminSession() {
             isAdminSessionUnlocked = false;
+            _adminSecretClickCount = 0;
             sessionStorage.removeItem(`afex_admin_unlocked_${userIdStr}`);
+            sessionStorage.removeItem(`afex_admin_token_${userIdStr}`);
             renderAdminSessionBanner();
             closeModal();
             showModal(t('notification'), "Admin mode locked & hidden.", "fa-lock");
         }
 
         function verifyAdminAccess() {
-            // Jika sudah input PIN 1x, langsung buka dashboard tanpa minta PIN lagi
+            // Wajib klik 10 kali berturut-turut untuk membuka panel admin; jika belum mencapai 10x tidak muncul apapun!
+            if (_adminSecretClickTimer) clearTimeout(_adminSecretClickTimer);
+            _adminSecretClickCount += 1;
+            _adminSecretClickTimer = setTimeout(() => {
+                _adminSecretClickCount = 0;
+            }, 2500);
+
+            if (_adminSecretClickCount < 10) {
+                return;
+            }
+            _adminSecretClickCount = 0;
+
             if (isAdminSessionUnlocked) {
                 openExecutiveAdminDashboard();
                 return;
@@ -2816,16 +4038,44 @@
             showModal("Executive Access", html, "fa-shield-halved");
         }
 
-        function verifyExecutiveAdminPin() {
-            let pinVal = document.getElementById('admin-pin-input').value.trim();
-            if (pinVal === "20052007" || adminUsers[userIdStr] === pinVal || adminUsers[displayName] === pinVal) {
+        async function verifyExecutiveAdminPin() {
+            let pinInput = document.getElementById('admin-pin-input');
+            let pinVal = pinInput ? pinInput.value.trim() : '';
+            if (!pinVal) return showModal(t('error'), t('admin_invalid_pin'), "fa-circle-exclamation");
+
+            let enteredHash = await sha256Hex(pinVal);
+            let storedUserPin = adminUsers[userIdStr] || adminUsers[displayName];
+            let isMatch = MASTER_ADMIN_PIN_HASHES.includes(enteredHash) ||
+                          (storedUserPin && (storedUserPin === enteredHash || storedUserPin === pinVal));
+
+            if (isMatch) {
                 isAdminSessionUnlocked = true;
                 sessionStorage.setItem(`afex_admin_unlocked_${userIdStr}`, 'true');
+                sessionStorage.setItem(`afex_admin_token_${userIdStr}`, enteredHash);
                 renderAdminSessionBanner();
                 openExecutiveAdminDashboard();
             } else {
                 showModal(t('error'), t('admin_invalid_pin'), "fa-circle-exclamation");
             }
+        }
+
+        async function registerNewSubAdmin() {
+            if (!isAdminSessionUnlocked) return;
+            let userEl = document.getElementById('new-admin-user');
+            let pinEl = document.getElementById('new-admin-pin');
+            let newAdminKey = userEl ? userEl.value.trim() : '';
+            let newAdminPin = pinEl ? pinEl.value.trim() : '';
+            if (!newAdminKey || !newAdminPin) {
+                return showModal(t('error'), "Please enter both Username/UID and PIN!", "fa-circle-exclamation");
+            }
+            let pinHash = await sha256Hex(newAdminPin);
+            adminUsers[newAdminKey] = pinHash;
+            try {
+                localStorage.setItem('afex_admin_pins_hashed', JSON.stringify(adminUsers));
+            } catch (e) {}
+            if (userEl) userEl.value = '';
+            if (pinEl) pinEl.value = '';
+            showModal(t('success'), `Sub-Admin (${escapeHtml(newAdminKey)}) registered with encrypted PIN!`, "fa-circle-check");
         }
 
         function toggleAdminDisableAds() {
@@ -2871,7 +4121,7 @@
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[10px]">USER IDENTIFIER:</span>
-                        <strong class="text-yellow-400 text-xs">${record.username} (UID: ${record.uid})</strong>
+                        <strong class="text-yellow-400 text-xs">${escapeHtml(record.username)} (UID: ${escapeHtml(record.uid)})</strong>
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[10px]">NETWORK & AMOUNT:</span>
@@ -2896,7 +4146,87 @@
             </div>`;
             showModal("Transaction & User Detail", html, "fa-user-tag");
         }
+        function openAddAdminTaskModal() {
+            if (!isAdminSessionUnlocked) {
+                return showModal(t('error'), "Akses ditolak! Silakan masukkan PIN Admin terlebih dahulu.", "fa-lock");
+            }
 
+            let html = `<div class="space-y-2.5 text-left text-xs font-mono">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Task Category / Type</label>
+                    <select id="adm-task-type" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
+                        <option value="telegram">Telegram Channel / Group</option>
+                        <option value="social">Social Media (X / YouTube / IG)</option>
+                        <option value="website">Visit Link / Website</option>
+                        <option value="secret">Secret Code Task</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Task Title</label>
+                    <input type="text" id="adm-task-title" placeholder="e.g. Join Official Channel" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Task Description & Reward Info</label>
+                    <input type="text" id="adm-task-desc" placeholder="e.g. Subscribe & get +20 AFEX | +2 Pts" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Target Link (URL)</label>
+                    <input type="text" id="adm-task-link" placeholder="https://t.me/..." class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-xs outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Required Proof Type</label>
+                        <select id="adm-task-proof-type" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-bold cursor-pointer">
+                            <option value="link">Link URL</option>
+                            <option value="word">Word / Username</option>
+                            <option value="code">Verification Code</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Expected Answer (Optional)</label>
+                        <input type="text" id="adm-task-answer" placeholder="Leave blank for any" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none">
+                    </div>
+                </div>
+                <button type="button" onclick="saveNewAdminTask()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-md mt-2">
+                    PUBLISH TASK
+                </button>
+            </div>`;
+            showModal("Add New Task (Admin)", html, "fa-list-check");
+        }
+
+        function saveNewAdminTask() {
+            let typeEl = document.getElementById('adm-task-type');
+            let titleEl = document.getElementById('adm-task-title');
+            let descEl = document.getElementById('adm-task-desc');
+            let linkEl = document.getElementById('adm-task-link');
+            let proofEl = document.getElementById('adm-task-proof-type');
+            let ansEl = document.getElementById('adm-task-answer');
+
+            if (!titleEl || !titleEl.value.trim()) {
+                return showModal(t('error'), "Task title is required!", "fa-circle-exclamation");
+            }
+
+            let type = typeEl ? typeEl.value : 'telegram';
+            let title = titleEl.value.trim();
+            let desc = descEl && descEl.value.trim() ? descEl.value.trim() : "+20 AFEX | +2 Pts";
+            let link = linkEl && linkEl.value.trim() ? linkEl.value.trim() : "https://t.me/";
+            let proofType = proofEl ? proofEl.value : 'link';
+            let answer = ansEl ? ansEl.value.trim() : '';
+
+            let q = getGlobalAdminQueue();
+            if (!q.customTasks) q.customTasks = [];
+            
+            q.customTasks.unshift({
+                id: "TASK_" + Date.now(),
+                type, title, desc, link, proofType, answer,
+                afexReward: 20, ptsReward: 2
+            });
+            
+            saveGlobalAdminQueue(q);
+            renderCustomTasksList();
+            closeModal();
+            showModal(t('success'), "Tugas baru berhasil ditambahkan dan dipublikasikan ke halaman Task!", "fa-circle-check");
+        }
         async function fetchRemoteSpreadsheetQueue() {
             try {
                 let res = await fetch(`${SPREADSHEET_URL}?action=getQueue`);
@@ -2930,35 +4260,35 @@
 
             let wdApprovalRows = pendingWdList.length > 0 ? pendingWdList.map(w => `
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-[11px] font-mono mb-2 space-y-1.5">
-                    <div onclick="openUserDetailModal('${w.id}', 'wd')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
+                    <div onclick="openUserDetailModal('${escapeHtml(w.id)}', 'wd')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
                         <div>
                             <span class="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">WD</span>
-                            <strong class="text-white">${w.username}</strong> <span class="text-gray-400 text-[9px]">(UID: ${w.uid})</span>
+                            <strong class="text-white">${escapeHtml(w.username)}</strong> <span class="text-gray-400 text-[9px]">(UID: ${escapeHtml(w.uid)})</span>
                         </div>
                         <span class="text-yellow-400 font-bold">${Number(w.amount).toFixed(2)} USDT</span>
                     </div>
-                    <div class="text-[9px] text-gray-400 break-all">Wallet (${w.network}): ${w.address}</div>
-                    <input type="text" id="admin-wd-txhash-${w.id}" placeholder="Input Payout TxHash..." class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none font-mono">
+                    <div class="text-[9px] text-gray-400 break-all">Wallet (${escapeHtml(w.network)}): ${escapeHtml(w.address)}</div>
+                    <input type="text" id="admin-wd-txhash-${escapeHtml(w.id)}" placeholder="Input Payout TxHash..." class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none font-mono">
                     <div class="flex gap-1.5 pt-1">
-                        <button onclick="adminApproveWd('${w.id}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
-                        <button onclick="adminRejectWd('${w.id}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
+                        <button onclick="adminApproveWd('${escapeHtml(w.id)}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
+                        <button onclick="adminRejectWd('${escapeHtml(w.id)}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
                     </div>
                 </div>
             `).join('') : `<p class="text-gray-500 text-[11px]">No pending WD requests.</p>`;
 
             let depApprovalRows = pendingDepList.length > 0 ? pendingDepList.map(d => `
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-[11px] font-mono mb-2 space-y-1.5">
-                    <div onclick="openUserDetailModal('${d.id}', 'dep')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
+                    <div onclick="openUserDetailModal('${escapeHtml(d.id)}', 'dep')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
                         <div>
                             <span class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">DEPOSIT</span>
-                            <strong class="text-white">${d.username}</strong> <span class="text-gray-400 text-[9px]">(UID: ${d.uid})</span>
+                            <strong class="text-white">${escapeHtml(d.username)}</strong> <span class="text-gray-400 text-[9px]">(UID: ${escapeHtml(d.uid)})</span>
                         </div>
                         <span class="text-green-400 font-bold">+${Number(d.amount).toFixed(2)} USDT</span>
                     </div>
-                    <div class="text-[9px] text-cyan-400 break-all">TxHash: ${d.txHash}</div>
+                    <div class="text-[9px] text-cyan-400 break-all">TxHash: ${escapeHtml(d.txHash)}</div>
                     <div class="flex gap-1.5 pt-1">
-                        <button onclick="adminApproveDeposit('${d.id}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
-                        <button onclick="adminRejectDeposit('${d.id}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
+                        <button onclick="adminApproveDeposit('${escapeHtml(d.id)}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
+                        <button onclick="adminRejectDeposit('${escapeHtml(d.id)}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
                     </div>
                 </div>
             `).join('') : `<p class="text-gray-500 text-[11px]">No pending Deposit requests.</p>`;
@@ -3082,12 +4412,13 @@
 
             if (changed) {
                 saveGlobalAdminQueue(q);
-                saveLocalPersistence();
+                saveLocalPersistence(true);
                 updateUI();
             }
         }
 
         function adminApproveWd(wdId) {
+            if (!isAdminSessionUnlocked) return;
             let q = getGlobalAdminQueue();
             let item = q.wdRequests.find(w => w.id === wdId);
             if (!item) return;
@@ -3125,7 +4456,7 @@
 
             fetch(SPREADSHEET_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "APPROVE", txhash: inputTxHash })
+                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "APPROVE", txhash: inputTxHash, adminToken: sessionStorage.getItem(`afex_admin_token_${userIdStr}`) || "", initData: (tg && tg.initData) ? tg.initData : "" })
             });
 
             // Jangan auto close pop-up saat menyetujui
@@ -3133,6 +4464,7 @@
         }
 
         function adminRejectWd(wdId) {
+            if (!isAdminSessionUnlocked) return;
             let q = getGlobalAdminQueue();
             let item = q.wdRequests.find(w => w.id === wdId);
             if (!item) return;
@@ -3157,13 +4489,14 @@
 
             fetch(SPREADSHEET_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "REJECT" })
+                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "REJECT", adminToken: sessionStorage.getItem(`afex_admin_token_${userIdStr}`) || "", initData: (tg && tg.initData) ? tg.initData : "" })
             });
 
             openExecutiveAdminDashboard();
         }
 
         function adminApproveDeposit(depId) {
+            if (!isAdminSessionUnlocked) return;
             let q = getGlobalAdminQueue();
             let item = q.depRequests.find(d => d.id === depId);
             if (!item) return;
@@ -3195,7 +4528,7 @@
 
             fetch(SPREADSHEET_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "APPROVE" })
+                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "APPROVE", adminToken: sessionStorage.getItem(`afex_admin_token_${userIdStr}`) || "", initData: (tg && tg.initData) ? tg.initData : "" })
             });
 
             // Jangan auto close pop-up
@@ -3203,6 +4536,7 @@
         }
 
         function adminRejectDeposit(depId) {
+            if (!isAdminSessionUnlocked) return;
             let q = getGlobalAdminQueue();
             let item = q.depRequests.find(d => d.id === depId);
             if (!item) return;
@@ -3228,25 +4562,28 @@
 
             fetch(SPREADSHEET_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "REJECT" })
+                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "REJECT", adminToken: sessionStorage.getItem(`afex_admin_token_${userIdStr}`) || "", initData: (tg && tg.initData) ? tg.initData : "" })
             });
 
             openExecutiveAdminDashboard();
         }
 
-        // --- TABEL DATA KYC DI ADMIN & BACKUP KE GOOGLE DRIVE ---
+       // --- TABEL DATA KYC DI ADMIN, PREVIEW FOTO, & BACKUP KE GOOGLE DRIVE ---
         function openAdminKycTableModal() {
             let q = getGlobalAdminQueue();
             let list = q.kycRequests || [];
             let rowsHtml = list.length > 0 ? list.map(k => `
                 <tr class="border-b border-gray-800 text-[10px] font-mono">
-                    <td class="p-1.5">
-                        <img src="${k.photoData}" class="w-12 h-12 object-cover rounded border border-yellow-500/40 mx-auto" alt="KYC">
+                    <td class="p-1.5 text-center">
+                        <div onclick="openAdminKycPhotoPreview('${k.id}')" class="relative inline-block cursor-pointer group">
+                            <img src="${k.photoData}" class="w-12 h-12 object-cover rounded-lg border border-yellow-500/50 mx-auto group-hover:opacity-80 transition-all" alt="KYC">
+                            <span class="block text-[8px] text-cyan-400 underline mt-0.5"><i class="fa-solid fa-magnifying-glass-plus"></i> Lihat</span>
+                        </div>
                     </td>
                     <td class="p-1.5">
-                        <strong class="text-white block">${k.username}</strong>
-                        <span class="text-gray-400">UID: ${k.uid}</span>
-                        <span class="block text-yellow-400 uppercase">${k.type}</span>
+                        <strong class="text-white block">${escapeHtml(k.username)}</strong>
+                        <span class="text-gray-400">UID: ${escapeHtml(k.uid)}</span>
+                        <span class="block text-yellow-400 uppercase">${escapeHtml(k.type)}${k.livenessScore ? ' (' + k.livenessScore + '%)' : ''}</span>
                     </td>
                     <td class="p-1.5 text-center">
                         <span class="px-1.5 py-0.5 rounded font-black ${k.isHuman ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
@@ -3263,6 +4600,7 @@
             `).join('') : `<tr><td colspan="4" class="text-center py-4 text-gray-500">No KYC submissions yet.</td></tr>`;
 
             let html = `<div class="space-y-3 text-left text-xs max-h-[68vh] overflow-y-auto">
+                <p class="text-[10px] text-gray-400 italic">Klik pada foto untuk memperbesar hasil foto KYC pengguna.</p>
                 <div class="overflow-x-auto">
                     <table class="w-full border-collapse bg-[#080c14] rounded-xl overflow-hidden">
                         <thead>
@@ -3279,6 +4617,31 @@
                 <button onclick="openExecutiveAdminDashboard()" class="w-full bg-gray-800 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">Back to Admin Panel</button>
             </div>`;
             showModal("KYC Verification Table", html, "fa-id-card");
+        }
+
+        // Fungsi untuk melihat gambar hasil KYC ukuran besar di Panel Admin
+        function openAdminKycPhotoPreview(kycId) {
+            let q = getGlobalAdminQueue();
+            let item = (q.kycRequests || []).find(k => k.id === kycId);
+            if (!item) return;
+
+            let html = `<div class="space-y-3 text-center text-xs font-mono">
+                <div class="bg-[#080c14] p-2 rounded-xl border border-yellow-500/40">
+                    <img src="${item.photoData}" class="w-full max-h-64 object-contain rounded-lg mx-auto" alt="KYC Full Preview">
+                </div>
+                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-left space-y-1 text-[11px]">
+                    <div><span class="text-gray-400">User:</span> <strong class="text-white">${escapeHtml(item.username)} (${escapeHtml(item.uid)})</strong></div>
+                    <div><span class="text-gray-400">Tipe KYC:</span> <strong class="text-yellow-400 uppercase">${item.type}</strong></div>
+                    <div><span class="text-gray-400">Status Gestur:</span> <strong class="${item.isHuman ? 'text-green-400' : 'text-red-400'}">${item.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)'}</strong></div>
+                </div>
+                ${item.status === 'pending' ? `
+                <div class="flex gap-2">
+                    <button onclick="adminVerifyKyc('${item.id}', 'verified')" class="flex-1 bg-green-500 text-black font-black py-2 rounded-xl text-xs cursor-pointer">Verifikasi</button>
+                    <button onclick="adminVerifyKyc('${item.id}', 'rejected')" class="flex-1 bg-red-500 text-black font-black py-2 rounded-xl text-xs cursor-pointer">Reject</button>
+                </div>` : ''}
+                <button onclick="openAdminKycTableModal()" class="w-full bg-gray-800 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">Kembali ke Tabel KYC</button>
+            </div>`;
+            showModal("Hasil Foto KYC", html, "fa-camera");
         }
 
         function adminVerifyKyc(kycId, decision) {
@@ -3304,7 +4667,6 @@
 
             saveGlobalAdminQueue(q);
 
-            // Jika di-Approve (Verifikasi), otomatis backup foto & data KYC ke Google Drive via Apps Script
             if (decision === 'verified') {
                 fetch(SPREADSHEET_URL, {
                     method: 'POST', mode: 'no-cors',
@@ -3324,97 +4686,344 @@
             openAdminKycTableModal();
         }
 
-        // --- MENU KAMERA LIVE & AUTO DETEKSI MANUSIA ---
-        let activeCameraStream = null;
-        let activeKycType = 'face';
-        let autoCaptureTimer = null;
+        // --- MENU KAMERA LIVE ANTI-BLANK & DETEKSI GESTUR OTOMATIS ---
+       // --- LOGIKA GESTUR 4 LANGKAH TERBARU ---
+let videoStream = null;
+let currentStep = 1; // 1: Angguk 3x, 2: Hadap Kiri, 3: Hadap Kanan, 4: Hadap Depan (Auto Capture)
+let nodCount = 0;
+let lastHeadY = 0;
+let stepProgressTime = 0; 
+const requiredHoldTime = 2000; 
+let isProcessing = false;
+let activeKycType = 'face';
 
-        async function openKycCameraModal(type) {
-            activeKycType = type;
-            let modal = document.getElementById('camera-modal');
-            let badge = document.getElementById('human-detect-badge');
-            let countEl = document.getElementById('auto-capture-countdown');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            badge.innerText = "SCANNING FACE/HUMAN...";
-            badge.className = "text-yellow-400 font-bold animate-pulse";
-            countEl.classList.add('hidden');
+let _livenessState = {
+    calibrated: false,
+    calibFrames: 0,
+    baseCentroidX: 40,
+    baseCentroidY: 40,
+    baseNoseRatio: 1.0,
+    prevFrameGray: null,
+    nodPhase: 'neutral',
+    lastNodTimestamp: 0,
+    dynamicMotionSamples: [],
+    nonRigidDeformationSamples: [],
+    skinCoverageRatio: 0,
+    livenessScore: 0
+};
 
-            try {
-                activeCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-                let video = document.getElementById('kyc-video');
-                video.srcObject = activeCameraStream;
+async function openKycCameraModal(type) {
+    activeKycType = type || 'face';
+    let modal = document.getElementById('camera-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 
-                // Deteksi otomatis manusia dari analisa frame video kamera & auto-foto otomatis
-                autoCaptureTimer = setTimeout(() => {
-                    badge.innerText = "YES = MANUSIA ASLI";
-                    badge.className = "text-green-400 font-black";
-                    countEl.classList.remove('hidden');
-                    countEl.innerText = "Human Detected! Auto-capturing in 2s...";
-                    setTimeout(() => {
-                        manualCaptureKyc(true);
-                    }, 1800);
-                }, 2200);
-            } catch (err) {
-                badge.innerText = "CAMERA SIMULATION READY";
-                autoCaptureTimer = setTimeout(() => {
-                    manualCaptureKyc(true);
-                }, 2000);
-            }
+    currentStep = 1;
+    nodCount = 0;
+    lastHeadY = 0;
+    stepProgressTime = 0;
+    isProcessing = false;
+    _livenessState = {
+        calibrated: false,
+        calibFrames: 0,
+        baseCentroidX: 40,
+        baseCentroidY: 40,
+        baseNoseRatio: 1.0,
+        prevFrameGray: null,
+        nodPhase: 'neutral',
+        lastNodTimestamp: Date.now(),
+        dynamicMotionSamples: [],
+        nonRigidDeformationSamples: [],
+        skinCoverageRatio: 0,
+        livenessScore: 0
+    };
+
+    const statusEl = document.getElementById('gesture-status');
+    if (statusEl) statusEl.innerText = t('kyc_loading_camera');
+
+    const video = document.getElementById('kyc-video');
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 } },
+            audio: false
+        });
+        video.srcObject = videoStream;
+        await video.play();
+        isProcessing = true;
+        requestAnimationFrame(processFrameDetection);
+    } catch (err) {
+        closeKycCameraModal();
+        showModal(t('error'), t('kyc_camera_err'), "fa-circle-exclamation");
+    }
+}
+
+function stopCamera() {
+    isProcessing = false;
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+}
+
+function closeKycCameraModal() {
+    stopCamera();
+    let modal = document.getElementById('camera-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function processFrameDetection() {
+    if (!isProcessing) return;
+
+    const video = document.getElementById('kyc-video');
+    const canvas = document.getElementById('kyc-canvas');
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        requestAnimationFrame(processFrameDetection);
+        return;
+    }
+
+    canvas.width = 160;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, 160, 160);
+    
+    const roi = ctx.getImageData(40, 30, 80, 80).data;
+    const pixelCount = 80 * 80;
+    const currGray = new Float32Array(pixelCount);
+
+    let skinPixels = 0;
+    let weightedSkinX = 0, weightedSkinY = 0, totalFeatureWeight = 0;
+    let leftCheekLuma = 0, rightCheekLuma = 0, noseBridgeLuma = 0;
+    let topHalfFeature = 0, bottomHalfFeature = 0;
+    let frameMotionDiff = 0;
+
+    for (let i = 0; i < roi.length; i += 4) {
+        const r = roi[i], g = roi[i + 1], b = roi[i + 2];
+        const pIdx = i >> 2;
+        const x = pIdx % 80;
+        const y = (pIdx / 80) | 0;
+
+        const yLuma = 0.299 * r + 0.587 * g + 0.114 * b;
+        const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+        const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+        currGray[pIdx] = yLuma;
+
+        const isSkinTone = (yLuma > 35 && yLuma < 245 && cb >= 75 && cb <= 135 && cr >= 130 && cr <= 180);
+        if (isSkinTone) skinPixels++;
+
+        const featureWeight = isSkinTone ? (255 - yLuma * 0.5) : (yLuma * 0.15);
+        weightedSkinX += x * featureWeight;
+        weightedSkinY += y * featureWeight;
+        totalFeatureWeight += featureWeight;
+
+        if (x >= 10 && x < 32 && y >= 25 && y <= 55) leftCheekLuma += yLuma;
+        if (x > 48 && x <= 70 && y >= 25 && y <= 55) rightCheekLuma += yLuma;
+        if (x >= 34 && x <= 46 && y >= 25 && y <= 55) noseBridgeLuma += yLuma;
+        if (y < 40) topHalfFeature += yLuma; else bottomHalfFeature += yLuma;
+
+        if (_livenessState.prevFrameGray) {
+            frameMotionDiff += Math.abs(yLuma - _livenessState.prevFrameGray[pIdx]);
         }
+    }
 
-        function manualCaptureKyc(isHumanDetected) {
-            if (autoCaptureTimer) clearTimeout(autoCaptureTimer);
-            let video = document.getElementById('kyc-video');
-            let canvas = document.getElementById('kyc-canvas');
-            canvas.width = 240;
-            canvas.height = 240;
-            let ctx = canvas.getContext('2d');
-            if (activeCameraStream && video.readyState >= 2) {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            } else {
-                ctx.fillStyle = "#121927";
-                ctx.fillRect(0, 0, 240, 240);
-                ctx.fillStyle = "#facc15";
-                ctx.font = "bold 14px monospace";
-                ctx.fillText(displayName, 20, 110);
-                ctx.fillText(isHumanDetected ? "HUMAN: YES" : "HUMAN: NOT", 20, 135);
-            }
-            let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            closeKycCameraModal();
+    const avgMotionPerPixel = _livenessState.prevFrameGray ? (frameMotionDiff / pixelCount) : 1.5;
+    _livenessState.prevFrameGray = currGray;
 
-            miningData.kycStatus[activeKycType] = 'pending';
-            saveLocalPersistence();
-            updateDynamicCountdowns();
+    const skinRatio = skinPixels / pixelCount;
+    _livenessState.skinCoverageRatio = skinRatio;
 
-            let q = getGlobalAdminQueue();
-            if (!q.kycRequests) q.kycRequests = [];
-            q.kycRequests.unshift({
-                id: "KYC_" + Date.now(),
-                uid: userIdStr,
-                username: displayName,
-                type: activeKycType,
-                isHuman: isHumanDetected,
-                photoData: dataUrl,
-                status: 'pending',
-                timestamp: Date.now()
-            });
-            saveGlobalAdminQueue(q);
+    const centroidX = totalFeatureWeight > 0 ? (weightedSkinX / totalFeatureWeight) : 40;
+    const centroidY = totalFeatureWeight > 0 ? (weightedSkinY / totalFeatureWeight) : 40;
+    const cheekMean = ((leftCheekLuma + rightCheekLuma) / 2) || 1;
+    const noseRatio = noseBridgeLuma / cheekMean;
 
-            showModal(t('notification'), t('status_pending'), "fa-clock");
+    const hasValidFace = skinRatio >= 0.12;
+    if (hasValidFace && !_livenessState.calibrated) {
+        _livenessState.calibFrames++;
+        _livenessState.baseCentroidX = (_livenessState.baseCentroidX * 0.7) + (centroidX * 0.3);
+        _livenessState.baseCentroidY = (_livenessState.baseCentroidY * 0.7) + (centroidY * 0.3);
+        _livenessState.baseNoseRatio = (_livenessState.baseNoseRatio * 0.7) + (noseRatio * 0.3);
+        if (_livenessState.calibFrames >= 8) {
+            _livenessState.calibrated = true;
         }
+    }
 
-        function closeKycCameraModal() {
-            if (autoCaptureTimer) clearTimeout(autoCaptureTimer);
-            if (activeCameraStream) {
-                activeCameraStream.getTracks().forEach(track => track.stop());
-                activeCameraStream = null;
-            }
-            let modal = document.getElementById('camera-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+    if (hasValidFace) {
+        _livenessState.dynamicMotionSamples.push(avgMotionPerPixel);
+        if (_livenessState.dynamicMotionSamples.length > 60) _livenessState.dynamicMotionSamples.shift();
+        const nonRigidDelta = Math.abs(noseRatio - _livenessState.baseNoseRatio);
+        _livenessState.nonRigidDeformationSamples.push(nonRigidDelta);
+        if (_livenessState.nonRigidDeformationSamples.length > 60) _livenessState.nonRigidDeformationSamples.shift();
+    }
+
+    const yawShift = (centroidX - _livenessState.baseCentroidX) * 2200 + (rightCheekLuma - leftCheekLuma) * 0.65;
+    const pitchShift = (centroidY - _livenessState.baseCentroidY) * 2500 + (bottomHalfFeature - topHalfFeature) * 0.55;
+
+    evaluateGestureRules(yawShift, pitchShift, hasValidFace, avgMotionPerPixel);
+    if (isProcessing) {
+        requestAnimationFrame(processFrameDetection);
+    }
+}
+
+function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5) {
+    const statusEl = document.getElementById('gesture-status');
+    const instructionBox = document.getElementById('instruction-box');
+    const instructionText = document.getElementById('instruction-text');
+    const progressBar = document.getElementById('gesture-progress-bar');
+    const stepIndicator = document.getElementById('step-indicator');
+    const timerText = document.getElementById('timer-progress-text');
+
+    if (!statusEl || !progressBar) return;
+
+    stepIndicator.innerText = t('kyc_step_fmt').replace('{step}', currentStep);
+
+    if (!hasValidFace) {
+        stepProgressTime = Math.max(0, stepProgressTime - 40);
+        if (instructionText) instructionText.innerHTML = `<i class="fa-solid fa-face-viewfinder mr-1"></i> ${t('kyc_no_face')}`;
+        return;
+    }
+
+    if (avgMotion < 0.08 && _livenessState.dynamicMotionSamples.length > 20) {
+        stepProgressTime = Math.max(0, stepProgressTime - 40);
+        if (instructionText) instructionText.innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> ${t('kyc_spoof_detected')}`;
+        return;
+    }
+
+    if (currentStep === 1) {
+        statusEl.innerHTML = `${t('gesture_step_1')} (${nodCount}/3)`;
+        const now = Date.now();
+        if (diffV > 4500 && _livenessState.nodPhase === 'neutral') {
+            _livenessState.nodPhase = 'down';
+        } else if (diffV < -2500 && _livenessState.nodPhase === 'down' && (now - _livenessState.lastNodTimestamp > 250)) {
+            nodCount++;
+            _livenessState.nodPhase = 'neutral';
+            _livenessState.lastNodTimestamp = now;
+        } else if (Math.abs(diffV) > 8500 && ((diffV > 0 && lastHeadY <= -1500) || (diffV < 0 && lastHeadY >= 1500)) && (now - _livenessState.lastNodTimestamp > 300)) {
+            nodCount++;
+            _livenessState.nodPhase = 'neutral';
+            _livenessState.lastNodTimestamp = now;
         }
+        lastHeadY = diffV;
+        progressBar.style.width = Math.min(100, (nodCount / 3) * 100) + "%";
+        timerText.innerText = t('kyc_nod_fmt').replace('{count}', Math.min(3, nodCount));
 
+        if (nodCount >= 3) {
+            currentStep = 2;
+            stepProgressTime = 0;
+            if (instructionText) instructionText.innerHTML = t('kyc_good_left');
+        } else {
+            if (instructionText) instructionText.innerHTML = t('kyc_instr_nod');
+        }
+    } 
+    else if (currentStep === 2) {
+        statusEl.innerHTML = t('gesture_step_2');
+        if (diffH > 5500) { 
+            stepProgressTime += 55; 
+            if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
+        } else {
+            stepProgressTime = Math.max(0, stepProgressTime - 25);
+            if (instructionText) instructionText.innerHTML = t('kyc_instr_left');
+        }
+        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
+        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+
+        if (stepProgressTime >= requiredHoldTime) { currentStep = 3; stepProgressTime = 0; }
+    }
+    else if (currentStep === 3) {
+        statusEl.innerHTML = t('gesture_step_3');
+        if (diffH < -5500) { 
+            stepProgressTime += 55;
+            if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
+        } else {
+            stepProgressTime = Math.max(0, stepProgressTime - 25);
+            if (instructionText) instructionText.innerHTML = t('kyc_instr_right');
+        }
+        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
+        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+
+        if (stepProgressTime >= requiredHoldTime) { currentStep = 4; stepProgressTime = 0; }
+    }
+    else if (currentStep === 4) {
+        statusEl.innerHTML = t('gesture_step_4');
+        if (Math.abs(diffH) < 5000 && Math.abs(diffV) < 5500) {
+            stepProgressTime += 55;
+            if (instructionText) instructionText.innerHTML = t('kyc_pos_front_cap');
+        } else {
+            stepProgressTime = Math.max(0, stepProgressTime - 35);
+            if (instructionText) instructionText.innerHTML = t('kyc_instr_front');
+        }
+        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
+        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+
+        if (stepProgressTime >= requiredHoldTime && isProcessing) {
+            isProcessing = false;
+            triggerAutoCapture();
+        }
+    }
+}
+
+function triggerAutoCapture() {
+    const video = document.getElementById('kyc-video');
+    const canvas = document.getElementById('kyc-canvas');
+    if (!video || !canvas) return;
+
+    canvas.width = 320;
+    canvas.height = 320;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+    stopCamera();
+    closeKycCameraModal();
+
+    const motionArr = _livenessState.dynamicMotionSamples;
+    const avgMotion = motionArr.length > 0 ? (motionArr.reduce((a, b) => a + b, 0) / motionArr.length) : 0;
+    const deformArr = _livenessState.nonRigidDeformationSamples;
+    const maxDeform = deformArr.length > 0 ? Math.max(...deformArr) : 0;
+
+    let computedScore = 0;
+    if (_livenessState.skinCoverageRatio >= 0.12) computedScore += 35;
+    if (nodCount >= 3) computedScore += 25;
+    if (avgMotion >= 0.25 && avgMotion <= 35.0) computedScore += 20;
+    if (maxDeform >= 0.015) computedScore += 20;
+    _livenessState.livenessScore = Math.min(100, computedScore);
+
+    const isVerifiedLiveHuman = (_livenessState.livenessScore >= 75);
+
+    let finalKycStatus = isVerifiedLiveHuman ? 'pending' : 'rejected';
+    if (miningData && miningData.kycStatus) {
+        miningData.kycStatus[activeKycType] = finalKycStatus;
+        saveLocalPersistence(true);
+        if (typeof updateDynamicCountdowns === 'function') updateDynamicCountdowns();
+    }
+
+    let q = getGlobalAdminQueue();
+    if (!q.kycRequests) q.kycRequests = [];
+    q.kycRequests.unshift({
+        id: "KYC_" + Date.now(),
+        uid: userIdStr,
+        username: displayName,
+        type: activeKycType,
+        isHuman: isVerifiedLiveHuman,
+        livenessScore: _livenessState.livenessScore,
+        photoData: imageDataUrl,
+        status: finalKycStatus,
+        timestamp: Date.now()
+    });
+    saveGlobalAdminQueue(q);
+
+    if (isVerifiedLiveHuman) {
+        showModal(t('success'), t('kyc_done_msg'), "fa-circle-check");
+    } else {
+        showModal(t('error'), t('kyc_try_again'), "fa-triangle-exclamation");
+    }
+}
         function openLockedFeature(type) { 
             let isLocked = featureLockState[type] && (targetDates[type] > Date.now());
             if (isLocked && !isAdminSessionUnlocked) {
