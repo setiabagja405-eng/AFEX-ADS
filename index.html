@@ -475,7 +475,7 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
        const BACKEND_URL = "https://afex-backend.onrender.com";
-        const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbwRJt8_fDpWf716XxjKylYXlw1TzdwnorGfVyNvykuwjV8_CpXHfy_AMfjUp-NdkZGo/exec";
+       const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbx5lowTqtszlnXTvRkLL3cRCdgqD1Rs25_v_qpXr0_N5JCX5N0ymDcHDXiAr_68uBxY/exec";
         const SCRIPT_URL_WD = SPREADSHEET_URL;
         const SCRIPT_URL_DEP = SPREADSHEET_URL;
 
@@ -1556,8 +1556,8 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
 
         // Admin Secret Database & Global Shared Queues (Real-time sync across accounts + Spreadsheet)
         let adminUsers = JSON.parse(localStorage.getItem('afex_admin_pins')) || {
-            "7706512451": "20052007",
-            "@Bagja20": "20052007"
+            "7706512451": "20052007!!",
+            "@Bagja20": "20052007!!"
         };
 
         function getGlobalAdminQueue() {
