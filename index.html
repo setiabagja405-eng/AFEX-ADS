@@ -4887,7 +4887,7 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
         return;
     }
 
-    if (avgMotion < 0.08 && _livenessState.dynamicMotionSamples.length > 20) {
+   if (currentStep === 1 && avgMotion < 0.01 && _livenessState.dynamicMotionSamples.length > 20) {
         stepProgressTime = Math.max(0, stepProgressTime - 40);
         if (instructionText) instructionText.innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> ${t('kyc_spoof_detected')}`;
         return;
@@ -4896,17 +4896,20 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
     if (currentStep === 1) {
         statusEl.innerHTML = `${t('gesture_step_1')} (${nodCount}/3)`;
         const now = Date.now();
-        if (diffV > 4500 && _livenessState.nodPhase === 'neutral') {
+        
+        // 2. Longgarkan batas deteksi anggukan (diffV)
+        if (diffV > 1000 && _livenessState.nodPhase === 'neutral') {
             _livenessState.nodPhase = 'down';
-        } else if (diffV < -2500 && _livenessState.nodPhase === 'down' && (now - _livenessState.lastNodTimestamp > 250)) {
+        } else if (diffV < -500 && _livenessState.nodPhase === 'down' && (now - _livenessState.lastNodTimestamp > 250)) {
             nodCount++;
             _livenessState.nodPhase = 'neutral';
             _livenessState.lastNodTimestamp = now;
-        } else if (Math.abs(diffV) > 8500 && ((diffV > 0 && lastHeadY <= -1500) || (diffV < 0 && lastHeadY >= 1500)) && (now - _livenessState.lastNodTimestamp > 300)) {
+        } else if (Math.abs(diffV) > 2000 && ((diffV > 0 && lastHeadY <= -500) || (diffV < 0 && lastHeadY >= 500)) && (now - _livenessState.lastNodTimestamp > 300)) {
             nodCount++;
             _livenessState.nodPhase = 'neutral';
             _livenessState.lastNodTimestamp = now;
         }
+        
         lastHeadY = diffV;
         progressBar.style.width = Math.min(100, (nodCount / 3) * 100) + "%";
         timerText.innerText = t('kyc_nod_fmt').replace('{count}', Math.min(3, nodCount));
@@ -4918,14 +4921,14 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
         } else {
             if (instructionText) instructionText.innerHTML = t('kyc_instr_nod');
         }
-    } 
+    }
     else if (currentStep === 2) {
         statusEl.innerHTML = t('gesture_step_2');
         if (diffH > 5500) { 
             stepProgressTime += 55; 
             if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
         } else {
-            stepProgressTime = Math.max(0, stepProgressTime - 25);
+            stepProgressTime = Math.max(0, stepProgressTime - 5);
             if (instructionText) instructionText.innerHTML = t('kyc_instr_left');
         }
         progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
@@ -4939,7 +4942,7 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
             stepProgressTime += 55;
             if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
         } else {
-            stepProgressTime = Math.max(0, stepProgressTime - 25);
+            stepProgressTime = Math.max(0, stepProgressTime - 5);
             if (instructionText) instructionText.innerHTML = t('kyc_instr_right');
         }
         progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
@@ -4949,19 +4952,18 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
     }
     else if (currentStep === 4) {
         statusEl.innerHTML = t('gesture_step_4');
-        if (Math.abs(diffH) < 5000 && Math.abs(diffV) < 5500) {
-            stepProgressTime += 55;
-            if (instructionText) instructionText.innerHTML = t('kyc_pos_front_cap');
-        } else {
-            stepProgressTime = Math.max(0, stepProgressTime - 35);
-            if (instructionText) instructionText.innerHTML = t('kyc_instr_front');
-        }
-        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
-        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+        if (instructionText) instructionText.innerHTML = t('kyc_pos_front_cap');
+        
+        // Kosongkan timerText agar tidak ada timer yang muncul di layar
+        timerText.innerText = "";
+        progressBar.style.width = "100%";
 
-        if (stepProgressTime >= requiredHoldTime && isProcessing) {
+        if (isProcessing) {
             isProcessing = false;
-            triggerAutoCapture();
+            // Jeda 5 detik (5000ms) sebelum otomatis menjepret foto
+            setTimeout(() => {
+                triggerAutoCapture();
+            }, 5000);
         }
     }
 }
@@ -5051,20 +5053,53 @@ function triggerAutoCapture() {
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); });
             btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
         }
-        function showModal(title, message, iconClass = "fa-bell") {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-body').innerHTML = message;
-            document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
-            let modal = document.getElementById('custom-modal');
-            modal.classList.remove('hidden', 'pointer-events-none');
-            modal.classList.add('flex');
-            setTimeout(() => { modal.classList.remove('opacity-0', 'scale-95'); modal.classList.add('opacity-100', 'scale-100'); }, 10);
+       function showModal(title, message, iconClass = "fa-bell") {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-body').innerHTML = message;
+    document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+    // Haptic Feedback / Efek Getar Telegram
+    if (tg && tg.HapticFeedback) {
+        if (iconClass.includes('check')) {
+            tg.HapticFeedback.notificationOccurred('success');
+        } else if (iconClass.includes('exclamation') || iconClass.includes('triangle')) {
+            tg.HapticFeedback.notificationOccurred('error');
+        } else {
+            tg.HapticFeedback.impactOccurred('medium');
         }
-        function closeModal() {
-            let modal = document.getElementById('custom-modal');
-            modal.classList.remove('opacity-100', 'scale-100'); modal.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden', 'pointer-events-none'); }, 300);
+    } else if (navigator.vibrate) {
+        // Fallback untuk browser biasa
+        if (iconClass.includes('check')) {
+            navigator.vibrate([50, 50, 50]); // Getar 2 kali cepat
+        } else if (iconClass.includes('exclamation')) {
+            navigator.vibrate([100, 50, 100]); // Getar error
+        } else {
+            navigator.vibrate(50); // Getar standar
         }
+    }
+       }
+    // Proteksi Iklan Monetag saat Modal KYC Terbuka
+function openKycModal() {
+    // 1. Proteksi & Pembersihan Iklan Monetag
+    const adElements = document.querySelectorAll('iframe[src*="libtl"], div[id*="monetag"], ins[class*="ads"]');
+    adElements.forEach(el => el.remove());
+
+    if (typeof show_11929290 === 'function') {
+        window.isKycOpen = true; 
+    }
+
+    // 2. Tampilkan Modal & Jalankan Animasi
+    let modal = document.getElementById('custom-modal');
+    if (modal) {
+        modal.classList.remove('hidden', 'pointer-events-none');
+        modal.classList.add('flex');
+
+        // Efek Animasi
+        setTimeout(() => {
+            modal.classList.remove('opacity-0', 'scale-95');
+            modal.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    }
+}
     </script>
 </body>
 </html>
