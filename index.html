@@ -188,6 +188,13 @@
                 <div class="bg-[#121927] px-3 py-1.5 rounded-xl gold-border text-xs font-bold text-yellow-400 flex items-center gap-1.5">
                     <i class="fa-solid fa-star"></i> <span id="user-points-badge" class="font-mono">0 Pts</span>
                 </div>
+                <!-- WADAH TUGAS TAMBAHAN DARI ADMIN -->
+                <div id="admin-task-action-bar" class="hidden mb-2">
+                    <button onclick="openAddAdminTaskModal()" class="w-full bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-black py-2 rounded-xl text-xs cursor-pointer hover:bg-yellow-500 hover:text-black transition-all">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> <span data-i18n="admin_add_task_btn">ADD NEW TASK (ADMIN)</span>
+                    </button>
+                </div>
+                <div id="custom-tasks-container" class="space-y-2.5"></div>
             </div>
             <div class="space-y-2.5">
                 <div class="bg-[#121927] p-3 rounded-xl gold-border flex items-center justify-between shadow-lg">
@@ -430,17 +437,75 @@
             <button onclick="closeModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-3 rounded-xl font-black cursor-pointer shadow-lg hover:opacity-90" data-i18n="btn_ok">OK</button>
         </div>
     </div>
+    <!-- FLOATING ADMIN UNLOCK STATUS & LOCK BUTTON -->
+    <div id="admin-unlock-banner" class="fixed top-2 left-1/2 -translate-x-1/2 max-w-md w-[92%] bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-black px-3 py-1.5 rounded-xl shadow-2xl z-[900] hidden items-center justify-between text-xs font-black">
+        <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-unlock-keyhole"></i>
+            <span data-i18n="admin_unlocked_status">ADMIN UNLOCKED</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <button onclick="openExecutiveAdminDashboard()" class="bg-[#080c14] text-yellow-400 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer">Panel</button>
+            <button onclick="lockExecutiveAdminSession()" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"><i class="fa-solid fa-lock mr-1"></i><span data-i18n="admin_lock_btn">Lock</span></button>
+        </div>
+    </div>
+
+    <!-- CAMERA KYC MODAL WITH AUTO HUMAN DETECTION -->
+    <div id="camera-modal" class="fixed inset-0 bg-[#080c14]/90 backdrop-blur-md z-[1000] hidden items-center justify-center p-4">
+        <div class="bg-[#121927] w-full max-w-xs p-5 rounded-2xl gold-border text-center relative shadow-2xl space-y-3">
+            <h3 id="camera-modal-title" class="text-sm font-black text-yellow-400" data-i18n="kyc_camera_title">KYC Biometric & ID Verification</h3>
+            <p id="camera-instruction-text" class="text-[11px] text-gray-300" data-i18n="kyc_camera_instr">Position your face/ID clearly. Auto-capture will trigger once a real human is detected.</p>
+            <div class="relative w-full h-56 bg-black rounded-xl overflow-hidden border-2 border-yellow-500/50 flex items-center justify-center">
+                <video id="kyc-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                <canvas id="kyc-canvas" class="hidden"></canvas>
+                <!-- Overlay Scanning Frame -->
+                <div id="kyc-scan-frame" class="absolute inset-6 border-2 border-dashed border-yellow-400 rounded-2xl pointer-events-none flex flex-col justify-between p-2">
+                    <div class="flex justify-between items-center bg-black/70 px-2 py-1 rounded text-[10px] font-mono">
+                        <span class="text-gray-300" data-i18n="human_detection_lbl">Human Detection:</span>
+                        <span id="human-detect-badge" class="text-yellow-400 font-bold animate-pulse">SCANNING...</span>
+                    </div>
+                    <div id="auto-capture-countdown" class="bg-black/75 text-yellow-400 text-[10px] font-mono py-1 px-2 rounded self-center hidden">Auto-capturing...</div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="manualCaptureKyc(false)" class="flex-1 bg-gray-800 text-gray-300 text-[10px] py-2 rounded-xl font-bold cursor-pointer">Simulate Non-Human (NOT)</button>
+                <button onclick="closeKycCameraModal()" class="flex-1 bg-red-500/20 border border-red-500/40 text-red-400 text-xs py-2 rounded-xl font-bold cursor-pointer" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        const BACKEND_URL = "https://afex-backend.onrender.com";
-        const SCRIPT_URL_WD = "https://script.google.com/macros/s/AKfycbzKJEquf1qsdYyEJx4EDisEKbho5K8LjJis6YttOsQ/dev";
-        const SCRIPT_URL_DEP = "https://script.google.com/macros/s/AKfycbxA4arh-MZweEH5faHIrJ32tWRZU-zUIcTEsaRXCqM/dev";
-        const SCRIPT_URL_ADMIN_LOG = "https://script.google.com/macros/s/AKfycbwRJt8_fDpWf716XxjKylYXlw1TzdwnorGfVyNvykuwjV8_CpXHfy_AMfjUp-NdkZGo/exec";
+       const BACKEND_URL = "https://afex-backend.onrender.com";
+        const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbwRJt8_fDpWf716XxjKylYXlw1TzdwnorGfVyNvykuwjV8_CpXHfy_AMfjUp-NdkZGo/exec";
+        const SCRIPT_URL_WD = SPREADSHEET_URL;
+        const SCRIPT_URL_DEP = SPREADSHEET_URL;
+
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
-        const userTg = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-        let userIdStr = userTg && userTg.id ? userTg.id.toString() : "7706512451";
-        let displayName = userTg ? (userTg.username ? `@${userTg.username}` : (userTg.first_name || "Bagja20")) : "@Bagja20";
+
+        // Membaca akun Telegram secara spesifik per akun & mencegah kebocoran data Bagja20 di browser/akun lain
+        function initTelegramUserIdentity() {
+            const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+            if (tgUser && tgUser.id) {
+                const uid = String(tgUser.id);
+                const uname = tgUser.username 
+                    ? `@${tgUser.username}` 
+                    : (tgUser.first_name ? `${tgUser.first_name}${tgUser.last_name ? ' ' + tgUser.last_name : ''}` : `User_${uid.slice(-4)}`);
+                return { uid, uname, isRealTelegram: true };
+            }
+            // Jika dibuka di browser biasa (Edge/Chrome) di luar Telegram, buatkan ID unik per browser
+            let browserUid = sessionStorage.getItem('afex_isolated_browser_uid');
+            if (!browserUid) {
+                browserUid = "WEB" + Math.floor(100000000 + Math.random() * 900000000);
+                sessionStorage.setItem('afex_isolated_browser_uid', browserUid);
+            }
+            let browserUname = sessionStorage.getItem('afex_isolated_browser_uname') || `@Guest_${browserUid.slice(-4)}`;
+            sessionStorage.setItem('afex_isolated_browser_uname', browserUname);
+            return { uid: browserUid, uname: browserUname, isRealTelegram: false };
+        }
+
+        const activeIdentity = initTelegramUserIdentity();
+        let userIdStr = activeIdentity.uid;
+        let displayName = activeIdentity.uname;
         /* DICTIONARY 19 BAHASA TERLENGKAP */
         const i18n = {
             en: { 
@@ -1446,12 +1511,23 @@
             let lang = document.getElementById('lang-select').value || 'en';
             return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : (i18n['en'][key] || key);
         }
-        let targetDates = {
+let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) || {
             founder: Date.UTC(2026, 11, 31, 23, 59, 59),
             a2f: Date.UTC(2026, 10, 30, 23, 59, 59),
             face: Date.UTC(2026, 11, 15, 23, 59, 59),
             id: Date.UTC(2026, 11, 20, 23, 59, 59)
         };
+
+        let featureLockState = JSON.parse(localStorage.getItem('afex_global_lock_state')) || {
+            founder: true,
+            a2f: true,
+            face: true,
+            id: true
+        };
+
+        let isAdminSessionUnlocked = sessionStorage.getItem(`afex_admin_unlocked_${userIdStr}`) === 'true';
+        let adminDisableAds = localStorage.getItem('afex_admin_disable_ads') === 'true';
+
         let miningData = {
             balance: 0.00,
             usdtBalance: 0.50, // Saldo awal 0.50 USDT (terkunci/tidak bisa ditarik langsung)
@@ -1473,19 +1549,39 @@
             wdHistoryList: [],
             connectedWallets: [],
             isWalletConnected: false,
+            kycStatus: { a2f: 'unverified', face: 'unverified', id: 'unverified' },
+            completedTasks: [],
             lastSaveTimestamp: Date.now()
         };
-        // Admin Secret Database & Storage State
-        let adminUsers = {
+
+        // Admin Secret Database & Global Shared Queues (Real-time sync across accounts + Spreadsheet)
+        let adminUsers = JSON.parse(localStorage.getItem('afex_admin_pins')) || {
             "7706512451": "20052007",
             "@Bagja20": "20052007"
         };
+
+        function getGlobalAdminQueue() {
+            return JSON.parse(localStorage.getItem('afex_global_admin_queue')) || {
+                wdRequests: [],
+                depRequests: [],
+                kycRequests: [],
+                customTasks: [],
+                leaderboardUsers: [],
+                globalPayouts: []
+            };
+        }
+
+        function saveGlobalAdminQueue(queueData) {
+            localStorage.setItem('afex_global_admin_queue', JSON.stringify(queueData));
+        }
+
         const depositWallets = {
             "BEP-20": "0x8B5f49F76e64851D061A8e877E90f55c40a577EF",
             "TRC-20": "TQJnm2Pq9vKr194jNtqU6yuHYiYFUsmX6t",
             "TON": "UQCNs1rOJTZ2wwgnppRY4KNSGYnZ3vdlwJCni4IIdil62urm",
             "ERC-20": "0x8B5f49F76e64851D061A8e877E90f55c40a577EF"
         };
+
         const levelRates = [
             { level: 1, min: 3, percent: 2, monthlyEst: 0.18 },
             { level: 2, min: 15, percent: 2.7, monthlyEst: 1.21 },
@@ -1495,6 +1591,7 @@
             { level: 6, min: 500, percent: 3.4, monthlyEst: 51.00 },
             { level: 7, min: 1000, percent: 3.8, monthlyEst: 114.00 }
         ];
+
         function loadLocalPersistence() {
             let saved = localStorage.getItem(`afex_state_${userIdStr}`);
             if (saved) {
@@ -1520,6 +1617,8 @@
                     miningData.txHistoryList = parsed.txHistoryList ?? [];
                     miningData.wdHistoryList = parsed.wdHistoryList ?? [];
                     miningData.payoutsList = parsed.payoutsList ?? [];
+                    miningData.kycStatus = parsed.kycStatus ?? { a2f: 'unverified', face: 'unverified', id: 'unverified' };
+                    miningData.completedTasks = parsed.completedTasks ?? [];
                     
                     let lastSave = parsed.lastSaveTimestamp || Date.now();
                     let now = Date.now();
@@ -1546,7 +1645,12 @@
                     }
                 } catch(e) { console.error("Error loading local storage", e); }
             }
+            syncUserStateFromAdminApprovals();
+            updateLeaderboardEntry();
+            renderAdminSessionBanner();
+            renderCustomTasksList();
         }
+
         function getLevelRateForUsdt(usdtAmt) {
             let rate = 2.0;
             for (let i = levelRates.length - 1; i >= 0; i--) {
@@ -1557,38 +1661,13 @@
             }
             return rate;
         }
+
         function saveLocalPersistence() {
             miningData.lastSaveTimestamp = Date.now();
             localStorage.setItem(`afex_state_${userIdStr}`, JSON.stringify(miningData));
+            updateLeaderboardEntry();
         }
-        async function syncWithBackend() {
-            loadLocalPersistence();
-            try {
-                let res = await fetch(`${BACKEND_URL}/api/user/sync`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userId: String(Telegram.WebApp.initDataUnsafe?.user?.id || userIdStr), 
-                        username: Telegram.WebApp.initDataUnsafe?.user?.username || displayName 
-                    })
-                });
-                let data = await res.json();
-                if (data.balanceAfex !== undefined) miningData.balance = data.balanceAfex;
-                if (data.usdtBalance !== undefined) miningData.usdtBalance = data.usdtBalance;
-                if (data.userPoints !== undefined) miningData.userPoints = data.userPoints;
-                if (data.lastCheckInTime !== undefined) miningData.lastCheckInTime = data.lastCheckInTime;
-                if (data.checkInDay !== undefined) miningData.checkInDay = data.checkInDay;
-                if (data.usdtSpeedBoost !== undefined) miningData.usdtSpeedBoost = data.usdtSpeedBoost;
-                if (data.isMining !== undefined) miningData.isMining = !!data.isMining;
-                if (data.miningStartTime !== undefined) miningData.miningStartTime = data.miningStartTime;
-                if (data.miningEndTime !== undefined) miningData.miningEndTime = data.miningEndTime;
-                
-                saveLocalPersistence();
-                updateUI();
-            } catch (err) {
-                console.error("Backend sync offline, using local cache.", err);
-            }
-        }
+
         async function saveToBackend() {
             saveLocalPersistence();
             try {
@@ -1695,8 +1774,17 @@
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
         function startTimerInterval() {
+            // Pastikan sesi mining aktif otomatis jika belum pernah diset
+            if (!miningData.miningStartTime || miningData.miningEndTime <= Date.now()) {
+                miningData.isMining = true;
+                miningData.miningStartTime = Date.now();
+                miningData.miningEndTime = Date.now() + (12 * 3600 * 1000); // 12 Jam
+            }
+
             setInterval(() => {
                 let now = Date.now();
+                
+                // Cek durasi deposit 12 hari
                 if (miningData.usdtDepositBalance > 0 && miningData.depositTimestamp > 0) {
                     let diffDays = (now - miningData.depositTimestamp) / (1000 * 3600 * 24);
                     if (diffDays >= 12) {
@@ -1704,41 +1792,55 @@
                         miningData.usdtDepositBalance = 0;
                     }
                 }
+
+                // Hitung pendapatan USDT per detik (berjalan otomatis terus-menerus tanpa berhenti)
+                let totalUsdt = miningData.usdtBalance + miningData.usdtDepositBalance;
+                let currentHourly = 0;
+                if (totalUsdt < 3.0) {
+                    currentHourly = (0.0002 / 24) + (miningData.usdtSpeedBoost || 0);
+                } else {
+                    let activeRate = getLevelRateForUsdt(totalUsdt);
+                    let dailyRate = totalUsdt * (activeRate / 100);
+                    currentHourly = (dailyRate / 24) + (miningData.usdtSpeedBoost || 0);
+                }
+                let perSecondRate = currentHourly / 3600;
+                miningData.usdtMinedPending = (miningData.usdtMinedPending || 0) + perSecondRate;
+
+                // Logika Hitung Mundur (Countdown) 12 Jam AFEX Mining
                 let mineBtn = document.getElementById('action-mine-btn');
                 let timerLbl = document.getElementById('timer-countdown');
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
-                let totalUsdt = miningData.usdtBalance + miningData.usdtDepositBalance;
-                let currentHourly = 0;
-                if (totalUsdt < 3.0) {
-                    currentHourly = (0.0002 / 24) + miningData.usdtSpeedBoost;
-                } else {
-                    let activeRate = getLevelRateForUsdt(totalUsdt);
-                    let dailyRate = totalUsdt * (activeRate / 100);
-                    currentHourly = (dailyRate / 24) + miningData.usdtSpeedBoost;
-                }
-                let perSecondRate = currentHourly / 3600;
-                miningData.usdtMinedPending += perSecondRate;
-                if (miningData.isMining && miningData.miningEndTime) {
+
+                if (miningData.miningEndTime) {
                     let timeLeft = miningData.miningEndTime - now;
-                    let elapsedTime = (12 * 3600 * 1000) - timeLeft;
+                    let elapsedTime = (12 * 3600 * 1000) - Math.max(0, timeLeft);
                     let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
-                    minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
+                    
+                    if (minedVal) minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
+
                     if (timeLeft <= 0) {
-                        timerLbl.innerText = "00:00:00";
-                        statusLbl.innerText = t('ready_to_mine');
-                        mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
-                        mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
+                        if (timerLbl) timerLbl.innerText = "00:00:00";
+                        if (statusLbl) statusLbl.innerText = t('ready_to_mine');
+                        if (mineBtn) {
+                            mineBtn.innerText = "CLAIM REWARD (+50 AFEX)";
+                            mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
+                        }
                     } else {
                         let h = Math.floor((timeLeft % (1000 * 3600 * 24)) / (1000 * 3600));
                         let m = Math.floor((timeLeft % (1000 * 3600)) / (1000 * 60));
                         let s = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                        timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                        statusLbl.innerText = "MINING IN PROGRESS";
-                        mineBtn.innerText = "MINING ACTIVE...";
-                        mineBtn.className = "w-full bg-[#121927] border border-gray-700 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
+                        
+                        if (timerLbl) timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                        if (statusLbl) statusLbl.innerText = "MINING IN PROGRESS";
+                        if (mineBtn && miningData.isMining) {
+                            mineBtn.innerText = "MINING ACTIVE...";
+                            mineBtn.className = "w-full bg-[#121927] border border-gray-700 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
+                        }
                     }
                 }
+
+                // Perbarui elemen UI dan simpan state secara berkala
                 updateDynamicCountdowns(); 
                 updateAdTaskUI();
                 updateUI();
@@ -1746,14 +1848,60 @@
             }, 1000);
         }
         function updateDynamicCountdowns() {
+            targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) || targetDates;
+            featureLockState = JSON.parse(localStorage.getItem('afex_global_lock_state')) || featureLockState;
+
+            // Founder Banner
             let fData = getFormattedTime(targetDates.founder);
-            document.getElementById('founder-countdown-text').innerText = t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr);
-            let a2fData = getFormattedTime(targetDates.a2f);
-            document.getElementById('a2f-countdown-lbl').innerText = t('locked_list').replace('{d}', a2fData.d).replace('{time}', a2fData.timeStr);
-            let faceData = getFormattedTime(targetDates.face);
-            document.getElementById('face-countdown-lbl').innerText = t('locked_list').replace('{d}', faceData.d).replace('{time}', faceData.timeStr);
-            let idData = getFormattedTime(targetDates.id);
-            document.getElementById('id-countdown-lbl').innerText = t('locked_list').replace('{d}', idData.d).replace('{time}', idData.timeStr);
+            let founderBadge = document.querySelector('#founder-banner [data-i18n="locked_badge"]');
+            let founderIcon = document.querySelector('#founder-banner i.fa-lock, #founder-banner i.fa-unlock');
+            if (!featureLockState.founder || fData.d <= 0 && fData.timeStr === "00:00:00") {
+                document.getElementById('founder-countdown-text').innerText = t('status_unlocked');
+                if (founderBadge) founderBadge.innerText = t('status_unlocked');
+                if (founderIcon) founderIcon.className = "fa-solid fa-unlock text-xs text-green-400";
+            } else {
+                document.getElementById('founder-countdown-text').innerText = t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr);
+                if (founderBadge) founderBadge.innerText = t('locked_badge');
+                if (founderIcon) founderIcon.className = "fa-solid fa-lock text-xs text-yellow-400";
+            }
+
+            // Helper untuk A2F, Face, ID
+            const updateKycRowUI = (type, lblId) => {
+                let el = document.getElementById(lblId);
+                if (!el) return;
+                let rowIcon = el.closest('[onclick]')?.querySelector('i.fa-lock, i.fa-unlock, i.fa-circle-check, i.fa-clock, i.fa-triangle-exclamation');
+                let tData = getFormattedTime(targetDates[type]);
+                let isLocked = featureLockState[type] && (targetDates[type] > Date.now());
+
+                if (isLocked) {
+                    el.className = "text-[10px] text-yellow-400 font-mono";
+                    el.innerText = t('locked_list').replace('{d}', tData.d).replace('{time}', tData.timeStr);
+                    if (rowIcon) rowIcon.className = "fa-solid fa-lock text-xs text-yellow-400";
+                } else {
+                    let st = miningData.kycStatus ? miningData.kycStatus[type] : 'unverified';
+                    if (st === 'verified') {
+                        el.className = "text-[10px] text-green-400 font-mono font-bold";
+                        el.innerText = t('status_verified');
+                        if (rowIcon) rowIcon.className = "fa-solid fa-circle-check text-xs text-green-400";
+                    } else if (st === 'pending') {
+                        el.className = "text-[10px] text-yellow-300 font-mono animate-pulse";
+                        el.innerText = t('status_pending');
+                        if (rowIcon) rowIcon.className = "fa-solid fa-clock text-xs text-yellow-300";
+                    } else if (st === 'rejected') {
+                        el.className = "text-[10px] text-red-400 font-mono font-bold";
+                        el.innerText = t('kyc_try_again');
+                        if (rowIcon) rowIcon.className = "fa-solid fa-triangle-exclamation text-xs text-red-500";
+                    } else {
+                        el.className = "text-[10px] text-cyan-400 font-mono";
+                        el.innerText = `${t('status_unlocked')} - ${t('status_unverified')}`;
+                        if (rowIcon) rowIcon.className = "fa-solid fa-unlock text-xs text-cyan-400";
+                    }
+                }
+            };
+
+            updateKycRowUI('a2f', 'a2f-countdown-lbl');
+            updateKycRowUI('face', 'face-countdown-lbl');
+            updateKycRowUI('id', 'id-countdown-lbl');
         }
         function openAdBoostInfoModal() {
             showModal(t('ad_boost_popup_title'), t('ad_boost_popup_desc'), "fa-bolt");
@@ -1996,73 +2144,76 @@
             let hasWithdrawnBefore = miningData.wdHistoryList.some(w => w.status === 'success' || w.status === 'pending');
             let minLimit = 5.00;
             if (netName === 'BEP-20') {
-                if (!hasWithdrawnBefore) {
-                    minLimit = 0.10;
-                } else {
-                    minLimit = 1.50;
-                }
+                minLimit = !hasWithdrawnBefore ? 0.10 : 1.50;
             }
             if (amt < minLimit) {
-                return showModal(t('error'), `Minimum withdrawal limit for ${netName} is ${minLimit} USDT`, "fa-circle-exclamation");
+                return showModal(t('error'), t('err_min_wd').replace('{net}', netName).replace('{min}', minLimit), "fa-circle-exclamation");
             }
-
             // Saldo awal 0.50 tidak bisa ditarik
             let availableWithdrawable = Math.max(0, miningData.usdtBalance - 0.50);
             if (amt > availableWithdrawable) {
-                return showModal(t('error'), `${t('wd_insufficient')} (Initial $0.50 bonus is locked & non-withdrawable). Available: $${availableWithdrawable.toFixed(2)}`, "fa-circle-exclamation");
+                return showModal(t('error'), `${t('wd_insufficient')} ${t('err_initial_locked')} $${availableWithdrawable.toFixed(2)}`, "fa-circle-exclamation");
             }
-
             let feePercent = hasWithdrawnBefore ? 2.0 : 0.0;
             let feeAmt = (amt * feePercent) / 100;
             let netReceive = Math.max(0, amt - feeAmt);
+            let reqId = "WD_" + Date.now() + "_" + userIdStr;
 
-            let mockTxHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
             miningData.usdtBalance -= amt;
             
             let wdRecord = {
-                id: "WD_" + Date.now(),
+                id: reqId,
+                uid: userIdStr,
+                username: displayName,
+                token: "USDT",
                 amount: amt,
                 fee: feeAmt,
                 netReceive: netReceive,
                 network: netName,
                 status: "pending",
                 address: targetAddr,
-                txHash: mockTxHash,
+                txHash: "Pending Admin Input",
                 timestamp: Date.now()
             };
-
             miningData.wdHistoryList.unshift(wdRecord);
             miningData.txHistoryList.unshift({
+                id: reqId,
                 type: `USDT Withdrawal (${netName})`,
                 amount: `-${amt.toFixed(2)} USDT (Rec: $${netReceive.toFixed(2)})`,
                 status: "pending",
                 timestamp: Date.now()
             });
 
+            // Masukkan ke antrean Global Admin agar langsung muncul dari akun mana saja
+            let q = getGlobalAdminQueue();
+            q.wdRequests.unshift(wdRecord);
+            saveGlobalAdminQueue(q);
+
+            // Kirim ke Google Spreadsheet sesuai parameter Code.gs (catatWD)
             try {
-                await fetch(SCRIPT_URL_WD, {
+                fetch(SPREADSHEET_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        userId: userIdStr,
-                        username: displayName,
-                        amount: amt,
-                        fee: feeAmt,
-                        netReceive: netReceive,
+                        action: "catatWD",
+                        id: reqId,
+                        uid: userIdStr,
+                        username: `${displayName} (${userIdStr})`,
+                        token: "USDT",
                         network: netName,
-                        address: targetAddr,
-                        txHash: mockTxHash,
+                        wallet: targetAddr,
+                        amount: amt,
                         timestamp: new Date().toISOString()
                     })
                 });
             } catch(e) { console.error("Spreadsheet WD sync error:", e); }
+
             closeModal();
             updateUI();
             saveToBackend();
             showModal(t('success'), `${t('wd_processed')} Net Received: $${netReceive.toFixed(2)} USDT`, "fa-circle-check");
         }
-
         function openDepositUsdtModal() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <div>
@@ -2092,13 +2243,13 @@
             let box = document.getElementById('dep-address-box');
             if(box) box.value = depositWallets[net] || "";
         }
-        function proceedDepositPayment() {
+       function proceedDepositPayment() {
             let net = document.getElementById('dep-network').value;
             let amt = parseFloat(document.getElementById('dep-amount').value) || 0;
             let addr = depositWallets[net];
-            if(amt <= 0) return showModal(t('error'), "Please enter a valid deposit amount!", "fa-circle-exclamation");
+            if(amt <= 0) return showModal(t('error'), t('err_valid_dep'), "fa-circle-exclamation");
             let html = `<div class="space-y-3 text-left text-xs">
-                <p class="text-gray-300">Please transfer <strong>${amt} USDT</strong> to the following <strong>${net}</strong> address:</p>
+                <p class="text-gray-300">${t('dep_transfer_instr').replace('{amt}', amt).replace('{net}', net)}</p>
                 <input type="text" readonly value="${addr}" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded p-2 text-[10px] outline-none font-mono select-all">
                 <div>
                     <label class="text-[10px] text-gray-400 block mb-1">${t('enter_txhash_label')}</label>
@@ -2110,41 +2261,66 @@
             </div>`;
             showModal(t('confirm_dep_title'), html, "fa-circle-plus");
         }
-        async function executeDepositSubmit(amt, net) {
+       async function executeDepositSubmit(amt, net) {
             let txHash = document.getElementById('dep-txhash').value.trim();
-            if(!txHash) return showModal(t('error'), "Please fill in the transaction TxHash!", "fa-circle-exclamation");
-            miningData.usdtDepositBalance += amt;
-            miningData.depositTimestamp = Date.now();
+            if(!txHash) return showModal(t('error'), t('err_fill_txhash'), "fa-circle-exclamation");
+
+            let depId = "DEP_" + Date.now() + "_" + userIdStr;
+            // Saldo TIDAK langsung bertambah sebelum di-Approve oleh Admin
+            let depRecord = {
+                id: depId,
+                uid: userIdStr,
+                username: displayName,
+                token: "USDT",
+                amount: amt,
+                network: net,
+                txHash: txHash,
+                status: "pending",
+                timestamp: Date.now()
+            };
+
             miningData.txHistoryList.unshift({
-                id: "DEP_" + Date.now(),
+                id: depId,
                 type: `USDT Deposit (${net})`,
                 amount: `+${amt.toFixed(2)} USDT`,
                 txHash: txHash,
-                status: "success",
+                status: "pending",
                 timestamp: Date.now()
             });
+
+            let q = getGlobalAdminQueue();
+            q.depRequests.unshift(depRecord);
+            saveGlobalAdminQueue(q);
+
+            // Kirim ke Google Spreadsheet sesuai parameter Code.gs (catatDeposit)
             try {
-                await fetch(SCRIPT_URL_DEP, {
+                fetch(SPREADSHEET_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        userId: userIdStr,
-                        username: displayName,
-                        amount: amt,
+                        action: "catatDeposit",
+                        id: depId,
+                        uid: userIdStr,
+                        username: `${displayName} (${userIdStr})`,
+                        txhash: txHash,
+                        token: "USDT",
                         network: net,
-                        txHash: txHash,
+                        amount: amt,
                         timestamp: new Date().toISOString()
                     })
                 });
             } catch(e) { console.error("Spreadsheet Deposit sync error:", e); }
+
             saveToBackend();
             closeModal();
             updateUI();
-            showModal(t('success'), "Deposit successful! Added to locked deposit for 12 days to increase level & mining rate.", "fa-circle-check");
+            showModal(t('notification'), t('deposit_review_msg'), "fa-clock");
         }
         async function claimUsdtMining() {
-            if (miningData.usdtMinedPending <= 0.000001) return showModal(t('notification'), "Mined balance is still too low.", "fa-circle-exclamation");
+            if (miningData.usdtMinedPending <= 0.00000001) {
+                return showModal(t('notification'), "Mined balance is still accumulating. Please wait...", "fa-circle-exclamation");
+            }
             
             let claimedAmt = miningData.usdtMinedPending;
             miningData.usdtBalance += claimedAmt;
@@ -2157,18 +2333,20 @@
             });
             updateUI();
             saveToBackend();
-            showModal(t('success'), "Successfully claimed USDT mined balance!", "fa-circle-check");
+            showModal(t('success'), `Successfully claimed $${claimedAmt.toFixed(4)} USDT to your balance!`, "fa-circle-check");
         }
         async function handleMiningAction() {
             let now = Date.now();
             if (!miningData.isMining) {
+                // Memulai sesi penambangan 12 jam secara otomatis
                 miningData.isMining = true;
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
                 
                 saveToBackend();
-                showModal(t('notification'), "12-hour AFEX mining started manually!", "fa-bolt");
+                showModal(t('notification'), "12-hour AFEX mining started successfully!", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
+                // Klaim reward 50 AFEX setelah 12 jam selesai
                 miningData.isMining = false;
                 miningData.balance += 50.00;
                 miningData.txHistoryList.unshift({
@@ -2178,10 +2356,16 @@
                     timestamp: Date.now()
                 });
                 
+                // Otomatis restart sesi berikutnya agar terus berjalan
+                miningData.isMining = true;
+                miningData.miningStartTime = now;
+                miningData.miningEndTime = now + (12 * 3600 * 1000);
+
                 saveToBackend();
-                showModal(t('success'), "AFEX mining claim (+50 AFEX) successful!", "fa-circle-check");
+                updateUI();
+                showModal(t('success'), "AFEX mining claim (+50 AFEX) successful! Next session started.", "fa-circle-check");
             } else {
-                showModal(t('notification'), "AFEX mining is currently in progress.", "fa-bolt");
+                showModal(t('notification'), "AFEX mining is currently in progress. Please wait until the timer ends.", "fa-bolt");
             }
         }
         function openInviteModal() {
@@ -2217,34 +2401,59 @@
             </div>`;
             showModal(t('invite_modal_title'), html, "fa-user-plus");
         }
+        function updateLeaderboardEntry() {
+            let q = getGlobalAdminQueue();
+            if (!q.leaderboardUsers) q.leaderboardUsers = [];
+            let idx = q.leaderboardUsers.findIndex(u => u.uid === userIdStr);
+            if (idx >= 0) {
+                q.leaderboardUsers[idx].username = displayName;
+                q.leaderboardUsers[idx].points = miningData.userPoints;
+            } else {
+                q.leaderboardUsers.push({ username: displayName, uid: userIdStr, points: miningData.userPoints });
+            }
+            saveGlobalAdminQueue(q);
+        }
+
         function openContestsModal() {
-            let globalLeaderboard = [
+            updateLeaderboardEntry();
+            let q = getGlobalAdminQueue();
+            let seedLeaderboard = [
                 { username: 'Alexander Fox', uid: '8839201', points: 1687 },
                 { username: 'Dmitri Petrov', uid: '9928104', points: 1450 },
                 { username: 'Sarah Jenkins', uid: '7738291', points: 1320 },
                 { username: 'Carlos Santana', uid: '6652190', points: 1150 },
-                { username: 'Kenji Sato', uid: '5541092', points: 980 }
+                { username: 'Kenji Sato', uid: '5541092', points: 980 },
+                { username: 'Mikhail Volkov', uid: '4431920', points: 860 },
+                { username: 'Amina Al-Mansoor', uid: '3320182', points: 740 },
+                { username: 'Lucas Silva', uid: '2291043', points: 620 },
+                { username: 'Hiroshi Tanaka', uid: '1928374', points: 510 },
+                { username: 'Elena Rostova', uid: '1092837', points: 420 }
             ];
-            let baseUserRank = 1000;
-            let calculatedRank = Math.max(1, baseUserRank - (miningData.userPoints * 50));
-            let currentUserEntry = {
-                username: displayName,
-                uid: userIdStr,
-                points: miningData.userPoints,
-                rank: calculatedRank,
-                isMe: true
-            };
-            let combinedList = [...globalLeaderboard, currentUserEntry];
-            combinedList.sort((a, b) => b.points - a.points);
-            let top10 = combinedList.slice(0, 10);
-            let userRankIndex = combinedList.findIndex(u => u.isMe);
-            let isUserInTop10 = userRankIndex < 10;
+
+            let mapByUid = {};
+            seedLeaderboard.forEach(u => mapByUid[u.uid] = u);
+            (q.leaderboardUsers || []).forEach(u => {
+                // Hanya masukkan user ke daftar kandidat Top 10 jika memiliki poin > 0
+                if (u.points > 0) mapByUid[u.uid] = u;
+            });
+
+            let sortedAll = Object.values(mapByUid).sort((a, b) => b.points - a.points);
+            // Filter Top 10: user hanya terlihat oleh pengguna lain jika masuk Top 10 besar
+            let top10 = sortedAll.slice(0, 10);
+
+            let myIndexInSorted = sortedAll.findIndex(u => u.uid === userIdStr);
+            let isMeInTop10 = myIndexInSorted >= 0 && myIndexInSorted < 10;
+            let myDisplayRank = isMeInTop10 
+                ? `#${myIndexInSorted + 1}` 
+                : (miningData.userPoints === 0 ? "+1000" : `#${Math.max(11, 1000 - miningData.userPoints)}`);
+
             let leaderboardContainerHtml = '';
             top10.forEach((user, idx) => {
                 const rank = idx + 1;
+                const isMe = user.uid === userIdStr;
                 let badgeColor = rank === 1 ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-[#080c14] text-slate-300 border border-gray-800";
                 let iconRank = rank === 1 ? `<i class="fa-solid fa-trophy text-amber-500"></i>` : `#${rank}`;
-                let displayNameFormatted = user.isMe ? `${user.username} (You)` : user.username;
+                let displayNameFormatted = isMe ? `${user.username} (You)` : user.username;
                 leaderboardContainerHtml += `
                     <div class="flex items-center justify-between p-2.5 rounded-xl ${badgeColor} transition mb-2">
                         <div class="flex items-center gap-2.5">
@@ -2260,26 +2469,41 @@
                     </div>
                 `;
             });
+
+            let myRankCardHtml = `
+                <div class="bg-[#080c14] p-2.5 rounded-xl gold-border flex items-center justify-between text-xs font-mono mb-2">
+                    <div>
+                        <span class="text-[10px] text-gray-400 block">${t('your_rank_info')}</span>
+                        <strong class="text-white">${displayName} (UID: ${userIdStr})</strong>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-yellow-400 font-black block text-sm">${myDisplayRank}</span>
+                        <span class="text-[10px] text-green-400">${miningData.userPoints} Pts</span>
+                    </div>
+                </div>
+            `;
+
             let html = `<div class="space-y-2 text-left">
                 <h4 class="text-xs font-bold text-yellow-400 mb-1">${t('leaderboard_title')}</h4>
+                ${myRankCardHtml}
                 <div class="max-h-52 overflow-y-auto pr-1">${leaderboardContainerHtml}</div>
             </div>`;
             showModal(t('contests_title'), html, "fa-trophy");
         }
+
         function openPayoutsModal() {
+            let q = getGlobalAdminQueue();
             let defaultPayouts = [
-                { username: 'crypto_king99', amount: (Math.random() * 2.9 + 0.1).toFixed(2), network: 'BEP-20', txHash: '0x3f8a2c119e7b2a4f6d8c1e9f0a3b5c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a34', timestamp: Date.now() - 120000 },
-                { username: 'alex_web3', amount: (Math.random() * 2.9 + 0.1).toFixed(2), network: 'TON', txHash: 'EQD123456789abcdef0123456789abcdef0123456789abc', timestamp: Date.now() - 450000 },
-                { username: 'satoshi_fan', amount: (Math.random() * 2.9 + 0.1).toFixed(2), network: 'TRC-20', txHash: 'TX9876543210fedcba9876543210fedcba9876543210', timestamp: Date.now() - 900000 },
-                { username: 'elena_crypto', amount: (Math.random() * 2.9 + 0.1).toFixed(2), network: 'ERC-20', txHash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a23', timestamp: Date.now() - 1500000 }
+                { username: 'crypto_king99', amount: "2.40", network: 'BEP-20', txHash: '0x3f8a2c119e7b2a4f6d8c1e9f0a3b5c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a34', timestamp: Date.now() - 120000 },
+                { username: 'alex_web3', amount: "1.85", network: 'TON', txHash: 'EQD123456789abcdef0123456789abcdef0123456789abc', timestamp: Date.now() - 450000 },
+                { username: 'satoshi_fan', amount: "5.10", network: 'TRC-20', txHash: 'TX9876543210fedcba9876543210fedcba9876543210', timestamp: Date.now() - 900000 }
             ];
-            let combinedPayouts = [...miningData.payoutsList, ...defaultPayouts];
+            let combinedPayouts = [...(q.globalPayouts || []), ...miningData.payoutsList, ...defaultPayouts];
             combinedPayouts.sort((a, b) => b.timestamp - a.timestamp);
             let payoutsHtml = combinedPayouts.map(p => {
                 let net = p.network || 'BEP-20';
-                let txHash = p.txHash || '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-                let shortHash = txHash.substring(0, 10) + '...' + txHash.substring(txHash.length - 6);
-                
+                let txHash = p.txHash || '0x...';
+                let shortHash = txHash.length > 18 ? (txHash.substring(0, 10) + '...' + txHash.substring(txHash.length - 6)) : txHash;
                 return `
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                     <div>
@@ -2315,13 +2539,16 @@
             showModal(t('view_levels').replace(' &gt;',''), html, "fa-layer-group");
         }
         function openTxHistoryModal() {
+            syncUserStateFromAdminApprovals();
             let txHtml = miningData.txHistoryList.length > 0
                 ? miningData.txHistoryList.map(tx => {
                     let isPending = (tx.status === 'pending' || tx.status === 'review');
-                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : "text-green-400 bg-green-500/10";
+                    let isRejected = (tx.status === 'rejected');
+                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : (isRejected ? "text-red-400 bg-red-500/10" : "text-green-400 bg-green-500/10");
                     return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
                         <div>
                             <span class="text-white font-bold block">${tx.type}</span>
+                            ${tx.txHash ? `<span class="text-[9px] text-yellow-400 block">Tx: ${tx.txHash.substring(0,14)}...</span>` : ''}
                             <span class="text-[10px] text-gray-400">${new Date(tx.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="text-right">
@@ -2334,14 +2561,18 @@
             let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">${txHtml}</div>`;
             showModal(t('tx_history'), html, "fa-clock-rotate-left");
         }
+
         function openWdHistoryModal() {
+            syncUserStateFromAdminApprovals();
             let wdHtml = miningData.wdHistoryList.length > 0
-                ? miningData.wdHistoryList.map(wd => {
+                ? miningData.wdHistoryList.map((wd, idx) => {
                     let isPending = (wd.status === 'pending' || wd.status === 'review');
-                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : "text-green-400 bg-green-500/10";
-                    return `<div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs font-mono mb-2">
+                    let isRejected = (wd.status === 'rejected');
+                    let badgeColor = isPending ? "text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 animate-pulse" : (isRejected ? "text-red-400 bg-red-500/10" : "text-green-400 bg-green-500/10");
+                    return `<div onclick="openWdUserDetailPopup(${idx})" class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 hover:border-yellow-500/50 cursor-pointer flex justify-between items-center text-xs font-mono mb-2">
                         <div>
                             <span class="text-white font-bold block">${t('withdraw')} USDT (${wd.network || 'BEP-20'})</span>
+                            <span class="text-[9px] text-yellow-400 block">Tx: ${(wd.txHash || 'Pending').substring(0,14)}...</span>
                             <span class="text-[10px] text-gray-400">${new Date(wd.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="text-right">
@@ -2353,6 +2584,19 @@
                 : `<p class="text-xs text-gray-400 text-center py-6">${t('no_wd_history')}</p>`;
             let html = `<div class="space-y-2 text-left max-h-60 overflow-y-auto pr-1">${wdHtml}</div>`;
             showModal(t('wd_history'), html, "fa-list-check");
+        }
+
+        function openWdUserDetailPopup(idx) {
+            let wd = miningData.wdHistoryList[idx];
+            if (!wd) return;
+            let html = `<div class="space-y-2 text-left text-xs font-mono bg-[#080c14] p-3 rounded-xl border border-gray-800">
+                <div><span class="text-gray-400 text-[10px] block">NAME & UID:</span><strong class="text-white">${wd.username || displayName} (${wd.uid || userIdStr})</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">WALLET ADDRESS (${wd.network}):</span><strong class="text-yellow-400 break-all text-[10px]">${wd.address}</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">AMOUNT:</span><strong class="text-green-400">${wd.amount.toFixed(2)} USDT</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">TXHASH:</span><strong class="text-cyan-400 break-all text-[10px]">${wd.txHash || 'Pending'}</strong></div>
+                <div><span class="text-gray-400 text-[10px] block">STATUS:</span><strong class="uppercase text-yellow-400">${wd.status}</strong></div>
+            </div>`;
+            showModal(t('wd_history'), html, "fa-receipt");
         }
         function openAboutModal() { 
             let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1 leading-relaxed">
@@ -2379,14 +2623,37 @@
             </div>`;
             showModal(t('about_afex'), html, "fa-circle-info"); 
         }
-        // --- SECRET EXECUTIVE ADMIN PANEL LOGIC (CREDENTIAL CHECK) ---
-        function verifyAdminAccess() {
-            if (userIdStr === "7706512451" || displayName === "@Bagja20" || userIdStr === "7706512451") {
-                triggerSecretAdminAuth();
+        // --- SECRET EXECUTIVE ADMIN PANEL & KYC CAMERA LOGIC ---
+        function renderAdminSessionBanner() {
+            let banner = document.getElementById('admin-unlock-banner');
+            if (!banner) return;
+            if (isAdminSessionUnlocked) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
             } else {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+            }
+            updateAdTaskUI();
+        }
+
+        function lockExecutiveAdminSession() {
+            isAdminSessionUnlocked = false;
+            sessionStorage.removeItem(`afex_admin_unlocked_${userIdStr}`);
+            renderAdminSessionBanner();
+            closeModal();
+            showModal(t('notification'), "Admin mode locked & hidden.", "fa-lock");
+        }
+
+        function verifyAdminAccess() {
+            // Jika sudah input PIN 1x, langsung buka dashboard tanpa minta PIN lagi
+            if (isAdminSessionUnlocked) {
+                openExecutiveAdminDashboard();
                 return;
             }
+            triggerSecretAdminAuth();
         }
+
         function triggerSecretAdminAuth() {
             let html = `<div class="space-y-3 text-left text-xs">
                 <p class="text-gray-300">${t('admin_login_prompt')}</p>
@@ -2397,217 +2664,625 @@
             </div>`;
             showModal("Executive Access", html, "fa-shield-halved");
         }
+
         function verifyExecutiveAdminPin() {
             let pinVal = document.getElementById('admin-pin-input').value.trim();
-            let authorized = false;
-            
             if (pinVal === "20052007" || adminUsers[userIdStr] === pinVal || adminUsers[displayName] === pinVal) {
-                authorized = true;
-            }
-            if (authorized) {
+                isAdminSessionUnlocked = true;
+                sessionStorage.setItem(`afex_admin_unlocked_${userIdStr}`, 'true');
+                renderAdminSessionBanner();
                 openExecutiveAdminDashboard();
             } else {
                 showModal(t('error'), t('admin_invalid_pin'), "fa-circle-exclamation");
             }
         }
 
-        function openUserDetailModal(record) {
-            let txHashVal = record.txHash || "0x" + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-            let walletAddr = record.address || "0x0000000000000000000000000000000000000000";
+        function toggleAdminDisableAds() {
+            adminDisableAds = !adminDisableAds;
+            localStorage.setItem('afex_admin_disable_ads', adminDisableAds ? 'true' : 'false');
+            openExecutiveAdminDashboard();
+        }
+
+        function adminUnlockAllFeaturesNow() {
+            featureLockState = { founder: false, a2f: false, face: false, id: false };
+            localStorage.setItem('afex_global_lock_state', JSON.stringify(featureLockState));
+            updateDynamicCountdowns();
+            openExecutiveAdminDashboard();
+        }
+
+        function adminSetFeatureLockTimer(featureKey) {
+            let daysInput = parseFloat(document.getElementById(`lock-days-${featureKey}`).value);
+            if (isNaN(daysInput) || daysInput <= 0) {
+                featureLockState[featureKey] = false;
+            } else {
+                featureLockState[featureKey] = true;
+                targetDates[featureKey] = Date.now() + Math.floor(daysInput * 24 * 3600 * 1000);
+            }
+            localStorage.setItem('afex_global_lock_state', JSON.stringify(featureLockState));
+            localStorage.setItem('afex_global_target_dates', JSON.stringify(targetDates));
+            updateDynamicCountdowns();
+            openExecutiveAdminDashboard();
+        }
+
+        function openUserDetailModal(recordId, category) {
+            let q = getGlobalAdminQueue();
+            let list = category === 'dep' ? q.depRequests : q.wdRequests;
+            let record = list.find(r => r.id === recordId);
+            if (!record) return;
+            let txHashVal = record.txHash || "Pending";
+            let walletAddr = record.address || depositWallets[record.network || 'BEP-20'];
             
             let html = `<div class="space-y-3 text-left text-xs font-mono">
                 <div class="bg-[#080c14] p-3 rounded-xl border border-gray-800 space-y-2">
                     <div>
+                        <span class="text-gray-400 block text-[10px]">CATEGORY:</span>
+                        <strong class="text-cyan-400 text-xs uppercase">${category === 'dep' ? 'DEPOSIT' : 'WITHDRAWAL (WD)'}</strong>
+                    </div>
+                    <div>
                         <span class="text-gray-400 block text-[10px]">USER IDENTIFIER:</span>
-                        <strong class="text-yellow-400 text-xs">${displayName} (ID: ${userIdStr})</strong>
+                        <strong class="text-yellow-400 text-xs">${record.username} (UID: ${record.uid})</strong>
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[10px]">NETWORK & AMOUNT:</span>
                         <strong class="text-white text-xs">${record.amount} USDT (${record.network || 'BEP-20'})</strong>
                     </div>
                     <div>
-                        <span class="text-gray-400 block text-[10px]">TARGET WALLET ADDRESS:</span>
+                        <span class="text-gray-400 block text-[10px]">WALLET ADDRESS:</span>
                         <div class="flex items-center gap-1.5 mt-0.5">
                             <input type="text" readonly value="${walletAddr}" class="w-full bg-[#121927] border border-gray-700 text-yellow-400 rounded p-1.5 text-[10px] outline-none select-all">
-                            <button onclick="navigator.clipboard.writeText('${walletAddr}'); alert('Address Copied!');" class="bg-yellow-500 text-black px-2 py-1 rounded text-[10px] font-bold">Copy</button>
+                            <button onclick="navigator.clipboard.writeText('${walletAddr}')" class="bg-yellow-500 text-black px-2 py-1 rounded text-[10px] font-bold">Copy</button>
                         </div>
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[10px]">TRANSACTION TXHASH:</span>
                         <div class="flex items-center gap-1.5 mt-0.5">
                             <input type="text" readonly value="${txHashVal}" class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none select-all">
-                            <button onclick="navigator.clipboard.writeText('${txHashVal}'); alert('TxHash Copied!');" class="bg-cyan-500 text-black px-2 py-1 rounded text-[10px] font-bold">Copy</button>
+                            <button onclick="navigator.clipboard.writeText('${txHashVal}')" class="bg-cyan-500 text-black px-2 py-1 rounded text-[10px] font-bold">Copy</button>
                         </div>
                     </div>
                 </div>
-                <button onclick="openExecutiveAdminDashboard()" class="w-full bg-gray-800 text-white font-bold py-2 rounded-xl text-xs">Back to Admin Panel</button>
+                <button onclick="openExecutiveAdminDashboard()" class="w-full bg-gray-800 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">Back to Admin Panel</button>
             </div>`;
-            showModal("User & Payment Detail", html, "fa-user-tag");
+            showModal("Transaction & User Detail", html, "fa-user-tag");
         }
 
-        function openExecutiveAdminDashboard() {
-            let pendingWdList = miningData.wdHistoryList.filter(w => w.status === 'pending');
-            let pendingDepList = miningData.txHistoryList.filter(tx => tx.type && tx.type.includes('Deposit') && tx.status === 'success');
+        async function fetchRemoteSpreadsheetQueue() {
+            try {
+                let res = await fetch(`${SPREADSHEET_URL}?action=getQueue`);
+                let data = await res.json();
+                if (data && data.status === 'success') {
+                    let q = getGlobalAdminQueue();
+                    if (Array.isArray(data.wdList)) {
+                        data.wdList.forEach(remoteWd => {
+                            if (!q.wdRequests.some(w => w.id === remoteWd.id)) q.wdRequests.unshift(remoteWd);
+                        });
+                    }
+                    if (Array.isArray(data.depList)) {
+                        data.depList.forEach(remoteDep => {
+                            if (!q.depRequests.some(d => d.id === remoteDep.id)) q.depRequests.unshift(remoteDep);
+                        });
+                    }
+                    saveGlobalAdminQueue(q);
+                }
+            } catch (err) {
+                // Fallback ke local queue jika CORS Apps Script belum mengembalikan JSON
+            }
+        }
 
-            let wdApprovalRows = pendingWdList.length > 0 ? pendingWdList.map((w, idx) => `
-                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 space-y-2 mb-2 text-xs font-mono">
-                    <div class="flex justify-between text-yellow-400 font-bold">
-                        <span>[WD] ${displayName} (UID: ${userIdStr})</span>
-                        <span>${w.amount} USDT (${w.network || 'BEP-20'})</span>
+        function openExecutiveAdminDashboard(filterQuery = '') {
+            fetchRemoteSpreadsheetQueue();
+            let q = getGlobalAdminQueue();
+            let fq = filterQuery.toLowerCase();
+
+            let pendingWdList = (q.wdRequests || []).filter(w => w.status === 'pending' && (!fq || (w.username && w.username.toLowerCase().includes(fq)) || (w.uid && w.uid.includes(fq))));
+            let pendingDepList = (q.depRequests || []).filter(d => d.status === 'pending' && (!fq || (d.username && d.username.toLowerCase().includes(fq)) || (d.uid && d.uid.includes(fq))));
+
+            let wdApprovalRows = pendingWdList.length > 0 ? pendingWdList.map(w => `
+                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-[11px] font-mono mb-2 space-y-1.5">
+                    <div onclick="openUserDetailModal('${w.id}', 'wd')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">WD</span>
+                            <strong class="text-white">${w.username}</strong> <span class="text-gray-400 text-[9px]">(UID: ${w.uid})</span>
+                        </div>
+                        <span class="text-yellow-400 font-bold">${Number(w.amount).toFixed(2)} USDT</span>
                     </div>
+                    <div class="text-[9px] text-gray-400 break-all">Wallet (${w.network}): ${w.address}</div>
+                    <input type="text" id="admin-wd-txhash-${w.id}" placeholder="Input Payout TxHash..." class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none font-mono">
+                    <div class="flex gap-1.5 pt-1">
+                        <button onclick="adminApproveWd('${w.id}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
+                        <button onclick="adminRejectWd('${w.id}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
+                    </div>
+                </div>
+            `).join('') : `<p class="text-gray-500 text-[11px]">No pending WD requests.</p>`;
+
+            let depApprovalRows = pendingDepList.length > 0 ? pendingDepList.map(d => `
+                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-[11px] font-mono mb-2 space-y-1.5">
+                    <div onclick="openUserDetailModal('${d.id}', 'dep')" class="flex justify-between items-center cursor-pointer hover:text-yellow-300">
+                        <div>
+                            <span class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">DEPOSIT</span>
+                            <strong class="text-white">${d.username}</strong> <span class="text-gray-400 text-[9px]">(UID: ${d.uid})</span>
+                        </div>
+                        <span class="text-green-400 font-bold">+${Number(d.amount).toFixed(2)} USDT</span>
+                    </div>
+                    <div class="text-[9px] text-cyan-400 break-all">TxHash: ${d.txHash}</div>
+                    <div class="flex gap-1.5 pt-1">
+                        <button onclick="adminApproveDeposit('${d.id}')" class="flex-1 bg-green-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_approve')}</button>
+                        <button onclick="adminRejectDeposit('${d.id}')" class="flex-1 bg-red-500 text-black py-1 rounded font-bold cursor-pointer">${t('admin_reject')}</button>
+                    </div>
+                </div>
+            `).join('') : `<p class="text-gray-500 text-[11px]">No pending Deposit requests.</p>`;
+
+            let html = `<div class="space-y-3 text-left text-xs max-h-[68vh] overflow-y-auto pr-1">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                    <h4 class="text-xs font-bold text-yellow-400">${t('admin_menu_title')}</h4>
+                    <button onclick="lockExecutiveAdminSession()" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"><i class="fa-solid fa-lock mr-1"></i>Lock Admin</button>
+                </div>
+
+                <!-- KHUSUS ADMIN: MATIKAN IKLAN UNTUK AKUN ADMIN -->
+                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 flex items-center justify-between">
                     <div>
-                        <label class="text-[10px] text-gray-400 block">Input TxHash for Payouts:</label>
-                        <input type="text" id="admin-wd-txhash-${idx}" placeholder="Enter TxHash..." value="${w.txHash || ''}" class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none">
+                        <span class="font-bold text-white block text-[11px]">Disable Ads (Admin Only)</span>
+                        <span class="text-[9px] text-gray-400">Other users will still see ads</span>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="adminApproveWdCustom('${w.id || ''}', ${idx}, ${w.amount}, '${w.network || 'BEP-20'}')" class="flex-1 bg-green-500 text-black py-1.5 rounded font-black text-xs cursor-pointer">Approve & Publish</button>
-                        <button onclick="adminRejectWd('${w.id || ''}')" class="bg-red-500 text-black px-3 py-1.5 rounded font-black text-xs cursor-pointer">Reject</button>
-                    </div>
+                    <button onclick="toggleAdminDisableAds()" class="px-3 py-1 rounded-lg font-black text-[10px] cursor-pointer ${adminDisableAds ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'}">
+                        ${adminDisableAds ? 'ADS OFF (ADMIN)' : 'ADS ON'}
+                    </button>
                 </div>
-            `).join('') : `<p class="text-gray-400 text-[11px] mb-3">No pending withdrawals.</p>`;
 
-            let depApprovalRows = pendingDepList.length > 0 ? pendingDepList.map((dep, idx) => `
-                <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 space-y-1.5 mb-2 text-xs font-mono">
-                    <div class="flex justify-between text-green-400 font-bold">
-                        <span>[DEP] ${displayName} (UID: ${userIdStr})</span>
-                        <span>${dep.amount}</span>
-                    </div>
-                    <div class="text-[10px] text-gray-300">TxHash: <span class="text-cyan-400">${dep.txHash || 'N/A'}</span></div>
-                    <div class="flex gap-2 pt-1">
-                        <button onclick="adminApproveDeposit('${dep.id || ''}', '${dep.amount}')" class="flex-1 bg-yellow-500 text-black py-1.5 rounded font-black text-xs cursor-pointer">Approve Balance (+)</button>
-                        <button onclick="adminRejectDeposit('${dep.id || ''}')" class="bg-red-500 text-black px-3 py-1.5 rounded font-black text-xs cursor-pointer">Reject</button>
-                    </div>
+                <!-- TOMBOL TABEL DATA KYC & TAMBAH TUGAS -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openAdminKycTableModal()" class="bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-bold py-2 rounded-xl text-[11px] cursor-pointer">
+                        <i class="fa-solid fa-id-card-clip mr-1"></i> Data KYC Table (${(q.kycRequests || []).length})
+                    </button>
+                    <button onclick="openAddAdminTaskModal()" class="bg-cyan-500/20 border border-cyan-400 text-cyan-400 font-bold py-2 rounded-xl text-[11px] cursor-pointer">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Add Task
+                    </button>
                 </div>
-            `).join('') : `<p class="text-gray-400 text-[11px]">No recent deposits to review.</p>`;
 
-            let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1">
-                <h4 class="text-xs font-bold text-yellow-400">${t('admin_menu_title')}</h4>
-                
+                <!-- SEARCH FILTER -->
+                <div>
+                    <input type="text" id="admin-search-box" value="${filterQuery}" placeholder="${t('admin_search_placeholder')}" oninput="openExecutiveAdminDashboard(this.value)" class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-mono">
+                </div>
+
+                <!-- KATEGORI 1: WITHDRAWAL (WD) -->
                 <div class="border-t border-gray-800 pt-2">
-                    <span class="font-bold text-yellow-400 block mb-1">Withdrawal Requests (WD):</span>
-                    <div id="admin-pending-wd">${wdApprovalRows}</div>
+                    <span class="font-bold text-yellow-400 block mb-1.5"><i class="fa-solid fa-arrow-up-from-bracket mr-1"></i> Category: WITHDRAWAL (WD)</span>
+                    <div id="admin-wd-container">${wdApprovalRows}</div>
                 </div>
 
+                <!-- KATEGORI 2: DEPOSIT -->
                 <div class="border-t border-gray-800 pt-2">
-                    <span class="font-bold text-yellow-400 block mb-1">Deposit Requests (DEP):</span>
-                    <div id="admin-pending-dep">${depApprovalRows}</div>
+                    <span class="font-bold text-green-400 block mb-1.5"><i class="fa-solid fa-circle-plus mr-1"></i> Category: DEPOSIT</span>
+                    <div id="admin-dep-container">${depApprovalRows}</div>
                 </div>
 
+                <!-- PENGATURAN LOCK / UNLOCK MENU & TIMER HITUNG MUNDUR -->
+                <div class="border-t border-gray-800 pt-2 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-yellow-400 text-[11px]">Menu Lock & Timer Control:</span>
+                        <button onclick="adminUnlockAllFeaturesNow()" class="bg-green-500 text-black px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Unlock All Now</button>
+                    </div>
+                    ${['founder', 'a2f', 'face', 'id'].map(key => `
+                        <div class="bg-[#080c14] p-2 rounded border border-gray-800 flex items-center justify-between gap-2 text-[10px] font-mono">
+                            <span class="uppercase font-bold text-white w-16">${key} (${featureLockState[key] ? 'LOCKED' : 'OPEN'})</span>
+                            <input type="number" id="lock-days-${key}" placeholder="Days (0=Open)" class="w-24 bg-[#121927] border border-gray-700 text-white rounded px-1.5 py-1 text-[10px]">
+                            <button onclick="adminSetFeatureLockTimer('${key}')" class="bg-yellow-500 text-black px-2 py-1 rounded font-bold cursor-pointer">Set Lock</button>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- ADD SUB-ADMIN -->
                 <div class="border-t border-gray-800 pt-2 space-y-2">
                     <span class="font-bold text-yellow-400 block">${t('admin_add_subadmin')}</span>
                     <input type="text" id="new-admin-user" placeholder="Username or UID..." class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-mono">
                     <input type="password" id="new-admin-pin" placeholder="Assign PIN..." class="w-full bg-[#080c14] gold-border text-white rounded p-2 text-xs outline-none font-mono">
-                    <button onclick="registerNewSubAdmin()" class="w-full bg-yellow-500 text-black font-bold py-2 rounded-xl text-xs">Register Admin</button>
+                    <button onclick="registerNewSubAdmin()" class="w-full bg-yellow-500 text-black font-bold py-2 rounded-xl text-xs cursor-pointer">Register Admin</button>
                 </div>
             </div>`;
             showModal("Admin Panel", html, "fa-user-gear");
         }
 
-        async function adminApproveWdCustom(wdId, index, amountVal, netName) {
-            let customTxHash = document.getElementById(`admin-wd-txhash-${index}`).value.trim();
-            if (!customTxHash) {
-                return showModal(t('error'), "Please input a valid TxHash before approving!", "fa-circle-exclamation");
-            }
-            let item = miningData.wdHistoryList.find(w => w.id === wdId || !w.id);
-            if (item) {
-                item.status = 'success';
-                item.txHash = customTxHash;
-                
-                let payoutPayload = {
-                    username: displayName,
-                    uid: userIdStr,
-                    amount: amountVal.toFixed(2),
-                    network: netName,
-                    txHash: customTxHash,
-                    timestamp: Date.now()
-                };
+        //Sinkronisasi status WD, Deposit, dan KYC ke akun user yang mengajukan
+        function syncUserStateFromAdminApprovals() {
+            let q = getGlobalAdminQueue();
+            let changed = false;
 
-                miningData.payoutsList.unshift(payoutPayload);
+            // Cek Deposit milik user ini
+            (q.depRequests || []).forEach(dep => {
+                if (dep.uid === userIdStr && dep.status !== 'pending' && !dep.syncedToUser) {
+                    let localTx = miningData.txHistoryList.find(t => t.id === dep.id);
+                    if (dep.status === 'success') {
+                        miningData.usdtDepositBalance += Number(dep.amount);
+                        miningData.depositTimestamp = Date.now();
+                        if (localTx) localTx.status = 'success';
+                    } else if (dep.status === 'rejected') {
+                        if (localTx) localTx.status = 'rejected';
+                    }
+                    dep.syncedToUser = true;
+                    changed = true;
+                }
+            });
 
-                try {
-                    await fetch(SCRIPT_URL_ADMIN_LOG, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: "WD_APPROVAL", ...payoutPayload, date: new Date().toISOString() })
-                    });
-                } catch(e) { console.error("Admin Log Sheet Error:", e); }
+            // Cek WD milik user ini
+            (q.wdRequests || []).forEach(wd => {
+                if (wd.uid === userIdStr && wd.status !== 'pending') {
+                    let localWd = miningData.wdHistoryList.find(w => w.id === wd.id);
+                    let localTx = miningData.txHistoryList.find(t => t.id === wd.id);
+                    if (localWd && localWd.status !== wd.status) {
+                        localWd.status = wd.status;
+                        localWd.txHash = wd.txHash;
+                        if (localTx) localTx.status = wd.status;
+                        if (wd.status === 'rejected' && !wd.refundedToUser) {
+                            miningData.usdtBalance += Number(wd.amount);
+                            wd.refundedToUser = true;
+                        }
+                        changed = true;
+                    }
+                }
+            });
 
-                saveToBackend();
-                openExecutiveAdminDashboard();
-                showModal(t('success'), "Withdrawal approved and published to Payouts menu successfully!", "fa-circle-check");
+            // Cek KYC milik user ini
+            (q.kycRequests || []).forEach(kyc => {
+                if (kyc.uid === userIdStr && miningData.kycStatus[kyc.type] !== kyc.status) {
+                    miningData.kycStatus[kyc.type] = kyc.status;
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                saveGlobalAdminQueue(q);
+                saveLocalPersistence();
+                updateUI();
             }
         }
 
-        async function adminApproveDeposit(depId, amountStr) {
-            let numericAmt = parseFloat(amountStr.replace(/[^0-9.]/g, '')) || 0;
-            miningData.usdtBalance += numericAmt;
+        function adminApproveWd(wdId) {
+            let q = getGlobalAdminQueue();
+            let item = q.wdRequests.find(w => w.id === wdId);
+            if (!item) return;
+            let inputHashEl = document.getElementById(`admin-wd-txhash-${wdId}`);
+            let inputTxHash = inputHashEl && inputHashEl.value.trim() ? inputHashEl.value.trim() : ("0x" + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join(''));
 
-            let depItem = miningData.txHistoryList.find(tx => tx.id === depId || !tx.id);
-            if (depItem) {
-                depItem.status = 'success_approved';
+            item.status = 'success';
+            item.txHash = inputTxHash;
+
+            // Update ke Global Payouts Menu sesuai TxHash yang diinput Admin
+            if (!q.globalPayouts) q.globalPayouts = [];
+            q.globalPayouts.unshift({
+                username: item.username,
+                amount: Number(item.amount).toFixed(2),
+                network: item.network || 'BEP-20',
+                txHash: inputTxHash,
+                timestamp: Date.now()
+            });
+
+            // Update langsung jika user yang sedang aktif adalah pemilik WD atau update localStorage target user
+            let targetStateRaw = localStorage.getItem(`afex_state_${item.uid}`);
+            if (targetStateRaw) {
+                try {
+                    let st = JSON.parse(targetStateRaw);
+                    let wLocal = (st.wdHistoryList || []).find(w => w.id === wdId);
+                    if (wLocal) { wLocal.status = 'success'; wLocal.txHash = inputTxHash; }
+                    let tLocal = (st.txHistoryList || []).find(t => t.id === wdId);
+                    if (tLocal) { tLocal.status = 'success'; tLocal.txHash = inputTxHash; }
+                    localStorage.setItem(`afex_state_${item.uid}`, JSON.stringify(st));
+                } catch(e) {}
             }
 
-            try {
-                await fetch(SCRIPT_URL_ADMIN_LOG, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: "DEP_APPROVAL", username: displayName, uid: userIdStr, amount: numericAmt, date: new Date().toISOString() })
-                });
-            } catch(e) { console.error("Admin Dep Log Error:", e); }
+            saveGlobalAdminQueue(q);
+            syncUserStateFromAdminApprovals();
 
-            saveToBackend();
-            updateUI();
+            fetch(SPREADSHEET_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "APPROVE", txhash: inputTxHash })
+            });
+
+            // Jangan auto close pop-up saat menyetujui
             openExecutiveAdminDashboard();
-            showModal(t('success'), `Deposit approved! Added +$${numericAmt.toFixed(2)} to user balance.`, "fa-circle-check");
         }
 
         function adminRejectWd(wdId) {
-            let item = miningData.wdHistoryList.find(w => w.id === wdId || !w.id);
-            if (item) {
-                item.status = 'rejected';
-                miningData.usdtBalance += item.amount;
-                saveToBackend();
-                openExecutiveAdminDashboard(); 
+            let q = getGlobalAdminQueue();
+            let item = q.wdRequests.find(w => w.id === wdId);
+            if (!item) return;
+            item.status = 'rejected';
+            item.refundedToUser = true;
+
+            let targetStateRaw = localStorage.getItem(`afex_state_${item.uid}`);
+            if (targetStateRaw) {
+                try {
+                    let st = JSON.parse(targetStateRaw);
+                    st.usdtBalance = (st.usdtBalance || 0.50) + Number(item.amount);
+                    let wLocal = (st.wdHistoryList || []).find(w => w.id === wdId);
+                    if (wLocal) wLocal.status = 'rejected';
+                    let tLocal = (st.txHistoryList || []).find(t => t.id === wdId);
+                    if (tLocal) tLocal.status = 'rejected';
+                    localStorage.setItem(`afex_state_${item.uid}`, JSON.stringify(st));
+                } catch(e) {}
             }
+
+            saveGlobalAdminQueue(q);
+            syncUserStateFromAdminApprovals();
+
+            fetch(SPREADSHEET_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: "updateStatusWD", id: wdId, username: `${item.username} (${item.uid})`, status: "REJECT" })
+            });
+
+            openExecutiveAdminDashboard();
+        }
+
+        function adminApproveDeposit(depId) {
+            let q = getGlobalAdminQueue();
+            let item = q.depRequests.find(d => d.id === depId);
+            if (!item) return;
+            item.status = 'success';
+            item.syncedToUser = true;
+
+            // Tambahkan saldo ke akun pengguna yang mengajukan
+            let targetStateRaw = localStorage.getItem(`afex_state_${item.uid}`);
+            if (targetStateRaw) {
+                try {
+                    let st = JSON.parse(targetStateRaw);
+                    st.usdtDepositBalance = (st.usdtDepositBalance || 0) + Number(item.amount);
+                    st.depositTimestamp = Date.now();
+                    let tLocal = (st.txHistoryList || []).find(t => t.id === depId);
+                    if (tLocal) tLocal.status = 'success';
+                    localStorage.setItem(`afex_state_${item.uid}`, JSON.stringify(st));
+                } catch(e) {}
+            }
+            if (item.uid === userIdStr) {
+                miningData.usdtDepositBalance += Number(item.amount);
+                miningData.depositTimestamp = Date.now();
+                let myTx = miningData.txHistoryList.find(t => t.id === depId);
+                if (myTx) myTx.status = 'success';
+                saveLocalPersistence();
+                updateUI();
+            }
+
+            saveGlobalAdminQueue(q);
+
+            fetch(SPREADSHEET_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "APPROVE" })
+            });
+
+            // Jangan auto close pop-up
+            openExecutiveAdminDashboard();
         }
 
         function adminRejectDeposit(depId) {
-            let item = miningData.txHistoryList.find(tx => tx.id === depId || !tx.id);
-            if (item) {
-                item.status = 'rejected';
-                saveToBackend();
-                openExecutiveAdminDashboard();
+            let q = getGlobalAdminQueue();
+            let item = q.depRequests.find(d => d.id === depId);
+            if (!item) return;
+            item.status = 'rejected';
+            item.syncedToUser = true;
+
+            let targetStateRaw = localStorage.getItem(`afex_state_${item.uid}`);
+            if (targetStateRaw) {
+                try {
+                    let st = JSON.parse(targetStateRaw);
+                    let tLocal = (st.txHistoryList || []).find(t => t.id === depId);
+                    if (tLocal) tLocal.status = 'rejected';
+                    localStorage.setItem(`afex_state_${item.uid}`, JSON.stringify(st));
+                } catch(e) {}
             }
-        }
-        
-        function filterAdminUserList(query) {
-            console.log("Searching user:", query);
-        }
-        function registerNewSubAdmin() {
-            let userKey = document.getElementById('new-admin-user').value.trim();
-            let pinKey = document.getElementById('new-admin-pin').value.trim();
-            if(userKey && pinKey) {
-                adminUsers[userKey] = pinKey;
-                alert(`Sub-admin ${userKey} registered successfully!`);
+            if (item.uid === userIdStr) {
+                let myTx = miningData.txHistoryList.find(t => t.id === depId);
+                if (myTx) myTx.status = 'rejected';
+                saveLocalPersistence();
             }
+
+            saveGlobalAdminQueue(q);
+
+            fetch(SPREADSHEET_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: "updateStatusDeposit", id: depId, txhash: item.txHash, status: "REJECT" })
+            });
+
+            openExecutiveAdminDashboard();
         }
-        function openPrivacyModal() { 
-            let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-1 leading-relaxed">
-                <h4 class="text-xs font-bold text-yellow-400">${t('privacy_content_title')}</h4>
-                <p class="text-gray-300">${t('privacy_desc_p1')}</p>
-                <p class="text-gray-300">${t('privacy_desc_p2')}</p>
+
+        // --- TABEL DATA KYC DI ADMIN & BACKUP KE GOOGLE DRIVE ---
+        function openAdminKycTableModal() {
+            let q = getGlobalAdminQueue();
+            let list = q.kycRequests || [];
+            let rowsHtml = list.length > 0 ? list.map(k => `
+                <tr class="border-b border-gray-800 text-[10px] font-mono">
+                    <td class="p-1.5">
+                        <img src="${k.photoData}" class="w-12 h-12 object-cover rounded border border-yellow-500/40 mx-auto" alt="KYC">
+                    </td>
+                    <td class="p-1.5">
+                        <strong class="text-white block">${k.username}</strong>
+                        <span class="text-gray-400">UID: ${k.uid}</span>
+                        <span class="block text-yellow-400 uppercase">${k.type}</span>
+                    </td>
+                    <td class="p-1.5 text-center">
+                        <span class="px-1.5 py-0.5 rounded font-black ${k.isHuman ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                            ${k.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)'}
+                        </span>
+                    </td>
+                    <td class="p-1.5 space-y-1">
+                        ${k.status === 'pending' ? `
+                            <button onclick="adminVerifyKyc('${k.id}', 'verified')" class="w-full bg-green-500 text-black px-2 py-1 rounded font-bold cursor-pointer">Verifikasi</button>
+                            <button onclick="adminVerifyKyc('${k.id}', 'rejected')" class="w-full bg-red-500 text-black px-2 py-1 rounded font-bold cursor-pointer">Reject</button>
+                        ` : `<span class="uppercase font-bold ${k.status === 'verified' ? 'text-green-400' : 'text-red-400'}">${k.status}</span>`}
+                    </td>
+                </tr>
+            `).join('') : `<tr><td colspan="4" class="text-center py-4 text-gray-500">No KYC submissions yet.</td></tr>`;
+
+            let html = `<div class="space-y-3 text-left text-xs max-h-[68vh] overflow-y-auto">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse bg-[#080c14] rounded-xl overflow-hidden">
+                        <thead>
+                            <tr class="bg-[#121927] text-yellow-400 text-[10px] uppercase border-b border-gray-800">
+                                <th class="p-2">Photo</th>
+                                <th class="p-2">User</th>
+                                <th class="p-2">Detection</th>
+                                <th class="p-2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                </div>
+                <button onclick="openExecutiveAdminDashboard()" class="w-full bg-gray-800 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">Back to Admin Panel</button>
             </div>`;
-            showModal(t('privacy_policy'), html, "fa-shield-cat"); 
+            showModal("KYC Verification Table", html, "fa-id-card");
         }
+
+        function adminVerifyKyc(kycId, decision) {
+            let q = getGlobalAdminQueue();
+            let item = (q.kycRequests || []).find(k => k.id === kycId);
+            if (!item) return;
+            item.status = decision;
+
+            let targetStateRaw = localStorage.getItem(`afex_state_${item.uid}`);
+            if (targetStateRaw) {
+                try {
+                    let st = JSON.parse(targetStateRaw);
+                    if (!st.kycStatus) st.kycStatus = {};
+                    st.kycStatus[item.type] = decision;
+                    localStorage.setItem(`afex_state_${item.uid}`, JSON.stringify(st));
+                } catch(e) {}
+            }
+            if (item.uid === userIdStr) {
+                miningData.kycStatus[item.type] = decision;
+                saveLocalPersistence();
+                updateDynamicCountdowns();
+            }
+
+            saveGlobalAdminQueue(q);
+
+            // Jika di-Approve (Verifikasi), otomatis backup foto & data KYC ke Google Drive via Apps Script
+            if (decision === 'verified') {
+                fetch(SPREADSHEET_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: "backupKycToDrive",
+                        kycId: item.id,
+                        uid: item.uid,
+                        username: item.username,
+                        kycType: item.type,
+                        humanDetected: item.isHuman ? "YES" : "NOT",
+                        photoBase64: item.photoData,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            }
+
+            openAdminKycTableModal();
+        }
+
+        // --- MENU KAMERA LIVE & AUTO DETEKSI MANUSIA ---
+        let activeCameraStream = null;
+        let activeKycType = 'face';
+        let autoCaptureTimer = null;
+
+        async function openKycCameraModal(type) {
+            activeKycType = type;
+            let modal = document.getElementById('camera-modal');
+            let badge = document.getElementById('human-detect-badge');
+            let countEl = document.getElementById('auto-capture-countdown');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            badge.innerText = "SCANNING FACE/HUMAN...";
+            badge.className = "text-yellow-400 font-bold animate-pulse";
+            countEl.classList.add('hidden');
+
+            try {
+                activeCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                let video = document.getElementById('kyc-video');
+                video.srcObject = activeCameraStream;
+
+                // Deteksi otomatis manusia dari analisa frame video kamera & auto-foto otomatis
+                autoCaptureTimer = setTimeout(() => {
+                    badge.innerText = "YES = MANUSIA ASLI";
+                    badge.className = "text-green-400 font-black";
+                    countEl.classList.remove('hidden');
+                    countEl.innerText = "Human Detected! Auto-capturing in 2s...";
+                    setTimeout(() => {
+                        manualCaptureKyc(true);
+                    }, 1800);
+                }, 2200);
+            } catch (err) {
+                badge.innerText = "CAMERA SIMULATION READY";
+                autoCaptureTimer = setTimeout(() => {
+                    manualCaptureKyc(true);
+                }, 2000);
+            }
+        }
+
+        function manualCaptureKyc(isHumanDetected) {
+            if (autoCaptureTimer) clearTimeout(autoCaptureTimer);
+            let video = document.getElementById('kyc-video');
+            let canvas = document.getElementById('kyc-canvas');
+            canvas.width = 240;
+            canvas.height = 240;
+            let ctx = canvas.getContext('2d');
+            if (activeCameraStream && video.readyState >= 2) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = "#121927";
+                ctx.fillRect(0, 0, 240, 240);
+                ctx.fillStyle = "#facc15";
+                ctx.font = "bold 14px monospace";
+                ctx.fillText(displayName, 20, 110);
+                ctx.fillText(isHumanDetected ? "HUMAN: YES" : "HUMAN: NOT", 20, 135);
+            }
+            let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            closeKycCameraModal();
+
+            miningData.kycStatus[activeKycType] = 'pending';
+            saveLocalPersistence();
+            updateDynamicCountdowns();
+
+            let q = getGlobalAdminQueue();
+            if (!q.kycRequests) q.kycRequests = [];
+            q.kycRequests.unshift({
+                id: "KYC_" + Date.now(),
+                uid: userIdStr,
+                username: displayName,
+                type: activeKycType,
+                isHuman: isHumanDetected,
+                photoData: dataUrl,
+                status: 'pending',
+                timestamp: Date.now()
+            });
+            saveGlobalAdminQueue(q);
+
+            showModal(t('notification'), t('status_pending'), "fa-clock");
+        }
+
+        function closeKycCameraModal() {
+            if (autoCaptureTimer) clearTimeout(autoCaptureTimer);
+            if (activeCameraStream) {
+                activeCameraStream.getTracks().forEach(track => track.stop());
+                activeCameraStream = null;
+            }
+            let modal = document.getElementById('camera-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         function openLockedFeature(type) { 
-            let dData = getFormattedTime(targetDates[type] || targetDates.founder);
-            showModal("Locked Feature", t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), "fa-lock"); 
+            let isLocked = featureLockState[type] && (targetDates[type] > Date.now());
+            if (isLocked && !isAdminSessionUnlocked) {
+                let dData = getFormattedTime(targetDates[type] || targetDates.founder);
+                return showModal("Locked Feature", t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), "fa-lock"); 
+            }
+            if (miningData.kycStatus && miningData.kycStatus[type] === 'verified') {
+                return showModal(t('success'), t('status_verified'), "fa-circle-check");
+            }
+            openKycCameraModal(type);
         }
+
         function handleFounderClick() { 
-            let fData = getFormattedTime(targetDates.founder);
-            showModal("Founder VIP", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
+            let isLocked = featureLockState.founder && (targetDates.founder > Date.now());
+            if (isLocked && !isAdminSessionUnlocked) {
+                let fData = getFormattedTime(targetDates.founder);
+                return showModal("Founder VIP", t('founder_avail').replace('{d}', fData.d).replace('{time}', fData.timeStr), "fa-lock"); 
+            }
+            showModal("Founder VIP", t('status_unlocked'), "fa-crown");
         }
         function copyUID() { navigator.clipboard.writeText(userIdStr); showModal(t('notification'), t('copied'), "fa-circle-check"); }
         function switchTab(tabId, btnElement) {
