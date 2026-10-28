@@ -1700,10 +1700,22 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
             document.getElementById('profile-uid').innerText = userIdStr;
             document.getElementById('header-avatar-letter').innerText = displayName.charAt(0).replace('@','').toUpperCase();
             document.getElementById('profile-avatar-initial').innerText = displayName.charAt(0).replace('@','').toUpperCase();
+            
             let savedLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
             document.getElementById('lang-select').value = savedLang;
             changeLanguage(savedLang);
+            
             loadLocalPersistence();
+            
+            // PAKSA RESET ATAU INISIALISASI ULANG TIMER JIKA MACET
+            let now = Date.now();
+            if (!miningData.miningEndTime || miningData.miningEndTime <= now) {
+                miningData.isMining = true;
+                miningData.miningStartTime = now;
+                miningData.miningEndTime = now + (12 * 3600 * 1000); // 12 Jam durasi baru
+                saveLocalPersistence();
+            }
+
             syncWithBackend();
             startTimerInterval();
         });
@@ -1774,26 +1786,28 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
         function startTimerInterval() {
-            // Pastikan sesi mining aktif otomatis jika belum pernah diset
-            if (!miningData.miningStartTime || miningData.miningEndTime <= Date.now()) {
+            // Inisialisasi awal jika waktu mining belum ada
+            let now = Date.now();
+            if (!miningData.miningStartTime || miningData.miningEndTime <= now) {
                 miningData.isMining = true;
-                miningData.miningStartTime = Date.now();
-                miningData.miningEndTime = Date.now() + (12 * 3600 * 1000); // 12 Jam
+                miningData.miningStartTime = now;
+                miningData.miningEndTime = now + (12 * 3600 * 1000); // 12 Jam
+                saveLocalPersistence();
             }
 
             setInterval(() => {
-                let now = Date.now();
+                let currentTime = Date.now();
                 
-                // Cek durasi deposit 12 hari
+                // 1. Cek durasi deposit 12 hari
                 if (miningData.usdtDepositBalance > 0 && miningData.depositTimestamp > 0) {
-                    let diffDays = (now - miningData.depositTimestamp) / (1000 * 3600 * 24);
+                    let diffDays = (currentTime - miningData.depositTimestamp) / (1000 * 3600 * 24);
                     if (diffDays >= 12) {
                         miningData.usdtBalance += miningData.usdtDepositBalance;
                         miningData.usdtDepositBalance = 0;
                     }
                 }
 
-                // Hitung pendapatan USDT per detik (berjalan otomatis terus-menerus tanpa berhenti)
+                // 2. Hitung pendapatan USDT per detik (berjalan otomatis terus-menerus tanpa berhenti)
                 let totalUsdt = miningData.usdtBalance + miningData.usdtDepositBalance;
                 let currentHourly = 0;
                 if (totalUsdt < 3.0) {
@@ -1806,19 +1820,15 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
                 let perSecondRate = currentHourly / 3600;
                 miningData.usdtMinedPending = (miningData.usdtMinedPending || 0) + perSecondRate;
 
-                // Logika Hitung Mundur (Countdown) 12 Jam AFEX Mining
+                // 3. Logika Hitung Mundur (Countdown) 12 Jam AFEX Mining
                 let mineBtn = document.getElementById('action-mine-btn');
                 let timerLbl = document.getElementById('timer-countdown');
                 let statusLbl = document.getElementById('mining-status-label');
                 let minedVal = document.getElementById('session-mined');
 
                 if (miningData.miningEndTime) {
-                    let timeLeft = miningData.miningEndTime - now;
-                    let elapsedTime = (12 * 3600 * 1000) - Math.max(0, timeLeft);
-                    let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
+                    let timeLeft = miningData.miningEndTime - currentTime;
                     
-                    if (minedVal) minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
-
                     if (timeLeft <= 0) {
                         if (timerLbl) timerLbl.innerText = "00:00:00";
                         if (statusLbl) statusLbl.innerText = t('ready_to_mine');
@@ -1827,13 +1837,17 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
                             mineBtn.className = "w-full bg-green-500 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg";
                         }
                     } else {
+                        let elapsedTime = (12 * 3600 * 1000) - timeLeft;
+                        let currentMined = Math.min((elapsedTime / (12 * 3600 * 1000)) * 50.00, 50.00);
+                        if (minedVal) minedVal.innerText = `+${Math.max(0, currentMined).toFixed(2)} AFEX`;
+
                         let h = Math.floor((timeLeft % (1000 * 3600 * 24)) / (1000 * 3600));
                         let m = Math.floor((timeLeft % (1000 * 3600)) / (1000 * 60));
                         let s = Math.floor((timeLeft % (1000 * 60)) / 1000);
                         
                         if (timerLbl) timerLbl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
                         if (statusLbl) statusLbl.innerText = "MINING IN PROGRESS";
-                        if (mineBtn && miningData.isMining) {
+                        if (mineBtn) {
                             mineBtn.innerText = "MINING ACTIVE...";
                             mineBtn.className = "w-full bg-[#121927] border border-gray-700 text-gray-500 font-bold py-3 rounded-xl text-xs cursor-not-allowed";
                         }
