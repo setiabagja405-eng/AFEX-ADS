@@ -1648,7 +1648,7 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
             syncUserStateFromAdminApprovals();
             updateLeaderboardEntry();
             renderAdminSessionBanner();
-            renderCustomTasksList();
+            //renderCustomTasksList();
         }
 
         function getLevelRateForUsdt(usdtAmt) {
@@ -1691,11 +1691,11 @@ let targetDates = JSON.parse(localStorage.getItem('afex_global_target_dates')) |
             } catch (err) {
                 console.error("Backend update offline.", err);
             }
-            function syncWithBackend() {
-    console.log("Menunggu implementasi sinkronisasi backend...");
-    // Logika API / fetch ke server bisa ditambahkan di sini nanti
         }
-            }
+        function syncWithBackend() {
+            console.log("Menunggu implementasi sinkronisasi backend...");
+            // Logika API / fetch ke server bisa ditambahkan di sini nanti
+        }
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('header-username').innerText = displayName;
             document.getElementById('header-acc').innerText = userIdStr;
