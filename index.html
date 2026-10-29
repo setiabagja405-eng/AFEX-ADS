@@ -5798,5 +5798,345 @@ function triggerAutoCapture() {
             }, 300);
         }
     </script>
+
+<!-- =====================================================================
+     FOUNDER EXPERIENCE (ADDITION ONLY)
+     Klik banner Founder -> blur hitam -> "Welcome founders" ->
+     "It's time for the founders to get lucky" -> Get Started -> Menu Founder
+     ===================================================================== -->
+<style>
+    /* ---------- Cinematic overlay ---------- */
+    #fx-root { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity .7s ease; overflow: hidden; }
+    #fx-root.fx-show { display: flex; }
+    #fx-root.fx-vis { opacity: 1; }
+    #fx-veil { position: absolute; inset: 0; background: rgba(0,0,0,0); -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px); transition: background 1.2s ease, -webkit-backdrop-filter 1.2s ease, backdrop-filter 1.2s ease; }
+    #fx-root.fx-vis #fx-veil { background: radial-gradient(ellipse at center, rgba(8,12,20,.9) 0%, rgba(0,0,0,.97) 70%); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); }
+    #fx-stage { position: relative; width: 100%; max-width: 28rem; padding: 0 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 14rem; }
+    .fx-glow { position: absolute; left: 50%; top: 50%; width: 22rem; height: 22rem; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(234,179,8,.16) 0%, rgba(234,179,8,0) 65%); opacity: 0; transition: opacity 1.6s ease; pointer-events: none; }
+    #fx-root.fx-vis .fx-glow { opacity: 1; animation: fxBreath 5s ease-in-out infinite; }
+    .fx-line { height: 1px; width: 0; margin: 0 auto 1.4rem; background: linear-gradient(90deg, transparent, #fbbf24, transparent); transition: width 1.4s cubic-bezier(.2,.7,.2,1), opacity .8s ease; opacity: 0; position: relative; }
+    .fx-line.fx-lb { margin: 1.4rem auto 0; }
+    .fx-line.fx-on { width: 70%; opacity: 1; }
+    #fx-text { font-family: 'Cinzel', 'Trajan Pro', Georgia, 'Times New Roman', serif; font-weight: 700; color: #fbbf24; line-height: 1.25; margin: 0; position: relative; min-height: 1.25em; }
+    #fx-text.fx-t1 { font-size: clamp(1.9rem, 9vw, 2.8rem); letter-spacing: .06em; }
+    #fx-text.fx-t2 { font-size: clamp(1.25rem, 6vw, 1.7rem); letter-spacing: .04em; font-weight: 600; }
+    #fx-text .fx-w { display: inline-block; white-space: nowrap; }
+    #fx-text .fx-c { display: inline-block; opacity: 0; }
+    #fx-text.fx-in .fx-c { animation: fxLetter 1.25s cubic-bezier(.2,.7,.2,1) both; }
+    #fx-text.fx-in { animation: fxGlowText 3.2s ease-in-out infinite; }
+    #fx-text.fx-out { animation: fxOut .85s ease forwards; }
+    @keyframes fxLetter {
+        0%   { opacity: 0; transform: translateY(22px) scale(1.7); filter: blur(18px); }
+        55%  { opacity: 1; filter: blur(3px); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes fxGlowText {
+        0%,100% { text-shadow: 0 0 14px rgba(234,179,8,.45), 0 0 34px rgba(234,179,8,.18); }
+        50%     { text-shadow: 0 0 22px rgba(251,191,36,.85), 0 0 60px rgba(234,179,8,.35); }
+    }
+    @keyframes fxOut { to { opacity: 0; filter: blur(14px); transform: scale(1.06); } }
+    @keyframes fxBreath { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.18); } }
+
+    #fx-start { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%) scale(.92); opacity: 0; pointer-events: none; font-family: 'Cinzel', 'Trajan Pro', Georgia, serif; font-weight: 700; font-size: 1.05rem; letter-spacing: .28em; color: #fbbf24; background: transparent; border: 1px solid rgba(251,191,36,.55); padding: .95rem 2.2rem; border-radius: 999px; cursor: pointer; transition: opacity 1.1s ease, transform 1.1s cubic-bezier(.2,.7,.2,1), background .3s ease, color .3s ease; text-shadow: 0 0 14px rgba(234,179,8,.6); }
+    #fx-start.fx-on { opacity: 1; pointer-events: auto; transform: translate(-50%,-50%) scale(1); animation: fxPulse 2.6s ease-in-out 1.2s infinite; }
+    #fx-start:hover, #fx-start:focus-visible { background: linear-gradient(135deg, #eab308, #d97706); color: #080c14; text-shadow: none; outline: none; }
+    @keyframes fxPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(234,179,8,.0), 0 0 22px rgba(234,179,8,.18); } 50% { box-shadow: 0 0 0 10px rgba(234,179,8,.05), 0 0 42px rgba(234,179,8,.38); } }
+    #fx-skip { position: absolute; right: 1rem; top: 1rem; font-size: .7rem; color: rgba(156,163,175,.8); background: transparent; border: 0; padding: .5rem .75rem; cursor: pointer; letter-spacing: .08em; opacity: 0; transition: opacity 1s ease .8s; }
+    #fx-root.fx-vis #fx-skip { opacity: 1; }
+    #fx-skip:hover { color: #fbbf24; }
+
+    /* ---------- Founder menu ---------- */
+    #fx-menu { position: fixed; inset: 0; z-index: 2100; display: none; justify-content: center; background: #04060b; opacity: 0; transition: opacity .8s ease; }
+    #fx-menu.fx-show { display: flex; }
+    #fx-menu.fx-vis { opacity: 1; }
+    .fx-panel { position: relative; width: 100%; max-width: 28rem; height: 100%; overflow-y: auto; overflow-x: hidden; padding: 1rem 1rem 2.5rem; background:
+        radial-gradient(ellipse 120% 40% at 50% 0%, rgba(234,179,8,.16) 0%, rgba(234,179,8,0) 70%),
+        linear-gradient(180deg, #0a0f1a 0%, #080c14 60%, #070a11 100%); }
+    .fx-panel::before { content: ""; position: absolute; left: 50%; top: 0; width: 1px; height: 7rem; background: linear-gradient(180deg, rgba(251,191,36,.7), transparent); }
+    .fx-close { position: absolute; right: .9rem; top: .9rem; width: 2.2rem; height: 2.2rem; border-radius: 999px; border: 1px solid rgba(234,179,8,.35); background: rgba(18,25,39,.8); color: #fbbf24; cursor: pointer; z-index: 3; }
+    .fx-close:hover { color: #fff; border-color: rgba(251,191,36,.8); }
+    .fx-hero { text-align: center; padding-top: 3.2rem; }
+    .fx-emblem { position: relative; width: 5.6rem; height: 5.6rem; margin: 0 auto 1rem; border-radius: 999px; padding: 3px; background: conic-gradient(from 0deg, #fbbf24, #78510b, #fde68a, #78510b, #fbbf24); animation: fxSpin 14s linear infinite; box-shadow: 0 0 40px rgba(234,179,8,.28); }
+    .fx-emblem > div { width: 100%; height: 100%; border-radius: 999px; background: radial-gradient(circle at 30% 25%, #1a2233, #080c14); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.9rem; animation: fxSpin 14s linear infinite reverse; text-shadow: 0 0 16px rgba(234,179,8,.8); }
+    @keyframes fxSpin { to { transform: rotate(360deg); } }
+    .fx-title { font-family: 'Cinzel', 'Trajan Pro', Georgia, serif; font-size: 1.9rem; font-weight: 700; letter-spacing: .12em; margin: 0; background: linear-gradient(180deg, #fde68a 0%, #fbbf24 45%, #b45309 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+    .fx-sub { font-size: .75rem; color: #9ca3af; margin-top: .35rem; }
+    .fx-sub b { color: #fff; font-weight: 700; }
+    .fx-uid { display: inline-block; margin-top: .7rem; font-family: ui-monospace, monospace; font-size: .68rem; color: #fbbf24; border: 1px solid rgba(234,179,8,.3); border-radius: 999px; padding: .25rem .8rem; background: rgba(234,179,8,.06); }
+
+    .fx-gold-frame { border: 1px solid transparent; border-radius: 1rem; background:
+        linear-gradient(160deg, #0f1624, #0a0f19) padding-box,
+        linear-gradient(135deg, rgba(251,191,36,.9), rgba(120,81,11,.35) 45%, rgba(251,191,36,.6)) border-box; }
+    .fx-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-top: 1.4rem; }
+    .fx-stat { padding: .8rem .4rem; text-align: center; }
+    .fx-stat small { display: block; font-size: .6rem; color: #9ca3af; margin-bottom: .25rem; }
+    .fx-stat span { display: block; font-family: ui-monospace, monospace; font-size: .85rem; font-weight: 800; color: #fbbf24; word-break: break-all; }
+
+    .fx-h { font-size: .65rem; font-weight: 700; color: #9ca3af; margin: 1.5rem 0 .5rem .25rem; letter-spacing: .06em; }
+    .fx-list { overflow: hidden; }
+    .fx-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; text-align: left; padding: .9rem 1rem; background: transparent; border: 0; color: #fff; cursor: pointer; transition: background .2s ease; }
+    .fx-row + .fx-row { border-top: 1px solid rgba(234,179,8,.14); }
+    .fx-row:hover, .fx-row:focus-visible { background: rgba(234,179,8,.07); outline: none; }
+    .fx-ico { width: 2.1rem; height: 2.1rem; flex: none; border-radius: .75rem; display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: .8rem; background: rgba(234,179,8,.1); border: 1px solid rgba(234,179,8,.28); }
+    .fx-row h4 { margin: 0; font-size: .78rem; font-weight: 700; color: #fff; }
+    .fx-row p { margin: .1rem 0 0; font-size: .64rem; color: #9ca3af; }
+    .fx-row > i { color: #eab308; font-size: .7rem; }
+    .fx-main { display: flex; align-items: center; gap: .75rem; }
+    .fx-soon { margin-top: .8rem; padding: 1rem; display: flex; align-items: center; gap: .8rem; background: linear-gradient(135deg, rgba(234,179,8,.1), rgba(234,179,8,.02)); border: 1px dashed rgba(234,179,8,.4); border-radius: 1rem; }
+    .fx-soon h4 { margin: 0; font-size: .78rem; color: #fbbf24; font-weight: 800; }
+    .fx-soon p { margin: .15rem 0 0; font-size: .64rem; color: #9ca3af; }
+    .fx-badge { margin-left: auto; font-size: .58rem; font-weight: 900; color: #080c14; background: #eab308; padding: .15rem .5rem; border-radius: .35rem; }
+    .fx-foot { text-align: center; font-size: .62rem; color: rgba(234,179,8,.7); margin-top: 1.6rem; font-family: ui-monospace, monospace; }
+
+    /* satu momen reveal terkoordinasi saat menu terbuka */
+    #fx-menu .fx-r { opacity: 0; transform: translateY(14px); }
+    #fx-menu.fx-vis .fx-r { animation: fxRise .9s cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes fxRise { to { opacity: 1; transform: translateY(0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+        #fx-text.fx-in .fx-c, #fx-menu.fx-vis .fx-r { animation-duration: .01s !important; animation-delay: 0s !important; }
+        .fx-emblem, .fx-emblem > div, #fx-text.fx-in, #fx-root.fx-vis .fx-glow, #fx-start.fx-on { animation: none !important; }
+    }
+</style>
+
+<!-- Cinematic overlay -->
+<div id="fx-root" role="dialog" aria-modal="true" aria-label="Founder welcome">
+    <div id="fx-veil"></div>
+    <div id="fx-stage">
+        <div class="fx-glow"></div>
+        <div id="fx-line-a" class="fx-line"></div>
+        <h2 id="fx-text" aria-live="polite"></h2>
+        <div id="fx-line-b" class="fx-line fx-lb"></div>
+        <button id="fx-start" type="button">Get Started</button>
+    </div>
+    <button id="fx-skip" type="button">Skip</button>
+</div>
+
+<!-- Founder menu -->
+<div id="fx-menu" role="dialog" aria-modal="true" aria-label="Founder menu">
+    <div class="fx-panel">
+        <button class="fx-close" type="button" id="fx-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+
+        <div class="fx-hero">
+            <div class="fx-emblem fx-r" style="animation-delay:.1s"><div><i class="fa-solid fa-crown"></i></div></div>
+            <h3 class="fx-title fx-r" style="animation-delay:.25s">FOUNDER</h3>
+            <p class="fx-sub fx-r" style="animation-delay:.35s">Welcome back, <b id="fx-name">Founder</b></p>
+            <span class="fx-uid fx-r" style="animation-delay:.45s">ID <span id="fx-uid">-</span></span>
+        </div>
+
+        <div class="fx-stats fx-r" style="animation-delay:.55s">
+            <div class="fx-gold-frame fx-stat"><small>AFEX</small><span id="fx-bal">0.00</span></div>
+            <div class="fx-gold-frame fx-stat"><small>USDT</small><span id="fx-usdt">0.00</span></div>
+            <div class="fx-gold-frame fx-stat"><small>Friends</small><span id="fx-ref">0</span></div>
+        </div>
+
+        <div class="fx-h fx-r" style="animation-delay:.65s">FOUNDER ACCESS</div>
+        <div class="fx-gold-frame fx-list fx-r" style="animation-delay:.72s">
+            <button class="fx-row" type="button" data-fx-tab="tap">
+                <span class="fx-main"><span class="fx-ico"><i class="fa-solid fa-bolt"></i></span><span><h4>Mining Hub</h4><p>Start your 12H auto mining</p></span></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="fx-row" type="button" data-fx-tab="task">
+                <span class="fx-main"><span class="fx-ico"><i class="fa-solid fa-list-check"></i></span><span><h4>Task Center</h4><p>Complete tasks and earn</p></span></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="fx-row" type="button" data-fx-tab="swap">
+                <span class="fx-main"><span class="fx-ico"><i class="fa-solid fa-right-left"></i></span><span><h4>Swap</h4><p>Exchange your balance</p></span></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="fx-row" type="button" data-fx-tab="wallet">
+                <span class="fx-main"><span class="fx-ico"><i class="fa-solid fa-wallet"></i></span><span><h4>Wallet Vault</h4><p>Deposit, withdraw and history</p></span></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="fx-row" type="button" id="fx-invite">
+                <span class="fx-main"><span class="fx-ico"><i class="fa-solid fa-user-plus"></i></span><span><h4>Founder Circle</h4><p>Invite friends and get reward</p></span></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="fx-soon fx-r" style="animation-delay:.85s">
+            <div class="fx-ico"><i class="fa-solid fa-gem"></i></div>
+            <div><h4>Founder Exclusives</h4><p>More privileges are on the way</p></div>
+            <span class="fx-badge">SOON</span>
+        </div>
+
+        <div class="fx-foot fx-r" style="animation-delay:.95s">Afex Founder Circle</div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var root = $('fx-root'), text = $('fx-text'), lineA = $('fx-line-a'), lineB = $('fx-line-b');
+    var startBtn = $('fx-start'), skipBtn = $('fx-skip'), menu = $('fx-menu');
+    var token = 0, busy = false;
+
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function haptic(kind) {
+        try {
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(kind || 'light');
+            else if (navigator.vibrate) navigator.vibrate(20);
+        } catch (e) {}
+    }
+    function reduced() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+
+    // pecah teks menjadi huruf per huruf; kembalikan total durasi stagger (ms)
+    function buildText(str, step) {
+        text.innerHTML = '';
+        var words = str.split(' '), idx = 0;
+        words.forEach(function (w, wi) {
+            var wEl = document.createElement('span');
+            wEl.className = 'fx-w';
+            for (var i = 0; i < w.length; i++) {
+                var c = document.createElement('span');
+                c.className = 'fx-c';
+                c.style.animationDelay = (idx * step) + 'ms';
+                c.textContent = w.charAt(i);
+                wEl.appendChild(c);
+                idx++;
+            }
+            text.appendChild(wEl);
+            if (wi < words.length - 1) { text.appendChild(document.createTextNode(' ')); idx++; }
+        });
+        return idx * step;
+    }
+
+    async function showLine(str, size, step, hold, my) {
+        text.className = 'fx-' + size;
+        var total = buildText(str, step);
+        void text.offsetWidth;
+        text.classList.add('fx-in');
+        lineA.classList.add('fx-on'); lineB.classList.add('fx-on');
+        await sleep(total + 1300 + hold);
+        if (my !== token) return false;
+        text.classList.remove('fx-in');
+        text.classList.add('fx-out');
+        lineA.classList.remove('fx-on'); lineB.classList.remove('fx-on');
+        await sleep(900);
+        if (my !== token) return false;
+        text.className = ''; text.innerHTML = '';
+        return true;
+    }
+
+    function showStart() {
+        text.className = ''; text.innerHTML = '';
+        lineA.classList.remove('fx-on'); lineB.classList.remove('fx-on');
+        startBtn.classList.add('fx-on');
+        skipBtn.style.display = 'none';
+        try { startBtn.focus({ preventScroll: true }); } catch (e) {}
+    }
+
+    async function runIntro() {
+        var my = ++token;
+        busy = true;
+        startBtn.classList.remove('fx-on');
+        skipBtn.style.display = '';
+        text.className = ''; text.innerHTML = '';
+        root.classList.add('fx-show');
+        document.body.style.overflow = 'hidden';
+        void root.offsetWidth;
+        root.classList.add('fx-vis');
+        haptic('medium');
+
+        await sleep(1900);                       // blur hitam dulu, beberapa detik
+        if (my !== token) return;
+        if (!(await showLine('Welcome founders', 't1', 85, 1500, my))) return;
+        await sleep(350);
+        if (my !== token) return;
+        if (!(await showLine("It's time for the founders to get lucky", 't2', 48, 1900, my))) return;
+        await sleep(300);
+        if (my !== token) return;
+        showStart();
+    }
+
+    function fmt(n, d) { n = Number(n); return isFinite(n) ? n.toFixed(d) : (0).toFixed(d); }
+    function fillMenu() {
+        var md = {};
+        try { md = miningData || {}; } catch (e) {}
+        $('fx-bal').textContent = fmt(md.balance, 2);
+        $('fx-usdt').textContent = fmt(md.usdtBalance, 2);
+        $('fx-ref').textContent = String(md.referralCount || 0);
+        var nameEl = $('header-username'), uidEl = $('header-acc');
+        var name = nameEl ? nameEl.textContent.trim() : '';
+        $('fx-name').textContent = (name && name !== 'Loading...') ? name : 'Founder';
+        var uid = '-';
+        try { uid = userIdStr || (uidEl ? uidEl.textContent : '-'); } catch (e) { uid = uidEl ? uidEl.textContent : '-'; }
+        $('fx-uid').textContent = uid;
+        var panel = menu.querySelector('.fx-panel'); if (panel) panel.scrollTop = 0;
+    }
+
+    function openMenu() {
+        haptic('medium');
+        fillMenu();
+        menu.classList.add('fx-show');
+        void menu.offsetWidth;
+        menu.classList.add('fx-vis');
+        setTimeout(function () {
+            root.classList.remove('fx-vis');
+            setTimeout(function () {
+                root.classList.remove('fx-show');
+                startBtn.classList.remove('fx-on');
+                busy = false;
+            }, 750);
+        }, 500);
+    }
+
+    function closeMenu() {
+        menu.classList.remove('fx-vis');
+        setTimeout(function () {
+            menu.classList.remove('fx-show');
+            document.body.style.overflow = '';
+        }, 600);
+    }
+
+    function goTab(id) {
+        var btn = Array.prototype.slice.call(document.querySelectorAll('.nav-btn')).filter(function (b) {
+            return (b.getAttribute('onclick') || '').indexOf("'" + id + "'") > -1;
+        })[0];
+        closeMenu();
+        if (btn && typeof switchTab === 'function') switchTab(id, btn);
+        window.scrollTo(0, 0);
+    }
+
+    function cancelIntro() {
+        token++;
+        root.classList.remove('fx-vis');
+        setTimeout(function () { root.classList.remove('fx-show'); busy = false; document.body.style.overflow = ''; }, 700);
+    }
+
+    startBtn.addEventListener('click', function () { token++; openMenu(); });
+    skipBtn.addEventListener('click', function () { token++; showStart(); });
+    $('fx-close').addEventListener('click', closeMenu);
+    $('fx-invite').addEventListener('click', function () {
+        closeMenu();
+        setTimeout(function () { if (typeof openInviteModal === 'function') openInviteModal(); }, 450);
+    });
+    Array.prototype.forEach.call(menu.querySelectorAll('[data-fx-tab]'), function (el) {
+        el.addEventListener('click', function () { goTab(el.getAttribute('data-fx-tab')); });
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (menu.classList.contains('fx-vis')) closeMenu();
+        else if (root.classList.contains('fx-vis')) cancelIntro();
+    });
+
+    window.openFounderExperience = function () { if (!busy) runIntro(); };
+
+    // Bungkus handler lama: kalau masih terkunci, perilaku lama tetap jalan.
+    // Kalau sudah terbuka (atau admin), tampilkan pengalaman Founder.
+    var originalHandler = window.handleFounderClick;
+    window.handleFounderClick = function () {
+        var locked = false, admin = false;
+        try { locked = featureLockState.founder && (targetDates.founder > Date.now()); } catch (e) {}
+        try { admin = isAdminSessionUnlocked; } catch (e) {}
+        if (locked && !admin) {
+            return typeof originalHandler === 'function' ? originalHandler.apply(this, arguments) : undefined;
+        }
+        window.openFounderExperience();
+    };
+})();
+</script>
+<!-- ===================== END FOUNDER EXPERIENCE ===================== -->
 </body>
 </html>
