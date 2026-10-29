@@ -377,6 +377,7 @@
                 </div>
             </div>
             <!-- ABOUT & PRIVACY -->
+           <!-- ABOUT & PRIVACY & FAQ -->
             <div class="space-y-1">
                 <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold ml-1" data-i18n="about">ABOUT</span>
                 <div class="bg-[#121927] rounded-2xl gold-border overflow-hidden divide-y divide-gray-800/60 shadow-lg">
@@ -394,11 +395,18 @@
                         </div>
                         <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
                     </div>
+                    <div onclick="openFaqModal()" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20"><i class="fa-solid fa-circle-question"></i></div>
+                            <div><h4 class="text-xs font-bold text-white" data-i18n="faq_title">FAQ & Pusat Bantuan</h4></div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>
+                    </div>
                 </div>
             </div>
             <div class="text-center pt-2"><span class="text-[10px] text-yellow-500 font-mono font-bold">Afex v1.0</span></div>
         </div>
-    </div>
+</div>
     <!-- BOTTOM NAVIGATION BAR -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#121927] border-t gold-border flex justify-around py-3 px-2 z-50">
         <button onclick="switchTab('tap', this)" class="nav-btn text-yellow-400 flex flex-col items-center cursor-pointer transition-all">
@@ -445,25 +453,44 @@
         </div>
     </div>
 
-   <!-- GANTI MODAL KAMERA LAMA DENGAN KODE INI -->
+<!-- MODAL KAMERA KYC TERPADU -->
 <div id="camera-modal" class="fixed inset-0 bg-[#080c14]/95 backdrop-blur-md z-[1000] hidden items-center justify-center p-4">
-    <div class="bg-[#121927] w-full max-w-sm p-5 rounded-2xl gold-border text-center relative shadow-2xl space-y-4">
-        <h3 class="text-sm font-black text-yellow-400" data-i18n="kyc_camera_title">Verifikasi Gestur Wajah Bertahap</h3>
+    <div class="bg-[#121927] w-full max-w-sm p-5 rounded-2xl gold-border text-center relative shadow-2xl space-y-3">
+        <h3 id="kyc-modal-heading" class="text-sm font-black text-yellow-400" data-i18n="kyc_camera_title">Verifikasi Gestur Wajah Bertahap</h3>
         
-        <div id="instruction-box" class="bg-red-500/10 border border-red-500/30 p-2.5 rounded-xl transition-all">
-            <span id="instruction-text" class="text-red-400 font-bold text-xs block animate-pulse" data-i18n="kyc_follow_instr_warn">
+        <div id="instruction-box" class="bg-red-500/10 border border-red-500/30 px-2.5 py-1.5 rounded-xl h-12 flex items-center justify-center overflow-hidden">
+            <span id="instruction-text" class="text-red-400 font-bold text-[11px] leading-tight block" data-i18n="kyc_follow_instr_warn">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i> Follow the gesture instructions carefully!
             </span>
         </div>
 
-        <div class="relative w-full h-72 bg-black rounded-xl overflow-hidden border-2 border-yellow-500/50 flex items-center justify-center">
-            <video id="kyc-video" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
+        <!-- OPSI DOKUMEN KHUSUS SAAT VERIFIKASI ID CARD / PASSPORT -->
+        <div id="id-doc-controls" class="hidden space-y-2 text-left text-xs font-mono">
+            <div class="grid grid-cols-3 gap-1.5">
+                <select id="id-doc-type" onchange="updateIdDocPlaceholder()" class="col-span-1 bg-[#080c14] gold-border text-yellow-400 rounded-xl px-2 py-2 text-[11px] outline-none font-bold cursor-pointer">
+                    <option value="ID CARD">ID Card / KTP</option>
+                    <option value="PASSPORT">Passport</option>
+                </select>
+                <input type="text" id="id-doc-number" placeholder="Enter ID / Passport Number..." class="col-span-2 bg-[#080c14] gold-border text-white rounded-xl px-2.5 py-2 text-[11px] outline-none font-mono uppercase">
+            </div>
+        </div>
+
+        <!-- AREA PREVIEW KAMERA & FRAME BINGKAI -->
+        <div class="relative w-full h-64 bg-black rounded-xl overflow-hidden border-2 border-yellow-500/50 flex items-center justify-center" style="transform: translateZ(0); backface-visibility: hidden;">
+            <video id="kyc-video" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]" style="will-change: transform; backface-visibility: hidden;"></video>
             <canvas id="kyc-canvas" class="hidden"></canvas>
-            
-            <div class="absolute inset-4 border-2 border-dashed border-yellow-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
-                <div class="bg-black/80 border border-yellow-500/40 px-3 py-2 rounded-xl text-center shadow-lg">
-                    <span id="gesture-status" class="text-yellow-400 font-bold text-xs block" data-i18n="kyc_loading_camera">Loading camera...</span>
+
+            <!-- BINGKAI PANDUAN WAJAH / KARTU ID -->
+            <div id="kyc-guide-overlay" class="absolute inset-4 border-2 border-dashed border-yellow-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
+                <div class="bg-black/80 border border-yellow-500/40 px-3 py-1.5 rounded-xl text-center shadow-lg min-h-[38px] flex items-center justify-center">
+                    <span id="gesture-status" class="text-yellow-400 font-bold text-xs leading-tight block" data-i18n="kyc_loading_camera">Loading camera...</span>
                 </div>
+                
+                <!-- Garis Fokus Area Nomor Identitas / MRZ Paspor (Mode ID) -->
+                <div id="id-mrz-scan-zone" class="hidden my-auto border border-cyan-400/70 bg-cyan-500/10 rounded-lg py-2 px-2 text-center">
+                    <span class="text-[9px] font-mono text-cyan-300 block tracking-widest uppercase">Posisikan Nomor ID / Paspor di Area Ini</span>
+                </div>
+
                 <div class="w-full bg-black/75 rounded-lg p-2 space-y-1">
                     <div class="flex justify-between text-[10px] text-gray-300 font-mono">
                         <span id="step-indicator" data-i18n="kyc_step_init">Step 1 / 4</span>
@@ -476,11 +503,57 @@
             </div>
         </div>
 
+        <!-- TOMBOL KONTROL -->
         <div class="flex gap-2">
-            <button onclick="closeKycCameraModal()" class="w-full bg-red-500/20 border border-red-500/40 text-red-400 text-xs py-2.5 rounded-xl font-bold cursor-pointer hover:bg-red-500/30 transition-all" data-i18n="btn_cancel">Cancel</button>
+            <button id="id-manual-capture-btn" onclick="captureIdentityDocumentNow()" class="hidden flex-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-black text-xs py-2.5 rounded-xl font-black cursor-pointer shadow-md hover:opacity-90 transition-all">
+                <i class="fa-solid fa-camera mr-1"></i> Capture ID / Passport
+            </button>
+            <button onclick="closeKycCameraModal()" class="flex-1 bg-red-500/20 border border-red-500/40 text-red-400 text-xs py-2.5 rounded-xl font-bold cursor-pointer hover:bg-red-500/30 transition-all" data-i18n="btn_cancel">Cancel</button>
         </div>
     </div>
 </div>
+<!-- MODAL FAQ & PUSAT BANTUAN -->
+    <div id="faqModal" class="fixed inset-0 bg-[#080c14]/85 backdrop-blur-md z-[1000] hidden items-center justify-center p-4 transition-all">
+        <div class="bg-[#121927] border border-yellow-500/30 rounded-2xl p-5 max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl relative">
+            
+            <!-- Header Modal -->
+            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
+                <h3 class="text-sm font-black text-yellow-400 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-lg"></i>
+                    <span data-i18n="faq_title">FAQ & Help Center</span>
+                </h3>
+                <button onclick="closeFaqModal()" class="w-8 h-8 bg-red-500/10 text-red-400 rounded-lg flex items-center justify-center border border-red-500/30 hover:bg-red-500/20 transition-all cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Daftar Pertanyaan & Jawaban (Terhubung Otomatis ke Kamus 19 Bahasa) -->
+            <div class="space-y-3 text-xs text-gray-300 font-mono">
+                <div class="bg-[#080c14] p-3.5 rounded-xl border border-gray-800 hover:border-yellow-500/30 transition-all">
+                    <h4 class="font-bold text-yellow-400 mb-1.5" data-i18n="faq_q1">1. What is AFEX Mini Apps?</h4>
+                    <p class="text-gray-400 leading-relaxed" data-i18n="faq_a1">AFEX Mini Apps is a decentralized Web3 platform...</p>
+                </div>
+                <div class="bg-[#080c14] p-3.5 rounded-xl border border-gray-800 hover:border-yellow-500/30 transition-all">
+                    <h4 class="font-bold text-yellow-400 mb-1.5" data-i18n="faq_q2">2. Why is Withdrawal (WD) Mandatory KYC?</h4>
+                    <p class="text-gray-400 leading-relaxed" data-i18n="faq_a2">To protect the ecosystem and token price...</p>
+                </div>
+                <div class="bg-[#080c14] p-3.5 rounded-xl border border-gray-800 hover:border-yellow-500/30 transition-all">
+                    <h4 class="font-bold text-yellow-400 mb-1.5" data-i18n="faq_q3">3. Why was my KYC Rejected (Auto Reject)?</h4>
+                    <p class="text-gray-400 leading-relaxed" data-i18n="faq_a3">Automatic system rejection occurs if...</p>
+                </div>
+                <div class="bg-[#080c14] p-3.5 rounded-xl border border-gray-800 hover:border-yellow-500/30 transition-all">
+                    <h4 class="font-bold text-yellow-400 mb-1.5" data-i18n="faq_q4">4. How to Increase Earnings?</h4>
+                    <p class="text-gray-400 leading-relaxed" data-i18n="faq_a4">The system runs on a 12-day speed cycle...</p>
+                </div>
+            </div>
+
+            <!-- Tombol Tutup -->
+            <button onclick="closeFaqModal()" class="mt-5 w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-3 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-90 transition-all" data-i18n="btn_ok">
+                OK
+            </button>
+        </div>
+    </div>
+
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
@@ -617,7 +690,20 @@
                 proof_input_placeholder: "Submit proof here...",
                 submit_proof_btn: "Submit & Claim",
                 milestone_title: "Milestone Box Rewards",
-                first_wd_promo: "First WD Promo (1x): Min $0.10 & 0% Fee (BEP-20)"
+                first_wd_promo: "First WD Promo (1x): Min $0.10 & 0% Fee (BEP-20)",
+                faq_title: "FAQ & Help Center",
+                faq_q1: "1. What is AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps is a decentralized Web3 platform where users can perform auto-mining, complete community tasks, watch ads for bonus speed, and withdraw USDT instantly.",
+                faq_q2: "2. Why is Withdrawal (WD) Mandatory KYC?",
+                faq_a2: "To protect the ecosystem and token price from BOTs and farmers. KYC ensures the Withdrawal system only distributes assets to real humans by verifying matches between live face scans (Liveness) and ID documents.",
+                faq_q3: "3. Why was my KYC Rejected (Auto Reject)?",
+                faq_a3: "Automatic system rejection occurs if:<br>- The ID Card/Passport number is already used by another user.<br>- The face on the document does not match the facial Liveness verification.<br>- The document is blurry, covered by fingers, or detected as a monitor screen.",
+                faq_q4: "4. How to Increase Earnings?",
+                faq_a4: "The system runs on a 12-day speed cycle. Complete daily tasks, watch ads (Ad Boost), or upgrade your account level using USDT deposits to multiply your daily APY percentage.",
+                id_mrz_scan_zone: "Position ID / Passport Number in This Area",
+                id_capture_btn: "Capture ID / Passport",
+                wd_locked_kyc_msg: "Withdrawal feature is locked! You must complete KYC verification (Face Liveness & ID/Passport Identity) first. This system is implemented to prevent BOTs and ensure the user's face matches the document.",
+                btn_close: "Close"
             },
             id: { 
                 total_balance: "TOTAL SALDO", checkin_title: "Absen Harian", checkin_sub: "Klaim Hadiah Beruntun (Hari 1 - 7)",
@@ -690,7 +776,20 @@
                 proof_input_placeholder: "Masukkan bukti tugas...",
                 submit_proof_btn: "Kirim & Klaim",
                 milestone_title: "Kotak Hadiah Milestone",
-                first_wd_promo: "Promo WD Pertama (1x): Min $0.10 & Fee 0% (BEP-20)"
+                first_wd_promo: "Promo WD Pertama (1x): Min $0.10 & Fee 0% (BEP-20)",
+                faq_title: "FAQ & Pusat Bantuan",
+                faq_q1: "1. Apa itu AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps adalah platform Web3 terdesentralisasi di mana pengguna dapat melakukan auto-mining, menyelesaikan tugas komunitas, menonton iklan untuk kecepatan bonus, dan menarik USDT secara instan.",
+                faq_q2: "2. Mengapa Withdraw (WD) Wajib KYC?",
+                faq_a2: "Untuk melindungi ekosistem dan harga token dari serangan BOT dan farmers. KYC memastikan bahwa sistem Withdraw hanya mendistribusikan aset kepada manusia asli dengan memverifikasi kesamaan antara wajah asli di kamera (Liveness) dan dokumen ID.",
+                faq_q3: "3. Kenapa KYC Saya Ditolak (Auto Reject)?",
+                faq_a3: "Penolakan otomatis sistem terjadi jika:<br>- Nomor ID Card / Paspor sudah digunakan oleh pengguna lain.<br>- Wajah pada dokumen tidak sama dengan verifikasi Liveness wajah.<br>- Dokumen buram, tertutup jari, atau terdeteksi sebagai layar monitor.",
+                faq_q4: "4. Bagaimana Cara Meningkatkan Pendapatan?",
+                faq_a4: "Sistem berjalan dengan siklus kecepatan 12 Hari. Kerjakan Task harian, tonton iklan (Ad Boost), atau naikkan level akun dengan fitur deposit USDT untuk melipatgandakan persentase APY harian Anda.",
+                id_mrz_scan_zone: "Posisikan Nomor ID / Paspor di Area Ini",
+                id_capture_btn: "Ambil Foto ID / Paspor",
+                wd_locked_kyc_msg: "Fitur Withdraw terkunci! Anda wajib menyelesaikan verifikasi KYC (Liveness Wajah & Identitas ID/Paspor) terlebih dahulu. Sistem ini diterapkan untuk menghindari BOT dan memastikan wajah pengguna cocok dengan dokumen.",
+                btn_close: "Tutup"
             },
             es: {
                 total_balance: "SALDO TOTAL", checkin_title: "Registro Diario", checkin_sub: "Reclamar Recompensas (Día 1 - 7)",
@@ -759,6 +858,19 @@
                 submit_proof_btn: "Enviar y Reclamar",
                 milestone_title: "Cajas de Recompensa",
                 first_wd_promo: "Promo 1er Retiro (1x): Mín $0.10 y 0% Tarifa (BEP-20)",
+                faq_title: "Preguntas Frecuentes y Centro de Ayuda",
+                faq_q1: "1. ¿Qué es AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps es una plataforma Web3 descentralizada donde los usuarios pueden realizar autominería, completar tareas comunitarias, ver anuncios para obtener velocidad adicional y retirar USDT al instante.",
+                faq_q2: "2. ¿Por qué el retiro (WD) requiere KYC obligatorio?",
+                faq_a2: "Para proteger el ecosistema y el precio del token frente a BOTs y granjas. El KYC garantiza que el sistema de retiros solo distribuya activos a personas reales verificando la coincidencia entre el rostro en vivo (Liveness) y el documento de identidad.",
+                faq_q3: "3. ¿Por qué mi KYC fue rechazado (Rechazo automático)?",
+                faq_a3: "El rechazo automático ocurre si:<br>- El número de DNI/Pasaporte ya está registrado por otro usuario.<br>- El rostro en el documento no coincide con la verificación facial en vivo.<br>- El documento está borroso, cubierto por los dedos o se detecta una pantalla de monitor.",
+                faq_q4: "4. ¿Cómo aumentar las ganancias?",
+                faq_a4: "El sistema funciona en un ciclo de velocidad de 12 días. Completa tareas diarias, mira anuncios (Ad Boost) o sube el nivel de tu cuenta mediante depósitos en USDT para multiplicar tu porcentaje de APY diario.",
+                id_mrz_scan_zone: "Posicione el número de DNI / Pasaporte en esta área",
+                id_capture_btn: "Capturar DNI / Pasaporte",
+                wd_locked_kyc_msg: "¡La función de retiro está bloqueada! Debes completar la verificación KYC (Reconocimiento facial e Identidad DNI/Pasaporte) primero. Este sistema evita BOTs y garantiza que tu rostro coincida con el documento.",
+                btn_close: "Cerrar"
             },
             de: {
                 total_balance: "GESAMTGUTHABEN", checkin_title: "Täglicher Check-in", checkin_sub: "Serien-Belohnungen (Tag 1 - 7)",
@@ -826,8 +938,20 @@
                 proof_input_placeholder: "Nachweis hier eingeben...",
                 submit_proof_btn: "Senden & Beanspruchen",
                 milestone_title: "Meilenstein-Belohnungen",
-                first_wd_promo: "1. Auszahlung Promo (1x): Min $0.10 & 0% Gebühr (BEP-20)",
-                
+                first_wd_promo: "1. Auszahlung Promo (1x): Min $0.10 & 0% Gebühr (BEP-20)", 
+                faq_title: "FAQ & Hilfe-Center",
+                faq_q1: "1. Was ist AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps ist eine dezentrale Web3-Plattform, auf der Benutzer Auto-Mining betreiben, Community-Aufgaben erledigen, Werbung für Bonusgeschwindigkeit ansehen und sofort USDT abheben können.",
+                faq_q2: "2. Warum ist für Auszahlungen (WD) ein KYC erforderlich?",
+                faq_a2: "Um das Ökosystem und den Token-Preis vor BOTs und Farmern zu schützen. KYC stellt sicher, dass das Auszahlungssystem Vermögenswerte nur an reale Personen verteilt, indem es Live-Gesichtscans (Liveness) mit Ausweisdokumenten vergleicht.",
+                faq_q3: "3. Warum wurde mein KYC abgelehnt (Auto-Reject)?",
+                faq_a3: "Eine automatische Ablehnung erfolgt, wenn:<br>- Die Personalausweis-/Reisepassnummer bereits von einem anderen Benutzer verwendet wird.<br>- Das Gesicht auf dem Dokument nicht mit der Live-Gesichtsprüfung übereinstimmt.<br>- Das Dokument verschwommen ist, von Fingern verdeckt wird oder ein Bildschirm erkannt wurde.",
+                faq_q4: "4. Wie kann man die Einnahmen steigern?",
+                faq_a4: "Das System läuft in einem 12-Tage-Geschwindigkeitszyklus. Schließe tägliche Aufgaben ab, sieh dir Werbung an (Ad Boost) oder erhöhe dein Konto-Level über USDT-Einzahlungen, um deinen täglichen APY-Prozentsatz zu vervielfachen.",
+                id_mrz_scan_zone: "Positionieren Sie die Ausweis-/Reisepassnummer in diesem Bereich",
+                id_capture_btn: "Ausweis / Reisepass erfassen",
+                wd_locked_kyc_msg: "Auszahlungsfunktion ist gesperrt! Sie müssen zuerst die KYC-Verifizierung (Gesichts-Liveness & Ausweis/Pass) abschließen. Dies verhindert BOTs und stellt sicher, dass Ihr Gesicht mit dem Dokument übereinstimmt.",
+                btn_close: "Schließen"
             },
             fr: {
                 total_balance: "SOLDE TOTAL", checkin_title: "Présence Quotidienne", checkin_sub: "Réclamer les Récompenses (Jour 1 - 7)",
@@ -896,6 +1020,19 @@
                 submit_proof_btn: "Soumettre et Réclamer",
                 milestone_title: "Boîtes de Récompense",
                 first_wd_promo: "Promo 1er Retrait (1x): Min 0.10$ & 0% Frais (BEP-20)",
+                faq_title: "FAQ & Centre d'aide",
+                faq_q1: "1. Qu'est-ce que AFEX Mini Apps ?",
+                faq_a1: "AFEX Mini Apps est une plateforme Web3 décentralisée sur laquelle les utilisateurs peuvent effectuer du minage automatique, accomplir des tâches communautaires, regarder des publicités pour obtenir une vitesse bonus et retirer des USDT instantanément.",
+                faq_q2: "2. Pourquoi le retrait (WD) exige-t-il un KYC obligatoire ?",
+                faq_a2: "Pour protéger l'écosystème et le cours du jeton contre les BOTs et les fermes de comptes. Le KYC garantit que le système de retrait ne distribue des actifs qu'à de véritables personnes en vérifiant la correspondance entre le visage en direct (Liveness) et la pièce d'identité.",
+                faq_q3: "3. Pourquoi mon KYC a-t-il été rejeté (Rejet automatique) ?",
+                faq_a3: "Le rejet automatique se produit si :<br>- Le numéro de carte d'identité/passeport est déjà utilisé par un autre utilisateur.<br>- Le visage sur le document ne correspond pas à la vérification faciale en direct.<br>- Le document est flou, recouvert par des doigts ou détecté comme un écran d'ordinateur.",
+                faq_q4: "4. Comment augmenter ses gains ?",
+                faq_a4: "Le système fonctionne sur un cycle de vitesse de 12 jours. Accomplissez les tâches quotidiennes, regardez des publicités (Ad Boost) ou augmentez le niveau de votre compte via des dépôts USDT pour multiplier votre pourcentage APY quotidien.",
+                id_mrz_scan_zone: "Positionnez le numéro de CNI / Passeport dans cette zone",
+                id_capture_btn: "Capturer CNI / Passeport",
+                wd_locked_kyc_msg: "La fonction de retrait est verrouillée ! Vous devez d'abord effectuer la vérification KYC (Visage en direct & CNI/Passeport). Cela empêche les BOTs et garantit la correspondance avec votre document.",
+                btn_close: "Fermer"
             },
             tr: {
                 total_balance: "TOPLAM BAKİYE", checkin_title: "Günlük Giriş", checkin_sub: "Giriş Ödüllerini Topla (1 - 7. Gün)",
@@ -964,6 +1101,19 @@
                 submit_proof_btn: "Gönder ve Al",
                 milestone_title: "Milestone Ödül Kutuları",
                 first_wd_promo: "İlk Çekim Promosyonu (1x): Min $0.10 & %0 Ücret (BEP-20)",
+                faq_title: "SSS ve Yardım Merkezi",
+                faq_q1: "1. AFEX Mini Apps Nedir?",
+                faq_a1: "AFEX Mini Apps, kullanıcıların otomatik madencilik yapabileceği, topluluk görevlerini tamamlayabileceği, bonus hız için reklam izleyebileceği ve anında USDT çekebileceği merkeziyetsiz bir Web3 platformudur.",
+                faq_q2: "2. Para Çekme (WD) İçin Neden KYC Zorunludur?",
+                faq_a2: "Ekosistemi ve token fiyatını BOT'lardan ve çiftçilerden korumak için. KYC, para çekme sisteminin varlıkları yalnızca gerçek insanlara dağıtmasını sağlar; canlı kamera yüzü (Liveness) ile kimlik belgesini karşılaştırarak doğrular.",
+                faq_q3: "3. KYC'm Neden Reddedildi (Otomatik Red)?",
+                faq_a3: "Sistem otomatik reddi şu durumlarda gerçekleşir:<br>- Kimlik/Pasaport numarası başka bir kullanıcı tarafından zaten kullanılıyorsa.<br>- Belgedeki yüz, canlı yüz doğrulamasıyla eşleşmiyorsa.<br>- Belge bulanıksa, parmaklarla kapatılmışsa veya ekran görüntüsü olarak algılandıysa.",
+                faq_q4: "4. Kazançlar Nasıl Artırılır?",
+                faq_a4: "Sistem 12 günlük bir hız döngüsüyle çalışır. Günlük APY yüzdenizi katlamak için günlük görevleri tamamlayın, reklam izleyin (Ad Boost) veya USDT yatırma özelliğini kullanarak hesap seviyenizi yükseltin.",
+                id_mrz_scan_zone: "Kimlik / Pasaport Numarasını Bu Alana Yerleştirin",
+                id_capture_btn: "Kimlik / Pasaport Fotoğrafı Çek",
+                wd_locked_kyc_msg: "Para çekme özelliği kilitlidir! Öncelikle KYC doğrulamasını (Canlı Yüz & Kimlik/Pasaport) tamamlamalısınız. Bu sistem BOT'ları önler ve yüzünüzün belgeyle eşleşmesini sağlar.",
+                btn_close: "Kapat"
             },
             uz: {
                 total_balance: "JAMI BALANS", checkin_title: "Kunlik Ro'yxatdan O'tish", checkin_sub: "Ketma-ketlik Mukofotlari (1 - 7 Kun)",
@@ -1032,6 +1182,19 @@
                 submit_proof_btn: "Yuborish va Olish",
                 milestone_title: "Milestone Sovg'a Qutilari",
                 first_wd_promo: "1-Yechish Aksiyasi (1x): Min $0.10 va 0% Komissiya (BEP-20)",
+                faq_title: "TSS va Yordam Markazi",
+                faq_q1: "1. AFEX Mini Apps nima?",
+                faq_a1: "AFEX Mini Apps - bu foydalanuvchilar avto-mayning qilishlari, jamoat vazifalarini bajarishlari, bonus tezlik uchun reklama ko'rishlari va darhol USDT yechib olishlari mumkin bo'lgan markazlashmagan Web3 platformasi.",
+                faq_q2: "2. Nega pul yechib olish (WD) uchun KYC majburiy?",
+                faq_a2: "Ekotizim va token narxini BOTlar hamda fermerlardan ximoya qilish uchun. KYC jonli kamera yuzi (Liveness) va ID hujjati o'rtasidagi moslikni tekshirib, aktivlarni faqat haqiqiy insonlarga tarqatadi.",
+                faq_q3: "3. Nega mening KYC rad etildi (Avto-rad)?",
+                faq_a3: "Tizimning avtomatik rad etishi quyidagi hollarda yuz beradi:<br>- ID karta/Pasport raqami boshqa foydalanuvchi tomonidan ishlatilgan bo'lsa.<br>- Hujjatdagi yuz jonli yuz tekshiruviga mos kelmasa.<br>- Hujjat xira, barmoqlar bilan berkitilgan yoki monitor ekrani deb aniqlangan bo'lsa.",
+                faq_q4: "4. Daromadni qanday oshirish mumkin?",
+                faq_a4: "Tizim 12 kunlik tezlik siklida ishlaydi. Kunlik APY foizingizni ko'paytirish uchun kunlik vazifalarni bajaring, reklama ko'ring (Ad Boost) yoki USDT depozit funksiyasi orqali hisob darajangizni oshiring.",
+                id_mrz_scan_zone: "ID karta / Pasport raqamini ushbu sohaga joylashtiring",
+                id_capture_btn: "ID karta / Pasportni suratga olish",
+                wd_locked_kyc_msg: "Pul yechish funksiyasi qulflangan! Avval KYC tekshiruvidan (Jonli yuz & ID/Pasport) o'tishingiz kerak. Bu BOTlarni to'sadi va yuzingiz hujjatga mos kelishini ta'minlaydi.",
+                btn_close: "Yopish"
             },
             ru: {
                 total_balance: "ОБЩИЙ БАЛАНС", checkin_title: "Ежедневная Отметка", checkin_sub: "Серия Наград (День 1 - 7)",
@@ -1100,6 +1263,19 @@
                 submit_proof_btn: "Отправить и Забрать",
                 milestone_title: "Коробки Наград Milestone",
                 first_wd_promo: "Промо 1-го Вывода (1x): Мин $0.10 и 0% Комиссия (BEP-20)",
+                faq_title: "FAQ и Центр помощи",
+                faq_q1: "1. Что такое AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps — это децентрализованная Web3-платформа, где пользователи могут заниматься автомайнингом, выполнять задания сообщества, смотреть рекламу для получения бонусной скорости и мгновенно выводить USDT.",
+                faq_q2: "2. Почему для вывода средств (WD) обязателен KYC?",
+                faq_a2: "Чтобы защитить экосистему и цену токена от ботов и фермеров. KYC гарантирует распределение активов только среди реальных людей, проверяя совпадение между живым лицом с камеры (Liveness) и документом.",
+                faq_q3: "3. Почему мой KYC был отклонен (Автоматический отказ)?",
+                faq_a3: "Автоматический отказ происходит, если:<br>- Номер удостоверения/паспорта уже используется другим пользователем.<br>- Лицо на документе не совпадает с верификацией Liveness.<br>- Документ размыт, закрыт пальцами или обнаружен как экран монитора.",
+                faq_q4: "4. Как увеличить доход?",
+                faq_a4: "Система работает по 12-дневному циклу скорости. Выполняйте ежедневные задания, смотрите рекламу (Ad Boost) или повышайте уровень аккаунта с помощью депозитов USDT, чтобы приумножить ваш ежедневный APY.",
+                id_mrz_scan_zone: "Разместите номер ID / паспорта в этой области",
+                id_capture_btn: "Сфотографировать ID / паспорт",
+                wd_locked_kyc_msg: "Функция вывода заблокирована! Сначала необходимо пройти KYC (Liveness лица и паспорт/ID). Это предотвращает использование ботов и гарантирует совпадение с документом.",
+                btn_close: "Закрыть"
             },
             vi: {
                 total_balance: "TỔNG SỐ DƯ", checkin_title: "Điểm Danh Hàng Ngày", checkin_sub: "Nhận Thưởng Chuỗi (Ngày 1 - 7)",
@@ -1168,18 +1344,31 @@
                 submit_proof_btn: "Gửi & Nhận Thưởng",
                 milestone_title: "Hộp Thưởng Cột Mốc",
                 first_wd_promo: "Ưu Đãi Rút Lần Đầu (1x): Tối thiểu $0.10 & 0% Phí (BEP-20)",
+                faq_title: "FAQ & Trung tâm trợ giúp",
+                faq_q1: "1. AFEX Mini Apps là gì?",
+                faq_a1: "AFEX Mini Apps là nền tảng Web3 phi tập trung cho phép người dùng tự động khai thác, hoàn thành nhiệm vụ cộng đồng, xem quảng cáo để tăng tốc độ thưởng và rút USDT tức thì.",
+                faq_q2: "2. Tại sao Rút tiền (WD) lại bắt buộc KYC?",
+                faq_a2: "Để bảo vệ hệ sinh thái và giá token khỏi BOT và farmers. KYC đảm bảo hệ thống Rút tiền chỉ phân phối tài sản cho người thật bằng cách xác minh khuôn mặt thực tế (Liveness) trùng khớp với giấy tờ.",
+                faq_q3: "3. Tại sao KYC của tôi bị từ chối (Tự động từ chối)?",
+                faq_a3: "Hệ thống tự động từ chối nếu:<br>- Số CCCD/Hộ chiếu đã được người dùng khác sử dụng.<br>- Khuôn mặt trên giấy tờ không trùng khớp với xác minh Liveness.<br>- Giấy tờ bị mờ, bị ngón tay che hoặc bị phát hiện là màn hình máy tính.",
+                faq_q4: "4. Làm thế nào để tăng thu nhập?",
+                faq_a4: "Hệ thống hoạt động theo chu kỳ tốc độ 12 ngày. Hoàn thành nhiệm vụ hàng ngày, xem quảng cáo (Ad Boost) hoặc nâng cấp cấp độ tài khoản bằng tính năng nạp USDT để nhân bản tỷ lệ APY hàng ngày.",
+                id_mrz_scan_zone: "Đặt số CCCD / Hộ chiếu vào khu vực này",
+                id_capture_btn: "Chụp ảnh CCCD / Hộ chiếu",
+                wd_locked_kyc_msg: "Tính năng Rút tiền đang bị khóa! Bạn phải hoàn thành xác minh KYC (Liveness Khuôn mặt & CCCD/Hộ chiếu) trước. Điều này ngăn chặn BOT và đảm bảo khuôn mặt trùng khớp với giấy tờ.",
+                btn_close: "Đóng"
             },
             tl: {
                 total_balance: "KABUUANG BALANSE", checkin_title: "Araw-araw na Check-in", checkin_sub: "Kunin ang Rewards (Araw 1 - 7)",
                 ready_to_mine: "Handa nang Mag-mine", session_timer: "Oras ng Seksyon:", tasks_title: "MGA GAWAIN",
                 tasks_desc: "Kumpletuhin ang mga gawain para makakuha ng puntos at rewards.", swap_title: "PALITAN NG TOKEN", swap_subtitle: "Malapit Na",
                 swap_heading: "AFEX Token Swap Exchange", swap_desc: "Ipalit ang AFEX tokens agad sa USDT o TON.",
-                connect_wallet: "Ikonekta ang Wallet", withdraw: "Mag-withdraw", your_balances: "Mga Balanse ng Token Mo",
+                connect_wallet: "Ikonecta ang Wallet", withdraw: "Mag-withdraw", your_balances: "Mga Balanse ng Token Mo",
                 nav_mine: "Tahanan", nav_task: "Gawain", nav_swap: "Palitan", nav_wallet: "Wallet", nav_profile: "Profile",
                 vip_pass: "TAGAPAGTETAG VIP PASS", locked_badge: "NAKALOCK", btn_start_mine: "SIMULAN ANG 12H AUTO MINING", task_watch_ad: "Manood ng Ad", btn_watch: "Panoorin",
                 invite_sub: "Mag-imbita at Makakuha ng Reward", contest_sub: "Kumuha ng Reward",
                 sec_kyc: "SEGURIDAD AT KYC", community: "KOMUNIDAD", about: "TUNGKOL DITO", payouts_sub: "Live payout ng mga user sa mundo",
-                notification: "Abiso", success: "Tagumpay", error: "Mali", copied: "Na-copy na!", btn_ok: "OK",
+                notification: "Abiso", success: "Tagumpay", error: "Mali", copied: "Na-copy na!", btn_ok: "OK", btn_close: "Close",
                 founder_alert: "Nakalock pa ang Founder Pass, maghintay sa susunod na balita",
                 wallet_disconnected: "Naka-disconnect ang Wallet", btn_connect: "Konekta",
                 checkin_done: "Naka-check in ka na ngayong araw. Bumalik bukas.", checkin_success: "Matagumpay na check-in sa Araw",
@@ -1236,6 +1425,19 @@
                 submit_proof_btn: "Ipasa at Kunin",
                 milestone_title: "Milestone Box Rewards",
                 first_wd_promo: "Unang WD Promo (1x): Min $0.10 at 0% Fee (BEP-20)",
+                faq_title: "FAQ & Help Center",
+                faq_q1: "1. Ano ang AFEX Mini Apps?",
+                faq_a1: "Ang AFEX Mini Apps ay isang desentralisadong Web3 platform kung saan ang mga user ay makakapag-auto-mining, makakakumpleto ng mga gawaing pangkomunidad, makakapanood ng mga ad para sa bonus speed, at makakapag-withdraw ng USDT nang mabilis.",
+                faq_q2: "2. Bakit kinakailangan ang KYC sa Withdrawal (WD)?",
+                faq_a2: "Upang protektahan ang ekosistema at presyo ng token mula sa mga BOT at farmer. Tinitiyak ng KYC na ang Withdrawal system ay nagbibigay lamang ng asset sa mga totoong tao sa pamamagitan ng pag-verify sa pagkakatugma ng live face scan (Liveness) at ng ID document.",
+                faq_q3: "3. Bakit na-reject ang KYC ko (Auto Reject)?",
+                faq_a3: "Awtomatikong magrereject ang sistema kung:<br>- Ang numero ng ID Card/Passport ay ginagamit na ng ibang user.<br>- Ang mukha sa dokumento ay hindi tumutugma sa Liveness verification.<br>- Malabo ang dokumento, natatakpan ng daliri, o na-detect na screen lamang.",
+                faq_q4: "4. Paano Palakihin ang Kita?",
+                faq_a4: "Gumagana ang sistema sa isang 12-araw na cycle ng bilis. Kumpletuhin ang mga araw-araw na gawain, manood ng mga ad (Ad Boost), o i-upgrade ang level ng iyong account gamit ang USDT deposit para maparami ang iyong APY percentage.",
+                id_mrz_scan_zone: "Ipusisyon ang Numero ng ID / Passport sa Area na Ito",
+                id_capture_btn: "Kunan ng Larawan ang ID / Passport",
+                wd_locked_kyc_msg: "Nakalock ang withdrawal feature! kailangan mo munang kumpletuhin ang KYC verification (Face Liveness & ID/Passport). Pinipigilan nito ang mga BOT at tinitiyak na ang mukha mo ay tumutugma sa dokumento.",
+                btn_close: "Isara"
             },
             th: {
                 total_balance: "ยอดคงเหลือทั้งหมด", checkin_title: "เช็คอินรายวัน", checkin_sub: "รับรางวัลเช็คอินต่อเนื่อง (วันที่ 1 - 7)",
@@ -1304,6 +1506,19 @@
                 submit_proof_btn: "ส่งและรับรางวัล",
                 milestone_title: "กล่องรางวัลไมล์สโตน",
                 first_wd_promo: "โปรถอนครั้งแรก (1x): ขั้นต่ำ $0.10 & ฟรีค่าธรรมเนียม (BEP-20)",
+                faq_title: "คำถามที่พบบ่อย & ศูนย์ช่วยเหลือ",
+                faq_q1: "1. AFEX Mini Apps คืออะไร?",
+                faq_a1: "AFEX Mini Apps คือแพลตฟอร์ม Web3 แบบไร้ศูนย์กลางที่ผู้ใช้สามารถขุดอัตโนมัติ ทำภารกิจชุมชน ชมโฆษณาเพื่อเพิ่มความเร็วโบนัส และถอน USDT ได้ทันที",
+                faq_q2: "2. ทำไมการถอนเงิน (WD) จึงต้องยืนยัน KYC?",
+                faq_a2: "เพื่อปกป้องระบบนิเวศและราคาโทเค็นจาก BOT และฟาร์มบัญชี KYC ช่วยให้มั่นใจว่าระบบถอนเงินจะแจกจ่ายสินทรัพย์ให้กับคนจริงๆ เท่านั้น โดยระบบจะตรวจสอบความสอดคล้องระหว่างใบหน้าจริงจากกล้อง (Liveness) และเอกสารประจำตัว",
+                faq_q3: "3. ทำไม KYC ของฉันถึงถูกปฏิเสธ (ปฏิเสธอัตโนมัติ)?",
+                faq_a3: "ระบบจะปฏิเสธโดยอัตโนมัติหาก:<br>- หมายเลขบัตรประชาชน/พาสปอร์ตถูกใช้งานโดยผู้ใช้อื่นแล้ว<br>- ใบหน้าในเอกสารไม่ตรงกับการยืนยันใบหน้าจริง (Liveness)<br>- เอกสารเบลอ ถูกนิ้วมือบดบัง หรือตรวจพบว่าเป็นหน้าจอมอนิเตอร์",
+                faq_q4: "4. จะเพิ่มรายได้อย่างไร?",
+                faq_a4: "ระบบทำงานในรอบความเร็ว 12 วัน ทำภารกิจรายวัน ชมโฆษณา (Ad Boost) หรืออัปเกรดระดับบัญชีด้วยฟีเจอร์ฝาก USDT เพื่อเพิ่มทวีคูณเปอร์เซ็นต์ APY รายวันของคุณ",
+                id_mrz_scan_zone: "วางตำแหน่งหมายเลข ID / พาสปอร์ตในบริเวณนี้",
+                id_capture_btn: "ถ่ายภาพบัตร ID / พาสปอร์ต",
+                wd_locked_kyc_msg: "ฟีเจอร์การถอนเงินถูกล็อกอยู่! คุณต้องยืนยันตัวตน KYC (สแกนใบหน้าจริง & บัตรประชาชน/พาสปอร์ต) ให้เสร็จสิ้นก่อน ระบบนี้ป้องกัน BOT และช่วยยืนยันว่าใบหน้าของคุณตรงกับเอกสาร",
+                btn_close: "ปิด"
             },
             ms: {
                 total_balance: "BAKI KESELURUHAN", checkin_title: "Daftar Masuk Harian", checkin_sub: "Tuntut Ganjaran Berturut-turut (Hari 1 - 7)",
@@ -1372,6 +1587,19 @@
                 submit_proof_btn: "Hantar & Tuntut",
                 milestone_title: "Kotak Ganjaran Milestone",
                 first_wd_promo: "Promo WD Pertama (1x): Min $0.10 & Yuran 0% (BEP-20)",
+                faq_title: "FAQ & Pusat Bantuan",
+                faq_q1: "1. Apakah itu AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps ialah platform Web3 terdesentralisasi di mana pengguna boleh melakukan perlombongan automatik, menyelesaikan tugasan komuniti, menonton iklan untuk kelajuan bonus, dan mengeluarkan USDT secara serta-merta.",
+                faq_q2: "2. Mengapa Pengeluaran (WD) Wajib KYC?",
+                faq_a2: "Untuk melindungi ekosistem dan harga token daripada serangan BOT dan farmers. KYC memastikan sistem Pengeluaran hanya mengagihkan aset kepada manusia sebenar dengan memadankan wajah secara langsung (Liveness) dan dokumen ID.",
+                faq_q3: "3. Mengapa KYC Saya Ditolak (Auto Reject)?",
+                faq_a3: "Penolakan automatik sistem berlaku jika:<br>- Nombor Kad Pengenalan/Pasport telah digunakan oleh pengguna lain.<br>- Wajah pada dokumen tidak sepadan dengan verifikasi Liveness wajah.<br>- Dokumen kabur, terlindung jari, atau dikesan sebagai skrin monitor.",
+                faq_q4: "4. Bagaimana Cara Meningkatkan Pendapatan?",
+                faq_a4: "Sistem beroperasi dalam kitaran kelajuan 12 hari. Selesaikan tugasan harian, tonton iklan (Ad Boost), atau tingkatkan tahap akaun anda melalui ciri deposit USDT untuk melipatgandakan peratusan APY harian anda.",
+                id_mrz_scan_zone: "Letakkan Nombor ID / Pasport di Kawasan Ini",
+                id_capture_btn: "Tangkap Foto ID / Pasport",
+                wd_locked_kyc_msg: "Ciri Pengeluaran terkunci! Anda wajib menyempurnakan pengesahan KYC (Liveness Wajah & Identiti KP/Pasport) terlebih dahulu. Sistem ini mengelakkan BOT dan memastikan wajah anda sepadan dengan dokumen.",
+                btn_close: "Tutup"
             },
             hi: {
                 total_balance: "कुल शेष राशि", checkin_title: "दैनिक चेक-इन", checkin_sub: "लगातार पुरस्कार का दावा करें (दिन 1 - 7)",
@@ -1440,6 +1668,19 @@
                 submit_proof_btn: "जमा करें और दावा करें",
                 milestone_title: "माइलस्टोन पुरस्कार बॉक्स",
                 first_wd_promo: "पहली निकासी प्रोमो (1x): न्यूनतम $0.10 और 0% शुल्क (BEP-20)",
+                faq_title: "सामान्य प्रश्न और सहायता केंद्र",
+                faq_q1: "1. AFEX मिनी ऐप्स क्या है?",
+                faq_a1: "AFEX मिनी ऐप्स एक विकेंद्रीकृत Web3 प्लेटफॉर्म है जहां उपयोगकर्ता ऑटो-माइनिंग कर सकते हैं, सामुदायिक कार्य पूरे कर सकते हैं, बोनस गति के लिए विज्ञापन देख सकते हैं और तुरंत USDT निकाल सकते हैं।",
+                faq_q2: "2. निकासी (WD) के लिए केवईसी अनिवार्य क्यों है?",
+                faq_a2: "पारिस्थितिकी तंत्र और टोकन मूल्य को BOTs और फार्मिंग खातों से बचाने के लिए। केवईसी यह सुनिश्चित करता है कि निकासी प्रणाली केवल वास्तविक मनुष्यों को ही संपत्ति वितरित करे, कैमरे के सामने लाइव चेहरे (Liveness) और आईडी दस्तावेज़ के बीच समानता की पुष्टि करके।",
+                faq_q3: "3. मेरा केवईसी क्यों खारिज कर दिया गया (ऑटो रिजेक्ट)?",
+                faq_a3: "स्वचालित अस्वीकृति तब होती है जब:<br>- आईडी कार्ड/पासपोर्ट नंबर का उपयोग पहले से ही किसी अन्य उपयोगकर्ता द्वारा किया गया हो。<br>- दस्तावेज़ पर मौजूद चेहरा लाइव चेहरे के सत्यापन से मेल नहीं खाता हो。<br>- दस्तावेज़ धुंधला हो, उंगलियों से ढका हो, या मॉनिटर स्क्रीन के रूप में पहचाना गया हो।",
+                faq_q4: "4. कमाई कैसे बढ़ाएं?",
+                faq_a4: "प्रणाली 12 दिनों के गति चक्र पर चलती है। दैनिक कार्य पूरे करें, विज्ञापन देखें (Ad Boost), या अपने दैनिक APY प्रतिशत को बढ़ाने के लिए USDT जमा सुविधा का उपयोग करके अपने खाता स्तर को अपग्रेड करें।",
+                id_mrz_scan_zone: "इस क्षेत्र में आईडी / पासपोर्ट नंबर रखें",
+                id_capture_btn: "आईडी / पासपोर्ट फोटो लें",
+                wd_locked_kyc_msg: "निकासी सुविधा लॉक है! आपको पहले केवाईसी सत्यापन (चेहरे का सत्यापन और आईडी/पासपोर्ट) पूरा करना होगा। यह बोट (BOT) को रोकता है और सुनिश्चित करता है कि आपका चेहरा दस्तावेज़ से मेल खाता है।",
+                btn_close: "बंद करें"
             },
             ur: {
                 total_balance: "کل بیلنس", checkin_title: "روزانہ چیک ان", checkin_sub: "تسلسل کے انعامات حاصل کریں (دن 1 - 7)",
@@ -1508,6 +1749,19 @@
                 submit_proof_btn: "جمع کریں اور حاصل کریں",
                 milestone_title: "مائل اسٹون انعامی باکس",
                 first_wd_promo: "پہلی رقم نکالنے کا پرومو (1x): کم از کم $0.10 اور %0 فیس (BEP-20)",
+                faq_title: "سوالات و جوابات اور امدادی مرکز",
+                faq_q1: "1. AFEX منی ایپس کیا ہے؟",
+                faq_a1: "AFEX منی ایپس ایک غیر مرکز شدہ Web3 پلیٹ فارم ہے جہاں صارفین آٹو مائننگ کر سکتے ہیں، کمیونٹی کے کام مکمل کر سکتے ہیں، بونس سپیڈ کے لیے اشتہارات دیکھ سکتے ہیں اور فوری طور پر USDT نکال سکتے ہیں۔",
+                faq_q2: "2. رقم نکالنے (WD) کے لیے KYC کیوں ضروری ہے؟",
+                faq_a2: "ایکوسسٹم اور ٹوکن کی قیمت کو باٹس اور جعلی اکاؤنٹس سے بچانے کے لیے۔ KYC یقینی بناتا ہے کہ رقم نکالنے کا نظام صرف حقیقی انسانوں کو اثاثے منتقل کرے، کیمرے پر چہرے کی لائیو تصدیق (Liveness) اور شناختی دستاویز کے موازنے کے ذریعے step.",
+                faq_q3: "3. میرا KYC کیوں مسترد ہوا (خودکار مسترد)؟",
+                faq_a3: "سسٹم کا خودکار مسترد ہونا تب ہوتا ہے جب:<br>- شناختی کارڈ/پاسپورٹ نمبر پہلے ہی کسی اور صارف نے استعمال کیا ہو۔<br>- دستاویز پر موجود چہرہ لائیو چہرے کی تصدیق سے نہ ملتا ہو۔<br>- دستاویز دھندلی ہو، انگلیوں سے ڈھکی ہو، یا اسکرین کی تصویر معلوم ہو۔",
+                faq_q4: "4. آمدنی کیسے بڑھائی جائے؟",
+                faq_a4: "سسٹم 12 دنوں کے سپیڈ سائیکل پر چلتا ہے۔ اپنے روزانہ کی APY شرح کو بڑھانے کے لیے روزانہ کے کام مکمل کریں، اشتہارات دیکھیں (Ad Boost)، یا USDT ڈپازٹ فیچر استعمال کر کے اکاؤنٹ کا لیول بڑھائیں۔",
+                id_mrz_scan_zone: "شناختی کارڈ / پاسپورٹ نمبر اس جگہ پر رکھیں",
+                id_capture_btn: "شناختی کارڈ / پاسپورٹ کی تصویر لیں",
+                wd_locked_kyc_msg: "رقم نکالنے کا فیچر مقفل ہے! آپ کو پہلے KYC تصدیق (لائیو چہرہ اور شناختی کارڈ/پاسپورٹ) مکمل کرنا ہوگی۔ یہ باٹس کو روکتا ہے اور یقینی بناتا ہے کہ آپ کا چہرہ دستاویز سے ملتا ہے۔",
+                btn_close: "بند کریں"
             },
             zh: {
                 total_balance: "总余额", checkin_title: "每日签到", checkin_sub: "领取连续签到奖励 (第 1 - 7 天)",
@@ -1576,6 +1830,19 @@
                 submit_proof_btn: "提交并领取",
                 milestone_title: "里程碑宝箱奖励",
                 first_wd_promo: "首次提现特惠 (1次): 最低 $0.10 且 0% 手续费 (BEP-20)",
+                faq_title: "常见问题与帮助中心",
+                faq_q1: "1. 什么是 AFEX Mini Apps？",
+                faq_a1: "AFEX Mini Apps 是一个去中心化的 Web3 平台，用户可以在这里进行自动挖矿、完成社区任务、观看广告获取加速奖励，并能立即提现 USDT。",
+                faq_q2: "2. 为什么提现 (WD) 必须进行 KYC 认证？",
+                faq_a2: "为了保护生态系统和代币价格不受机器人（BOT）和刷号农场的影响。KYC 通过比对摄像头活体人脸（Liveness）与身份证明文件，确保提现系统仅将资产发放给真实用户。",
+                faq_q3: "3. 为什么我的 KYC 被拒绝（自动拒绝）？",
+                faq_a3: "系统自动拒绝的原因包括：<br>- 身份证/护照号码已被其他用户使用。<br>- 证件上的照片与活体人脸识别不匹配。<br>- 证件模糊、被手指遮挡或被检测为显示器屏幕。",
+                faq_q4: "4. 如何提高收益？",
+                faq_a4: "系统以 12 天为一个速度周期运行。完成每日任务、观看广告（Ad Boost）或使用 USDT 充值功能提升账户等级，均可倍增您的每日 APY 百分比。",
+                id_mrz_scan_zone: "请将身份证 / 护照号码对准此区域",
+                id_capture_btn: "拍摄身份证 / 护照",
+                wd_locked_kyc_msg: "提现功能已锁定！您必须先完成 KYC 身份认证（人脸活体检测与身份证/护照认证）。该系统可防止 BOT 脚本，并确保您的脸部与证件相符。",
+                btn_close: "关闭"
             },
             ko: {
                 total_balance: "총 잔액", checkin_title: "일일 출석체크", checkin_sub: "연속 보상 청구 (1 - 7일차)",
@@ -1644,6 +1911,19 @@
                 submit_proof_btn: "제출 및 청구",
                 milestone_title: "마일스톤 보상 상자",
                 first_wd_promo: "첫 출금 프로모션 (1회): 최소 $0.10 & 수수료 0% (BEP-20)",
+                faq_title: "자주 묻는 질문 및 도움말 센터",
+                faq_q1: "1. AFEX Mini Apps란 무엇인가요?",
+                faq_a1: "AFEX Mini Apps는 사용자가 자동 채굴을 진행하고, 커뮤니티 미션을 완료하며, 보너스 속도를 위해 광고를 시청하고, USDT를 즉시 출금할 수 있는 탈중앙화 Web3 플랫폼입니다.",
+                faq_q2: "2. 출금(WD) 시 KYC 인증이 필수인 이유는 무엇인가요?",
+                faq_a2: "생태계와 토큰 가격을 BOT 및 다중 계정으로부터 보호하기 위해서입니다. KYC는 카메라 라이브 얼굴(Liveness)과 신분증 문서의 일치 여부를 확인하여 실재하는 사람에게만 자산이 지급되도록 합니다.",
+                faq_q3: "3. KYC 인증이 거절(자동 거절)된 이유는 무엇인가요?",
+                faq_a3: "시스템 자동 거절은 다음의 경우 발생합니다:<br>- 신분증/여권 번호가 이미 다른 사용자에 의해 사용된 경우.<br>- 문서의 얼굴이 라이브 얼굴 인증과 일치하지 않는 경우.<br>- 문서가 흐리거나, 손가락으로 가려졌거나, 모니터 화면으로 감지된 경우.",
+                faq_q4: "4. 수익을 늘리는 방법은 무엇인가요?",
+                faq_a4: "시스템은 12일 속도 주기로 작동합니다. 일일 미션을 완료하거나, 광고를 시청(Ad Boost)하거나, USDT 입금 기능을 사용하여 계정 레벨을 올리면 일일 APY 비율이 배가됩니다.",
+                id_mrz_scan_zone: "이 영역에 신분증 / 여권 번호를 맞춰주세요",
+                id_capture_btn: "신분증 / 여권 촬영",
+                wd_locked_kyc_msg: "출금 기능이 잠겨 있습니다! 먼저 KYC 인증(얼굴 라이브 스캔 및 신분증/여권)을 완료해야 합니다. 이는 BOT을 방지하고 신분증과 얼굴이 일치하는지 확인합니다.",
+                btn_close: "닫기"
             },
             ja: {
                 total_balance: "合計残高", checkin_title: "デイリーチェックイン", checkin_sub: " 連続 報酬を獲得 (1 - 7日目)",
@@ -1655,12 +1935,11 @@
                 vip_pass: "創業者 VIP パス", locked_badge: "ロック中", btn_start_mine: "12時間自動マイニング開始", task_watch_ad: "広告を見る", btn_watch: "視聴",
                 invite_sub: "友達を招待して報酬をGET", contest_sub: "報酬を獲得",
                 sec_kyc: "セキュリティ & KYC", community: "コミュニティ", about: "概要", payouts_sub: "世界中のユーザーのリアルタイム出金",
-                notification: "通知", success: "成功", error: "エラー", copied: "コピーしました！", btn_ok: "OK",
+                notification: "通知", success: "成功", error: "エラー", copied: "コピーしました！", btn_ok: "OK", btn_close: "閉じる",
                 founder_alert: "創業者パスはまだロックされています。続報をお待ちください。",
                 wallet_disconnected: "ウォレットの接続が解除されました", btn_connect: "接続",
                 checkin_done: "本日はすでにチェックイン済みです。明日またお越しください。", checkin_success: "チェックイン成功：",
                 ad_claimed: "報酬を獲得しました！ +15 AFEX、+0.00001 速度/時、+1 ポイント！", ad_not_ready: "AdsGuard有効 / 広告なし。報酬は直接付与されました！",
-                founder_avail: "{d}日 {time} UTC 後に創業者パスが利用可能", lock_feature: "{d}日 {time} UTC 後に機能が解除されます。",
                 locked_list: "ロック中 ({d}日 {time})", swap_locked: "スワップ機能はメインネット期間中に有効化されます。",
                 wd_insufficient: "残高が不足しています。マイニングを続けてください。", wd_processed: "出金処理が正常に完了しました！",
                 wallet_manage: "ウォレットアドレスの管理", tx_history: "取引履歴", wd_history: "出金履歴",
@@ -1712,7 +1991,20 @@
                 submit_proof_btn: "送信して請求",
                 milestone_title: "マイルストーン報酬箱",
                 first_wd_promo: "初回出金プロモ (1回): 最低 $0.10 & 手数料 0% (BEP-20)",
-              },
+                faq_title: "FAQ & ヘルプセンター",
+                faq_q1: "1. AFEX Mini Appsとは何ですか？",
+                faq_a1: "AFEX Mini Appsは、自動マイニング、コミュニティタスクの完了、ボーナススピードのための広告視聴、USDTの即時出金ができる分散型Web3プラットフォームです。",
+                faq_q2: "2. 出金 (WD) にKYC認証が必須なのはなぜですか？",
+                faq_a2: "エコシステムとトークン価格をBOTや不正アカウントから保護するためです。KYCは、ライブカメラの顔 (Liveness) と身分証明書の一致を検証し、実在する人物のみに資産が分配されるようにします。",
+                faq_q3: "3. KYC認証が拒否 (自動拒否) されたのはなぜですか？",
+                faq_a3: "システムによる自動拒否は以下の場合に発生します：<br>- 身分証明書/パスポート番号が既に他のユーザーに使用されている。<br>- 書類の顔写真とライブ顔認証が一致しない。<br>- 書類が不鮮明、指で隠れている、またはモニター画面であると検出された。",
+                faq_q4: "4. 収益を増やすにはどうすればよいですか？",
+                faq_a4: " me システムは12日間のスピードサイクルで動作します。毎日のタスクを完了し、広告を視聴 (Ad Boost) するか、USDT入金機能を使用してアカウントレベルを上げることで、日々のAPY率を倍増できます。",
+                id_mrz_scan_zone: "このエリアに身分証明書 / パスポート番号を合わせてください",
+                id_capture_btn: "身分証明書 / パスポート को 撮影",
+                wd_locked_kyc_msg: "出金機能がロックされています！先にKYC認証 (顔ライブスキャン & 身分証明書/パスポート) を完了する必要があります。これによりBOTを防ぎ、顔写真と書類の一致を確認します。",
+                btn_close: "閉じる"
+            },
             af: {
                 total_balance: "TOTALE SALDO", checkin_title: "Daaglikse Aanmelding", checkin_sub: "Eis Opeenvolgende Belonings (Dag 1 - 7)",
                 ready_to_mine: "Gereed om te Myn", session_timer: "Sessie Tydhouer:", tasks_title: "TAKE",
@@ -1780,7 +2072,20 @@
                 submit_proof_btn: "Dien in & Eis",
                 milestone_title: "Mylpaal Beloningsbokse",
                 first_wd_promo: "1ste WD Promo (1x): Min $0.10 & 0% Fooi (BEP-20)",
-            },
+                faq_title: "Vrae en Antwoorde & Hulpdiens",
+                faq_q1: "1. Wat is AFEX Mini Apps?",
+                faq_a1: "AFEX Mini Apps is 'n gedesentraliseerde Web3-platform waar gebruikers outomatiese mynbou kan doen, gemeenskapstake voltooi, advertensies kyk vir bonusspoed, en USDT onmiddellik kan onttrek.",
+                faq_q2: "2. Waarom is KYC verpligtend vir Onttrekking (WD)?",
+                faq_a2: "Om die ekosisteem en tokenprys teen BOTs en boerdery te beskerm. KYC verseker dat die onttrekkingstelsel slegs bates aan regte mense versprei deur regstreekse gesigscans (Liveness) met ID-dokumente te vergelyk.",
+                faq_q3: "3. Waarom is my KYC verwerp (Outomatiese verwerping)?",
+                faq_a3: "Outomatiese stelselverwerping vind plaas indien:<br>- Die ID- / Paspoortnommer reeds deur 'n ander gebruiker gebruik word.<br>- Die gesig op die dokument nie ooreenstem met die regstreekse gesigsverifikasie nie.<br>- Die dokument dof is, deur vingers bedek word, of as 'n skerm bespeur word.",
+                faq_q4: "4. Hoe om inkomste te verhoog?",
+                faq_a4: "Die stelsel werk op 'n 12-dae spoedsiklus. Voltooi daaglikse take, kyk advertensies (Ad Boost), of verhoog jou rekeningvlak met USDT-deposito's om jou daaglikse APY-persentasie te vermenigvuldig.",
+                id_mrz_scan_zone: "Plaas ID- / Paspoortnommer in hierdie area",
+                id_capture_btn: "Neem foto van ID / Paspoort",
+                wd_locked_kyc_msg: "Onttrekkingsfunksie is gesluit! Jy moet eers KYC-verifikasie (Gesigs-Liveness & ID/Paspoort) voltooi. Dit keer BOTs en verseker dat jou gesig met die dokument ooreenstem.",
+                btn_close: "Sluit"
+          },
             ar: {
                 total_balance: "الرصيد الإجمالي", checkin_title: "تسجيل الوصول اليومي", checkin_sub: "مطالبة بمكافآت التتابع (اليوم 1 - 7)",
                 ready_to_mine: "جاهز للتعدين", session_timer: "مؤقت الجلسة:", tasks_title: "المهام",
@@ -1848,6 +2153,19 @@
                 submit_proof_btn: "إرسال ومطالبة",
                 milestone_title: "صناديق مكافآت الإنجاز",
                 first_wd_promo: "عرض السحب الأول (1x): الحد الأدنى 0.10$ ورسوم 0% (BEP-20)",
+                faq_title: "الأسئلة الشائعة ومركز المساعدة",
+                faq_q1: "1. ما هو AFEX Mini Apps؟",
+                faq_a1: "AFEX Mini Apps هي منصة Web3 لا مركزية حيث يمكن للمستخدمين إجراء التعدين التلقائي، وإكمال مهام المجتمع، ومشاهدة الإعلانات للحصول على سرعة إضافية، وسحب USDT فوراً.",
+                faq_q2: "2. لماذا يعتبر التوثيق (KYC) إجبارياً للسحب (WD)؟",
+                faq_a2: "لحماية النظام البيئي وسعر الرمز المميز من الروبوتات (BOTs) والحسابات الوهمية. يضمن التوثيق أن نظام السحب يوزع الأصول على البشر الحقيقيين فقط عبر التحقق من تطابق الوجه الحي (Liveness) مع وثيقة الهوية.",
+                faq_q3: "3. لماذا تم رفض التوثيق الخاص بي (رفض تلقائي)؟",
+                faq_a3: "يحدث الرفض التلقائي للنظام إذا:<br>- كان رقم بطاقة الهوية/جواز السفر مستخدماً بالفعل من قبل مستخدم آخر.<br>- كان الوجه الموجود في الوثيقة لا يتطابق مع التحقق الحي للوجه.<br>- كانت الوثيقة غير واضحة، أو مغطاة بالأصابع، أو تم اكتشاف أنها شاشة عرض.",
+                faq_q4: "4. كيفية زيادة الأرباح؟",
+                faq_a4: "يعمل النظام على دورة سرعة مدتها 12 يوماً. أكمل المهام اليومية، وشاهد الإعلانات (Ad Boost)، أو ارفع مستوى حسابك باستخدام ميزة إيداع USDT لمضاعفة نسبة APY اليومية الخاصة بك.",
+                id_mrz_scan_zone: "ضع رقم الهوية / جواز السفر في هذه المنطقة",
+                id_capture_btn: "التقاط صورة الهوية / جواز السفر",
+                wd_locked_kyc_msg: "ميزة السحب مغلقة! يجب عليك إكمال التحقق من الهوية KYC (مسح الوجه الحي ووثيقة الهوية/جواز السفر) أولاً. يمنع هذا النظام الحسابات الوهمية ويضمن تطابق وجهك مع الوثيقة.",
+                btn_close: "إغلاق"
             }
         };
 
@@ -2417,7 +2735,7 @@
             let s = Math.floor((diff % (1000 * 60)) / 1000);
             return { d, timeStr: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` };
         }
-        let _miningTimerIntervalId = null;
+     let _miningTimerIntervalId = null;
         function startTimerInterval() {
             if (_miningTimerIntervalId) {
                 clearInterval(_miningTimerIntervalId);
@@ -2966,6 +3284,14 @@
         }
 
         function openWithdrawModal() {
+    // Validasi Wajib KYC Liveness & Dokumen Identitas
+    if (miningData.kycStatus.face !== 'verified' || miningData.kycStatus.id !== 'verified') {
+        return showModal(
+            "Akses Terkunci", 
+            "Fitur Withdraw terkunci! Anda wajib menyelesaikan verifikasi KYC (Liveness Wajah & Identitas ID/Paspor) terlebih dahulu. Sistem ini diterapkan untuk menghindari BOT dan memastikan wajah pengguna cocok dengan dokumen.", 
+            "fa-lock"
+        );
+    }
             if (!miningData.isWalletConnected) {
                 return showModal(t('error'), "Failed! Please connect at least one wallet first.", "fa-circle-exclamation");
             }
@@ -3268,7 +3594,28 @@
 
             return { validFormat: true, verified: true, autoVerifiedFallback: true };
         }
+// ==========================================
+        // FUNGSI KENDALI MODAL FAQ
+        // ==========================================
+        function openFaqModal() {
+            const modal = document.getElementById('faqModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // Pastikan teks dalam modal langsung mengikuti bahasa yang sedang aktif
+                const currentLang = localStorage.getItem(`afex_lang_${userIdStr}`) || 'en';
+                changeLanguage(currentLang);
+            }
+        }
 
+        function closeFaqModal() {
+            const modal = document.getElementById('faqModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
         async function executeDepositSubmit(amt, net) {
             let txInput = document.getElementById('dep-txhash');
             let txHash = txInput ? txInput.value.trim() : '';
@@ -3368,10 +3715,9 @@
             saveToBackend();
             showModal(t('success'), `Successfully claimed $${claimedAmt.toFixed(4)} USDT to your balance!`, "fa-circle-check");
         }
-        async function handleMiningAction() {
+       async function handleMiningAction() {
             let now = Date.now();
             if (!miningData.isMining) {
-                // Memulai sesi penambangan 12 jam secara otomatis
                 miningData.isMining = true;
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
@@ -3379,7 +3725,6 @@
                 saveToBackend();
                 showModal(t('notification'), "12-hour AFEX mining started successfully!", "fa-bolt");
             } else if (now >= miningData.miningEndTime) {
-                // Klaim reward 50 AFEX setelah 12 jam selesai
                 miningData.isMining = false;
                 miningData.balance += 50.00;
                 miningData.txHistoryList.unshift({
@@ -3389,7 +3734,6 @@
                     timestamp: Date.now()
                 });
                 
-                // Otomatis restart sesi berikutnya agar terus berjalan
                 miningData.isMining = true;
                 miningData.miningStartTime = now;
                 miningData.miningEndTime = now + (12 * 3600 * 1000);
@@ -3637,28 +3981,29 @@
                 ? miningData.referredList.filter(r => r.status === 'valid' || r.valid === true).length
                 : 0;
 
-            // 1. RENDER KOTAK HADIAH MILESTONE SEGARIS (SESUAI GAMBAR SKETSA)
+            // 1. RENDER KOTAK HADIAH MILESTONE SEGARIS (TULISAN ORANG & HADIAH DI DALAM KOTAK)
             let milestoneBoxesHtml = referralConfig.milestones.map((m, idx) => {
                 let isUnlocked = validReferralCount >= m.count;
                 let isClaimed = m.claimed;
 
-                let boxStyle = "bg-[#080c14] border-gray-700 text-gray-400";
-                let iconHtml = `<i class="fa-solid fa-lock text-xs text-yellow-500"></i>`;
+                let boxStyle = "bg-[#080c14] border-yellow-500/40 text-gray-300";
+                let iconHtml = `<i class="fa-solid fa-lock text-[10px] text-yellow-500"></i>`;
 
                 if (isClaimed) {
                     boxStyle = "bg-green-500/20 border-green-400 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.4)]";
-                    iconHtml = `<i class="fa-solid fa-check text-xs"></i>`;
+                    iconHtml = `<i class="fa-solid fa-check text-[10px] text-green-400"></i>`;
                 } else if (isUnlocked) {
                     boxStyle = "bg-yellow-500/20 border-yellow-400 text-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.6)] animate-bounce";
-                    iconHtml = `<i class="fa-solid fa-gift text-xs"></i>`;
+                    iconHtml = `<i class="fa-solid fa-gift text-[10px] text-yellow-400"></i>`;
                 }
 
                 return `
-                <div class="relative z-10 flex flex-col items-center">
-                    <button onclick="claimMilestoneGift(${idx})" class="w-9 h-9 rounded-lg border-2 ${boxStyle} flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400 transition-all relative">
+                <div class="relative z-10 flex-1">
+                    <button onclick="claimMilestoneGift(${idx})" class="w-full py-1.5 px-1 rounded-lg border-2 ${boxStyle} flex flex-col items-center justify-center gap-0.5 cursor-pointer hover:border-yellow-400 transition-all relative">
                         ${iconHtml}
+                        <span class="text-[8px] font-mono text-white font-bold leading-tight">${m.count} Orang</span>
+                        <span class="text-[8px] font-mono text-green-400 font-black leading-tight">+$${m.reward.toFixed(2)}</span>
                     </button>
-                    <span class="text-[9px] font-mono text-gray-300 font-bold mt-1">${m.count} Reff</span>
                 </div>`;
             }).join('');
 
@@ -3700,9 +4045,9 @@
                         <span>Milestone Box Rewards</span>
                         <span class="text-yellow-400 font-bold">Valid: ${validReferralCount} Reff</span>
                     </div>
-                    <div class="relative flex justify-between items-center px-1 py-1">
+                    <div class="relative flex justify-between items-center gap-1.5 px-0.5 py-1">
                         <!-- Garis Horizontal Penghubung Kotak -->
-                        <div class="absolute left-4 right-4 top-[18px] h-0.5 bg-yellow-500/40 z-0"></div>
+                        <div class="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-yellow-500/40 z-0"></div>
                         ${milestoneBoxesHtml}
                     </div>
                     <!-- Box Preview Hadiah + Gembok Saat Kotak Terkunci Diklik -->
@@ -3978,6 +4323,49 @@
             </div>`;
             showModal(t('privacy_policy'), html, "fa-shield-cat");
         }
+       function openFaqModal() {
+    let html = `<div class="space-y-3 text-left text-xs max-h-[70vh] overflow-y-auto pr-2 leading-relaxed font-mono">
+        
+        <!-- FAQ 1 -->
+        <details class="bg-gray-900/50 rounded-lg p-3 border border-gray-800 cursor-pointer group">
+            <summary class="text-xs font-bold text-yellow-400 list-none flex justify-between items-center outline-none">
+                <span>${t('faq_q1')}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-gray-300 mt-2 pt-2 border-t border-gray-800">${t('faq_a1')}</p>
+        </details>
+
+        <!-- FAQ 2 -->
+        <details class="bg-gray-900/50 rounded-lg p-3 border border-gray-800 cursor-pointer group">
+            <summary class="text-xs font-bold text-yellow-400 list-none flex justify-between items-center outline-none">
+                <span>${t('faq_q2')}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-gray-300 mt-2 pt-2 border-t border-gray-800">${t('faq_a2')}</p>
+        </details>
+
+        <!-- FAQ 3 -->
+        <details class="bg-gray-900/50 rounded-lg p-3 border border-gray-800 cursor-pointer group">
+            <summary class="text-xs font-bold text-yellow-400 list-none flex justify-between items-center outline-none">
+                <span>${t('faq_q3')}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-gray-300 mt-2 pt-2 border-t border-gray-800">${t('faq_a3')}</p>
+        </details>
+
+        <!-- FAQ 4 -->
+        <details class="bg-gray-900/50 rounded-lg p-3 border border-gray-800 cursor-pointer group">
+            <summary class="text-xs font-bold text-yellow-400 list-none flex justify-between items-center outline-none">
+                <span>${t('faq_q4')}</span>
+                <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+            </summary>
+            <p class="text-gray-300 mt-2 pt-2 border-t border-gray-800">${t('faq_a4')}</p>
+        </details>
+
+    </div>`;
+    
+    showModal(t('faq_title'), html, "fa-circle-question");
+}
 
         // --- SECRET EXECUTIVE ADMIN PANEL (10x CONSECUTIVE CLICKS + SHA-256 PIN) ---
         let _adminSecretClickCount = 0;
@@ -4582,12 +4970,18 @@
                     </td>
                     <td class="p-1.5">
                         <strong class="text-white block">${escapeHtml(k.username)}</strong>
+                    </td>
+                    <td class="p-1.5">
+                        <strong class="text-white block">${escapeHtml(k.username)}</strong>
+                       <td class="p-1.5">
+                        <strong class="text-white block">${escapeHtml(k.username)}</strong>
                         <span class="text-gray-400">UID: ${escapeHtml(k.uid)}</span>
                         <span class="block text-yellow-400 uppercase">${escapeHtml(k.type)}${k.livenessScore ? ' (' + k.livenessScore + '%)' : ''}</span>
+                        ${k.docNumber ? `<span class="block text-cyan-400 text-[9px]">${escapeHtml(k.docType || 'ID')}:${escapeHtml(k.docNumber)}</span>` : ''}
                     </td>
                     <td class="p-1.5 text-center">
                         <span class="px-1.5 py-0.5 rounded font-black ${k.isHuman ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
-                            ${k.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)'}
+                            ${k.type === 'id' ? (k.isHuman ? 'VALID DOC' : 'BLURRY') : (k.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)')}
                         </span>
                     </td>
                     <td class="p-1.5 space-y-1">
@@ -4620,7 +5014,7 @@
         }
 
         // Fungsi untuk melihat gambar hasil KYC ukuran besar di Panel Admin
-        function openAdminKycPhotoPreview(kycId) {
+       function openAdminKycPhotoPreview(kycId) {
             let q = getGlobalAdminQueue();
             let item = (q.kycRequests || []).find(k => k.id === kycId);
             if (!item) return;
@@ -4631,8 +5025,9 @@
                 </div>
                 <div class="bg-[#080c14] p-2.5 rounded-xl border border-gray-800 text-left space-y-1 text-[11px]">
                     <div><span class="text-gray-400">User:</span> <strong class="text-white">${escapeHtml(item.username)} (${escapeHtml(item.uid)})</strong></div>
-                    <div><span class="text-gray-400">Tipe KYC:</span> <strong class="text-yellow-400 uppercase">${item.type}</strong></div>
-                    <div><span class="text-gray-400">Status Gestur:</span> <strong class="${item.isHuman ? 'text-green-400' : 'text-red-400'}">${item.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)'}</strong></div>
+                    <div><span class="text-gray-400">Tipe KYC:</span> <strong class="text-yellow-400 uppercase">${escapeHtml(item.type)}</strong></div>
+                    ${item.docNumber ? `<div><span class="text-gray-400">Dokumen (${escapeHtml(item.docType || 'ID')}):</span> <strong class="text-cyan-400">${escapeHtml(item.docNumber)}</strong></div>` : ''}
+                    <div><span class="text-gray-400">Status Deteksi:</span> <strong class="${item.isHuman ? 'text-green-400' : 'text-red-400'}">${item.type === 'id' ? (item.isHuman ? 'DOKUMEN JELAS & TERBACA' : 'KURANG JELAS') : (item.isHuman ? 'YES (Manusia Asli)' : 'NOT (Bukan Manusia)')}</strong></div>
                 </div>
                 ${item.status === 'pending' ? `
                 <div class="flex gap-2">
@@ -4692,17 +5087,22 @@ let videoStream = null;
 let currentStep = 1; // 1: Angguk 3x, 2: Hadap Kiri, 3: Hadap Kanan, 4: Hadap Depan (Auto Capture)
 let nodCount = 0;
 let lastHeadY = 0;
-let stepProgressTime = 0; 
-const requiredHoldTime = 2000; 
-let isProcessing = false;
+let stepProgressTime = 0;
+const requiredHoldTime = 2000; // 2 detik waktu tahan fokus
+let isProcessing = true;
 let activeKycType = 'face';
 
 let _livenessState = {
+    docSharpnessScore: 0,
     calibrated: false,
     calibFrames: 0,
     baseCentroidX: 40,
     baseCentroidY: 40,
     baseNoseRatio: 1.0,
+    smoothYaw: 0,
+    smoothPitch: 0,
+    missingFaceFrames: 0,
+    lastInstrUpdateMs: 0,
     prevFrameGray: null,
     nodPhase: 'neutral',
     lastNodTimestamp: 0,
@@ -4712,12 +5112,63 @@ let _livenessState = {
     livenessScore: 0
 };
 
+function setStableElementHtml(el, newHtml, throttleMs = 0) {
+    if (!el) return;
+    if (el._lastStableHtml === newHtml) return;
+    const now = Date.now();
+    if (throttleMs > 0 && el._lastStableMs && (now - el._lastStableMs < throttleMs)) return;
+    el._lastStableHtml = newHtml;
+    el._lastStableMs = now;
+    el.innerHTML = newHtml;
+}
+
+function updateIdDocPlaceholder() {
+    const docTypeEl = document.getElementById('id-doc-type');
+    const docNumEl = document.getElementById('id-doc-number');
+    if (!docTypeEl || !docNumEl) return;
+    if (docTypeEl.value === 'PASSPORT') {
+        docNumEl.placeholder = "Passport No (e.g. A12345678)...";
+    } else {
+        docNumEl.placeholder = "ID Card / NIK (8-18 chars)...";
+    }
+}
+
 async function openKycCameraModal(type) {
     activeKycType = type || 'face';
+    // Bersihkan elemen iklan yang dapat mengganggu kestabilan layar saat kamera aktif
+    const adElements = document.querySelectorAll('iframe[src*="libtl"], div[id*="monetag"], ins[class*="ads"]');
+    adElements.forEach(el => el.remove());
+    window.isKycOpen = true;
+
     let modal = document.getElementById('camera-modal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    }
+
+    const isIdMode = (activeKycType === 'id');
+    const headingEl = document.getElementById('kyc-modal-heading');
+    const idControlsEl = document.getElementById('id-doc-controls');
+    const idMrzZoneEl = document.getElementById('id-mrz-scan-zone');
+    const manualCaptureBtn = document.getElementById('id-manual-capture-btn');
+    const video = document.getElementById('kyc-video');
+    const instrTextEl = document.getElementById('instruction-text');
+
+    if (isIdMode) {
+        if (headingEl) headingEl.innerText = t('id_title');
+        if (idControlsEl) idControlsEl.classList.remove('hidden');
+        if (idMrzZoneEl) idMrzZoneEl.classList.remove('hidden');
+        if (manualCaptureBtn) manualCaptureBtn.classList.remove('hidden');
+        if (video) video.classList.remove('scale-x-[-1]'); // Jangan mirror agar nomor Paspor/ID Card terbaca normal
+        updateIdDocPlaceholder();
+        if (instrTextEl) setStableElementHtml(instrTextEl, `<i class="fa-solid fa-id-card mr-1"></i> Masukkan Nomor ID/Paspor & arahkan kartu dengan jelas!`);
+    } else {
+        if (headingEl) headingEl.innerText = t('kyc_camera_title');
+        if (idControlsEl) idControlsEl.classList.add('hidden');
+        if (idMrzZoneEl) idMrzZoneEl.classList.add('hidden');
+        if (manualCaptureBtn) manualCaptureBtn.classList.add('hidden');
+        if (video) video.classList.add('scale-x-[-1]');
+        if (instrTextEl) setStableElementHtml(instrTextEl, t('kyc_follow_instr_warn'));
     }
 
     currentStep = 1;
@@ -4731,22 +5182,31 @@ async function openKycCameraModal(type) {
         baseCentroidX: 40,
         baseCentroidY: 40,
         baseNoseRatio: 1.0,
+        smoothYaw: 0,
+        smoothPitch: 0,
+        missingFaceFrames: 0,
+        lastInstrUpdateMs: 0,
         prevFrameGray: null,
         nodPhase: 'neutral',
         lastNodTimestamp: Date.now(),
         dynamicMotionSamples: [],
         nonRigidDeformationSamples: [],
         skinCoverageRatio: 0,
+        docSharpnessScore: 0,
         livenessScore: 0
     };
 
     const statusEl = document.getElementById('gesture-status');
-    if (statusEl) statusEl.innerText = t('kyc_loading_camera');
+    if (statusEl) setStableElementHtml(statusEl, t('kyc_loading_camera'));
 
-    const video = document.getElementById('kyc-video');
     try {
+        // Gunakan kamera belakang (environment) beresolusi tinggi untuk scan ID Card / Paspor, kamera depan untuk wajah
+        const videoConstraints = isIdMode
+            ? { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            : { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 } };
+
         videoStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 } },
+            video: videoConstraints,
             audio: false
         });
         video.srcObject = videoStream;
@@ -4776,6 +5236,99 @@ function closeKycCameraModal() {
     }
 }
 
+// =========================================================================
+// 1. ALGORITMA PEMROSESAN DOKUMEN IDENTITAS (KETAJAMAN & KESTABILAN)
+// =========================================================================
+function processIdentityDocumentFrame(video, canvas) {
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    
+    // Dimensi ringan untuk pemrosesan citra per frame
+    const processWidth = 320;
+    const processHeight = 240;
+    canvas.width = processWidth;
+    canvas.height = processHeight;
+
+    ctx.drawImage(video, 0, 0, processWidth, processHeight);
+    const imgData = ctx.getImageData(0, 0, processWidth, processHeight);
+    const pixels = imgData.data;
+
+    // Konversi ke Grayscale & Hitung Edge Density (Laplacian Kernel)
+    const gray = new Float32Array(processWidth * processHeight);
+    for (let i = 0; i < pixels.length; i += 4) {
+        gray[i / 4] = (pixels[i] * 0.299) + (pixels[i + 1] * 0.587) + (pixels[i + 2] * 0.114);
+    }
+
+    let edgeSum = 0;
+    let count = 0;
+    for (let y = 1; y < processHeight - 1; y++) {
+        for (let x = 1; x < processWidth - 1; x++) {
+            const idx = y * processWidth + x;
+            const val = Math.abs(
+                gray[idx] * 4 - 
+                gray[idx - 1] - 
+                gray[idx + 1] - 
+                gray[idx - processWidth] - 
+                gray[idx + processWidth]
+            );
+            if (val > 30) edgeSum += val;
+            count++;
+        }
+    }
+
+    const sharpnessScore = edgeSum / count;
+    _livenessState.docSharpnessScore = sharpnessScore;
+
+    // Hitung Kestabilan Gerakan Kamera (Motion Difference)
+    let frameDifference = 0;
+    if (_livenessState.prevFrameGray) {
+        let diffSum = 0;
+        for (let i = 0; i < gray.length; i += 4) {
+            diffSum += Math.abs(gray[i] - _livenessState.prevFrameGray[i]);
+        }
+        frameDifference = diffSum / (gray.length / 4);
+    }
+    _livenessState.prevFrameGray = gray;
+
+    // Syarat Fokus: Ketajaman > 8 & Gerakan Kamera < 12
+    const isSharpEnough = sharpnessScore > 8;
+    const isCameraStable = frameDifference < 12;
+
+    const statusEl = document.getElementById('gesture-status');
+    const progressBar = document.getElementById('gesture-progress-bar');
+    const timerText = document.getElementById('timer-progress-text');
+
+    if (isSharpEnough && isCameraStable) {
+        stepProgressTime += 100;
+        const progressPercent = Math.min(100, (stepProgressTime / requiredHoldTime) * 100);
+
+        if (statusEl) setStableElementHtml(statusEl, `Fokus &amp; Stabil. Tahan posisi... (${Math.round(progressPercent)}%)`);
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
+        if (timerText) setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
+
+        if (stepProgressTime >= requiredHoldTime) {
+            isProcessing = false;
+            captureIdentityDocumentNow(true);
+        }
+    } else {
+        stepProgressTime = Math.max(0, stepProgressTime - 150);
+        const progressPercent = Math.min(100, (stepProgressTime / requiredHoldTime) * 100);
+
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
+        if (timerText) setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
+        if (statusEl) {
+            if (!isSharpEnough) {
+                setStableElementHtml(statusEl, "Arahkan kamera lebih dekat &amp; perjelas dokumen");
+            } else {
+                setStableElementHtml(statusEl, "Pegang HP dengan stabil");
+            }
+        }
+    }
+}
+
+// =========================================================================
+// 2. LOOP DETEKSI KAMERA (PERCABANGAN MODE ID VS WAJAH)
+// =========================================================================
 function processFrameDetection() {
     if (!isProcessing) return;
 
@@ -4786,6 +5339,123 @@ function processFrameDetection() {
         return;
     }
 
+    // Cabang Mode Dokumen Identitas (KTP/Paspor)
+    if (activeKycType === 'id') {
+        processIdentityDocumentFrame(video, canvas);
+        if (isProcessing) requestAnimationFrame(processFrameDetection);
+        return;
+    }
+
+    // Cabang Mode Deteksi Wajah
+    canvas.width = 160;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, 160, 160);
+
+    // ... (lanjutan logika pemrosesan wajah bawaan aplikasi)
+}
+
+// =========================================================================
+// 3. EKSEKUSI CAPTURE & PENYIMPANAN DATA DOKUMEN
+// =========================================================================
+function captureIdentityDocumentNow(isAuto = false) {
+    const video = document.getElementById('kyc-video');
+    const canvas = document.getElementById('kyc-canvas');
+    const docTypeEl = document.getElementById('id-doc-type');
+    const docNumEl = document.getElementById('id-doc-number');
+    
+    if (!video || !canvas) return;
+
+    const docType = docTypeEl ? docTypeEl.value : 'ID CARD';
+    const docNum = docNumEl ? docNumEl.value.trim().toUpperCase() : '';
+
+    // Validasi Nomor Dokumen Tidak Boleh Kosong
+    if (!docNum || docNum.length < 5) {
+        return showModal("Validasi Gagal", "Nomor ID/Paspor tidak boleh kosong atau terlalu pendek!", "fa-circle-exclamation");
+    }
+
+    // Auto-Reject ID/Paspor Ganda
+    let usedIds = JSON.parse(localStorage.getItem('afex_used_identity_docs')) || {};
+    if (usedIds[docNum] && usedIds[docNum] !== userIdStr) {
+        return showModal(
+            "KYC Ditolak", 
+            "Auto-Reject: Nomor Identitas ini sudah digunakan oleh akun lain! Satu identitas hanya berlaku untuk satu akun (Mencegah BOT/Sybil).", 
+            "fa-ban"
+        );
+    }
+    // Simpan Nomor ID (Simulasi Database)
+    usedIds[docNum] = userIdStr;
+    localStorage.setItem('afex_used_identity_docs', JSON.stringify(usedIds));
+
+    // Validasi Pencocokan Liveness (Front-End Warning)
+    if (miningData.kycStatus.face !== 'verified') {
+        showModal(
+            "Peringatan Pencocokan", 
+            "Anda belum memverifikasi Liveness wajah. Pastikan foto liveness dan foto dokumen adalah orang yang sama untuk menghindari penolakan otomatis dari Admin.", 
+            "fa-user-shield"
+        );
+    }
+
+    // Dimensi foto hasil akhir yang disimpan
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+    // Hentikan Kamera & Tutup Modal Modal
+    stopCamera();
+    closeKycCameraModal();
+
+    // Pembaruan Status KYC Lokal
+    if (typeof miningData !== 'undefined' && miningData.kycStatus) {
+        miningData.kycStatus.id = 'pending';
+        saveLocalPersistence(true);
+        if (typeof updateDynamicCountdowns === 'function') updateDynamicCountdowns();
+    }
+
+    // Pendaftaran ke Antrean Admin
+    let q = typeof getGlobalAdminQueue === 'function' ? getGlobalAdminQueue() : { kycRequests: [] };
+    if (!q.kycRequests) q.kycRequests = [];
+    
+    q.kycRequests.unshift({
+        id: "KYC_DOC_" + Date.now(),
+        uid: typeof userIdStr !== 'undefined' ? userIdStr : 'GUEST',
+        username: typeof displayName !== 'undefined' ? displayName : 'User',
+        type: 'id',
+        docType: docType,
+        docNumber: docNum,
+        isHuman: true,
+        photoData: imageDataUrl,
+        status: 'pending',
+        timestamp: Date.now()
+    });
+
+    if (typeof saveGlobalAdminQueue === 'function') saveGlobalAdminQueue(q);
+
+    showModal(
+        typeof t === 'function' ? t('success') : 'Berhasil', 
+        `Nomor ${docType} (${docNum}) berhasil dipindai dan dikirim untuk verifikasi admin!`, 
+        "fa-circle-check"
+    );
+}
+
+function processFrameDetection() {
+    if (!isProcessing) return;
+
+    const video = document.getElementById('kyc-video');
+    const canvas = document.getElementById('kyc-canvas');
+    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        requestAnimationFrame(processFrameDetection);
+        return;
+    }
+
+    if (activeKycType === 'id') {
+        processIdentityDocumentFrame(video, canvas);
+        if (isProcessing) requestAnimationFrame(processFrameDetection);
+        return;
+    }
     canvas.width = 160;
     canvas.height = 160;
     const ctx = canvas.getContext('2d');
@@ -4860,10 +5530,19 @@ function processFrameDetection() {
         if (_livenessState.nonRigidDeformationSamples.length > 60) _livenessState.nonRigidDeformationSamples.shift();
     }
 
-    const yawShift = (centroidX - _livenessState.baseCentroidX) * 2200 + (rightCheekLuma - leftCheekLuma) * 0.65;
-    const pitchShift = (centroidY - _livenessState.baseCentroidY) * 2500 + (bottomHalfFeature - topHalfFeature) * 0.55;
+    const rawYawShift = (centroidX - _livenessState.baseCentroidX) * 2200 + (rightCheekLuma - leftCheekLuma) * 0.65;
+    const rawPitchShift = (centroidY - _livenessState.baseCentroidY) * 2500 + (bottomHalfFeature - topHalfFeature) * 0.55;
+    _livenessState.smoothYaw = (_livenessState.smoothYaw * 0.7) + (rawYawShift * 0.3);
+    _livenessState.smoothPitch = (_livenessState.smoothPitch * 0.7) + (rawPitchShift * 0.3);
 
-    evaluateGestureRules(yawShift, pitchShift, hasValidFace, avgMotionPerPixel);
+    if (!hasValidFace) {
+        _livenessState.missingFaceFrames = (_livenessState.missingFaceFrames || 0) + 1;
+    } else {
+        _livenessState.missingFaceFrames = 0;
+    }
+    const stableHasFace = (_livenessState.missingFaceFrames < 15);
+
+    evaluateGestureRules(_livenessState.smoothYaw, _livenessState.smoothPitch, stableHasFace, avgMotionPerPixel);
     if (isProcessing) {
         requestAnimationFrame(processFrameDetection);
     }
@@ -4879,25 +5558,24 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
 
     if (!statusEl || !progressBar) return;
 
-    stepIndicator.innerText = t('kyc_step_fmt').replace('{step}', currentStep);
+    setStableElementHtml(stepIndicator, t('kyc_step_fmt').replace('{step}', currentStep));
 
     if (!hasValidFace) {
-        stepProgressTime = Math.max(0, stepProgressTime - 40);
-        if (instructionText) instructionText.innerHTML = `<i class="fa-solid fa-face-viewfinder mr-1"></i> ${t('kyc_no_face')}`;
+        stepProgressTime = Math.max(0, stepProgressTime - 20);
+        setStableElementHtml(instructionText, `<i class="fa-solid fa-face-viewfinder mr-1"></i> ${t('kyc_no_face')}`, 400);
         return;
     }
 
-   if (currentStep === 1 && avgMotion < 0.01 && _livenessState.dynamicMotionSamples.length > 20) {
-        stepProgressTime = Math.max(0, stepProgressTime - 40);
-        if (instructionText) instructionText.innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> ${t('kyc_spoof_detected')}`;
+    if (currentStep === 1 && avgMotion < 0.01 && _livenessState.dynamicMotionSamples.length > 20) {
+        stepProgressTime = Math.max(0, stepProgressTime - 20);
+        setStableElementHtml(instructionText, `<i class="fa-solid fa-shield-halved mr-1"></i> ${t('kyc_spoof_detected')}`, 400);
         return;
     }
 
     if (currentStep === 1) {
-        statusEl.innerHTML = `${t('gesture_step_1')} (${nodCount}/3)`;
+        setStableElementHtml(statusEl, `${t('gesture_step_1')} (${nodCount}/3)`);
         const now = Date.now();
         
-        // 2. Longgarkan batas deteksi anggukan (diffV)
         if (diffV > 1000 && _livenessState.nodPhase === 'neutral') {
             _livenessState.nodPhase = 'down';
         } else if (diffV < -500 && _livenessState.nodPhase === 'down' && (now - _livenessState.lastNodTimestamp > 250)) {
@@ -4912,55 +5590,53 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
         
         lastHeadY = diffV;
         progressBar.style.width = Math.min(100, (nodCount / 3) * 100) + "%";
-        timerText.innerText = t('kyc_nod_fmt').replace('{count}', Math.min(3, nodCount));
+        setStableElementHtml(timerText, t('kyc_nod_fmt').replace('{count}', Math.min(3, nodCount)));
 
         if (nodCount >= 3) {
             currentStep = 2;
             stepProgressTime = 0;
-            if (instructionText) instructionText.innerHTML = t('kyc_good_left');
+            setStableElementHtml(instructionText, t('kyc_good_left'));
         } else {
-            if (instructionText) instructionText.innerHTML = t('kyc_instr_nod');
+            setStableElementHtml(instructionText, t('kyc_instr_nod'), 350);
         }
     }
     else if (currentStep === 2) {
-        statusEl.innerHTML = t('gesture_step_2');
+        setStableElementHtml(statusEl, t('gesture_step_2'));
         if (diffH > 5500) { 
             stepProgressTime += 55; 
-            if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
+            setStableElementHtml(instructionText, t('kyc_pos_hold'), 350);
         } else {
             stepProgressTime = Math.max(0, stepProgressTime - 5);
-            if (instructionText) instructionText.innerHTML = t('kyc_instr_left');
+            setStableElementHtml(instructionText, t('kyc_instr_left'), 350);
         }
         progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
-        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+        setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
 
         if (stepProgressTime >= requiredHoldTime) { currentStep = 3; stepProgressTime = 0; }
     }
     else if (currentStep === 3) {
-        statusEl.innerHTML = t('gesture_step_3');
+        setStableElementHtml(statusEl, t('gesture_step_3'));
         if (diffH < -5500) { 
             stepProgressTime += 55;
-            if (instructionText) instructionText.innerHTML = t('kyc_pos_hold');
+            setStableElementHtml(instructionText, t('kyc_pos_hold'), 350);
         } else {
             stepProgressTime = Math.max(0, stepProgressTime - 5);
-            if (instructionText) instructionText.innerHTML = t('kyc_instr_right');
+            setStableElementHtml(instructionText, t('kyc_instr_right'), 350);
         }
         progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
-        timerText.innerText = `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`;
+        setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
 
         if (stepProgressTime >= requiredHoldTime) { currentStep = 4; stepProgressTime = 0; }
     }
     else if (currentStep === 4) {
-        statusEl.innerHTML = t('gesture_step_4');
-        if (instructionText) instructionText.innerHTML = t('kyc_pos_front_cap');
+        setStableElementHtml(statusEl, t('gesture_step_4'));
+        setStableElementHtml(instructionText, t('kyc_pos_front_cap'));
         
-        // Kosongkan timerText agar tidak ada timer yang muncul di layar
-        timerText.innerText = "";
+        setStableElementHtml(timerText, "");
         progressBar.style.width = "100%";
 
         if (isProcessing) {
             isProcessing = false;
-            // Jeda 5 detik (5000ms) sebelum otomatis menjepret foto
             setTimeout(() => {
                 triggerAutoCapture();
             }, 5000);
@@ -5053,53 +5729,74 @@ function triggerAutoCapture() {
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-yellow-400'); btn.classList.add('text-gray-400'); });
             btnElement.classList.remove('text-gray-400'); btnElement.classList.add('text-yellow-400');
         }
-       function showModal(title, message, iconClass = "fa-bell") {
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-body').innerHTML = message;
-    document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
-    // Haptic Feedback / Efek Getar Telegram
-    if (tg && tg.HapticFeedback) {
-        if (iconClass.includes('check')) {
-            tg.HapticFeedback.notificationOccurred('success');
-        } else if (iconClass.includes('exclamation') || iconClass.includes('triangle')) {
-            tg.HapticFeedback.notificationOccurred('error');
-        } else {
-            tg.HapticFeedback.impactOccurred('medium');
+        function showModal(title, message, iconClass = "fa-bell") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerHTML = message;
+            document.getElementById('modal-icon-container').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            let camModal = document.getElementById('camera-modal');
+            let isCameraVisible = camModal && !camModal.classList.contains('hidden');
+            // Matikan efek getar saat kamera KYC sedang aktif agar kamera tetap diam dan tidak bergetar
+            if (!isProcessing && !isCameraVisible) {
+                if (tg && tg.HapticFeedback) {
+                    if (iconClass.includes('check')) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    } else if (iconClass.includes('exclamation') || iconClass.includes('triangle')) {
+                        tg.HapticFeedback.notificationOccurred('error');
+                    } else {
+                        tg.HapticFeedback.impactOccurred('medium');
+                    }
+                } else if (navigator.vibrate) {
+                    if (iconClass.includes('check')) {
+                        navigator.vibrate([50, 50, 50]);
+                    } else if (iconClass.includes('exclamation')) {
+                        navigator.vibrate([100, 50, 100]);
+                    } else {
+                        navigator.vibrate(50);
+                    }
+                }
+            }
+            let modal = document.getElementById('custom-modal');
+            if (modal) {
+                modal.classList.remove('hidden', 'pointer-events-none');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0', 'scale-95');
+                    modal.classList.add('opacity-100', 'scale-100');
+                }, 10);
+            }
         }
-    } else if (navigator.vibrate) {
-        // Fallback untuk browser biasa
-        if (iconClass.includes('check')) {
-            navigator.vibrate([50, 50, 50]); // Getar 2 kali cepat
-        } else if (iconClass.includes('exclamation')) {
-            navigator.vibrate([100, 50, 100]); // Getar error
-        } else {
-            navigator.vibrate(50); // Getar standar
+
+        // Proteksi Iklan Monetag saat Modal KYC Terbuka
+        function openKycModal() {
+            const adElements = document.querySelectorAll('iframe[src*="libtl"], div[id*="monetag"], ins[class*="ads"]');
+            adElements.forEach(el => el.remove());
+
+            if (typeof show_11929290 === 'function') {
+                window.isKycOpen = true; 
+            }
+
+            let modal = document.getElementById('custom-modal');
+            if (modal) {
+                modal.classList.remove('hidden', 'pointer-events-none');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0', 'scale-95');
+                    modal.classList.add('opacity-100', 'scale-100');
+                }, 10);
+            }
         }
-    }
-       }
-    // Proteksi Iklan Monetag saat Modal KYC Terbuka
-function openKycModal() {
-    // 1. Proteksi & Pembersihan Iklan Monetag
-    const adElements = document.querySelectorAll('iframe[src*="libtl"], div[id*="monetag"], ins[class*="ads"]');
-    adElements.forEach(el => el.remove());
 
-    if (typeof show_11929290 === 'function') {
-        window.isKycOpen = true; 
-    }
-
-    // 2. Tampilkan Modal & Jalankan Animasi
-    let modal = document.getElementById('custom-modal');
-    if (modal) {
-        modal.classList.remove('hidden', 'pointer-events-none');
-        modal.classList.add('flex');
-
-        // Efek Animasi
-        setTimeout(() => {
-            modal.classList.remove('opacity-0', 'scale-95');
-            modal.classList.add('opacity-100', 'scale-100');
-        }, 10);
-    }
-}
+       function closeModal() {
+            window.isKycOpen = false;
+            let modal = document.getElementById('custom-modal');
+            if (!modal) return;
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden', 'pointer-events-none');
+            }, 300);
+        }
     </script>
 </body>
 </html>
