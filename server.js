@@ -22,7 +22,11 @@ mongoose.connect(MONGODB_URI, {
 .then(() => console.log('Berhasil terhubung ke MongoDB Atlas!'))
 .catch(err => console.error('Koneksi MongoDB gagal:', err));
 
-// 4. Skema Pengguna yang Sesuai Presisi dengan Frontend
+// ==========================================
+// 4. SKEMA & MODEL DATABASE
+// ==========================================
+
+// Skema Pengguna
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     username: { type: String, default: 'Tamu' },
@@ -37,10 +41,21 @@ const userSchema = new mongoose.Schema({
     miningEndTime: { type: Number, default: 0 },
     tgTaskEndTime: { type: Number, default: 0 }
 });
-
 const User = mongoose.model('User', userSchema);
 
-// 5. Route untuk Sync / Ambil Data Pengguna
+// Skema Deposit (Sinkron dengan Bot Telegram di Termux)
+const depositSchema = new mongoose.Schema({
+    userId: Number,
+    txhash: String,
+    amount: Number,
+    status: { type: String, default: 'PENDING_APPROVAL' },
+    timestamp: { type: Date, default: Date.now }
+});
+const Deposit = mongoose.model('Deposit', depositSchema);
+
+// ==========================================
+// 5. ROUTE USER (Sync & Update)
+// ==========================================
 app.post('/api/user/sync', async (req, res) => {
     try {
         const { userId, username } = req.body;
@@ -58,7 +73,6 @@ app.post('/api/user/sync', async (req, res) => {
     }
 });
 
-// 6. Route untuk Update & Simpan Data Pengguna
 app.post('/api/user/update', async (req, res) => {
     try {
         const { 
@@ -90,6 +104,43 @@ app.post('/api/user/update', async (req, res) => {
         res.json({ success: true, user: updatedUser });
     } catch (error) {
         console.error("Error Update:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ==========================================
+// 6. ROUTE ADMIN DEPOSIT (Pending & Approve)
+// ==========================================
+
+// Endpoint untuk Admin melihat daftar deposit yang perlu di-approve
+app.get('/api/admin/deposits-pending', async (req, res) => {
+    try {
+        const pendingDeposits = await Deposit.find({ status: 'PENDING_APPROVAL' }).sort({ timestamp: -1 });
+        res.json({ success: true, data: pendingDeposits });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Endpoint untuk Admin menekan tombol "Approve"
+app.post('/api/admin/approve-deposit/:id', async (req, res) => {
+    try {
+        const depositId = req.params.id;
+        const deposit = await Deposit.findById(depositId);
+
+        if (!deposit) {
+            return res.status(404).json({ success: false, message: 'Data deposit tidak ditemukan.' });
+        }
+
+        // Ubah status menjadi APPROVED
+        deposit.status = 'APPROVED';
+        await deposit.save();
+
+        // [OPSIONAL] Jika ingin otomatis menambah saldo user saat di-approve:
+        // await User.findOneAndUpdate({ userId: deposit.userId }, { $inc: { usdtBalance: deposit.amount } });
+
+        res.json({ success: true, message: 'Deposit berhasil disetujui (Approved)!' });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 });
