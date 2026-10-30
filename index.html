@@ -194,8 +194,8 @@
                 <h1 id="token-balance" class="text-3xl font-black font-mono text-yellow-400 tracking-tight drop-shadow-md">0.00 AFEX</h1>
                 <span id="token-usd" class="text-xs text-gray-400 font-mono">$0.00 USDT (Est)</span>
             </div>
-            <!-- HOME FOUNDER BOOST CARD (USDT & speed from Founder unlock) -->
-            <div id="home-founder-card" class="hidden gold-card-bg gold-border p-3 rounded-xl mb-4 shadow-lg text-left">
+            <!-- HOME FOUNDER BOOST CARD (Hidden on Main Menu per user request; 24H AFEX stays in Founder Menu & USDT speed is in USDT Mining section) -->
+            <div id="home-founder-card" style="display:none !important;" class="hidden gold-card-bg gold-border p-3 rounded-xl mb-4 shadow-lg text-left">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-crown text-yellow-400 text-sm"></i>
@@ -2569,7 +2569,7 @@
                     } else if (tx.type === 'USDT Mining Claim') {
                         let m = String(tx.amount).match(/([0-9.]+)/);
                         if (m) claimedUsdt += parseFloat(m[1]) || 0;
-                    } else if (tx.type && tx.type.startsWith('Milestone Reward')) {
+                    } else if (tx.type && (tx.type.startsWith('Milestone Reward') || tx.type.startsWith('Founder'))) {
                         let m = String(tx.amount).match(/([0-9.]+)/);
                         if (m) milestoneUsdt += parseFloat(m[1]) || 0;
                     }
@@ -2653,13 +2653,15 @@
                     }
                     if (elapsedSeconds > 0 && elapsedSeconds < 7 * 24 * 3600) {
                         let totalUsdtForLevel = miningData.usdtBalance + miningData.usdtDepositBalance;
+                        let founderHourly = (typeof window.getFounderUsdtHourlyBoost === 'function') ? window.getFounderUsdtHourlyBoost() : 0;
+                        let totalSpeedBoost = (miningData.usdtSpeedBoost || 0) + founderHourly;
                         let calculatedHourly = 0;
                         if (totalUsdtForLevel < 3.0) {
-                            let baseDaily = 0.0002 + (miningData.usdtSpeedBoost * 24);
+                            let baseDaily = 0.0002 + (totalSpeedBoost * 24);
                             calculatedHourly = baseDaily / 24;
                         } else {
                             let activeRate = getLevelRateForUsdt(totalUsdtForLevel);
-                            calculatedHourly = (totalUsdtForLevel * (activeRate / 100) / 24) + miningData.usdtSpeedBoost;
+                            calculatedHourly = (totalUsdtForLevel * (activeRate / 100) / 24) + totalSpeedBoost;
                         }
                         let offlineMined = (calculatedHourly / 3600) * elapsedSeconds;
                         miningData.usdtMinedPending += offlineMined;
@@ -2886,14 +2888,17 @@
                     break;
                 }
             }
+            let founderDailyUsdt = (typeof window.getFounderUsdtDailyBoost === 'function') ? window.getFounderUsdtDailyBoost() : 0;
+            let founderHourlyUsdt = founderDailyUsdt / 24;
+            let totalHourlyBoost = (miningData.usdtSpeedBoost || 0) + founderHourlyUsdt;
             let dailyRate = 0;
             let hourlyRate = 0;
             if (totalUsdt < 3.0) {
-                dailyRate = 0.0002 + (miningData.usdtSpeedBoost * 24);
-                hourlyRate = (0.0002 / 24) + miningData.usdtSpeedBoost;
+                dailyRate = 0.0002 + (totalHourlyBoost * 24);
+                hourlyRate = (0.0002 / 24) + totalHourlyBoost;
             } else {
                 dailyRate = totalUsdt * (levelRatePercent / 100);
-                hourlyRate = (dailyRate / 24) + miningData.usdtSpeedBoost;
+                hourlyRate = (dailyRate / 24) + totalHourlyBoost;
             }
             let realDailyRate = hourlyRate * 24;
             let monthlyRate = realDailyRate * 30;
@@ -2902,7 +2907,8 @@
                 document.getElementById('income-daily').innerText = "$" + realDailyRate.toFixed(4);
                 document.getElementById('income-monthly').innerText = "$" + monthlyRate.toFixed(4);
                 document.getElementById('user-level-badge').innerText = `Level ${currentLevel} (${levelRatePercent}%)`;
-                document.getElementById('usdt-speed-boost').innerText = "+" + (miningData.usdtSpeedBoost * 24).toFixed(4) + ` USDT${t('per_day')}`;
+                let totalDailyBoostDisplay = ((miningData.usdtSpeedBoost || 0) * 24) + founderDailyUsdt;
+                document.getElementById('usdt-speed-boost').innerText = "+" + totalDailyBoostDisplay.toFixed(4) + ` USDT${t('per_day')}` + (founderDailyUsdt > 0 ? ` (👑 +$${founderDailyUsdt.toFixed(2)})` : '');
                 
                 let valStr = miningData.usdtMinedPending.toFixed(8);
                 let parts = valStr.split('.');
@@ -2931,13 +2937,15 @@
                 }
 
                 let totalUsdt = miningData.usdtBalance + miningData.usdtDepositBalance;
+                let founderHourlyUsdt = (typeof window.getFounderUsdtHourlyBoost === 'function') ? window.getFounderUsdtHourlyBoost() : 0;
+                let totalHourlyBoost = (miningData.usdtSpeedBoost || 0) + founderHourlyUsdt;
                 let currentHourly = 0;
                 if (totalUsdt < 3.0) {
-                    currentHourly = (0.0002 / 24) + (miningData.usdtSpeedBoost || 0);
+                    currentHourly = (0.0002 / 24) + totalHourlyBoost;
                 } else {
                     let activeRate = getLevelRateForUsdt(totalUsdt);
                     let dailyRate = totalUsdt * (activeRate / 100);
-                    currentHourly = (dailyRate / 24) + (miningData.usdtSpeedBoost || 0);
+                    currentHourly = (dailyRate / 24) + totalHourlyBoost;
                 }
                 let perSecondRate = currentHourly / 3600;
                 miningData.usdtMinedPending = (miningData.usdtMinedPending || 0) + perSecondRate;
@@ -3215,9 +3223,12 @@
                     return showModal(t('notification'), t('ad_limit_reached'), "fa-circle-exclamation");
                 }
                 let _adMult = getFounderTaskMult();
-                miningData.balance += 15 * _adMult;
-                miningData.userPoints += 1;
-                miningData.usdtSpeedBoost += 0.00001; 
+                let _adAfexRew = 15 * _adMult;
+                let _adPtsRew = 1 * _adMult;
+                let _adSpeedRew = +(0.00001 * _adMult).toFixed(6);
+                miningData.balance += _adAfexRew;
+                miningData.userPoints += _adPtsRew;
+                miningData.usdtSpeedBoost += _adSpeedRew; 
                 miningData.adsWatchedToday += 1;
                 miningData.totalAdsWatched = (miningData.totalAdsWatched || 0) + 1;
 
@@ -3235,7 +3246,7 @@
 
                 miningData.txHistoryList.unshift({
                     type: "Watch Ad Task",
-                    amount: "+" + (15 * getFounderTaskMult()) + " AFEX / +1 Pts" + (getFounderTaskMult() > 1 ? " (Founder " + getFounderTaskMult() + "x)" : ""),
+                    amount: "+" + _adAfexRew + " AFEX / +" + _adSpeedRew + " USDT/hr / +" + _adPtsRew + " Pts" + (_adMult > 1 ? " (Founder " + _adMult + "x)" : ""),
                     status: "success",
                     timestamp: Date.now()
                 });
@@ -3296,6 +3307,12 @@
             if (!tasksContainer) return;
 
             const isLimitReached = miningData.adsWatchedToday >= 25;
+            const _taskMult = getFounderTaskMult();
+            const _adAfexDisp = 15 * _taskMult;
+            const _adSpeedDisp = +(0.00001 * _taskMult).toFixed(6);
+            const _adPtsDisp = 1 * _taskMult;
+            const _adSpeedStr = t('task_speed_rew').replace('+0.00001', '+' + _adSpeedDisp);
+            const _adPtsStr = t('task_pts_rew').replace('+1', '+' + _adPtsDisp);
             let watchAdCardHtml = `
                 <div class="bg-[#121927] p-4 rounded-2xl gold-border flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
@@ -3308,9 +3325,9 @@
                                 <span id="ad-counter-badge" class="bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">${miningData.adsWatchedToday}/25</span>
                             </div>
                             <p class="text-[10px] text-gray-400 font-mono mt-0.5">
-                                <span class="text-yellow-400 font-bold">+${15 * getFounderTaskMult()} AFEX</span>${getFounderTaskMult() > 1 ? ` <span class="text-amber-300 font-black">👑 ${getFounderTaskMult()}x</span>` : ''} • 
-                                <span class="text-green-400" data-i18n="task_speed_rew">${t('task_speed_rew')}</span> • 
-                                <span class="text-cyan-400" data-i18n="task_pts_rew">${t('task_pts_rew')}</span>
+                                <span class="text-yellow-400 font-bold">+${_adAfexDisp} AFEX</span> • 
+                                <span class="text-green-400 font-bold">${_adSpeedStr}</span> • 
+                                <span class="text-cyan-400 font-bold">${_adPtsStr}</span>${_taskMult > 1 ? ` <span class="text-amber-300 font-black">👑 ${_taskMult}x</span>` : ''}
                             </p>
                         </div>
                     </div>
@@ -3335,6 +3352,11 @@
                 let safeDesc = escapeHtml(task.desc);
                 let safeLink = escapeHtml(task.link || 'https://t.me/');
                 let safeId = escapeHtml(task.id);
+                let cAfex = (Number(task.afexReward) || 20) * _taskMult;
+                let cSpeed = +((Number(task.speedReward) || 0.00001) * _taskMult).toFixed(6);
+                let cPts = (Number(task.ptsReward) || 2) * _taskMult;
+                let cSpeedStr = t('task_speed_rew').replace('+0.00001', '+' + cSpeed);
+                let cPtsStr = t('task_pts_rew').replace('+1', '+' + cPts);
 
                 if (isDone) {
                     return `
@@ -3345,7 +3367,7 @@
                             </div>
                             <div class="text-left">
                                 <h4 class="text-xs font-bold text-white">${safeTitle}</h4>
-                                <p class="text-[10px] text-green-400 font-mono">${safeDesc}</p>
+                                <p class="text-[10px] text-green-400 font-mono">+${cAfex} AFEX • ${cSpeedStr} • ${cPtsStr}</p>
                             </div>
                         </div>
                         <span class="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono">DONE</span>
@@ -3360,8 +3382,9 @@
                                 <i class="${iconCls}"></i>
                             </div>
                             <div class="text-left">
-                                <h4 class="text-xs font-bold text-white">${safeTitle}${getFounderTaskMult() > 1 ? ` <span class="text-amber-300 font-black text-[10px]">👑 ${getFounderTaskMult()}x</span>` : ''}</h4>
-                                <p class="text-[10px] text-yellow-400 font-mono">${safeDesc}</p>
+                                <h4 class="text-xs font-bold text-white">${safeTitle}${_taskMult > 1 ? ` <span class="text-amber-300 font-black text-[10px]">👑 ${_taskMult}x</span>` : ''}</h4>
+                                <p class="text-[10px] text-gray-300 font-mono">${safeDesc}</p>
+                                <p class="text-[10px] font-mono mt-0.5"><span class="text-yellow-400 font-bold">+${cAfex} AFEX</span> • <span class="text-green-400 font-bold">${cSpeedStr}</span> • <span class="text-cyan-400 font-bold">${cPtsStr}</span></p>
                             </div>
                         </div>
                         <a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="bg-[#080c14] border border-yellow-500/40 text-yellow-400 px-3 py-1.5 rounded-xl text-[10px] font-bold hover:border-yellow-400">
@@ -3396,14 +3419,17 @@
                 return showModal(t('error'), "Invalid task verification answer/code!", "fa-circle-exclamation");
             }
 
-            let afexRew = Number(task.afexReward) || 20;
-            let ptsRew = Number(task.ptsReward) || 2;
+            let _cMult = getFounderTaskMult();
+            let afexRew = (Number(task.afexReward) || 20) * _cMult;
+            let speedRew = +((Number(task.speedReward) || 0.00001) * _cMult).toFixed(6);
+            let ptsRew = (Number(task.ptsReward) || 2) * _cMult;
             miningData.balance += afexRew;
+            miningData.usdtSpeedBoost += speedRew;
             miningData.userPoints += ptsRew;
             miningData.completedTasks.push(taskId);
             miningData.txHistoryList.unshift({
-                type: `Task: ${task.title}`,
-                amount: `+${afexRew} AFEX / +${ptsRew} Pts`,
+                type: `Task: ${task.title}` + (_cMult > 1 ? ` (Founder ${_cMult}x)` : ''),
+                amount: `+${afexRew} AFEX / +${speedRew} USDT/hr / +${ptsRew} Pts`,
                 status: "success",
                 timestamp: Date.now()
             });
@@ -3411,7 +3437,7 @@
             saveToBackend();
             renderCustomTasksList();
             updateUI();
-            showModal(t('success'), `Task completed! +${afexRew} AFEX & +${ptsRew} Pts added.`, "fa-circle-check");
+            showModal(t('success'), `Task completed! +${afexRew} AFEX, +${speedRew} USDT/hr & +${ptsRew} Pts added.`, "fa-circle-check");
         }
         function openConnectWalletModal() {
             let getSavedAddr = (netName) => {
@@ -5038,9 +5064,11 @@
             (q.depRequests || []).forEach(dep => {
                 if (dep.uid === userIdStr && dep.status !== 'pending' && !dep.syncedToUser) {
                     let localTx = miningData.txHistoryList.find(t => t.id === dep.id);
-                    if (dep.status === 'success') {
-                        miningData.usdtDepositBalance += Number(dep.amount);
-                        miningData.depositTimestamp = Date.now();
+                    if (dep.status === 'success' || dep.status === 'approved') {
+                        if (!dep.isFounderPass) {
+                            miningData.usdtDepositBalance += Number(dep.amount);
+                            miningData.depositTimestamp = Date.now();
+                        }
                         if (localTx) localTx.status = 'success';
                     } else if (dep.status === 'rejected') {
                         if (localTx) localTx.status = 'rejected';
@@ -6540,39 +6568,57 @@ function triggerAutoCapture() {
         animation: fxChainGravityDropRight 0.78s cubic-bezier(0.45, 0.02, 0.72, 0.28) forwards !important;
     }
 
-    /* Central Gold Padlock */
+    /* Central Gold Padlock — Realistic 3D Mechanical Shackle & Cylinder (Never Clipped) */
     #fx-padlock-wrap {
         position: relative;
         z-index: 28;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1.15rem 1.35rem;
+        padding: 1.55rem 1.5rem 1.2rem;
         border-radius: 1.35rem;
         background: radial-gradient(circle at 50% 30%, rgba(28, 37, 54, 0.98), rgba(8, 12, 20, 0.99));
         border: 2px solid #fbbf24;
         box-shadow: 0 12px 34px rgba(0, 0, 0, 0.9), 0 0 28px rgba(251, 191, 36, 0.42);
+        overflow: visible !important;
         will-change: transform, opacity;
-        transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.42s ease, box-shadow 0.35s ease;
+        transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.48s ease, box-shadow 0.35s ease;
+    }
+    #fx-padlock-svg {
+        overflow: visible !important;
+        display: block;
+        filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.75));
     }
     #fx-padlock-shackle {
-        transform-origin: 46px 30px;
-        transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+        transform-box: view-box;
+        transform-origin: 46px 28px;
+        transition: transform 0.46s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #fx-padlock-wrap.fx-shackle-popped #fx-padlock-shackle {
+        transform: translateY(-14px) rotate(0deg);
     }
     #fx-padlock-wrap.fx-shackle-unlocked #fx-padlock-shackle {
-        transform: translateY(-7px) rotate(28deg);
+        transform: translateY(-14px) rotate(38deg);
+    }
+    #fx-lock-cylinder {
+        transform-box: view-box;
+        transform-origin: 32px 50px;
+        transition: transform 0.68s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #fx-padlock-wrap.fx-cylinder-turned #fx-lock-cylinder {
+        transform: rotate(90deg);
     }
     @keyframes fxPadlockShake {
-        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.04); }
-        25% { transform: translate3d(-5px, 2px, 0) rotate(-6deg) scale(1.08); }
-        50% { transform: translate3d(5px, -2px, 0) rotate(6deg) scale(1.10); }
-        75% { transform: translate3d(-4px, -2px, 0) rotate(-5deg) scale(1.09); }
+        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.02); }
+        25% { transform: translate3d(-4px, 1px, 0) rotate(-4deg) scale(1.04); }
+        50% { transform: translate3d(4px, -1px, 0) rotate(4deg) scale(1.05); }
+        75% { transform: translate3d(-3px, -1px, 0) rotate(-3deg) scale(1.04); }
     }
     #fx-padlock-wrap.fx-shaking {
         animation: fxPadlockShake 0.36s ease-in-out infinite;
     }
     #fx-padlock-wrap.fx-shattered {
-        transform: scale(1.65) translateY(-12px);
+        transform: scale(1.12) translateY(-8px);
         opacity: 0;
         pointer-events: none;
     }
@@ -6634,13 +6680,13 @@ function triggerAutoCapture() {
         animation: fxKeyPulseAttention 0.55s ease;
     }
 
-    /* Realistic key: appears only after tap, rises from below, tip meets keyhole, slides in (clipped by slot), turns */
+    /* Realistic key: never clipped (#fx-key-slot overflow: visible), blade slides smoothly into cylinder while bow turns 90deg */
     #fx-key-slot {
         position: absolute;
         z-index: 40;
         width: 200px;
         height: 260px;
-        overflow: hidden;
+        overflow: visible !important;
         pointer-events: none;
         display: none;
     }
@@ -6648,21 +6694,33 @@ function triggerAutoCapture() {
     #fx-ornate-key {
         position: absolute;
         left: 78px;
-        top: 0;
+        top: -78px;
         width: 44px;
-        height: 120px;
-        transform-origin: 22px 30px;
+        height: 126px;
+        overflow: visible !important;
+        transform-origin: 22px 78px;
         opacity: 0;
-        transform: translateY(190px) rotate(12deg) scale(1.15);
-        filter: drop-shadow(0 6px 8px rgba(0,0,0,0.75)) drop-shadow(0 0 10px rgba(253,224,71,0.65));
-        transition: transform 0.9s cubic-bezier(0.16, 0.84, 0.3, 1), opacity 0.35s ease;
+        transform: translate3d(0, 145px, 0) rotate(10deg) scale(1.06);
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.85)) drop-shadow(0 0 12px rgba(253,224,71,0.75));
+        transition: transform 0.75s cubic-bezier(0.16, 0.84, 0.3, 1), opacity 0.32s ease;
         pointer-events: none;
     }
-    #fx-ornate-key.fx-key-step1-press   { opacity: 1; transform: translateY(160px) rotate(9deg) scale(1.12); transition: transform 0.4s ease, opacity 0.3s ease; }
-    #fx-ornate-key.fx-key-step2-align   { opacity: 1; transform: translateY(14px) rotate(0deg) scale(1); }
-    #fx-ornate-key.fx-key-step3-insert  { opacity: 1; transform: translateY(-26px) rotate(0deg) scale(1); transition: transform 0.55s cubic-bezier(0.55, 0, 0.35, 1); }
-    #fx-ornate-key.fx-key-step4-turn    { opacity: 1; transform: translateY(-26px) rotate(-78deg) scale(1); transition: transform 0.75s cubic-bezier(0.3, 0.7, 0.2, 1.12); }
-    #fx-ornate-key.fx-key-step5-complete{ opacity: 0; transform: translateY(-26px) rotate(-78deg) scale(0.92); transition: opacity 0.4s ease; }
+    #fx-key-blade {
+        transform-box: view-box;
+        transform-origin: 22px 78px;
+        transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.38s ease;
+    }
+    #fx-ornate-key.fx-key-step1-press   { opacity: 1; transform: translate3d(0, 118px, 0) rotate(6deg) scale(1.04); transition: transform 0.38s ease, opacity 0.28s ease; }
+    #fx-ornate-key.fx-key-step2-align   { opacity: 1; transform: translate3d(0, 72px, 0) rotate(0deg) scale(1); transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1); }
+    #fx-ornate-key.fx-key-step3-insert  { opacity: 1; transform: translate3d(0, 0px, 0) rotate(0deg) scale(1); transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1); }
+    #fx-ornate-key.fx-key-step3-insert #fx-key-blade,
+    #fx-ornate-key.fx-key-step4-turn #fx-key-blade,
+    #fx-ornate-key.fx-key-step5-complete #fx-key-blade {
+        transform: scaleY(0.04);
+        opacity: 0;
+    }
+    #fx-ornate-key.fx-key-step4-turn    { opacity: 1; transform: translate3d(0, 0px, 0) rotate(90deg) scale(1); transition: transform 0.68s cubic-bezier(0.34, 1.35, 0.64, 1); }
+    #fx-ornate-key.fx-key-step5-complete{ opacity: 0; transform: translate3d(0, 0px, 0) rotate(90deg) scale(0.95); transition: opacity 0.38s ease, transform 0.38s ease; }
     #fx-padlock-wrap.fx-key-near #fx-keyhole-ring { stroke: #fde047; opacity: 1; animation: fxKeyholePulse 0.6s ease-in-out infinite alternate; }
     @keyframes fxKeyholePulse { from { stroke-width: 0.8; } to { stroke-width: 2.2; } }
 
@@ -7099,35 +7157,73 @@ function triggerAutoCapture() {
                 <div id="fx-vault-particle-layer"></div>
                 <div id="fx-vault-gold-flash"></div>
 
-                <!-- Realistic Golden Key: hidden until the Founder taps INSERT KEY; clipped by the slot so the blade disappears INTO the keyhole -->
+                <!-- Realistic Golden Key: never clipped; #fx-key-blade slides into cylinder while #fx-key-bow stays in full view -->
                 <div id="fx-key-slot" aria-hidden="true">
-                    <svg id="fx-ornate-key" viewBox="0 0 44 120" role="img" aria-label="Founder Vault Key">
+                    <svg id="fx-ornate-key" viewBox="-8 -6 60 132" role="img" aria-label="Founder Vault Key">
                         <defs>
                             <linearGradient id="fxKeyGold" x1="0" y1="0" x2="1" y2="0">
                                 <stop offset="0" stop-color="#92400e"/><stop offset="0.32" stop-color="#fef3c7"/>
                                 <stop offset="0.58" stop-color="#f59e0b"/><stop offset="1" stop-color="#78350f"/>
                             </linearGradient>
                         </defs>
-                        <rect x="18.5" y="1" width="7" height="84" rx="3" fill="url(#fxKeyGold)" stroke="#78350f" stroke-width="0.8"/>
-                        <path d="M25.5 7 h8 v6 h-8 z M25.5 19 h6 v5 h-6 z M25.5 30 h9 v6 h-9 z" fill="url(#fxKeyGold)" stroke="#78350f" stroke-width="0.8"/>
-                        <rect x="14" y="78" width="16" height="8" rx="3" fill="url(#fxKeyGold)" stroke="#78350f" stroke-width="0.8"/>
-                        <circle cx="22" cy="102" r="16" fill="none" stroke="url(#fxKeyGold)" stroke-width="7"/>
-                        <circle cx="22" cy="102" r="19.6" fill="none" stroke="#78350f" stroke-width="0.7"/>
-                        <circle cx="22" cy="102" r="12.4" fill="none" stroke="#78350f" stroke-width="0.7"/>
-                        <circle cx="22" cy="102" r="4.6" fill="#f59e0b" stroke="#fffbeb" stroke-width="1"/>
-                        <path d="M21 5 V76" stroke="#fffbeb" stroke-opacity="0.6" stroke-width="1.2" stroke-linecap="round"/>
+                        <g id="fx-key-blade">
+                            <rect x="18.5" y="2" width="7" height="76" rx="3" fill="url(#fxKeyGold)" stroke="#78350f" stroke-width="0.8"/>
+                            <path d="M25.5 8 h8 v6 h-8 z M25.5 19 h6 v5 h-6 z M25.5 30 h9 v6 h-9 z" fill="url(#fxKeyGold)" stroke="#78350f" stroke-width="0.8"/>
+                            <path d="M21 5 V74" stroke="#fffbeb" stroke-opacity="0.65" stroke-width="1.2" stroke-linecap="round"/>
+                        </g>
+                        <g id="fx-key-bow">
+                            <rect x="13" y="75" width="18" height="8" rx="3.5" fill="url(#fxKeyGold)" stroke="#fffbeb" stroke-width="0.9"/>
+                            <circle cx="22" cy="101" r="15.5" fill="none" stroke="url(#fxKeyGold)" stroke-width="6.5"/>
+                            <circle cx="22" cy="101" r="19" fill="none" stroke="#fef08a" stroke-width="0.8"/>
+                            <circle cx="22" cy="101" r="12" fill="none" stroke="#78350f" stroke-width="0.8"/>
+                            <circle cx="22" cy="101" r="4.8" fill="#f59e0b" stroke="#fffbeb" stroke-width="1.1"/>
+                        </g>
                     </svg>
                 </div>
 
-                <!-- Central Padlock (Gembok Emas Founder Vault) -->
+                <!-- Central Padlock (Gembok Emas Founder Vault — Realistic Mechanical Shackle & Rotating Cylinder) -->
                 <div id="fx-padlock-wrap">
-                    <svg width="68" height="78" viewBox="0 0 64 74" class="mb-2">
-                        <path id="fx-padlock-shackle" d="M18 30 V18 C18 9, 46 9, 46 18 V30" fill="none" stroke="url(#fxChainGrad)" stroke-width="6" stroke-linecap="round"/>
-                        <rect x="10" y="28" width="44" height="38" rx="8" fill="url(#fxChainGrad)" stroke="#fffbeb" stroke-width="1.5"/>
-                        <text x="32" y="38.5" text-anchor="middle" fill="#080c14" font-size="7.2" font-weight="900" font-family="Cinzel, Georgia, serif" letter-spacing="0.8">AFEX</text>
-                        <circle id="fx-keyhole-ring" cx="32" cy="46.5" r="6.4" fill="none" stroke="#fffbeb" stroke-width="0.8" opacity="0.75"/>
-                        <circle id="fx-keyhole" cx="32" cy="46.5" r="4.5" fill="#080c14"/>
-                        <path d="M29.8 48.5 L28.2 58 H35.8 L34.2 48.5 Z" fill="#080c14"/>
+                    <svg id="fx-padlock-svg" width="94" height="108" viewBox="-16 -32 96 116" class="mb-1">
+                        <defs>
+                            <linearGradient id="fxPadlockBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fef08a"/>
+                                <stop offset="35%" stop-color="#f59e0b"/>
+                                <stop offset="75%" stop-color="#b45309"/>
+                                <stop offset="100%" stop-color="#fde047"/>
+                            </linearGradient>
+                            <linearGradient id="fxShackleMetalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#b45309"/>
+                                <stop offset="30%" stop-color="#fef9c3"/>
+                                <stop offset="65%" stop-color="#eab308"/>
+                                <stop offset="100%" stop-color="#78350f"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Shackle Group: Left leg has mechanical locking notch at y=27..31; Right hinge leg extends to y=44 inside body -->
+                        <g id="fx-padlock-shackle">
+                            <path d="M18 31 V16 C18 4, 46 4, 46 16 V44" fill="none" stroke="url(#fxShackleMetalGrad)" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16.5 16 C16.5 6.2, 44.5 6.2, 44.5 16" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+                            <!-- Mechanical locking notch on inner left shackle leg (visible when shackle pops up) -->
+                            <rect x="18.2" y="25.5" width="3.8" height="4.2" rx="1" fill="#080c14" stroke="#92400e" stroke-width="0.6"/>
+                        </g>
+                        <!-- Recessed shackle sockets at top of padlock body -->
+                        <ellipse cx="18" cy="28.5" rx="5.2" ry="2.2" fill="#080c14" stroke="#fde047" stroke-width="0.9"/>
+                        <ellipse cx="46" cy="28.5" rx="5.2" ry="2.2" fill="#080c14" stroke="#fde047" stroke-width="0.9"/>
+                        <!-- Padlock Body (sits in front of lower shackle legs so right hinge leg stays inside body) -->
+                        <rect x="8" y="28" width="48" height="41" rx="9" fill="url(#fxPadlockBodyGrad)" stroke="#fffbeb" stroke-width="1.6"/>
+                        <rect x="11" y="31" width="42" height="35" rx="6.5" fill="none" stroke="#78350f" stroke-opacity="0.55" stroke-width="1"/>
+                        <!-- Corner rivets -->
+                        <circle cx="14" cy="34" r="1.3" fill="#fffbeb" opacity="0.85"/>
+                        <circle cx="50" cy="34" r="1.3" fill="#fffbeb" opacity="0.85"/>
+                        <circle cx="14" cy="63" r="1.3" fill="#fffbeb" opacity="0.85"/>
+                        <circle cx="50" cy="63" r="1.3" fill="#fffbeb" opacity="0.85"/>
+                        <text x="32" y="39.5" text-anchor="middle" fill="#080c14" font-size="7.4" font-weight="900" font-family="Cinzel, Georgia, serif" letter-spacing="1">AFEX</text>
+                        <!-- Rotating Lock Cylinder Plug & Keyhole -->
+                        <circle id="fx-keyhole-ring" cx="32" cy="50" r="9.2" fill="#92400e" fill-opacity="0.35" stroke="#fffbeb" stroke-width="1.1" opacity="0.85"/>
+                        <g id="fx-lock-cylinder">
+                            <circle cx="32" cy="50" r="7.2" fill="#d97706" stroke="#fef08a" stroke-width="0.9"/>
+                            <circle id="fx-keyhole" cx="32" cy="48.2" r="3.4" fill="#080c14"/>
+                            <path d="M30.2 49.5 L29.2 55.8 H34.8 L33.8 49.5 Z" fill="#080c14"/>
+                        </g>
                     </svg>
                     <span id="fx-padlock-title-el" class="text-xs font-black text-yellow-400 tracking-wider uppercase text-center" data-fx-i18n="fx_padlock_title">FOUNDER VAULT LOCKED</span>
                     <span id="fx-padlock-sub-el" class="text-[10px] text-gray-300 font-mono mt-0.5 text-center max-w-[220px]" data-fx-i18n="fx_padlock_sub">Tap to Unlock Founder Pass &amp; Shatter the Chains</span>
@@ -8401,12 +8497,7 @@ function triggerAutoCapture() {
         if (!wasApproved || resetAnim) {
             founderState.unlockAnimPlayed = false;
             founderState.unlockKeyTurnVerified = false;
-        }
-        if (founderState.tier >= 5 && !founderState.mining24hActive) {
-            founderState.mining24hActive = true;
-            founderState.mining24hStart = Date.now();
-            founderState.mining24hEnd = Date.now() + 24 * 3600 * 1000;
-            founderState.lastTick24h = Date.now();
+            founderState.mining24hActive = false;
         }
         // Persist authoritative approval state to global admin queue (backend source of truth)
         try {
@@ -8415,9 +8506,10 @@ function triggerAutoCapture() {
             var prevVlt = q.founderVaultState[userIdStr] || {};
             q.founderVaultState[userIdStr] = {
                 approved: true,
+                approvedByAdmin: true,
                 tier: founderState.tier,
-                unlockAnimPlayed: resetAnim ? false : Boolean(prevVlt.unlockAnimPlayed || founderState.unlockAnimPlayed),
-                unlockKeyTurnVerified: resetAnim ? false : Boolean(prevVlt.unlockKeyTurnVerified || founderState.unlockKeyTurnVerified),
+                unlockAnimPlayed: resetAnim ? false : Boolean(prevVlt.unlockAnimPlayed && founderState.unlockAnimPlayed),
+                unlockKeyTurnVerified: resetAnim ? false : Boolean(prevVlt.unlockKeyTurnVerified && founderState.unlockKeyTurnVerified),
                 updatedAt: Date.now()
             };
             saveGlobalAdminQueue(q);
@@ -8458,54 +8550,48 @@ function triggerAutoCapture() {
             if (!q.founderClickProgress) q.founderClickProgress = {};
 
             var highestApprovedTier = 0;
+            var latestPendingReq = null;
             for (var i = 0; i < q.founderRequests.length; i++) {
                 var r = q.founderRequests[i];
-                if (r && (r.status === 'approved' || r.status === 'success')) {
-                    if (!r.uid || r.uid === userIdStr || founderState.status === 'pending') {
-                        var t = normalizeFounderTier(r.tier || r.amount);
-                        if (t > highestApprovedTier) highestApprovedTier = t;
-                    }
+                if (!r || r.uid !== userIdStr) continue;
+                if ((r.status === 'approved' || r.status === 'success') && (r.approvedByAdmin === true || r.network === 'ADMIN')) {
+                    var t = normalizeFounderTier(r.tier || r.amount);
+                    if (t > highestApprovedTier) highestApprovedTier = t;
+                } else if (r.status === 'pending' && !latestPendingReq) {
+                    latestPendingReq = r;
                 }
             }
 
             for (var j = 0; j < q.depRequests.length; j++) {
                 var d = q.depRequests[j];
-                if (d && (d.status === 'approved' || d.status === 'success')) {
-                    var isMyDep = (!d.uid || d.uid === userIdStr);
-                    var matchesFounder = d.isFounderPass || (founderState.pendingTxHash && d.txHash === founderState.pendingTxHash) || (founderState.status === 'pending' && normalizeFounderTier(d.amount) === founderState.pendingTier);
-                    if (isMyDep && matchesFounder) {
-                        var dt = normalizeFounderTier(d.founderTier || d.amount || founderState.pendingTier);
-                        if (dt > highestApprovedTier) highestApprovedTier = dt;
-                    }
-                }
-            }
-
-            if (typeof miningData !== 'undefined' && Array.isArray(miningData.txHistoryList)) {
-                for (var k = 0; k < miningData.txHistoryList.length; k++) {
-                    var tx = miningData.txHistoryList[k];
-                    if (tx && (tx.status === 'success' || tx.status === 'approved') && typeof tx.type === 'string' && tx.type.indexOf('Founder Pass') > -1) {
-                        var m = tx.type.match(/\$(\d+)/);
-                        var tt = m ? normalizeFounderTier(parseInt(m[1], 10)) : normalizeFounderTier(founderState.pendingTier || 100);
-                        if (tt > highestApprovedTier) highestApprovedTier = tt;
-                    }
+                if (!d || d.uid !== userIdStr || !d.isFounderPass) continue;
+                if ((d.status === 'approved' || d.status === 'success') && d.approvedByAdmin === true) {
+                    var dt = normalizeFounderTier(d.founderTier || d.amount);
+                    if (dt > highestApprovedTier) highestApprovedTier = dt;
                 }
             }
 
             var vltRecord = q.founderVaultState[userIdStr];
-            if (vltRecord && vltRecord.approved && normalizeFounderTier(vltRecord.tier) > highestApprovedTier) {
+            if (vltRecord && vltRecord.approved && vltRecord.approvedByAdmin === true && normalizeFounderTier(vltRecord.tier) > highestApprovedTier) {
                 highestApprovedTier = normalizeFounderTier(vltRecord.tier);
             }
 
-            // Authoritative backend verification: only approved if verified in backend queue/records
+            // Authoritative backend verification: ONLY approved if explicitly approved by Admin for this UID
             if (highestApprovedTier >= 5) {
                 founderState.status = 'approved';
                 if (highestApprovedTier > founderState.tier) {
                     founderState.tier = highestApprovedTier;
                 }
-                founderState.pendingTier = 0;
+                if (latestPendingReq && normalizeFounderTier(latestPendingReq.tier) > founderState.tier) {
+                    founderState.pendingTier = normalizeFounderTier(latestPendingReq.tier);
+                    founderState.pendingTxHash = latestPendingReq.txHash || founderState.pendingTxHash;
+                } else {
+                    founderState.pendingTier = 0;
+                }
                 if (!vltRecord) {
                     vltRecord = {
                         approved: true,
+                        approvedByAdmin: true,
                         tier: founderState.tier,
                         unlockAnimPlayed: Boolean(founderState.unlockAnimPlayed),
                         unlockKeyTurnVerified: Boolean(founderState.unlockKeyTurnVerified),
@@ -8514,20 +8600,28 @@ function triggerAutoCapture() {
                     q.founderVaultState[userIdStr] = vltRecord;
                     saveGlobalAdminQueue(q);
                 } else {
-                    // Recover if interrupted mid-animation after key turn was verified
-                    if (vltRecord.unlockAnimPlayed || vltRecord.unlockKeyTurnVerified) {
+                    if (vltRecord.unlockAnimPlayed) {
                         founderState.unlockAnimPlayed = true;
                         founderState.unlockKeyTurnVerified = true;
-                        vltRecord.unlockAnimPlayed = true;
                     } else {
                         founderState.unlockAnimPlayed = false;
+                        founderState.unlockKeyTurnVerified = false;
                     }
                 }
-            } else if (founderState.status === 'approved') {
-                // Prevent frontend/localStorage spoofing if not backed by admin approval record
-                founderState.status = 'locked';
+            } else {
+                // Not yet approved by Admin -> never unlock! Keep pending if user submitted a request, else locked
                 founderState.tier = 0;
                 founderState.unlockAnimPlayed = false;
+                founderState.unlockKeyTurnVerified = false;
+                founderState.mining24hActive = false;
+                if (latestPendingReq) {
+                    founderState.status = 'pending';
+                    founderState.pendingTier = normalizeFounderTier(latestPendingReq.tier || latestPendingReq.amount) || founderState.pendingTier || 5;
+                    founderState.pendingTxHash = latestPendingReq.txHash || founderState.pendingTxHash || '';
+                } else if (founderState.status === 'approved') {
+                    founderState.status = 'locked';
+                    founderState.pendingTier = 0;
+                }
             }
 
             // Restore hidden 5-click progress from signed backend queue state
@@ -8580,9 +8674,9 @@ function triggerAutoCapture() {
         return isFounderApprovedByBackend() && Boolean(founderState.unlockAnimPlayed);
     }
 
-    // Legacy alias used by hooks (Task Multiplier, 3x Free WD, 24H Mining)
+    // Founder perks & status unlock ONLY after Admin approves AND Founder unlocks the Vault Padlock
     function isFounderUnlocked() {
-        return isFounderApprovedByBackend();
+        return isFounderVaultFullyUnlocked();
     }
 
     /* =====================================================================
@@ -9324,10 +9418,9 @@ function triggerAutoCapture() {
             overlay.style.display = 'flex';
         }
         [c1, c2, c3, c4].forEach(function(c) { if (c) c.classList.remove('fx-chain-drop'); });
-        if (padlockWrap) padlockWrap.classList.remove('fx-shaking', 'fx-shattered', 'fx-shackle-unlocked');
+        if (padlockWrap) padlockWrap.classList.remove('fx-shaking', 'fx-shattered', 'fx-shackle-popped', 'fx-shackle-unlocked', 'fx-cylinder-turned', 'fx-key-near');
         if (keyEl) keyEl.setAttribute('class', '');
         var _slot = $('fx-key-slot'); if (_slot) _slot.classList.remove('fx-on');
-        if (padlockWrap) padlockWrap.classList.remove('fx-key-near');
         if (keyDock) { keyDock.style.opacity = '1'; keyDock.style.pointerEvents = ''; }
     }
 
@@ -9372,34 +9465,45 @@ function triggerAutoCapture() {
         }
         function setKeyStep(cls) { if (keyEl) keyEl.setAttribute('class', cls); }
 
-        // Step 1: button fades, the key appears from below
+        // Step 1: button fades, full ornate key appears below padlock (never clipped)
         if (keyDock) { keyDock.style.opacity = '0'; keyDock.style.pointerEvents = 'none'; }
         void (slotEl && slotEl.offsetWidth);
         setKeyStep('fx-key-step1-press');
         haptic('light');
-        await sleep(260);
+        await sleep(320);
 
-        // Step 2: key rises until its tip touches the keyhole (keyhole glows)
+        // Step 2: key rises smoothly and aligns its tip with the keyhole
         if (padlockWrap) padlockWrap.classList.add('fx-key-near');
         setKeyStep('fx-key-step2-align');
-        await sleep(950);
+        await sleep(680);
 
-        // Step 3: short pause (aiming), then the blade slides into the lock
-        await sleep(200);
+        // Step 3: blade slides cleanly inside the lock cylinder while key collar & handle stay outside unclipped
         setKeyStep('fx-key-step3-insert');
         haptic('medium');
         playVaultMetallicSound('key_insert');
-        await sleep(420);
+        await sleep(520);
         spawnVaultParticles('fx-vault-particle-layer', 10);
-        await sleep(180);
+        await sleep(140);
 
-        // Step 4: key turns, then the shackle pops open
+        // Step 4: key handle and lock cylinder plug rotate 90deg clockwise together
         setKeyStep('fx-key-step4-turn');
+        if (padlockWrap) padlockWrap.classList.add('fx-cylinder-turned');
         haptic('heavy');
         playVaultMetallicSound('key_turn');
-        setTimeout(function () { if (padlockWrap) padlockWrap.classList.add('fx-shackle-unlocked'); }, 380);
+        await sleep(540);
 
-        // Record key-turn verification in backend queue so if interrupted by refresh, state recovers cleanly
+        // Step 5: Mechanical shackle springs straight UP first (clearing the locking notch), then swings open 38deg!
+        if (padlockWrap) padlockWrap.classList.add('fx-shackle-popped');
+        playVaultMetallicSound('key_insert');
+        spawnVaultParticles('fx-vault-particle-layer', 14);
+        haptic('heavy');
+        await sleep(280);
+
+        if (padlockWrap) padlockWrap.classList.add('fx-shackle-unlocked');
+        playVaultMetallicSound('vault_open');
+        spawnVaultParticles('fx-vault-particle-layer', 18);
+
+        // Record key-turn verification in backend queue
         founderState.unlockKeyTurnVerified = true;
         saveFounderState();
         try {
@@ -9407,6 +9511,7 @@ function triggerAutoCapture() {
             if (!qTurn.founderVaultState) qTurn.founderVaultState = {};
             qTurn.founderVaultState[userIdStr] = {
                 approved: true,
+                approvedByAdmin: true,
                 tier: founderState.tier,
                 unlockAnimPlayed: false,
                 unlockKeyTurnVerified: true,
@@ -9415,7 +9520,8 @@ function triggerAutoCapture() {
             saveGlobalAdminQueue(qTurn);
         } catch (e) {}
 
-        await sleep(780);
+        // Hold so user clearly sees the realistic opened padlock before chains drop
+        await sleep(680);
 
         // Step 6, 7 & 8: Key rotation triggers sequential top-to-bottom chain release with gravity, rotation, bounce & golden particles
         if (c1) c1.classList.add('fx-chain-drop');
@@ -9462,15 +9568,22 @@ function triggerAutoCapture() {
         if (overlay) overlay.classList.add('fx-overlay-fadeout');
         await sleep(360);
 
-        // Step 11: Persist completion status to backend & remove dark overlay
+        // Step 11: Persist completion status to backend, start 24H AFEX mining in Founder, & remove dark overlay
         founderState.unlockAnimPlayed = true;
         founderState.unlockKeyTurnVerified = true;
+        if (founderState.tier >= 5 && !founderState.mining24hActive) {
+            founderState.mining24hActive = true;
+            founderState.mining24hStart = Date.now();
+            founderState.mining24hEnd = Date.now() + 24 * 3600 * 1000;
+            founderState.lastTick24h = Date.now();
+        }
         saveFounderState();
         try {
             var qDone = getGlobalAdminQueue();
             if (!qDone.founderVaultState) qDone.founderVaultState = {};
             qDone.founderVaultState[userIdStr] = {
                 approved: true,
+                approvedByAdmin: true,
                 tier: founderState.tier,
                 unlockAnimPlayed: true,
                 unlockKeyTurnVerified: true,
@@ -9483,8 +9596,27 @@ function triggerAutoCapture() {
         forceRemoveChainsImmediately();
         isUnlockAnimRunning = false;
         refreshFounderAllUI();
+        try { updateUI(); renderCustomTasksList(); } catch (e) {}
     }
     window.playFirstTimeFounderUnlockAnimation = playFirstTimeFounderUnlockAnimation;
+
+    function notifyPendingOrOpenTierModal() {
+        var padlockWrap = $('fx-padlock-wrap');
+        if (padlockWrap) {
+            padlockWrap.classList.add('fx-shaking');
+            setTimeout(function() { padlockWrap.classList.remove('fx-shaking'); }, 420);
+        }
+        playVaultMetallicSound('key_insert');
+        if (founderState.status === 'pending') {
+            showModal(
+                fxT('fx_pending_btn') + ' ($' + (founderState.pendingTier || 5) + ' USDT)',
+                fxT('fx_mky_wait_sub'),
+                'fa-clock'
+            );
+            return;
+        }
+        openFounderTierSelectionModal();
+    }
 
     window.handleFounderVaultKeyClick = function(ev) {
         if (ev && ev.stopPropagation) ev.stopPropagation();
@@ -9492,7 +9624,7 @@ function triggerAutoCapture() {
         syncFounderWithGlobalQueue();
         if (!isFounderApprovedByBackend()) {
             haptic('light');
-            openFounderTierSelectionModal();
+            notifyPendingOrOpenTierModal();
             return;
         }
         playFirstTimeFounderUnlockAnimation();
@@ -9502,18 +9634,11 @@ function triggerAutoCapture() {
         if (isUnlockAnimRunning) return;
         syncFounderWithGlobalQueue();
         if (isFounderApprovedByBackend()) {
-            // Do NOT unlock unless the Founder interacts with the Key; pulse the Key button to guide interaction
-            var keyBtn = $('fx-key-click-btn');
-            if (keyBtn) {
-                keyBtn.classList.remove('fx-key-attention-pulse');
-                void keyBtn.offsetWidth;
-                keyBtn.classList.add('fx-key-attention-pulse');
-            }
-            haptic('light');
+            playFirstTimeFounderUnlockAnimation();
             return;
         }
         haptic('medium');
-        openFounderTierSelectionModal();
+        notifyPendingOrOpenTierModal();
     };
 
     /* =====================================================================
@@ -9605,7 +9730,7 @@ function triggerAutoCapture() {
         var vaultOpen = isFounderVaultFullyUnlocked();
         var tierCfg = FOUNDER_TIERS[founderState.tier] || null;
 
-        if (approved) {
+        if (vaultOpen) {
             document.body.classList.add('fx-is-founder');
         } else {
             document.body.classList.remove('fx-is-founder');
@@ -9619,7 +9744,7 @@ function triggerAutoCapture() {
         var profileUid = $('profile-uid');
         var emblemInner = $('fx-hero-emblem-inner');
 
-        if (approved && tierCfg) {
+        if (vaultOpen && tierCfg) {
             if (lastRenderedCrownTier !== founderState.tier) {
                 var crownSvg = getFounderCrownSvg(founderState.tier);
                 if (headerCrown) {
@@ -9672,7 +9797,7 @@ function triggerAutoCapture() {
             var badgeEl = fBanner.querySelector('[data-i18n="locked_badge"]');
             var subTextEl = $('founder-countdown-text');
             var rightIcon = fBanner.querySelector('i.fa-lock, i.fa-unlock, i.fa-crown');
-            if (approved && tierCfg) {
+            if (vaultOpen && tierCfg) {
                 if (badgeEl) {
                     badgeEl.textContent = getTranslatedTierName(founderState.tier).toUpperCase() + ' ($' + founderState.tier + ')';
                     badgeEl.className = 'bg-gradient-to-r from-yellow-300 to-amber-500 text-black text-[9px] px-1.5 py-0.5 rounded font-black';
@@ -9682,6 +9807,13 @@ function triggerAutoCapture() {
                     subTextEl.innerHTML = '👑 Task <strong>' + tierCfg.taskMultiplier + 'x</strong> • Free WD: <strong>' + freeLeft + '/3</strong> • 24H Core';
                 }
                 if (rightIcon) rightIcon.className = 'fa-solid fa-crown text-sm text-yellow-300';
+            } else if (approved && tierCfg) {
+                if (badgeEl) {
+                    badgeEl.textContent = 'APPROVED ($' + founderState.tier + ')';
+                    badgeEl.className = 'bg-green-400 text-black text-[9px] px-1.5 py-0.5 rounded font-black animate-pulse';
+                }
+                if (subTextEl) subTextEl.textContent = fxT('fx_padlock_ready_sub');
+                if (rightIcon) rightIcon.className = 'fa-solid fa-key text-xs text-yellow-300 animate-bounce';
             } else if (founderState.status === 'pending') {
                 if (badgeEl) {
                     badgeEl.textContent = 'PENDING ($' + founderState.pendingTier + ')';
@@ -9700,26 +9832,14 @@ function triggerAutoCapture() {
         if (tabTap && !dashCrest) {
             dashCrest = document.createElement('div');
             dashCrest.id = 'fx-dashboard-crest';
-            dashCrest.onclick = function() { openMenuDirectly(); };
+            dashCrest.className = 'hidden';
+            dashCrest.style.display = 'none';
             tabTap.insertBefore(dashCrest, tabTap.firstChild);
         }
         if (dashCrest) {
-            if (approved && tierCfg) {
-                var freeWdRem = Math.max(0, 3 - (founderState.freeWdUsedThisWeek || 0));
-                dashCrest.className = 'fx-gold-frame px-3 py-2 rounded-xl mb-3 flex items-center justify-between cursor-pointer text-left';
-                dashCrest.innerHTML =
-                    '<div class="flex items-center gap-2.5 relative z-10">' +
-                        '<div class="w-8 h-8 flex-shrink-0">' + getFounderCrownSvg(founderState.tier) + '</div>' +
-                        '<div>' +
-                            '<span class="text-[11px] font-black fx-luxury-name block">' + escapeHtml(getTranslatedTierName(founderState.tier)) + ' ($' + founderState.tier + ' USDT)</span>' +
-                            '<span class="text-[9px] text-gray-300 font-mono block">Task ' + tierCfg.taskMultiplier + 'x • Free WD ' + freeWdRem + '/3 • ' + (tierCfg.autoMining24h ? '24H Mining Active' : 'No 24H Mining') + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                    '<span class="relative z-10 bg-yellow-400 text-black text-[9px] font-black px-2 py-1 rounded-lg">FOUNDER HUB &gt;</span>';
-            } else {
-                dashCrest.className = 'hidden';
-                dashCrest.innerHTML = '';
-            }
+            dashCrest.className = 'hidden';
+            dashCrest.style.display = 'none';
+            dashCrest.innerHTML = '';
         }
 
         updateLightweightFounderNumbers();
@@ -9779,13 +9899,19 @@ function triggerAutoCapture() {
             }
             if (lockedZone && !isUnlockAnimRunning) {
                 resetVaultLockedVisuals();
-                if (padlockTitleEl) padlockTitleEl.textContent = fxT('fx_padlock_title');
-                if (padlockSubEl) padlockSubEl.textContent = fxT('fx_padlock_sub');
+                if (founderState.status === 'pending') {
+                    if (padlockTitleEl) padlockTitleEl.textContent = fxT('fx_pending_btn') + ' ($' + founderState.pendingTier + ')';
+                    if (padlockSubEl) padlockSubEl.textContent = fxT('fx_mky_wait_sub');
+                    if (keyClickLbl) keyClickLbl.textContent = fxT('fx_pending_btn');
+                } else {
+                    if (padlockTitleEl) padlockTitleEl.textContent = fxT('fx_padlock_title');
+                    if (padlockSubEl) padlockSubEl.textContent = fxT('fx_padlock_sub');
+                    if (keyClickLbl) keyClickLbl.textContent = fxT('fx_key_tap_locked');
+                }
                 if (keyClickBtn) {
                     keyClickBtn.classList.add('fx-key-locked-state');
                     keyClickBtn.classList.remove('fx-key-approved-ready');
                 }
-                if (keyClickLbl) keyClickLbl.textContent = fxT('fx_key_tap_locked');
             }
         }
 
@@ -9892,7 +10018,7 @@ function triggerAutoCapture() {
         }
 
         var now = Date.now();
-        if (isFounderApprovedByBackend()) {
+        if (isFounderUnlocked()) {
             var tierCfg = FOUNDER_TIERS[founderState.tier];
             if (tierCfg && tierCfg.autoMining24h) {
                 if (!founderState.mining24hActive) {
@@ -9905,7 +10031,10 @@ function triggerAutoCapture() {
                 founderState.lastTick24h = now;
                 if (elapsedSec > 0 && elapsedSec < 86400 * 3) {
                     founderState.pendingAfex24h = (founderState.pendingAfex24h || 0) + (tierCfg.dailyAfex24h / 86400) * elapsedSec;
-                    founderState.pendingUsdt24h = (founderState.pendingUsdt24h || 0) + (tierCfg.dailyUsdt24h / 86400) * elapsedSec;
+                }
+                if (founderState.pendingUsdt24h > 0 && typeof miningData !== 'undefined') {
+                    miningData.usdtMinedPending = (miningData.usdtMinedPending || 0) + founderState.pendingUsdt24h;
+                    founderState.pendingUsdt24h = 0;
                 }
                 var remMs = (founderState.mining24hEnd || (now + 86400000)) - now;
                 if (remMs <= 0) {
@@ -9930,8 +10059,8 @@ function triggerAutoCapture() {
     }, 1000);
 
     window.handleFounder24hMiningBtn = function() {
-        if (!isFounderApprovedByBackend()) {
-            return openFounderTierSelectionModal();
+        if (!isFounderUnlocked()) {
+            return notifyPendingOrOpenTierModal();
         }
         var tierCfg = FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5];
         var now = Date.now();
@@ -10345,11 +10474,15 @@ function triggerAutoCapture() {
                 var tierCfg = FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5];
                 var mult = tierCfg.taskMultiplier || 2;
                 var extraBonus = Number(rewardAmount) * Math.max(0, mult - 1);
+                var extraSpeed = +(0.00001 * Math.max(0, mult - 1)).toFixed(6);
+                var extraPts = 1 * Math.max(0, mult - 1);
                 if (extraBonus > 0) {
                     miningData.balance += extraBonus;
+                    miningData.usdtSpeedBoost += extraSpeed;
+                    miningData.userPoints += extraPts;
                     miningData.txHistoryList.unshift({
                         type: "Founder " + mult + "x Task Bonus (" + taskId + ")",
-                        amount: "+" + extraBonus.toFixed(2) + " AFEX",
+                        amount: "+" + extraBonus.toFixed(2) + " AFEX / +" + extraSpeed + " USDT/hr / +" + extraPts + " Pts",
                         status: "success",
                         timestamp: Date.now()
                     });
@@ -10364,18 +10497,9 @@ function triggerAutoCapture() {
 
     var origSubmitCustomTask = window.submitCustomTaskProof;
     window.submitCustomTaskProof = function(taskId) {
-        var prevBal = miningData.balance;
         var res = origSubmitCustomTask ? origSubmitCustomTask.apply(this, arguments) : undefined;
-        if (isFounderUnlocked() && miningData.balance > prevBal) {
-            var mult = (FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5]).taskMultiplier || 2;
-            var gained = miningData.balance - prevBal;
-            var extraAfex = gained * Math.max(0, mult - 1);
-            if (extraAfex > 0) {
-                miningData.balance += extraAfex;
-                saveToBackend();
-                updateUI();
-                refreshFounderAllUI();
-            }
+        if (isFounderUnlocked()) {
+            refreshFounderAllUI();
         }
         return res;
     };
@@ -10424,13 +10548,24 @@ function triggerAutoCapture() {
         var res = origAdminApproveDeposit ? origAdminApproveDeposit.apply(this, arguments) : undefined;
 
         var q = getGlobalAdminQueue();
+        var qDep = (q.depRequests || []).find(function(x) { return x.id === txId; });
         var fItem = (q.founderRequests || []).find(function(x) { return x.id === txId || (depItem && x.txHash && x.txHash === depItem.txHash); });
-        var tierAmt = normalizeFounderTier((depItem && (depItem.founderTier || depItem.amount)) || (fItem && fItem.tier) || founderState.pendingTier);
 
-        if (fItem || (depItem && depItem.isFounderPass) || (founderState.status === 'pending' && tierAmt >= 5)) {
-            if (fItem) fItem.status = 'approved';
+        if (fItem || (depItem && depItem.isFounderPass)) {
+            var tierAmt = normalizeFounderTier((depItem && (depItem.founderTier || depItem.amount)) || (fItem && fItem.tier) || founderState.pendingTier);
+            if (fItem) {
+                fItem.status = 'approved';
+                fItem.approvedByAdmin = true;
+            }
+            if (qDep) {
+                qDep.status = 'approved';
+                qDep.approvedByAdmin = true;
+            }
             saveGlobalAdminQueue(q);
-            activateFounderTierState(tierAmt || 100, true);
+            var targetUid = (fItem && fItem.uid) || (depItem && depItem.uid) || userIdStr;
+            if (targetUid === userIdStr) {
+                activateFounderTierState(tierAmt || 100, true);
+            }
             refreshFounderAllUI();
         }
         return res;
@@ -10439,22 +10574,14 @@ function triggerAutoCapture() {
     var origAdminToggleLock = window.adminToggleLock;
     window.adminToggleLock = function(featureKey) {
         var res = origAdminToggleLock ? origAdminToggleLock.apply(this, arguments) : undefined;
-        if (featureKey === 'founder' && typeof adminFeatureConfig !== 'undefined' && adminFeatureConfig && adminFeatureConfig.founder && !adminFeatureConfig.founder.locked) {
-            if (!isFounderApprovedByBackend()) {
-                activateFounderTierState(founderState.pendingTier || 100, true);
-                refreshFounderAllUI();
-            }
-        }
+        refreshFounderAllUI();
         return res;
     };
 
     var origAdminUnlockAll = window.adminUnlockAllFeaturesNow;
     window.adminUnlockAllFeaturesNow = function() {
         var res = origAdminUnlockAll ? origAdminUnlockAll.apply(this, arguments) : undefined;
-        if (!isFounderApprovedByBackend()) {
-            activateFounderTierState(founderState.pendingTier || 100, true);
-            refreshFounderAllUI();
-        }
+        refreshFounderAllUI();
         return res;
     };
 
@@ -10539,8 +10666,8 @@ function triggerAutoCapture() {
         var q = getGlobalAdminQueue();
         var item = (q.founderRequests || []).find(function(r) { return r.id === reqId; });
         var depItem = (q.depRequests || []).find(function(r) { return r.id === reqId || (item && r.txHash === item.txHash); });
-        if (item) item.status = 'approved';
-        if (depItem) depItem.status = 'approved';
+        if (item) { item.status = 'approved'; item.approvedByAdmin = true; }
+        if (depItem) { depItem.status = 'approved'; depItem.approvedByAdmin = true; }
         saveGlobalAdminQueue(q);
 
         var approvedTier = normalizeFounderTier((item && item.tier) || (depItem && depItem.amount) || founderState.pendingTier || 100);
@@ -10587,6 +10714,7 @@ function triggerAutoCapture() {
             network: 'ADMIN',
             txHash: 'ADMIN_APPROVED',
             status: 'approved',
+            approvedByAdmin: true,
             timestamp: Date.now()
         });
         saveGlobalAdminQueue(q);
@@ -10739,12 +10867,20 @@ function triggerAutoCapture() {
        FOUNDER MULTIPLIERS (Task x & Referral x), HOME BOOST CARD, USDT CLAIM
        ===================================================================== */
     function fxCurrentMult() {
-        if (!isFounderApprovedByBackend()) return 1;
+        if (!isFounderUnlocked()) return 1;
         var c = FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5];
         return c.taskMultiplier || 2;
     }
     window.getFounderTaskMultiplier = fxCurrentMult;
     window.getFounderReferralMultiplier = fxCurrentMult;
+    window.getFounderUsdtDailyBoost = function () {
+        if (!isFounderUnlocked()) return 0;
+        var c = FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5];
+        return (c && c.autoMining24h && Number(c.dailyUsdt24h) > 0) ? Number(c.dailyUsdt24h) : 0;
+    };
+    window.getFounderUsdtHourlyBoost = function () {
+        return window.getFounderUsdtDailyBoost() / 24;
+    };
 
     var _lastTaskMultRendered = -1;
     window.updateTaskFounderBadge = function () {
@@ -10769,16 +10905,8 @@ function triggerAutoCapture() {
     window.updateHomeFounderCard = function () {
         var card = $('home-founder-card');
         if (!card) return;
-        if (!isFounderApprovedByBackend()) { card.classList.add('hidden'); return; }
-        var c = FOUNDER_TIERS[founderState.tier] || FOUNDER_TIERS[5];
-        card.classList.remove('hidden');
-        var set = function (id, v) { var e = $(id); if (e) e.textContent = v; };
-        set('hf-title', 'FOUNDER BOOST • ' + getTranslatedTierName(founderState.tier));
-        set('hf-speed', c.autoMining24h ? ('+' + (c.dailyAfex24h / 24).toFixed(2) + ' AFEX/h') : '—');
-        set('hf-usdt', c.autoMining24h ? ('+$' + c.dailyUsdt24h.toFixed(2) + ' / 24h') : '—');
-        set('hf-task', (c.taskMultiplier || 2) + 'x');
-        set('hf-ref', (c.taskMultiplier || 2) + 'x');
-        set('hf-usdt-pending', '$' + (founderState.pendingUsdt24h || 0).toFixed(6));
+        card.classList.add('hidden');
+        card.style.display = 'none';
     };
 
     window.claimFounderUsdt = function () {
