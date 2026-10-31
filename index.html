@@ -662,6 +662,8 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         const BACKEND_URL = "https://afex-backend.onrender.com";
+        // Withdraw & notifikasi bot memakai backend utama di Render
+        const WITHDRAW_BACKEND_URL = BACKEND_URL;
         const SPREADSHEET_URL = "https://script.google.com/macros/s/AKfycbx5lowTqtszlnXTvRkLL3cRCdgqD1Rs25_v_qpXr0_N5JCX5N0ymDcHDXiAr_68uBxY/exec";
         const SCRIPT_URL_WD = SPREADSHEET_URL;
         const SCRIPT_URL_DEP = SPREADSHEET_URL;
@@ -757,7 +759,7 @@
                 proof_payouts_title: "Global Live Payouts", no_payouts: "No public payout records yet.",
                 level_info_title: "Level Scheme & Monthly Income:", tx_history_title: "Transaction History", no_tx_history: "No transaction history yet.",
                 wd_history_title: "Withdraw History", no_wd_history: "No withdrawal history yet.",
-                dep_network_label: "Select Deposit Network", dep_amount_label: "Enter Withdrawal Amount", dep_addr_label: "Deposit Target Address",
+                dep_network_label: "Select Deposit Network", dep_amount_label: "Enter Deposit Amount", dep_addr_label: "Deposit Target Address",
                 pay_txhash_btn: "PAY & SUBMIT TXHASH", enter_txhash_label: "Enter Transaction TxHash", confirm_dep_title: "Confirm Deposit Payment",
                 deposit_review_msg: "Transaction is under review, please wait and check periodically in transaction menu.",
                 about_content_title: "About AFEX Token", about_desc_p1: "AFEX Token is a next-generation decentralized digital asset built on robust multi-chain architecture, engineered to power high-speed Web3 utilities, secure staking ecosystems, and automated reward mining worldwide.",
@@ -843,7 +845,7 @@
                 proof_payouts_title: "Bukti Penarikan Global", no_payouts: "Belum ada catatan payout publik.",
                 level_info_title: "Skema Level & Pendapatan Bulanan:", tx_history_title: "Riwayat Transaksi", no_tx_history: "Belum ada riwayat transaksi.",
                 wd_history_title: "Riwayat Penarikan", no_wd_history: "Belum ada riwayat penarikan.",
-                dep_network_label: "Pilih Jaringan Deposit", dep_amount_label: "Masukkan Jumlah Penarikan", dep_addr_label: "Alamat Tujuan Deposit",
+                dep_network_label: "Pilih Jaringan Deposit", dep_amount_label: "Masukkan Jumlah Deposit", dep_addr_label: "Alamat Tujuan Deposit",
                 pay_txhash_btn: "BAYAR & MASUKKAN TXHASH", enter_txhash_label: "Masukkan TxHash / ID Transaksi", confirm_dep_title: "Konfirmasi Pembayaran Deposit",
                 deposit_review_msg: "Transaksi sedang di review silahkan tunggu dan cek berkala di menu transaction.",
                 about_content_title: "Tentang Token AFEX", about_desc_p1: "AFEX Token adalah aset digital terdesentralisasi generasi berikutnya yang dibangun di atas arsitektur multi-rantai yang kokoh, dirancang untuk mendukung utilitas Web3 berkecepatan tinggi, ekosistem staking yang aman, dan penambangan hadiah otomatis di seluruh dunia.",
@@ -1496,7 +1498,7 @@
                 proof_payouts_title: "Pandaigdigang Live Payouts", no_payouts: "Wala pang pampublikong record ng payout.",
                 level_info_title: "Skema ng Level at Buwanang Kita:", tx_history_title: "Histroya ng Transaksyon", no_tx_history: "Wala pang history ng transaksyon.",
                 wd_history_title: "Histroya ng Withdrawal", no_wd_history: "Wala pang history ng withdrawal.",
-                dep_network_label: "Pumili ng Network ng Deposito", dep_amount_label: "Ipasok ang Halaga ng Withdrawal", dep_addr_label: "Target na Address",
+                dep_network_label: "Pumili ng Network ng Deposito", dep_amount_label: "Ipasok ang Halaga ng Deposito", dep_addr_label: "Target na Address",
                 pay_txhash_btn: "MAGBAYAD AT IPASA ANG TXHASH", enter_txhash_label: "Ipasok ang TxHash ng Transaksyon", confirm_dep_title: "Kumpirmahin ang Deposito",
                 deposit_review_msg: "Sinusuri pa ang transaksyon, pakitingnan sa menu ng transaksyon.",
                 about_content_title: "Tungkol sa AFEX Token", about_desc_p1: "Ang AFEX Token ay isang desentralisadong digital asset para sa mabilis na Web3 services.",
@@ -1658,7 +1660,7 @@
                 proof_payouts_title: "Pembayaran Langsung Global", no_payouts: "Tiada rekod pembayaran awam lagi.",
                 level_info_title: "Skim Tahap & Pendapatan Bulanan:", tx_history_title: "Sejarah Transaksi", no_tx_history: "Tiada sejarah transaksi lagi.",
                 wd_history_title: "Sejarah Pengeluaran", no_wd_history: "Tiada sejarah pengeluaran lagi.",
-                dep_network_label: "Pilih Rangkaian Deposit", dep_amount_label: "Masukkan Jumlah Pengeluaran", dep_addr_label: "Alamat Sasaran Deposit",
+                dep_network_label: "Pilih Rangkaian Deposit", dep_amount_label: "Masukkan Jumlah Deposit", dep_addr_label: "Alamat Sasaran Deposit",
                 pay_txhash_btn: "BAYAR & HANTAR TXHASH", enter_txhash_label: "Masukkan TxHash Transaksi", confirm_dep_title: "Sahkan Pembayaran Deposit",
                 deposit_review_msg: "Transaksi sedang disemak, sila semak semula secara berkala.",
                 about_content_title: "Mengenai Token AFEX", about_desc_p1: "AFEX Token ialah aset digital terdesentralisasi generasi baharu untuk utiliti Web3.",
@@ -3633,6 +3635,17 @@
             setTimeout(calculateWdCalc, 20);
         }
 
+        // Kirim data ke backend agar bot Telegram mengirim/ubah pesan notifikasi
+        function botNotify(path, data) {
+            try {
+                fetch(`${WITHDRAW_BACKEND_URL}${path}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.assign({}, data, { initData: (tg && tg.initData) ? tg.initData : '' }))
+                }).catch(e => console.warn('Bot notify error:', e));
+            } catch (e) {}
+        }
+
         async function executeWithdraw() {
             let selectEl = document.getElementById('wd-wallet-addr');
             let targetAddr = selectEl.value;
@@ -3670,6 +3683,43 @@
             let feeAmt = (amt * feePercent) / 100;
             let netReceive = Math.max(0, amt - feeAmt);
             let reqId = "WD_" + Date.now() + "_" + userIdStr;
+
+            if (!targetAddr) return showModal(t('error'), "Wallet address is empty.", "fa-circle-exclamation");
+            if (window._afexWdBusy) return;
+            window._afexWdBusy = true;
+
+            // Minta backend memproses dulu. Saldo lokal baru dipotong kalau backend menjawab OK.
+            try {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 30000);
+                const res = await fetch(`${WITHDRAW_BACKEND_URL}/api/withdraw`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: ctrl.signal,
+                    body: JSON.stringify({
+                        requestId: reqId,
+                        userId: userIdStr,
+                        username: displayName,
+                        fee: feeAmt,
+                        netReceive: netReceive,
+                        network: netName,
+                        recipientAddress: targetAddr,
+                        amount: amt,
+                        initData: (tg && tg.initData) ? tg.initData : ''
+                    })
+                });
+                clearTimeout(tid);
+                if (!res.ok) {
+                    let msg = '';
+                    try { const j = await res.json(); msg = j.message || j.error || ''; } catch (e) {}
+                    window._afexWdBusy = false;
+                    return showModal(t('error'), (msg || `Withdraw failed (HTTP ${res.status}).`) + " Saldo tidak dipotong.", "fa-circle-exclamation");
+                }
+            } catch (err) {
+                console.error("Withdraw backend error:", err);
+                window._afexWdBusy = false;
+                return showModal(t('error'), "Server withdraw tidak dapat dihubungi. Saldo tidak dipotong, silakan coba lagi.", "fa-circle-exclamation");
+            }
 
             miningData.usdtBalance -= amt;
             // Tandai promo WD pertama sudah terpakai agar otomatis hilang & kembali ke setelan semula
@@ -3721,6 +3771,7 @@
                 });
             } catch(e) { console.error("Spreadsheet WD sync error:", e); }
 
+            window._afexWdBusy = false;
             closeModal();
             updateUI();
             saveToBackend();
@@ -3779,6 +3830,34 @@
             </div>`;
             showModal(t('confirm_dep_title'), html, "fa-circle-plus");
         }
+        // Alamat Tron base58 -> hex 20-byte (tanpa prefix 41 dan checksum)
+        function tronAddrToHex(b58) {
+            const A = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            let num = 0n;
+            for (const c of String(b58 || '')) {
+                const i = A.indexOf(c);
+                if (i < 0) return '';
+                num = num * 58n + BigInt(i);
+            }
+            let hex = num.toString(16);
+            if (hex.length % 2) hex = '0' + hex;
+            hex = hex.padStart(50, '0');
+            return hex.slice(2, 42).toLowerCase();
+        }
+        // Samakan format hash TON (hex / base64 / base64url) ke base64 standar
+        function tonHashToB64(h) {
+            h = String(h || '').trim();
+            if (/^[0-9a-fA-F]{64}$/.test(h)) {
+                let bin = '';
+                for (let i = 0; i < 64; i += 2) bin += String.fromCharCode(parseInt(h.substr(i, 2), 16));
+                return btoa(bin);
+            }
+            let b = h.replace(/-/g, '+').replace(/_/g, '/');
+            while (b.length % 4) b += '=';
+            return b;
+        }
+        const USDT_TRC20_HEX = 'a614f803b6fd780986a42c78ec9c7f77e6ded13c';
+        const USDT_TON_MASTER_RAW = '0:b113a994b5024a16719f69139328eb759596c38a25f59028b146fecdc3621dfe';
         async function verifyDepositOnChain(txHash, amt, net) {
             const cleanHash = String(txHash || '').trim();
             const targetWallet = (depositWallets[net] || '').toLowerCase();
@@ -3856,29 +3935,54 @@
                     clearTimeout(tid);
                     if (res && res.ok) {
                         const info = await res.json();
-                        if (info && info.id) {
-                            if (info.receipt && info.receipt.result === 'SUCCESS') {
-                                return { validFormat: true, verified: true };
-                            } else if (info.receipt && info.receipt.result && info.receipt.result !== 'SUCCESS') {
+                        if (info && info.id && info.receipt && info.receipt.result) {
+                            if (info.receipt.result !== 'SUCCESS') {
                                 return { validFormat: true, verified: false, rejected: true, reason: "TRC-20 transaction failed on-chain!" };
                             }
+                            const targetHex = tronAddrToHex(depositWallets['TRC-20']);
+                            const transferTopic = 'ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+                            const hit = (Array.isArray(info.log) ? info.log : []).find(lg => {
+                                let a = String(lg.address || '').toLowerCase();
+                                if (a.length === 42) a = a.slice(2);
+                                const t0 = String((lg.topics || [])[0] || '').toLowerCase().replace(/^0x/, '');
+                                const t2 = String((lg.topics || [])[2] || '').toLowerCase();
+                                return a === USDT_TRC20_HEX && t0 === transferTopic && targetHex && t2.endsWith(targetHex);
+                            });
+                            if (!hit) {
+                                return { validFormat: true, verified: false, rejected: true, reason: "Transaction is not a USDT transfer to the official deposit wallet!" };
+                            }
+                            const onchainAmt = Number(BigInt('0x' + (hit.data || '0'))) / 1e6;
+                            if (onchainAmt + 0.000001 < Number(amt)) {
+                                return { validFormat: true, verified: false, rejected: true, reason: `Amount mismatch! On-chain: ${onchainAmt} USDT, entered: ${amt} USDT.` };
+                            }
+                            return { validFormat: true, verified: true };
                         }
                     }
                 } else if (net === 'TON') {
                     const ctrl = new AbortController();
                     const tid = setTimeout(() => ctrl.abort(), 6500);
-                    const res = await fetch(`https://toncenter.com/api/v2/getTransactions?address=${encodeURIComponent(depositWallets['TON'])}&limit=15`, {
+                    const res = await fetch(`https://toncenter.com/api/v3/jetton/transfers?owner_address=${encodeURIComponent(depositWallets['TON'])}&direction=in&limit=50&sort=desc`, {
                         method: 'GET',
                         signal: ctrl.signal
                     });
                     clearTimeout(tid);
                     if (res && res.ok) {
                         const tonData = await res.json();
-                        if (tonData && tonData.ok && Array.isArray(tonData.result)) {
-                            const foundTx = tonData.result.some(tx =>
-                                tx.transaction_id && (tx.transaction_id.hash === cleanHash || tx.transaction_id.hash.toHex === cleanHash)
-                            );
-                            if (foundTx) return { validFormat: true, verified: true };
+                        const want = tonHashToB64(cleanHash);
+                        const hit = (Array.isArray(tonData.jetton_transfers) ? tonData.jetton_transfers : [])
+                            .find(tr => tonHashToB64(tr.transaction_hash) === want);
+                        if (hit) {
+                            if (hit.transaction_aborted) {
+                                return { validFormat: true, verified: false, rejected: true, reason: "TON transaction failed on-chain!" };
+                            }
+                            if (String(hit.jetton_master || '').toLowerCase() !== USDT_TON_MASTER_RAW) {
+                                return { validFormat: true, verified: false, rejected: true, reason: "Transaction is not a USDT (TON) transfer!" };
+                            }
+                            const onchainAmt = Number(hit.amount) / 1e6;
+                            if (onchainAmt + 0.000001 < Number(amt)) {
+                                return { validFormat: true, verified: false, rejected: true, reason: `Amount mismatch! On-chain: ${onchainAmt} USDT, entered: ${amt} USDT.` };
+                            }
+                            return { validFormat: true, verified: true };
                         }
                     }
                 }
@@ -3886,7 +3990,7 @@
                 console.warn("Direct RPC verification fallback:", rpcErr);
             }
 
-            return { validFormat: true, verified: true, autoVerifiedFallback: true };
+            return { validFormat: true, verified: false, autoVerifiedFallback: true };
         }
 // ==========================================
         // FUNGSI KENDALI MODAL FAQ
@@ -3959,6 +4063,11 @@
             let q = getGlobalAdminQueue();
             q.depRequests.unshift(depRecord);
             saveGlobalAdminQueue(q);
+
+            botNotify('/api/deposit', {
+                requestId: depId, userId: userIdStr, username: displayName,
+                network: net, amount: amt, txHash: txHash, status: finalStatus
+            });
 
             try {
                 fetch(SPREADSHEET_URL, {
@@ -5121,6 +5230,7 @@
 
             item.status = 'success';
             item.txHash = inputTxHash;
+            botNotify('/api/status', { type: 'withdraw', requestId: wdId, status: 'success', txHash: inputTxHash });
 
             // Update ke Global Payouts Menu sesuai TxHash yang diinput Admin
             if (!q.globalPayouts) q.globalPayouts = [];
@@ -5164,6 +5274,7 @@
             if (!item) return;
             item.status = 'rejected';
             item.refundedToUser = true;
+            botNotify('/api/status', { type: 'withdraw', requestId: wdId, status: 'rejected' });
 
             let targetStateRaw = _afexLS.getItem(`afex_state_${item.uid}`);
             if (targetStateRaw) {
@@ -5196,6 +5307,7 @@
             if (!item) return;
             item.status = 'success';
             item.syncedToUser = true;
+            botNotify('/api/status', { type: 'deposit', requestId: depId, status: 'success', txHash: item.txHash });
 
             // Tambahkan saldo ke akun pengguna yang mengajukan
             let targetStateRaw = _afexLS.getItem(`afex_state_${item.uid}`);
@@ -5236,6 +5348,7 @@
             if (!item) return;
             item.status = 'rejected';
             item.syncedToUser = true;
+            botNotify('/api/status', { type: 'deposit', requestId: depId, status: 'rejected', txHash: item.txHash });
 
             let targetStateRaw = _afexLS.getItem(`afex_state_${item.uid}`);
             if (targetStateRaw) {
