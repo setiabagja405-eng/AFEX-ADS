@@ -145,6 +145,9 @@ app.post('/api/admin/approve-deposit/:id', async (req, res) => {
     }
 });
 
+// 6b. Notifikasi bot Telegram (withdraw, deposit, status)
+app.use('/api', require('./routes/notify'));
+
 // 7. Jalankan Server di Port Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
