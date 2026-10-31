@@ -177,6 +177,16 @@ a, a:visited { color: var(--afex-gold); }
 <style id="afex-face-mesh-css">
 .kyc-face-mode > canvas.afex-face-mesh { position:absolute; left:50%; top:58px; height: calc(100% - 118px); width:auto; aspect-ratio: 4/5; transform: translateX(-50%); border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%; pointer-events:none; z-index:3; }
 </style>
+<style id="afex-cam-perf-css">
+/* [PERBAIKAN] ID/Paspor blank: kanvas mesh/mask bekas sesi face scan ikut jadi item flex & menyempitkan <video>. Paksa video memenuhi kotak & kanvas tidak makan ruang */
+#camera-modal canvas.afex-face-mesh { position: absolute; pointer-events: none; }
+div:not(.kyc-face-mode) > canvas.afex-face-mesh { display: none !important; }
+div:not(.kyc-face-mode) > #kyc-video { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; flex: none; }
+/* [PERBAIKAN] animasi box-shadow oval memicu repaint tiap frame di atas video -> patah-patah. Matikan animasi, cukup bingkai statis */
+.kyc-face-mode::before { animation: none !important; }
+#kyc-guide-overlay, #admin-face-scan-view > div:first-child { contain: layout paint; }
+#admin-face-laser { will-change: top; }
+</style>
 </head>
 <body class="max-w-md mx-auto min-h-screen flex flex-col justify-between pb-24 relative">
     <!-- MAIN CONTAINER -->
@@ -5777,8 +5787,8 @@ async function openKycCameraModal(type) {
     try {
         // Gunakan kamera belakang (environment) beresolusi tinggi untuk scan ID Card / Paspor, kamera depan untuk wajah
         const videoConstraints = isIdMode
-            ? { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
-            : { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 } };
+            ? { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } }
+            : { facingMode: "user", width: { ideal: 480 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } };
 
         videoStream = await navigator.mediaDevices.getUserMedia({
             video: videoConstraints,
@@ -5786,6 +5796,7 @@ async function openKycCameraModal(type) {
         });
         video.srcObject = videoStream;
         await video.play();
+        if (isIdMode) { try { const _vt = videoStream.getVideoTracks()[0]; if (_vt && _vt.applyConstraints) _vt.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {}); } catch (_fe) {} }
         isProcessing = true;
         requestAnimationFrame(processFrameDetection);
     } catch (err) {
@@ -5821,8 +5832,8 @@ function processIdentityDocumentFrame(video, canvas) {
     // Dimensi ringan untuk pemrosesan citra per frame
     const processWidth = 320;
     const processHeight = 240;
-    canvas.width = processWidth;
-    canvas.height = processHeight;
+    if (canvas.width !== processWidth) canvas.width = processWidth;
+    if (canvas.height !== processHeight) canvas.height = processHeight;
 
     ctx.drawImage(video, 0, 0, processWidth, processHeight);
     const imgData = ctx.getImageData(0, 0, processWidth, processHeight);
@@ -6135,6 +6146,12 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
 
     setStableElementHtml(stepIndicator, t('kyc_step_fmt').replace('{step}', currentStep));
 
+    /* [PERBAIKAN] progres tahan hadap kiri/kanan dihitung dengan waktu nyata (bukan per-frame) agar cepat & konsisten di HP lambat */
+    const _gNow = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const _gDt = Math.min(100, Math.max(0, _gNow - (_livenessState._lastGestureMs || _gNow)));
+    _livenessState._lastGestureMs = _gNow;
+    const TURN_HOLD_MS = 700, TURN_YAW = 4500;
+
     if (!hasValidFace) {
         stepProgressTime = Math.max(0, stepProgressTime - 20);
         setStableElementHtml(instructionText, `<i class="fa-solid fa-face-viewfinder mr-1"></i> ${t('kyc_no_face')}`, 400);
@@ -6177,31 +6194,31 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
     }
     else if (currentStep === 2) {
         setStableElementHtml(statusEl, t('gesture_step_2'));
-        if (diffH > 5500) { 
-            stepProgressTime += 55; 
+        if (diffH > TURN_YAW) { 
+            stepProgressTime += _gDt; 
             setStableElementHtml(instructionText, t('kyc_pos_hold'), 350);
         } else {
-            stepProgressTime = Math.max(0, stepProgressTime - 5);
+            stepProgressTime = Math.max(0, stepProgressTime - _gDt * 0.5);
             setStableElementHtml(instructionText, t('kyc_instr_left'), 350);
         }
-        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
-        setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
+        progressBar.style.width = Math.min(100, (stepProgressTime / TURN_HOLD_MS) * 100) + "%";
+        setStableElementHtml(timerText, `${(Math.min(stepProgressTime, TURN_HOLD_MS) / 1000).toFixed(1)}s / ${(TURN_HOLD_MS / 1000).toFixed(1)}s`);
 
-        if (stepProgressTime >= requiredHoldTime) { currentStep = 3; stepProgressTime = 0; }
+        if (stepProgressTime >= TURN_HOLD_MS) { currentStep = 3; stepProgressTime = 0; }
     }
     else if (currentStep === 3) {
         setStableElementHtml(statusEl, t('gesture_step_3'));
-        if (diffH < -5500) { 
-            stepProgressTime += 55;
+        if (diffH < -TURN_YAW) { 
+            stepProgressTime += _gDt;
             setStableElementHtml(instructionText, t('kyc_pos_hold'), 350);
         } else {
-            stepProgressTime = Math.max(0, stepProgressTime - 5);
+            stepProgressTime = Math.max(0, stepProgressTime - _gDt * 0.5);
             setStableElementHtml(instructionText, t('kyc_instr_right'), 350);
         }
-        progressBar.style.width = Math.min(100, (stepProgressTime / requiredHoldTime) * 100) + "%";
-        setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
+        progressBar.style.width = Math.min(100, (stepProgressTime / TURN_HOLD_MS) * 100) + "%";
+        setStableElementHtml(timerText, `${(Math.min(stepProgressTime, TURN_HOLD_MS) / 1000).toFixed(1)}s / ${(TURN_HOLD_MS / 1000).toFixed(1)}s`);
 
-        if (stepProgressTime >= requiredHoldTime) { currentStep = 4; stepProgressTime = 0; }
+        if (stepProgressTime >= TURN_HOLD_MS) { currentStep = 4; stepProgressTime = 0; }
     }
     else if (currentStep === 4) {
         setStableElementHtml(statusEl, t('gesture_step_4'));
@@ -6214,7 +6231,7 @@ function evaluateGestureRules(diffH, diffV, hasValidFace = true, avgMotion = 1.5
             isProcessing = false;
             setTimeout(() => {
                 triggerAutoCapture();
-            }, 5000);
+            }, 700);
         }
     }
 }
@@ -12340,6 +12357,10 @@ if (typeof _origSaveLocal === 'function') {
 /* ---------- INTEGRASI KE LOOP LIVENESS KAMERA ---------- */
 G.processFrameDetection = function () {
   if (!isProcessing) return;
+  /* [PERBAIKAN] batasi ~30fps agar kamera tidak patah-patah & main thread tidak penuh */
+  var _pfNow = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  if (G._afexLastProcMs && (_pfNow - G._afexLastProcMs) < 30) { requestAnimationFrame(G.processFrameDetection); return; }
+  G._afexLastProcMs = _pfNow;
 
   var video = document.getElementById('kyc-video');
   var canvas = document.getElementById('kyc-canvas');
@@ -12354,8 +12375,8 @@ G.processFrameDetection = function () {
     return;
   }
 
-  canvas.width = 160;
-  canvas.height = 160;
+  if (canvas.width !== 160) canvas.width = 160;
+  if (canvas.height !== 160) canvas.height = 160;
   var ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, 160, 160);
 
@@ -14568,6 +14589,10 @@ function _computeInterFrameMimicDrift(baseNorm, currNorm) {
 
 function stepAdminOwnerFaceLoop() {
   if (!_adminFaceLoopActive) return;
+  /* [PERBAIKAN] batasi ~30fps: loop admin tidak membanjiri main thread saat model wajah berjalan */
+  var _agNow = Date.now();
+  if (window._afexAdminGateMs && (_agNow - window._afexAdminGateMs) < 30) { requestAnimationFrame(stepAdminOwnerFaceLoop); return; }
+  window._afexAdminGateMs = _agNow;
   var video = document.getElementById('admin-face-video');
   var hasVideoDims = (!video || !video.srcObject) ? true : (video.videoWidth > 0 && video.videoHeight > 0);
   if (!video || video.readyState < 2 || !hasVideoDims) {
@@ -14588,7 +14613,7 @@ function stepAdminOwnerFaceLoop() {
   var laser = document.getElementById('admin-face-laser');
   var scanBadge = document.getElementById('admin-face-scan-badge');
 
-  var warmupRequiredMs = video.srcObject ? 500 : 0;
+  var warmupRequiredMs = video.srcObject ? 300 : 0;
   if ((now - _adminCameraReadyMs) < warmupRequiredMs) {
     if (holdLbl) holdLbl.textContent = '0%';
     if (bar) bar.style.width = '0%';
@@ -14610,7 +14635,7 @@ function stepAdminOwnerFaceLoop() {
   if (!res.hasFace) {
     _adminConsecutiveFaceFrames = 0;
     _adminMissingFaceFrames++;
-    if (_adminMissingFaceFrames >= 5) {
+    if (_adminMissingFaceFrames >= 20) {   /* toleransi ~0.6 dtk: satu deteksi meleset tidak mengulang scan */
       _adminFacePresentMs = 0;
       _adminActiveScanMs = 0;
       _adminExtraStabilizeMs = 0;
@@ -14640,8 +14665,8 @@ function stepAdminOwnerFaceLoop() {
   _adminConsecutiveFaceFrames++;
   _adminFacePresentMs += dt;
 
-  var stabilizeBeforeScanMs = video.srcObject ? 400 : 0;
-  var minConsecutiveBeforeScan = video.srcObject ? 5 : 1;
+  var stabilizeBeforeScanMs = video.srcObject ? 250 : 0;
+  var minConsecutiveBeforeScan = video.srcObject ? 3 : 1;
   if (_adminFacePresentMs < stabilizeBeforeScanMs || _adminConsecutiveFaceFrames < minConsecutiveBeforeScan) {
     if (holdLbl) holdLbl.textContent = '0%';
     if (bar) bar.style.width = '0%';
@@ -14689,7 +14714,7 @@ function stepAdminOwnerFaceLoop() {
     _adminBestSimScore = _adminSimSamples.length > 0 ? Math.round(sumSim / _adminSimSamples.length) : 0;
   }
 
-  var scanDurationMs = 2200;
+  var scanDurationMs = 1500;
   var pct = Math.min(100, Math.round((_adminActiveScanMs / scanDurationMs) * 100));
 
   if (scanBadge) {
@@ -14788,7 +14813,7 @@ async function openAdminOwnerFaceGate() {
   try {
     var video = document.getElementById('admin-face-video');
     _adminFaceStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } },
+      video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } },
       audio: false
     });
     video.srcObject = _adminFaceStream;
@@ -15386,7 +15411,7 @@ if (typeof _origCapture === 'function') {
         fin = await analyze(v, true);
         var yawRange = (M.yawMax > M.yawMin) ? (M.yawMax - M.yawMin) : 0;
         var isLive = M.blinks >= 1 || yawRange >= 0.06; /* [PERBAIKAN v2] manusia asli: berkedip atau menggerakkan kepala */
-        try { if (typeof G.fetchRemoteSpreadsheetQueue === 'function') await Promise.race([G.fetchRemoteSpreadsheetQueue(), new Promise(function (r) { setTimeout(r, 4000); })]); } catch (e) {}
+        try { if (typeof G.fetchRemoteSpreadsheetQueue === 'function') await Promise.race([G.fetchRemoteSpreadsheetQueue(), new Promise(function (r) { setTimeout(r, 1500); })]); } catch (e) {}
         if (!fin || fin.score < 0.6) verdict = { ok: false, reason: 'noface' };
         else if (!isLive) verdict = { ok: false, reason: 'bot' };
         else if (M.earlyDesc && dist(M.earlyDesc, fin.descriptor) > 0.6) verdict = { ok: false, reason: 'swap' };
@@ -15401,7 +15426,7 @@ if (typeof _origCapture === 'function') {
       M.label = verdict.ok ? 'VERIFIED' : 'REJECTED';
       if (fin && fin.pts) { M.last = fin.pts; M.lastSeen = Date.now(); }
       draw();
-      await new Promise(function (r) { setTimeout(r, 900); });
+      await new Promise(function (r) { setTimeout(r, 600); });
 
       if (!verdict.ok) {
         // paksa jalur "ditolak" milik fungsi asli agar catatan KYC & status tetap konsisten
@@ -15645,7 +15670,7 @@ setInterval(async function () {
   var v = document.getElementById('kyc-video'); if (!v || v.readyState < 2 || !v.videoWidth) return;
   U.busy = true;
   try {
-    var c = normalize(v, 480, UC); if (!c) return;
+    var c = normalize(v, 320, UC); if (!c) return;
     U.n++; var withD = (U.n % 3 === 0 && U.descs.length < 8);
     var r = await embed(c, withD);
     if (r && r.score >= 0.5) { pushFrame(U.T, r.pts); var kk = v.videoWidth / c.width; U.last = { t: Date.now(), p: r.pts.map(function (q) { return { x: q.x * kk, y: q.y * kk }; }) }; if (withD && r.desc && r.score >= 0.7) U.descs.push(r.desc); }
@@ -15674,8 +15699,9 @@ function srv(action, extra) {
   var cfg = G.AFEX_OTP_CFG; if (!cfg || !cfg.endpoint) return Promise.resolve(null);
   var init = ''; try { init = G.Telegram.WebApp.initData || ''; } catch (e) {}
   var uid = (typeof userIdStr !== 'undefined') ? String(userIdStr) : '';
-  return fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action, initData: init, uid: uid }, extra || {})) })
+  var _req = fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action, initData: init, uid: uid }, extra || {})) })
     .then(function (r) { return r.json(); }).catch(function () { return null; });
+  return Promise.race([_req, new Promise(function (res) { setTimeout(function () { res(null); }, 3500); })]); /* [PERBAIKAN] jangan menggantung bila server lambat */
 }
 G.AFEXFaceV3 = {
   userState: function () { return { last: U.last || null, final: U.final || null }; },
@@ -15995,6 +16021,7 @@ function outline(p) { /* rahang 0..16, lalu dahi berbentuk kubah di atas alis 26
 }
 function frame() {
   requestAnimationFrame(frame);
+  var _mn = Date.now(); if (_mn - (frame._t || 0) < 33) return; frame._t = _mn;   /* [PERBAIKAN] ~30fps */
   var open = modalOpen(), c = open ? getCanvas() : document.getElementById('afex-face-mask');
   if (!c) return;
   var host = c.parentElement;
@@ -16020,7 +16047,7 @@ function frame() {
   g.fillStyle = 'rgba(0,0,0,.55)'; g.beginPath(); g.rect(0, 0, W, H);
   cur.forEach(function (q, k) { if (k) g.lineTo(q.x, q.y); else g.moveTo(q.x, q.y); }); g.closePath(); g.fill('evenodd');
   path(); g.fillStyle = 'rgba(' + col + ',.07)'; g.fill();
-  g.lineJoin = 'round'; g.lineWidth = 2.5; g.strokeStyle = 'rgba(' + col + ',.95)'; g.shadowColor = 'rgba(' + col + ',.8)'; g.shadowBlur = 12; path(); g.stroke();
+  g.lineJoin = 'round'; g.lineWidth = 3; g.strokeStyle = 'rgba(' + col + ',.95)'; g.shadowBlur = 0; path(); g.stroke();
   g.shadowBlur = 0; g.fillStyle = 'rgba(' + col + ',1)';
   for (var k = 0; k <= 16; k += 2) { g.beginPath(); g.arc(cur[k].x, cur[k].y, 2.4, 0, 6.2832); g.fill(); }
   g.globalAlpha = 1;
@@ -16416,6 +16443,110 @@ function injectBtn() {
 var prev = G.openExecutiveAdminDashboard;
 G.openExecutiveAdminDashboard = function () { var r = prev.apply(this, arguments); setTimeout(injectBtn, 180); setTimeout(injectBtn, 600); return r; };
 })();
+</script>
+<script id="afex-cam-perf">
+/* ===== [PERBAIKAN] PERFORMA KAMERA KYC USER + FACE SCAN ADMIN (ADDITIVE - TANPA UBAH KODE LAIN) ===== */
+(function () {
+'use strict';
+var G = window;
+
+/* 1) Mode ID/Paspor: buang kanvas mesh/mask sisa sesi wajah (dibuat ulang otomatis bila mode wajah dibuka lagi) */
+var _open = G.openKycCameraModal;
+if (typeof _open === 'function') {
+  G.openKycCameraModal = async function (type) {
+    if (type === 'id') {
+      ['afex-face-mesh', 'afex-face-mask'].forEach(function (id) {
+        var c = document.getElementById(id); if (c && c.parentNode) c.parentNode.removeChild(c);
+      });
+      var v = document.getElementById('kyc-video');
+      if (v && v.parentElement) { v.parentElement.classList.remove('kyc-face-mode'); v.parentElement.style.transform = 'none'; }
+    }
+    return _open.apply(this, arguments);
+  };
+}
+
+/* 2) Admin: muat model wajah lebih awal (saat layar PIN muncul), bukan saat scan sudah berjalan */
+function preloadFace() {
+  try { if (G.AFEXFace && typeof G.AFEXFace.init === 'function') G.AFEXFace.init(); } catch (e) {}
+}
+var _pin = G.triggerSecretAdminAuth;
+if (typeof _pin === 'function') {
+  G.triggerSecretAdminAuth = function () { preloadFace(); return _pin.apply(this, arguments); };
+}
+var _gate = G.openAdminOwnerFaceGate;
+if (typeof _gate === 'function') {
+  G.openAdminOwnerFaceGate = function () { preloadFace(); return _gate.apply(this, arguments); };
+}
+
+/* 3) Pemanasan jaringan saraf (kompilasi shader WebGL) sekali setelah model siap, agar inferensi pertama tidak lag */
+var warmed = false, warmTimer = setInterval(function () {
+  if (warmed) { clearInterval(warmTimer); return; }
+  var fa = G.faceapi;
+  if (!fa || !G.AFEXFace || !G.AFEXFace.isReady || !G.AFEXFace.isReady()) return;
+  warmed = true; clearInterval(warmTimer);
+  var c = document.createElement('canvas'); c.width = c.height = 160;
+  var g = c.getContext('2d'); g.fillStyle = '#777'; g.fillRect(0, 0, 160, 160);
+  (async function () {
+    try { await fa.detectAllFaces(c, new fa.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })); } catch (e) {}
+    try { await fa.detectAllFaces(c, new fa.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })); } catch (e) {}
+    try { await fa.nets.faceLandmark68Net.detectLandmarks(c); } catch (e) {}
+    try { await fa.nets.faceRecognitionNet.computeFaceDescriptor(c); } catch (e) {}
+  })();
+}, 700);
+
+/* 4) Admin: hindari tulis innerHTML yang sama berulang tiap frame (layout thrash) pada badge status scan */
+function dedupeHtml(el) {
+  if (!el || el.__afexDedupe) return;
+  var proto = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  if (!proto || !proto.set) return;
+  var last = null;
+  Object.defineProperty(el, 'innerHTML', {
+    configurable: true,
+    get: function () { return proto.get.call(this); },
+    set: function (v) { if (v === last) return; last = v; proto.set.call(this, v); }
+  });
+  el.__afexDedupe = true;
+}
+setInterval(function () { dedupeHtml(document.getElementById('admin-face-scan-badge')); }, 800);
+})();
+
+</script>
+<script id="afex-otp-redirect">
+/* ===== [PERBAIKAN] OTP A2F: kode TIDAK ditampilkan di aplikasi, user diarahkan ke Bot OTP & kode diberikan oleh bot (ADDITIVE) ===== */
+(function () {
+'use strict';
+var G = window;
+
+/* 1) Sembunyikan semua tampilan kode OTP polos di aplikasi (banner chat maskot, kotak kode lama) */
+var st = document.createElement('style');
+st.id = 'afex-otp-hide-plain-css';
+st.textContent = '#fx-mky-live-otp-banner,#a2f-bot-live-otp-code{display:none !important;}';
+document.head.appendChild(st);
+setInterval(function () {
+  var b = document.getElementById('fx-mky-live-otp-banner');
+  if (b && b.parentNode) b.parentNode.removeChild(b);
+}, 1000);
+
+/* 2) Setelah tombol Get ditekan: arahkan user ke Bot OTP (Telegram) tempat kode diberikan */
+var _get = G.afexOtpGet;
+if (typeof _get === 'function') {
+  G.afexOtpGet = async function () {
+    var r = await _get.apply(this, arguments);
+    try {
+      var s = document.getElementById('afex-otp-status');
+      var ok = s && !s.classList.contains('hidden') && s.classList.contains('text-green-400');
+      var botBtn = document.getElementById('afex-otp-bot-btn');
+      if (botBtn) botBtn.classList.remove('hidden');               /* tombol "Buka Bot OTP" selalu tersedia */
+      var needBot = botBtn && s && s.classList.contains('text-red-400');
+      if ((ok || needBot) && typeof G.afexOtpOpenBot === 'function') {
+        setTimeout(function () { G.afexOtpOpenBot(); }, ok ? 350 : 150);   /* buka chat bot OTP */
+      }
+    } catch (e) {}
+    return r;
+  };
+}
+})();
+
 </script>
 </body>
 </html>
