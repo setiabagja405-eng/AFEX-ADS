@@ -4516,6 +4516,23 @@ a, a:visited { color: var(--afex-gold); }
             }
         }
 
+        /* Kirim foto banner + caption referral lewat bot (route Render). Jika gagal, buka dialog share biasa. */
+        function afexSendReferral(shareUrl) {
+            try {
+                var cfg = window.AFEX_OTP_CFG || {}; var base = String(cfg.endpoint || '').replace(/\/afex$/, '');
+                var init = ''; try { init = window.Telegram.WebApp.initData || ''; } catch (e) {}
+                if (!base || !init) return true;   // tanpa backend: pakai share biasa (href)
+                fetch(base + '/referral/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: init }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d && d.success) { showModal('Referral', 'Gambar dan caption referral sudah dikirim ke chat bot. Buka chat bot lalu bagikan ke teman.', 'fa-circle-check'); }
+                        else if (d && d.error === 'cooldown') { showModal('Referral', 'Tunggu ' + d.retryIn + ' detik lalu coba lagi.', 'fa-clock'); }
+                        else { window.open(shareUrl, '_blank'); }
+                    })
+                    .catch(function () { window.open(shareUrl, '_blank'); });
+                return false;
+            } catch (e) { return true; }
+        }
         function openInviteModal() {
             syncReferralListWithStorage();
             let refLink = `https://t.me/Fexboostbot?startapp=AFEX-${userIdStr}`;
@@ -4631,7 +4648,7 @@ a, a:visited { color: var(--afex-gold); }
                         <button onclick="afexCopyText('${refLink}').then(function(ok){ showModal('${t('notification')}', ok ? '${t('copied')}' : '${refLink}', 'fa-circle-check'); });" class="w-full bg-[#121927] border border-yellow-500/40 text-yellow-400 font-bold py-2 rounded-xl text-[11px] cursor-pointer">
                             ${t('copy_ref_btn')}
                         </button>
-                        <a href="${shareUrl}" target="_blank" class="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 rounded-xl text-[11px] shadow-md">
+                        <a href="${shareUrl}" target="_blank" onclick="return afexSendReferral('${shareUrl}')" class="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2 rounded-xl text-[11px] shadow-md">
                             <i class="fa-brands fa-telegram mr-1"></i> ${t('share_tg_btn')}
                         </a>
                     </div>
@@ -15766,7 +15783,7 @@ if (F) {
 'use strict';
 var G = window;
 /* >>> ISI DUA BARIS INI SETELAH BOT & BACKEND OTP DIBUAT (lihat panduan) <<< */
-var AFEX_OTP_CFG = G.AFEX_OTP_CFG || { endpoint: '', botUsername: '' };
+var AFEX_OTP_CFG = G.AFEX_OTP_CFG || { endpoint: 'https://afex-backend.onrender.com/api/afex', botUsername: 'afexotpbot' };
 G.AFEX_OTP_CFG = AFEX_OTP_CFG;
 
 var D = {
