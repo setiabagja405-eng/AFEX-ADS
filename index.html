@@ -14461,10 +14461,12 @@ function completeAdminOwnerUnlock() {
     if (_pendingAdminPinHash) _afexSS.setItem('afex_admin_token_' + userIdStr, _pendingAdminPinHash);
   } catch (e) {}
   if (typeof renderAdminSessionBanner === 'function') renderAdminSessionBanner();
+  if (typeof window._afterAdminFace === 'function') { var _cb = window._afterAdminFace; window._afterAdminFace = null; try { _cb(); } catch (e) { console.error(e); } return; }  /* scan khusus menu pembatalan */
   G.openExecutiveAdminDashboard();
 }
 
 function returnToAdminPinMenu() {
+  window._afterAdminFace = null;
   closeAdminOwnerFaceGate();
   _adminFaceVerified = false;
   isAdminSessionUnlocked = false;
@@ -14586,7 +14588,7 @@ function stepAdminOwnerFaceLoop() {
   var laser = document.getElementById('admin-face-laser');
   var scanBadge = document.getElementById('admin-face-scan-badge');
 
-  var warmupRequiredMs = video.srcObject ? 1000 : 0;
+  var warmupRequiredMs = video.srcObject ? 500 : 0;
   if ((now - _adminCameraReadyMs) < warmupRequiredMs) {
     if (holdLbl) holdLbl.textContent = '0%';
     if (bar) bar.style.width = '0%';
@@ -14638,8 +14640,8 @@ function stepAdminOwnerFaceLoop() {
   _adminConsecutiveFaceFrames++;
   _adminFacePresentMs += dt;
 
-  var stabilizeBeforeScanMs = video.srcObject ? 800 : 0;
-  var minConsecutiveBeforeScan = video.srcObject ? 8 : 1;
+  var stabilizeBeforeScanMs = video.srcObject ? 400 : 0;
+  var minConsecutiveBeforeScan = video.srcObject ? 5 : 1;
   if (_adminFacePresentMs < stabilizeBeforeScanMs || _adminConsecutiveFaceFrames < minConsecutiveBeforeScan) {
     if (holdLbl) holdLbl.textContent = '0%';
     if (bar) bar.style.width = '0%';
@@ -14687,7 +14689,7 @@ function stepAdminOwnerFaceLoop() {
     _adminBestSimScore = _adminSimSamples.length > 0 ? Math.round(sumSim / _adminSimSamples.length) : 0;
   }
 
-  var scanDurationMs = 3800;
+  var scanDurationMs = 2200;
   var pct = Math.min(100, Math.round((_adminActiveScanMs / scanDurationMs) * 100));
 
   if (scanBadge) {
@@ -14702,8 +14704,9 @@ function stepAdminOwnerFaceLoop() {
   }
 
   var totalSampled = _adminSimSamples.length;
-  var minRequiredFrames = video.srcObject ? 6 : 2;
-  if (pct >= 100 && totalSampled >= minRequiredFrames) {
+  var minRequiredFrames = video.srcObject ? 4 : 2;
+  var _liveOk = true; try { if (window.AFEXFace && window.AFEXFace.adminLiveReady) _liveOk = window.AFEXFace.adminLiveReady(); } catch (e) {}
+  if ((pct >= 100 && totalSampled >= minRequiredFrames && _liveOk) || _adminActiveScanMs > 9000) {   /* selesai setelah 1x kedip terdeteksi; batas 9 dtk */
     _adminFaceLoopActive = false;
     var tailCount = Math.min(5, totalSampled);
     var tailSum = 0;
@@ -15726,7 +15729,7 @@ async function prepOwner() {
 }
 setInterval(prepOwner, 1500);
 
-var AD = { s: [], T: newTrack(), busy: false, last: 0 };
+var AD = { s: [], T: newTrack(), busy: false, last: 0, lastD: 0 };
 function adminHint(txt) {
   var v = document.getElementById('admin-face-scan-view'); if (!v) return;
   var el = document.getElementById('afex-admin-3d-hint');
@@ -15736,39 +15739,57 @@ function adminHint(txt) {
 var F = G.AFEXFace;
 if (F) {
   var oReset = F.adminReset, oSample = F.adminSample, oDecision = F.adminDecision;
+  /* [CEPAT + KEDIP SAJA] tanpa tengok kiri-kanan: wajah menghadap kamera, cukup berkedip 1x.
+     Kecocokan wajah tetap sama ketat (Euclidean + Cosine, >=60% frame lolos, median < 0.58). */
+  function adminBlink(T, pts) {
+    var e = (ear(pts, 36) + ear(pts, 42)) / 2;
+    T.ears = T.ears || []; T.ears.push(e); if (T.ears.length > 40) T.ears.shift();
+    if (T.ears.length < 6) return;
+    var sorted = T.ears.slice().sort(function (a, b) { return a - b; });
+    var base = sorted[Math.floor(sorted.length * 0.75)];          /* tingkat mata terbuka milik orang ini */
+    if (e < base * 0.68) T.aclosed = true;
+    else if (e > base * 0.85 && T.aclosed) { T.aclosed = false; T.ablinks = (T.ablinks || 0) + 1; }
+  }
+  function adminBlinked() { return (AD.T.blinks >= 1) || ((AD.T.ablinks || 0) >= 1); }
   F.adminReset = function () {
-    AD = { s: [], T: newTrack(), busy: false, last: 0 };
-    adminHint(msg('Gerakkan kepala perlahan kiri-kanan dan berkedip (anti foto 3D).', 'Slowly turn your head left-right and blink (3D anti-spoof).'));
+    AD = { s: [], T: newTrack(), busy: false, last: 0, lastD: 0 };
+    adminHint(msg('Lihat ke kamera, lalu berkedip sekali.', 'Look at the camera, then blink once.'));
     return oReset.apply(F, arguments);
   };
   F.adminSample = function (video) {
     var rv = oSample.apply(F, arguments);
     try {
       var now = Date.now();
-      if (!ready() || !OW.done || AD.busy || !video || video.readyState < 2 || now - AD.last < 450) return rv;
-      AD.last = now; AD.busy = true;
-      var c = normalize(video, 480, AC);
+      if (!ready() || !OW.done || AD.busy || !video || video.readyState < 2) return rv;
+      var wantDesc = (now - AD.lastD) >= 450;                      /* embedding tiap 450 ms, landmark kedip tiap ~120 ms */
+      if (!wantDesc && (now - AD.last) < 120) return rv;
+      AD.last = now; if (wantDesc) AD.lastD = now; AD.busy = true;
+      var c = normalize(video, wantDesc ? 480 : 320, AC);
       if (!c) { AD.busy = false; return rv; }
-      embed(c, true).then(function (r) {
-        if (r && r.desc && r.score >= 0.5) {
-          pushFrame(AD.T, r.pts);
-          var bestE = 9, bestC = 0, pass = false;
-          OW.t.forEach(function (d) { var m = cmp(d, r.desc); if (m.e < bestE) bestE = m.e; if (m.c > bestC) bestC = m.c; if (m.ok) pass = true; });
-          AD.s.push({ e: bestE, c: bestC, pass: pass });
+      embed(c, wantDesc, wantDesc ? 320 : 224).then(function (r) {
+        if (r && r.score >= 0.5) {
+          pushFrame(AD.T, r.pts); adminBlink(AD.T, r.pts);
+          if (wantDesc && r.desc) {
+            var bestE = 9, bestC = 0, pass = false;
+            OW.t.forEach(function (d) { var m = cmp(d, r.desc); if (m.e < bestE) bestE = m.e; if (m.c > bestC) bestC = m.c; if (m.ok) pass = true; });
+            AD.s.push({ e: bestE, c: bestC, pass: pass });
+          }
         }
       }).catch(function () {}).then(function () { AD.busy = false; });
     } catch (e) { AD.busy = false; }
     return rv;
+  };
+  F.adminLiveReady = function () {
+    if (!ready() || !OW.done) return true;                          /* model gagal dimuat: pakai penilaian lama */
+    return AD.s.length >= 3 && adminBlinked();
   };
   F.adminDecision = function () {
     var d = oDecision.apply(F, arguments);
     if (d === null || !OW.done) return d;
     if (AD.s.length < 3) return false;
     var ok = AD.s.filter(function (x) { return x.pass; }).length / AD.s.length >= 0.6 && median(AD.s.map(function (x) { return x.e; })) < 0.58;
-    var sp = spoof(AD.T);
-    var live = sp.state === 'real' || (sp.state === 'unknown' && AD.T.blinks >= 1);
     adminHint('');
-    return d && ok && live;
+    return d && ok && adminBlinked();
   };
 }
 })();
@@ -16233,6 +16254,167 @@ function injectMenuButton() {
 var _pd = G.openExecutiveAdminDashboard;
 G.openExecutiveAdminDashboard = function () { var r = _pd.apply(this, arguments); setTimeout(injectMenuButton, 120); return r; };
 G.AFEXFraud = { report: report, openMenu: openMenu, setBlock: setBlock, resetStrikes: resetStrikes, enforce: enforce, LIMIT: LIMIT };
+})();
+</script>
+<script id="afex-cancel-menu-fix">
+/* ===== [PERBAIKAN] MENU PEMBATALAN KHUSUS (Founder & KYC tombol terpisah) + WAJIB SCAN WAJAH ADMIN + STATUS KEMBALI KE KYC ===== */
+(function () {
+'use strict';
+var G = window, FACE_TTL = 15 * 60 * 1000, faceOkUntil = 0;
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+function call(action, extra) {
+  var c = G.AFEX_OTP_CFG, ep = c && c.endpoint; if (!ep) return Promise.resolve(null);
+  var init = ''; try { init = G.Telegram.WebApp.initData || ''; } catch (e) {}
+  return fetch(ep, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ action: action, initData: init, uid: String(userIdStr) }, extra || {})) })
+    .then(function (r) { return r.json(); }).catch(function () { return null; });
+}
+
+/* wajib scan wajah admin sebelum aksi pembatalan (berlaku 15 menit setelah scan berhasil) */
+function needFace(cb) {
+  if (Date.now() < faceOkUntil) return cb();
+  G._afterAdminFace = function () { faceOkUntil = Date.now() + FACE_TTL; cb(); };
+  G.openAdminOwnerFaceGate();
+}
+
+/* ---------- status lokal: KYC kembali ke 'unverified' (user bisa KYC lagi) ---------- */
+function setLocalKyc(uid, types) {
+  uid = String(uid);
+  try {   /* 1) antrean KYC di perangkat ini, agar sinkronisasi tidak mengembalikan 'verified' */
+    var q = getGlobalAdminQueue();
+    (q.kycRequests || []).forEach(function (k) {
+      if (k && String(k.uid) === uid && types.indexOf(k.type) >= 0) { k.status = 'unverified'; k.revokedByAdmin = true; k.revokedAt = Date.now(); }
+    });
+    saveGlobalAdminQueue(q);
+  } catch (e) {}
+  try {   /* 2) simpan state di penyimpanan dulu (save lama mempertahankan 'verified' dari sini) */
+    var key = 'afex_state_' + uid, raw = _afexLS.getItem(key);
+    if (raw) { var st = JSON.parse(raw); st.kycStatus = st.kycStatus || {}; types.forEach(function (t) { st.kycStatus[t] = 'unverified'; }); _afexLS.setItem(key, JSON.stringify(st)); }
+  } catch (e) {}
+  if (uid === String(userIdStr) && typeof miningData !== 'undefined' && miningData && miningData.kycStatus) {
+    types.forEach(function (t) { miningData.kycStatus[t] = 'unverified'; });
+    try { saveLocalPersistence(true); } catch (e) {}
+    try { updateDynamicCountdowns(); } catch (e) {}
+    try { updateUI(); } catch (e) {}
+  }
+}
+function localFounderReset(uid) {
+  uid = String(uid);
+  try {
+    var q = getGlobalAdminQueue();
+    (q.founderRequests || []).forEach(function (r) { if (r && String(r.uid) === uid && r.status !== 'revoked') { r.status = 'revoked'; r.approvedByAdmin = false; r.revokedAt = Date.now(); } });
+    (q.depRequests || []).forEach(function (d) { if (d && String(d.uid) === uid && d.isFounderPass && (d.status === 'approved' || d.status === 'success')) { d.status = 'revoked'; d.approvedByAdmin = false; d.revokedAt = Date.now(); } });
+    if (q.founderVaultState) delete q.founderVaultState[uid];
+    if (q.founderClickProgress) delete q.founderClickProgress[uid];
+    saveGlobalAdminQueue(q);
+  } catch (e) {}
+  try {
+    var key = 'afex_founder_state_' + uid, raw = _afexLS.getItem(key);
+    if (raw) { var s = JSON.parse(raw); s.status = 'locked'; s.tier = 0; s.pendingTier = 0; s.pendingTxHash = ''; s.unlockAnimPlayed = false; s.unlockKeyTurnVerified = false; s.mining24hActive = false; _afexLS.setItem(key, JSON.stringify(s)); }
+  } catch (e) {}
+  if (uid === String(userIdStr)) {
+    try {
+      founderState.status = 'locked'; founderState.tier = 0; founderState.pendingTier = 0;
+      founderState.unlockAnimPlayed = false; founderState.unlockKeyTurnVerified = false; founderState.mining24hActive = false;
+      saveFounderState(); refreshFounderAllUI();
+    } catch (e) {}
+  }
+}
+
+/* ---------- aksi admin (dipasang menggantikan fungsi lama, semua jalur kini wajib scan wajah) ---------- */
+function revokeKyc(uid, kind) {   /* kind: 'face' | 'id' | 'kyc_all' */
+  var types = kind === 'kyc_all' ? ['face', 'id'] : [kind];
+  setLocalKyc(uid, types);
+  try { botNotify('/api/status', { type: 'kyc_revoked', uid: uid, kycType: kind, status: 'revoked' }); } catch (e) {}
+  return call('revoke', { targetUid: uid, kind: kind });
+}
+function revokeFounder(uid) {
+  localFounderReset(uid);
+  try { botNotify('/api/status', { type: 'founder_revoked', uid: uid, status: 'revoked' }); } catch (e) {}
+  return call('revoke', { targetUid: uid, kind: 'founder' });
+}
+G.adminRevokeKyc = function (uid, type) {
+  uid = String(uid || '').trim(); if (!uid) return false;
+  needFace(function () { revokeKyc(uid, type || 'kyc_all'); });
+  return true;
+};
+G.adminRevokeFounder = function (uid) {
+  uid = String(uid || '').trim(); if (!uid) return false;
+  needFace(function () { revokeFounder(uid); });
+  return true;
+};
+
+/* ---------- sisi user: terapkan pembatalan dari server ---------- */
+function pull() {
+  if (typeof userIdStr === 'undefined' || !userIdStr) return;
+  var K = 'afex_revoke_applied_' + userIdStr, since = 0;
+  try { since = Number(_afexLS.getItem(K)) || 0; } catch (e) {}
+  call('revocations', { since: since }).then(function (r) {
+    if (!r || !r.ok || !r.list || !r.list.length) return;
+    var max = since, kyc = false, fnd = false;
+    r.list.forEach(function (x) {
+      if (x.kind === 'founder') { localFounderReset(userIdStr); fnd = true; }
+      else { setLocalKyc(userIdStr, x.kind === 'kyc_all' ? ['face', 'id'] : [x.kind]); kyc = true; }
+      if (x.ts > max) max = x.ts;
+    });
+    try { _afexLS.setItem(K, String(max)); } catch (e) {}
+    try { showModal('Pemberitahuan', (kyc ? 'Verifikasi KYC Anda dibatalkan oleh admin. Silakan lakukan KYC lagi. ' : '') + (fnd ? 'Status Founder Anda dibatalkan oleh admin.' : ''), 'fa-circle-exclamation'); } catch (e) {}
+  });
+}
+setTimeout(pull, 5000); setInterval(pull, 30000);
+
+/* ---------- MENU PEMBATALAN KHUSUS ---------- */
+function menuEl() {
+  var m = document.getElementById('afex-cancel-menu'); if (m) return m;
+  m = document.createElement('div'); m.id = 'afex-cancel-menu';
+  m.className = 'fixed inset-0 bg-[#080c14]/97 z-[3700] hidden overflow-y-auto p-3';
+  m.innerHTML = '<div class="max-w-md mx-auto bg-[#121927] gold-border rounded-2xl p-3 space-y-3 text-[11px] font-mono">' +
+    '<div class="flex items-center justify-between"><h3 class="text-sm font-black text-red-400"><i class="fa-solid fa-ban mr-1"></i>MENU PEMBATALAN</h3>' +
+    '<button type="button" id="afex-cm-close" class="text-gray-400 text-lg cursor-pointer px-2">&times;</button></div>' +
+    '<p class="text-gray-400">Akses menu ini sudah diverifikasi dengan scan wajah admin.</p>' +
+    '<input id="afex-cm-uid" type="text" inputmode="numeric" placeholder="UID user..." class="w-full bg-[#080c14] border border-gray-700 text-yellow-300 rounded p-2 outline-none">' +
+    '<div class="border border-yellow-500/30 rounded-xl p-2 space-y-1.5"><span class="text-yellow-400 font-bold block"><i class="fa-solid fa-crown mr-1"></i>FOUNDER</span>' +
+      '<button type="button" data-cm="founder" class="w-full bg-red-500/20 border border-red-500/60 text-red-400 font-bold py-2 rounded cursor-pointer">Batalkan Founder</button></div>' +
+    '<div class="border border-cyan-500/30 rounded-xl p-2 space-y-1.5"><span class="text-cyan-300 font-bold block"><i class="fa-solid fa-id-card mr-1"></i>KYC (status kembali ke belum verifikasi)</span>' +
+      '<div class="grid grid-cols-2 gap-1.5">' +
+      '<button type="button" data-cm="face" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold py-2 rounded cursor-pointer">Batalkan KYC Wajah</button>' +
+      '<button type="button" data-cm="id" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold py-2 rounded cursor-pointer">Batalkan KYC ID</button>' +
+      '<button type="button" data-cm="kyc_all" class="col-span-2 bg-red-600 text-white font-black py-2 rounded cursor-pointer">Batalkan Semua KYC</button></div></div>' +
+    '<div id="afex-cm-result" class="text-center text-[10px] text-gray-400"></div></div>';
+  document.body.appendChild(m);
+  m.querySelector('#afex-cm-close').addEventListener('click', function () { m.classList.add('hidden'); m.classList.remove('block'); });
+  m.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-cm]'); if (!b) return;
+    var uid = m.querySelector('#afex-cm-uid').value.trim(), res = m.querySelector('#afex-cm-result'), act = b.getAttribute('data-cm');
+    if (!/^\d{3,20}$/.test(uid)) { res.innerHTML = '<span class="text-red-400">Isi UID user dengan benar (angka).</span>'; return; }
+    var name = { founder: 'Founder', face: 'KYC Wajah', id: 'KYC ID', kyc_all: 'SEMUA KYC' }[act];
+    if (!confirm('Batalkan ' + name + ' untuk UID ' + uid + '?')) return;
+    needFace(function () {
+      res.innerHTML = '<span class="text-yellow-400">Memproses...</span>';
+      (act === 'founder' ? revokeFounder(uid) : revokeKyc(uid, act)).then(function (r) {
+        if (r && r.ok) res.innerHTML = '<span class="text-green-400">' + esc(name) + ' UID ' + esc(uid) + ' dibatalkan. Status user kembali ke KYC.</span>';
+        else res.innerHTML = '<span class="text-yellow-400">Dibatalkan di perangkat ini, tetapi server gagal (' + esc((r && r.error) || 'tidak terjangkau') + '). Pastikan ID admin ada di ADMIN_IDS Render, lalu ulangi.</span>';
+      });
+    });
+  });
+  return m;
+}
+function openMenu() { var m = menuEl(); m.classList.remove('hidden'); m.classList.add('block'); }
+function injectBtn() {
+  var body = document.getElementById('modal-body');
+  if (!body || !document.getElementById('admin-search-box')) return;
+  var old = document.getElementById('admin-revoke-box'); if (old) old.remove();   /* kotak gabungan lama diganti menu khusus */
+  if (document.getElementById('afex-cancel-btn')) return;
+  var c = body.querySelector('.space-y-3'); if (!c) return;
+  var b = document.createElement('button'); b.type = 'button'; b.id = 'afex-cancel-btn';
+  b.className = 'w-full bg-red-500/15 border border-red-500/50 text-red-400 font-black py-2 rounded-xl text-[11px] cursor-pointer';
+  b.innerHTML = '<i class="fa-solid fa-ban mr-1"></i>MENU PEMBATALAN (Founder &amp; KYC) - wajib scan wajah';
+  b.addEventListener('click', function () { needFace(openMenu); });
+  c.insertBefore(b, c.firstChild);
+}
+var prev = G.openExecutiveAdminDashboard;
+G.openExecutiveAdminDashboard = function () { var r = prev.apply(this, arguments); setTimeout(injectBtn, 180); setTimeout(injectBtn, 600); return r; };
 })();
 </script>
 </body>
