@@ -5886,24 +5886,13 @@ function processIdentityDocumentFrame(video, canvas) {
 
     if (isSharpEnough && isCameraStable) {
         stepProgressTime = Math.min(requiredHoldTime, stepProgressTime + 150);
-        const progressPercent = Math.min(100, (stepProgressTime / requiredHoldTime) * 100);
-
-        if (statusEl) setStableElementHtml(statusEl, `Dokumen Fokus &amp; Stabil — Silakan tekan tombol Capture`);
-        if (progressBar) progressBar.style.width = `100%`;
-        if (timerText) setStableElementHtml(timerText, `Manual Capture`);
-        // Capture manual saja (tidak otomatis) sesuai permintaan user
+        if (typeof window._afexOnIdFrameSharp === 'function') {
+            try { window._afexOnIdFrameSharp(true, true); } catch (_e) {}
+        }
     } else {
         stepProgressTime = Math.max(0, stepProgressTime - 150);
-        const progressPercent = Math.min(100, (stepProgressTime / requiredHoldTime) * 100);
-
-        if (progressBar) progressBar.style.width = `${progressPercent}%`;
-        if (timerText) setStableElementHtml(timerText, `${(stepProgressTime / 1000).toFixed(1)}s / 2.0s`);
-        if (statusEl) {
-            if (!isSharpEnough) {
-                setStableElementHtml(statusEl, "Arahkan kamera lebih dekat &amp; perjelas dokumen");
-            } else {
-                setStableElementHtml(statusEl, "Pegang HP dengan stabil");
-            }
+        if (typeof window._afexOnIdFrameSharp === 'function') {
+            try { window._afexOnIdFrameSharp(isSharpEnough, isCameraStable); } catch (_e) {}
         }
     }
 }
@@ -11330,7 +11319,7 @@ function triggerAutoCapture() {
 </script>
 <!-- ===================== END FOUNDER EXPERIENCE ===================== -->
 <script id="kyc-doc-ai">
-/* ===== AFEX KYC DOC-AI (auto-detect paspor/ID, MRZ, cocokkan nama+nomor, cek expired, menu negara) ===== */
+/* ===== AFEX KYC DOC-AI (auto-detect paspor/ID, MRZ akurat, indikator merah/hijau, tombol Revision & Save auto-submit, loading check, mini FAQ, 19 bahasa) ===== */
 (function () {
 'use strict';
 var G = (typeof window !== 'undefined') ? window : globalThis;
@@ -11368,7 +11357,7 @@ var COUNTRIES = [
 ];
 var BYCODE = {};
 COUNTRIES.forEach(function (c) { BYCODE[c.code] = c; });
-var MRZ_FIX = { 'D': 'DEU' }; // kode MRZ khusus Jerman
+var MRZ_FIX = { 'D': 'DEU' };
 
 function patFromExample(ex) {
   var out = '', i = 0;
@@ -11416,7 +11405,7 @@ function lev(a, b) {
 var CONF = { O: '0', Q: '0', D: '0', I: '1', L: '1', Z: '2', S: '5', B: '8' };
 function canon(s) { return up(s).replace(/[^A-Z0-9]/g, '').replace(/[OQDILZSB]/g, function (c) { return CONF[c]; }); }
 
-/* ---------- 3. MRZ ---------- */
+/* ---------- 3. MRZ & AKURASI NAMA (Perbaikan Nugrahak Bagja Csetia -> NUGRAHA BAGJA SETIA) ---------- */
 var W = [7, 3, 1];
 function chk(s) {
   var sum = 0;
@@ -11429,33 +11418,51 @@ function chk(s) {
 }
 function toNum(s) { return s.replace(/[OQD]/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/S/g, '5').replace(/B/g, '8').replace(/G/g, '6'); }
 function toAlpha(s) { return s.replace(/0/g, 'O').replace(/1/g, 'I').replace(/5/g, 'S').replace(/8/g, 'B').replace(/2/g, 'Z'); }
-/* [PERBAIKAN AKURASI OCR] Bersihkan artefak filler MRZ '<<<<' yang sering terbaca OCR sebagai 'CLLLLLLLLLLLL', 'LLLLLL', 'IIIIII', 'KKKKKK' */
+
+/* Daftar stem nama umum yang berakhiran vokal di mana huruf '<' di MRZ sering terbaca 'K', 'C', atau 'L' di ujungnya */
+var VOWEL_NAME_STEMS_RE = /^(NUGRAHA|PRATAMA|SAPUTRA|WIJAYA|KUSUMA|PERMANA|MAULANA|SANTOSA|UTAMA|ADITYA|WARDHANA|SURYA|PUTRA|PUTRI|SETIA|BAGJA|DIRGA|ANGGA|RAMA|NEGARA|WIBAWA|BASKARA|PRADANA|PERDANA|SUKMA|DHARMA|YUDHA|SATRIA|ARYA|DEWA|BAYU|REZA|DAFFA| YOGA|YOGA|BIMA|ARDIA|PASHA)[KCLIE]$/;
+
 function stripOcrFillerNoise(word) {
   var w = String(word || '').toUpperCase().trim();
   if (!w) return '';
-  // Hapus ekor filler MRZ seperti SETIACLLLLLLLLLLLL -> SETIA, NUGRAHALLLLL -> NUGRAHA
-  w = w.replace(/[CIKTJGE1]?(?:L{3,}|I{3,}|C{3,}|K{3,}|E{3,}|X{3,}|[CLIKE]{5,})[A-Z]*$/g, '');
-  // Hapus pengulangan karakter >= 3 kali berturut-turut di dalam kata (misal LLL, CCC, III)
-  w = w.replace(/([A-Z])\1{2,}/g, '');
-  // Jika kata berakhiran CL / LL / KL akibat '<' di ujung kata nama panjang (>4 huruf)
-  if (w.length > 5 && /(?:CLL|KLL|ILL|LLL|CLC|LCL)$/.test(w)) {
-    w = w.replace(/(?:CLL|KLL|ILL|LLL|CLC|LCL)$/, '');
+  // 1) Hapus ekor filler MRZ seperti SETIACLLLLLLLLLLLL -> SETIA, NUGRAHALLLLL -> NUGRAHA
+  w = w.replace(/[CIKTJGE1]?(?:L{2,}|I{2,}|C{2,}|K{2,}|E{2,}|X{2,}|[CLIKE]{4,})[A-Z]*$/g, '');
+  // 2) Hapus pengulangan karakter >= 3 kali berturut-turut di dalam kata
+  w = w.replace(/([A-Z])\1{2,}/g, '$1');
+  // 3) Jika kata diawali 'C', 'K', atau 'L' diikuti konsonan tidak wajar akibat '<' di depan kata (contoh: CSETIA -> SETIA, KSETIA -> SETIA, CBAGJA -> BAGJA)
+  if (w.length >= 4 && /^[CKL][SBTDGFJCKMNPQVWXZ]/.test(w)) {
+    w = w.slice(1);
+  }
+  // 4) Jika kata merupakan nama berakhiran vokal yang ketempelan 1 huruf artefak '<' ('K', 'C', 'L', 'I', 'E') seperti NUGRAHAK -> NUGRAHA
+  var mStem = w.match(VOWEL_NAME_STEMS_RE);
+  if (mStem && mStem[1]) {
+    w = mStem[1];
+  } else if (w.length >= 6 && /[AEIOU]C$/.test(w)) {
+    w = w.slice(0, -1);
+  } else if (w.length > 5 && /(?:CLL|KLL|ILL|LLL|CLC|LCL|CK|KC)$/.test(w)) {
+    w = w.replace(/(?:CLL|KLL|ILL|LLL|CLC|LCL|CK|KC)$/, '');
   }
   return w.trim();
 }
+
 function sanitizeMrzNameRaw(raw) {
   var s = String(raw || '').toUpperCase();
   // Konversi urutan filler '<' yang salah dibaca Tesseract menjadi 'CLLLL...', 'LLLL...', 'ICLLL...', 'KLLL...' kembali menjadi '<'
   s = s.replace(/[CIKTJGE1]?(?:L{3,}|I{3,}|C{3,}|K{3,}|E{3,}|X{3,})/g, function (m) {
     return new Array(m.length + 1).join('<');
   });
+  // Jika '<' diikuti 'C'/'K'/'L' lalu konsonan (misal <CSETIA, <KSETIA, <CBAGJA), huruf C/K/L tersebut adalah '<'
+  s = s.replace(/<[CKL](?=[SBTDGFJCKMNPQVWXZ])/g, '<<');
+  // Jika kata nama >= 4 huruf berakhiran vokal + K/C/L tepat sebelum '<' (misal NUGRAHAK<BAGJA), ubah menjadi '<<'
+  s = s.replace(/\b(NUGRAHA|PRATAMA|SAPUTRA|WIJAYA|KUSUMA|PERMANA|MAULANA|SANTOSA|UTAMA|ADITYA|WARDHANA|SURYA|PUTRA|PUTRI|SETIA|BAGJA|DIRGA|ANGGA|RAMA|NEGARA|WIBAWA|BASKARA|PRADANA|PERDANA|SUKMA|DHARMA|YUDHA|SATRIA|ARYA)[KCLIE]</g, '$1<<');
+  s = s.replace(/([A-Z]{4,}[AEIOU])C</g, '$1<<');
   s = s.replace(/(?:<[CLIKE1]|[CLIKE1]<){2,}/g, '<<<<');
   s = s.replace(/<([CLIKE1])</g, '<<<');
   return s;
 }
+
 function cleanMrzLine(l) {
   var s = up(l).replace(/[«‹〈⟨⟪❨({\[]/g, '<').replace(/\s+/g, '').replace(/[^A-Z0-9<]/g, '');
-  // Jika baris tampak seperti baris 1 MRZ paspor (P<...), bersihkan ekor filler CLLLLL
   if (/^P[<A-Z]/.test(s) && s.length >= 25) {
     s = s.slice(0, 5) + sanitizeMrzNameRaw(s.slice(5));
   }
@@ -11470,12 +11477,11 @@ function parseExpiryYYMMDD(s) {
 }
 function nameFromMrz(raw) {
   var cleanedRaw = sanitizeMrzNameRaw(raw);
-  var parts = cleanedRaw.split('<<');
-  var surTokens = toAlpha(parts[0] || '').replace(/</g, ' ').split(/\s+/).map(stripOcrFillerNoise).filter(function (t) { return t.length >= 2; });
-  var givTokens = toAlpha(parts.slice(1).join(' ') || '').replace(/</g, ' ').split(/\s+/).map(stripOcrFillerNoise).filter(function (t) { return t.length >= 2; });
-  var sur = surTokens.join(' ').trim();
-  var giv = givTokens.join(' ').trim();
-  return (giv ? (giv + (sur ? ' ' + sur : '')) : sur).replace(/\s+/g, ' ').trim();
+  // Ambil semua token nama secara berurutan dari MRZ setelah dibersihkan dari artefak '<' (contoh: P<IDNNUGRAHA<<BAGJA<SETIA -> NUGRAHA BAGJA SETIA)
+  var allTokens = toAlpha(cleanedRaw).replace(/</g, ' ').split(/\s+/).map(stripOcrFillerNoise).filter(function (t) {
+    return t.length >= 2 && !/^[CLIKE]{2,}$/.test(t);
+  });
+  return allTokens.join(' ').trim();
 }
 function iso(code) { code = (code || '').replace(/</g, ''); return MRZ_FIX[code] || code; }
 
@@ -11485,10 +11491,10 @@ function parseMrz(text) {
   // TD3 paspor: 2 baris x 44
   for (i = 0; i < lines.length && !res; i++) {
     var l1 = lines[i];
-    if (l1.length >= 38 && l1.length <= 48 && l1[0] === 'P' && l1.indexOf('<<') > 4) {
+    if (l1.length >= 36 && l1.length <= 50 && l1[0] === 'P' && l1.indexOf('<') >= 1) {
       for (var j = i + 1; j < lines.length && j <= i + 3; j++) {
         var l2 = lines[j];
-        if (l2.length >= 38 && l2.length <= 48) {
+        if (l2.length >= 36 && l2.length <= 50) {
           l1 = (l1 + '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<').slice(0, 44);
           l2 = (l2 + '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<').slice(0, 44);
           var number = l2.slice(0, 9), nChk = toNum(l2[9]);
@@ -11563,7 +11569,7 @@ function valueAfterLabel(lines, labelRe) {
   }
   return null;
 }
-var NON_NAME_WORDS = /^(NAMA|NARNA|NOMA|NAME|NOM|FULL|LENGKAP|SURNAME|GIVEN|NAMES|PASSPORT|PASPOR|REPUBLIK|INDONESIA|PROVINSI|KABUPATEN|KOTA|NIK|TEMPAT|TGL|TANGGAL|LAHIR|JENIS|KELAMIN|LAKI|PEREMPUAN|ALAMAT|AGAMA|STATUS|PERKAWINAN|PEKERJAAN|KEWARGANEGARAAN|BERLAKU|HINGGA|SEUMUR|HIDUP|WNI|CARD|IDENTITY|NATIONAL|DATE|BIRTH|SEX|EXPIRY|ISSUING|AUTHORITY|CODE|COUNTRY)$/;
+var NON_NAME_WORDS = /^(NAMA|NARNA|NOMA|NAME|NOM|FULL|LENGKAP|SURNAME|GIVEN|NAMES|PASSPORT|PASPOR|REPUBLIK|INDONESIA|PROVINSI|KABUPATEN|KOTA|NIK|TEMPAT|LAHIR|JENIS|KELAMIN|ALAMAT|AGAMA|STATUS|PEKERJAAN|KEWARGANEGARAAN|BERLAKU|HINGGA|SEUMUR|HIDUP|GOL|DARAH|WNI|DATE|BIRTH|SEX|EXPIRY|ISSUING|AUTHORITY|NATIONALITY|COUNTRY|CODE)$/;
 function cleanName(v) {
   if (!v) return null;
   v = sanitizeMrzNameRaw(up(stripAcc(v)));
@@ -11576,6 +11582,8 @@ function cleanName(v) {
   if (!toks.length || toks.join('').length < 3) return null;
   return toks.join(' ');
 }
+G._afexCleanDocName = cleanName;
+
 function countryFromText(t) {
   var T = up(stripAcc(t)), best = null, i, k;
   for (i = 0; i < COUNTRIES.length; i++) {
@@ -11601,7 +11609,7 @@ function countryCodeToken(text) {
   }
   return firstLabelled || first;
 }
-function parseVisual(text, mrzLinesText) {
+function parseVisual(text) {
   var out = {};
   var raw = String(text || '');
   var lines = raw.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
@@ -11614,12 +11622,10 @@ function parseVisual(text, mrzLinesText) {
   if (ct) out.country = ct;
   else if (out.kind === 'passport') { var cn = countryFromText(T); if (cn) out.country = cn; }
 
-  // Nama (label dua bahasa seperti "Nama/Name" ditangani oleh LABEL_JOIN)
   var nm = valueAfterLabel(visLines, 'NAMA LENGKAP|FULL NAME|NAMA|NAME|NOM|SURNAME');
   nm = cleanName(nm);
   if (nm) out.name = nm;
 
-  // Kewarganegaraan
   var nat = valueAfterLabel(visLines, 'KEWARGANEGARAAN|NATIONALITY|KEBANGSAAN|NATIONALITE|STAATSANGEHORIGKEIT');
   if (nat) {
     var natT = up(stripAcc(nat)).trim();
@@ -11630,7 +11636,6 @@ function parseVisual(text, mrzLinesText) {
     }
   }
 
-  // Nomor
   var cand = T.match(/[A-Z0-9]{6,18}/g) || [];
   var c0 = out.country && BYCODE[out.country];
   if (out.kind === 'id') {
@@ -11640,7 +11645,7 @@ function parseVisual(text, mrzLinesText) {
   } else {
     for (var i = 0; i < cand.length; i++) {
       var tkn = cand[i];
-      if (/^[A-Z]+$/.test(tkn)) continue; // kata biasa
+      if (/^[A-Z]+$/.test(tkn)) continue;
       var ok = false;
       if (c0) ok = !!numberMatchesCountry(tkn, c0.code, 'passport');
       else ok = /^[A-Z]{1,2}[0-9]{6,8}[A-Z]?$/.test(tkn) || /^[0-9]{9}$/.test(tkn);
@@ -11648,7 +11653,6 @@ function parseVisual(text, mrzLinesText) {
     }
   }
 
-  // Masa berlaku
   if (/SEUMUR HIDUP|LIFETIME|LIFE\b/.test(T)) { out.lifetime = true; }
   var expLabel = /(BERLAKU HINGGA|MASA BERLAKU|HABIS BERLAKU|TGL\.? HABIS|DATE OF EXPIRY|EXPIRY|EXPIRES|VALID UNTIL|DATE D'EXPIRATION)/;
   for (var li = 0; li < visLines.length; li++) {
@@ -11666,7 +11670,7 @@ function parseVisual(text, mrzLinesText) {
   return out;
 }
 
-/* ---------- 5. GABUNG HASIL OCR (prioritas MRZ valid > label > tebakan) ---------- */
+/* ---------- 5. GABUNG HASIL OCR ---------- */
 function freshState() {
   return { kind: null, country: null, nat: null, number: null, numSrc: 0, numValid: false, name: null, nameSrc: 0,
            expiry: null, expSrc: 0, lifetime: false, attempts: 0, mrz: false, mismatchHits: 0 };
@@ -11679,7 +11683,7 @@ function merge(S, mrz, vis) {
     if (mrz.country && BYCODE[mrz.country]) S.country = mrz.country;
     if (mrz.nat && BYCODE[mrz.nat]) S.nat = mrz.nat;
     if (mrz.number && (mrz.numValid || S.numSrc < 3)) { S.number = mrz.number; S.numSrc = mrz.numValid ? 4 : 2; S.numValid = mrz.numValid; }
-    if (mrz.name && S.nameSrc < 3) { S.name = mrz.name; S.nameSrc = mrz.numValid ? 3 : 2; }
+    if (mrz.name && S.nameSrc < 3) { S.name = cleanName(mrz.name) || mrz.name; S.nameSrc = mrz.numValid ? 3 : 2; }
     if (mrz.expiry && (mrz.expValid || S.expSrc < 3)) { S.expiry = mrz.expiry; S.expSrc = mrz.expValid ? 4 : 2; }
   }
   if (vis) {
@@ -11687,24 +11691,24 @@ function merge(S, mrz, vis) {
     if (!S.country && vis.country) S.country = vis.country;
     if (!S.nat && vis.nat) S.nat = vis.nat;
     if (vis.number && S.numSrc < 2) { S.number = vis.number; S.numSrc = 2; }
-    if (vis.name && S.nameSrc < 2) { S.name = vis.name; S.nameSrc = 2; }
+    if (vis.name && S.nameSrc < 2) { S.name = cleanName(vis.name) || vis.name; S.nameSrc = 2; }
     if (vis.expiry && vis.expSrc > S.expSrc) { S.expiry = vis.expiry; S.expSrc = vis.expSrc; }
     if (vis.lifetime) S.lifetime = true;
   }
-  if (!S.nat && S.country && S.kind === 'passport') S.nat = null; // jangan menebak
+  if (!S.nat && S.country && S.kind === 'id') S.nat = S.country;
   return S;
 }
 
 /* ---------- 6. PENCOCOKAN ---------- */
 function nameTokens(s) {
-  return up(stripAcc(s)).replace(/[^A-Z\s]/g, ' ').split(/\s+/).filter(function (t) { return t.length >= 2; });
+  return up(stripAcc(s)).replace(/[^A-Z\s]/g, ' ').split(/\s+/).map(stripOcrFillerNoise).filter(function (t) { return t.length >= 2; });
 }
 function nameMatch(inp, doc) {
   var A = nameTokens(inp), B = nameTokens(doc);
   if (!A.length || !B.length) return false;
   var small = A.length <= B.length ? A : B, big = A.length <= B.length ? B : A;
   return small.every(function (t) {
-    return big.some(function (u) { return u === t || (t.length >= 6 && lev(t, u) <= 1); });
+    return big.some(function (u) { return u === t || (t.length >= 5 && lev(t, u) <= 1); });
   });
 }
 function numberMatch(inp, doc, strict) {
@@ -11718,7 +11722,7 @@ function numberMatch(inp, doc, strict) {
 /* ---------- 7. KEPUTUSAN ---------- */
 function verdict(S, inp, final, now) {
   now = now || new Date();
-  var flags = [], T = G._kycTx || function (k) { return k; };
+  var flags = [];
   if (!S.kind) return { state: final ? 'reject' : 'wait', reason: 'unread', flags: flags };
   if (!S.number || !S.name) return { state: final ? 'reject' : 'wait', reason: 'unread', flags: flags };
   if (!inp.number || !inp.name) return { state: 'wait', reason: 'fill', flags: flags };
@@ -11733,12 +11737,11 @@ function verdict(S, inp, final, now) {
     if (sure) return { state: 'reject', reason: !nm.ok ? 'number' : 'name', flags: flags };
     return { state: 'wait', reason: 'recheck', flags: flags };
   }
-  // kedaluwarsa
   var today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   if (S.expiry) {
     if (S.expiry < today) return { state: 'reject', reason: 'expired', flags: flags };
   } else if (S.kind === 'id' && S.lifetime) {
-    // seumur hidup -> valid
+    // valid
   } else {
     if (!final && S.attempts < 4) return { state: 'wait', reason: 'noexp', flags: flags };
     flags.push('no_expiry');
@@ -11758,119 +11761,660 @@ function verdict(S, inp, final, now) {
 G.KYCDoc = {
   COUNTRIES: COUNTRIES, BYCODE: BYCODE, parseMrz: parseMrz, parseVisual: parseVisual, merge: merge, freshState: freshState,
   verdict: verdict, nameMatch: nameMatch, numberMatch: numberMatch, chk: chk, findDates: findDates,
-  describeEx: describeEx, numberMatchesCountry: numberMatchesCountry
+  describeEx: describeEx, numberMatchesCountry: numberMatchesCountry, cleanName: cleanName
 };
 
-if (typeof document === 'undefined' || !document.getElementById) return; // lingkungan tes (node)
+if (typeof document === 'undefined' || !document.getElementById) return;
 
-/* ---------- 8. TEKS (id/en; bahasa lain jatuh ke Inggris) ---------- */
+/* ---------- 8. KAMUS LENGKAP 19 BAHASA (INGGRIS DEFAULT, SWITCH TANPA CELAH) ---------- */
 var TX = {
-  k_type: { id: 'Jenis dokumen', en: 'Document type' }, k_cc: { id: 'Kode negara', en: 'Country code' },
-  k_nn: { id: 'Nama & nomor', en: 'Name & number' }, k_nat: { id: 'Kewarganegaraan', en: 'Nationality' },
-  k_exp: { id: 'Masa berlaku', en: 'Expiry' },
-  passport: { id: 'Paspor', en: 'Passport' }, idcard: { id: 'Kartu ID', en: 'ID card' }, none: { id: 'belum terbaca', en: 'not read yet' },
-  lifetime: { id: 'Seumur hidup', en: 'Lifetime' },
-  loading: { id: 'Memuat mesin OCR…', en: 'Loading OCR engine…' },
-  scanning: { id: 'Membaca dokumen…', en: 'Reading document…' },
-  ocr_fail: { id: 'Mesin OCR gagal dimuat. Periksa koneksi internet lalu coba lagi.', en: 'OCR engine failed to load. Check your connection and try again.' },
-  n_passport: { id: 'Paspor terdeteksi. Silakan masukkan nomor paspor Anda.', en: 'Passport detected. Please enter your passport number.' },
-  n_id: { id: 'Kartu ID terdeteksi. Silakan masukkan nomor ID Anda.', en: 'ID card detected. Please enter your ID number.' },
-  n_fill: { id: 'Isi nama dan nomor dokumen agar bisa dicocokkan.', en: 'Fill in your name and document number so they can be matched.' },
-  n_retry: { id: 'Belum terbaca lengkap, tahan dokumen tetap stabil…', en: 'Not fully read yet, hold the document steady…' },
-  n_ok_country: { id: 'Negara terdeteksi: {c}', en: 'Country detected: {c}' },
-  ph_passport: { id: 'Masukkan nomor paspor…', en: 'Enter passport number…' },
-  ph_id: { id: 'Masukkan nomor ID…', en: 'Enter ID number…' },
-  ph_name: { id: 'Nama lengkap sesuai dokumen', en: 'Full name as on document' },
-  menu_auto: { id: 'Negara (otomatis)', en: 'Country (auto)' },
-  hint: { id: 'Contoh nomor {k} {c}: {ex} ({d})', en: '{k} number example for {c}: {ex} ({d})' },
-  hint_noid: { id: 'Negara ini tidak punya format nomor ID nasional standar untuk ditampilkan.', en: 'No standard national ID number format to show for this country.' },
-  hint_note: { id: 'Contoh bersifat umum; format resmi bisa berbeda.', en: 'Examples are general; the official format may differ.' },
-  rej_title: { id: 'KYC Ditolak', en: 'KYC Rejected' },
-  rej_name: { id: 'Nama di dokumen (“{doc}”) berbeda dengan yang Anda input (“{inp}”).', en: 'The name on the document (“{doc}”) differs from what you entered (“{inp}”).' },
-  rej_number: { id: 'Nomor di dokumen ({doc}) berbeda dengan yang Anda input ({inp}).', en: 'The number on the document ({doc}) differs from what you entered ({inp}).' },
-  rej_expired: { id: 'Dokumen sudah kedaluwarsa ({date}).', en: 'The document has expired ({date}).' },
-  rej_unread: { id: 'Nama/nomor dokumen belum terbaca jelas. Dekatkan dokumen, pastikan cahaya cukup, lalu coba lagi.', en: 'Name/number could not be read clearly. Move closer, use good light, and try again.' },
-  ok_title: { id: 'Berhasil', en: 'Success' },
-  ok_msg: { id: 'Dokumen {type} ({num}) terbaca dan cocok. Dikirim untuk ditinjau admin.', en: '{type} ({num}) was read and matches. Sent for admin review.' },
-  dup_title: { id: 'Ditolak', en: 'Rejected' },
-  dup_msg: { id: 'Nomor dokumen ini sudah dipakai pengguna lain.', en: 'This document number is already used by another user.' }
+  k_type: {
+    en: 'Document type', id: 'Jenis dokumen', es: 'Tipo de documento', de: 'Dokumenttyp', fr: 'Type de document',
+    tr: 'Belge türü', uz: 'Hujjat turi', ru: 'Тип документа', vi: 'Loại giấy tờ', tl: 'Uri ng dokumento',
+    th: 'ประเภทเอกสาร', ms: 'Jenis dokumen', hi: 'दस्तावेज़ का प्रकार', ur: 'دستاویز کی قسم', zh: '证件类型',
+    ko: '문서 유형', ja: '書類の種類', af: 'Dokumenttipe', ar: 'نوع الوثيقة'
+  },
+  k_cc: {
+    en: 'Country code', id: 'Kode negara', es: 'Código de país', de: 'Ländercode', fr: 'Code pays',
+    tr: 'Ülke kodu', uz: 'Davlat kodi', ru: 'Код страны', vi: 'Mã quốc gia', tl: 'Country code',
+    th: 'รหัสประเทศ', ms: 'Kod negara', hi: 'देश कोड', ur: 'ملک کا کوڈ', zh: '国家代码',
+    ko: '국가 코드', ja: '国コード', af: 'Landkode', ar: 'رمز الدولة'
+  },
+  k_nn: {
+    en: 'Name & number', id: 'Nama & nomor', es: 'Nombre y número', de: 'Name & Nummer', fr: 'Nom et numéro',
+    tr: 'Ad ve numara', uz: 'Ism va raqam', ru: 'Имя и номер', vi: 'Họ tên & số', tl: 'Pangalan at numero',
+    th: 'ชื่อและหมายเลข', ms: 'Nama & nombor', hi: 'नाम और नंबर', ur: 'نام اور نمبر', zh: '姓名与号码',
+    ko: '이름 및 번호', ja: '氏名・番号', af: 'Naam & nommer', ar: 'الاسم والرقم'
+  },
+  k_nat: {
+    en: 'Nationality', id: 'Kewarganegaraan', es: 'Nacionalidad', de: 'Staatsangehörigkeit', fr: 'Nationalité',
+    tr: 'Uyruk', uz: 'Fuqaroligi', ru: 'Гражданство', vi: 'Quốc tịch', tl: 'Nasyonalidad',
+    th: 'สัญชาติ', ms: 'Kewarganegaraan', hi: 'राष्ट्रीयता', ur: 'قومیت', zh: '国籍',
+    ko: '국적', ja: '国籍', af: 'Nasionaliteit', ar: 'الجنسية'
+  },
+  k_exp: {
+    en: 'Expiry', id: 'Masa berlaku', es: 'Vencimiento', de: 'Gültig bis', fr: 'Expiration',
+    tr: 'Son geçerlilik', uz: 'Amal qilish muddati', ru: 'Срок действия', vi: 'Thời hạn', tl: 'Petsa ng paso',
+    th: 'วันหมดอายุ', ms: 'Tempoh sah', hi: 'समाप्ति तिथि', ur: 'میعاد ختم', zh: '有效期',
+    ko: '만료일', ja: '有効期限', af: 'Vervaldatum', ar: 'تاريخ الانتهاء'
+  },
+  passport: {
+    en: 'Passport', id: 'Paspor', es: 'Pasaporte', de: 'Reisepass', fr: 'Passeport',
+    tr: 'Pasaport', uz: 'Pasport', ru: 'Паспорт', vi: 'Hộ chiếu', tl: 'Pasaporte',
+    th: 'พาสปอร์ต', ms: 'Pasport', hi: 'पासपोर्ट', ur: 'پاسپورٹ', zh: '护照',
+    ko: '여권', ja: 'パスポート', af: 'Paspoort', ar: 'جواز سفر'
+  },
+  idcard: {
+    en: 'ID card', id: 'Kartu ID', es: 'Documento ID', de: 'Personalausweis', fr: 'Carte ID',
+    tr: 'Kimlik Kartı', uz: 'ID karta', ru: 'ID-карта', vi: 'Thẻ căn cước', tl: 'ID card',
+    th: 'บัตรประชาชน', ms: 'Kad ID', hi: 'पहचान पत्र', ur: 'شناختی کارڈ', zh: '身份证',
+    ko: '신분증', ja: '身分증', af: 'ID-kaart', ar: 'بطاقة هوية'
+  },
+  none: {
+    en: 'not read yet', id: 'belum terbaca', es: 'aún no leído', de: 'noch nicht gelesen', fr: 'non lu',
+    tr: 'henüz okunmadı', uz: 'hali o‘qilmadi', ru: 'ещё не считано', vi: 'chưa đọc được', tl: 'hindi pa nabasa',
+    th: 'ยังไม่อ่าน', ms: 'belum dibaca', hi: 'अभी पढ़ा नहीं गया', ur: 'ابھی نہیں پڑھا گیا', zh: '尚未识别',
+    ko: '아직 읽지 못함', ja: '未読み取り', af: 'nog nie gelees nie', ar: 'لم يُقرأ بعد'
+  },
+  not_detected: {
+    en: 'Not detected (Tap to revise)', id: 'Tidak terdeteksi (Revisi di atas)', es: 'No detectado (Revisar arriba)', de: 'Nicht erkannt (Oben korrigieren)', fr: 'Non détecté (Réviser ci-dessus)',
+    tr: 'Algılanmadı (Yukarıda düzeltin)', uz: 'Aniqlanmadi (Tepada tahrirlang)', ru: 'Не обнаружено (Исправьте выше)', vi: 'Chưa phát hiện (Sửa ở trên)', tl: 'Hindi na-detect (Baguhin sa itaas)',
+    th: 'ตรวจไม่พบ (แก้ไขด้านบน)', ms: 'Tidak dikesan (Semak di atas)', hi: 'पता नहीं चला (ऊपर सुधारें)', ur: 'شناخت نہیں ہوئی (اوپر درست کریں)', zh: '未检测到（请在上方修改）',
+    ko: '감지 안 됨 (위에서 수정)', ja: '未検出（上部で修正）', af: 'Nie bespeur nie (Hersien bo)', ar: 'غير مكتشف (عدّل بالأعلى)'
+  },
+  lifetime: {
+    en: 'Lifetime', id: 'Seumur hidup', es: 'De por vida', de: 'Lebenslang', fr: 'À vie',
+    tr: 'Ömür boyu', uz: 'Umrbod', ru: 'Бессрочно', vi: 'Vô thời hạn', tl: 'Panghabambuhay',
+    th: 'ตลอดชีพ', ms: 'Seumur hidup', hi: 'आजीवन', ur: 'تاحیات', zh: '长期有效',
+    ko: '평생 유효', ja: '無期限', af: 'Lewenslank', ar: 'مدى الحياة'
+  },
+  loading: {
+    en: 'Loading OCR engine…', id: 'Memuat mesin OCR…', es: 'Cargando motor OCR…', de: 'OCR-Engine wird geladen…', fr: 'Chargement du moteur OCR…',
+    tr: 'OCR motoru yükleniyor…', uz: 'OCR yuklanmoqda…', ru: 'Загрузка OCR…', vi: 'Đang tải công cụ OCR…', tl: 'Nilo-load ang OCR…',
+    th: 'กำลังโหลดระบบ OCR…', ms: 'Memuatkan enjin OCR…', hi: 'OCR इंजन लोड हो रहा है…', ur: 'OCR انجن لوڈ ہو رہا ہے…', zh: '正在加载 OCR 引擎…',
+    ko: 'OCR 엔진 로딩 중…', ja: 'OCRエンジンを読み込み中…', af: 'Laai OCR-enjin…', ar: 'جاري تحميل محرك OCR…'
+  },
+  scanning: {
+    en: 'Checking document data…', id: 'Mengecek data dokumen…', es: 'Verificando datos del documento…', de: 'Dokumentdaten werden geprüft…', fr: 'Vérification des données du document…',
+    tr: 'Belge verileri kontrol ediliyor…', uz: 'Hujjat ma’lumotlari tekshirilmoqda…', ru: 'Проверка данных документа…', vi: 'Đang kiểm tra dữ liệu giấy tờ…', tl: 'Sinusuri ang datos ng dokumento…',
+    th: 'กำลังตรวจสอบข้อมูลเอกสาร…', ms: 'Menyemak data dokumen…', hi: 'दस्तावेज़ डेटा की जाँच हो रही है…', ur: 'دستاویز کے ڈیٹا کی جانچ ہو رہی ہے…', zh: '正在检查证件数据…',
+    ko: '문서 데이터 확인 중…', ja: '書類データを確認中…', af: 'Kontroleer dokumentdata…', ar: 'جاري فحص بيانات الوثيقة…'
+  },
+  rechecking: {
+    en: 'Re-checking revised data & submitting…', id: 'Mengecek ulang data revisi & mengirim…', es: 'Reverificando datos y enviando…', de: 'Daten werden erneut geprüft & gesendet…', fr: 'Revérification des données et envoi…',
+    tr: 'Veriler yeniden kontrol ediliyor ve gönderiliyor…', uz: 'Ma’lumotlar qayta tekshirilmoqda va yuborilmoqda…', ru: 'Повторная проверка и отправка…', vi: 'Đang kiểm tra lại và gửi…', tl: 'Muling sinusuri at ipinapadala…',
+    th: 'กำลังตรวจสอบข้อมูลอีกครั้งและส่ง…', ms: 'Menyemak semula data & menghantar…', hi: 'डेटा की पुनः जाँच और सबमिट किया जा रहा है…', ur: 'ڈیٹا کی دوبارہ جانچ اور ارسال کیا جا رہا ہے…', zh: '正在重新核对数据并提交…',
+    ko: '수정된 데이터 재확인 및 제출 중…', ja: '修正データを再確認して送信中…', af: 'Hertoets data en dien in…', ar: 'جاري إعادة فحص البيانات وإرسالها…'
+  },
+  ocr_fail: {
+    en: 'OCR engine failed to load. You can fill in and save your document data above.', id: 'Mesin OCR gagal dimuat. Silakan isi dan simpan data dokumen pada menu di atas.', es: 'Error al cargar OCR. Complete y guarde los datos arriba.', de: 'OCR konnte nicht geladen werden. Bitte Daten oben eingeben und speichern.', fr: 'Échec du chargement OCR. Veuillez remplir et enregistrer ci-dessus.',
+    tr: 'OCR yüklenemedi. Lütfen yukarıdaki bilgileri doldurup kaydedin.', uz: 'OCR yuklanmadi. Yuqoridagi ma’lumotlarni to‘ldirib saqlang.', ru: 'Ошибка загрузки OCR. Заполните и сохраните данные выше.', vi: 'Không tải được OCR. Vui lòng nhập và lưu dữ liệu ở trên.', tl: 'Bigo ang OCR. Punan at i-save ang datos sa itaas.',
+    th: 'โหลด OCR ไม่สำเร็จ โปรดกรอกและบันทึกข้อมูลด้านบน', ms: 'Enjin OCR gagal dimuatkan. Sila isi dan simpan data di atas.', hi: 'OCR लोड नहीं हो सका। कृपया ऊपर डेटा भरें और सेव करें।', ur: 'OCR لوڈ نہیں ہو سکا۔ براہ کرم اوپر ڈیٹا درج کر کے محفوظ کریں۔', zh: 'OCR 加载失败，请在上方填写并保存证件信息。',
+    ko: 'OCR 로드 실패. 위 메뉴에 정보를 입력하고 저장하세요.', ja: 'OCRの読み込みに失敗しました。上部に入力して保存してください。', af: 'OCR kon nie laai nie. Vul asb. bo in en stoor.', ar: 'فشل تحميل OCR. يرجى إدخال البيانات أعلاه وحفظها.'
+  },
+  n_passport: {
+    en: 'Passport detected. Auto-filled into the fields above.', id: 'Paspor terdeteksi. Data otomatis terisi di atas.', es: 'Pasaporte detectado. Datos completados arriba.', de: 'Reisepass erkannt. Daten oben automatisch ausgefüllt.', fr: 'Passeport détecté. Données remplies ci-dessus.',
+    tr: 'Pasaport algılandı. Bilgiler yukarıya dolduruldu.', uz: 'Pasport aniqlandi. Ma’lumotlar yuqoriga kiritildi.', ru: 'Паспорт обнаружен. Данные заполнены выше.', vi: 'Đã phát hiện hộ chiếu. Đã tự động điền ở trên.', tl: 'Na-detect ang pasaporte. Kusang napunan sa itaas.',
+    th: 'ตรวจพบพาสปอร์ต กรอกข้อมูลด้านบนอัตโนมัติแล้ว', ms: 'Pasport dikesan. Data diisi secara automatik di atas.', hi: 'पासपोर्ट की पहचान हुई। डेटा ऊपर स्वतः भर गया है।', ur: 'پاسپورٹ شناخت ہو گیا۔ ڈیٹا اوپر خودکار بھر دیا گیا۔', zh: '已检测到护照，信息已自动填入上方。',
+    ko: '여권 감지됨. 위 입력란에 자동 입력되었습니다.', ja: 'パスポートを検出しました。上部に自動入力されました。', af: 'Paspoort bespeur. Outomaties bo ingevul.', ar: 'تم اكتشاف جواز السفر وتعبئة البيانات تلقائياً أعلاه.'
+  },
+  n_id: {
+    en: 'ID card detected. Auto-filled into the fields above.', id: 'Kartu ID terdeteksi. Data otomatis terisi di atas.', es: 'Documento ID detectado. Datos completados arriba.', de: 'Ausweis erkannt. Daten oben automatisch ausgefüllt.', fr: 'Carte ID détectée. Données remplies ci-dessus.',
+    tr: 'Kimlik kartı algılandı. Bilgiler yukarıya dolduruldu.', uz: 'ID karta aniqlandi. Ma’lumotlar yuqoriga kiritildi.', ru: 'ID-карта обнаружена. Данные заполнены выше.', vi: 'Đã phát hiện thẻ ID. Đã tự động điền ở trên.', tl: 'Na-detect ang ID card. Kusang napunan sa itaas.',
+    th: 'ตรวจพบบัตรประชาชน กรอกข้อมูลด้านบนอัตโนมัติแล้ว', ms: 'Kad ID dikesan. Data diisi secara automatik di atas.', hi: 'पहचान पत्र की पहचान हुई। डेटा ऊपर स्वतः भर गया है।', ur: 'شناختی کارڈ شناخت ہو گیا۔ ڈیٹا اوپر خودکار بھر دیا گیا۔', zh: '已检测到身份证，信息已自动填入上方。',
+    ko: '신분증 감지됨. 위 입력란에 자동 입력되었습니다.', ja: '身分証を検出しました。上部に自動入力されました。', af: 'ID-kaart bespeur. Outomaties bo ingevul.', ar: 'تم اكتشاف بطاقة الهوية وتعبئة البيانات تلقائياً أعلاه.'
+  },
+  n_fill: {
+    en: 'Please complete the document number and full name above, then press Save.', id: 'Lengkapi nomor dokumen dan nama lengkap di atas, lalu tekan Simpan.', es: 'Complete el número y nombre arriba y pulse Guardar.', de: 'Bitte Dokumentnummer und Namen oben ausfüllen und Speichern drücken.', fr: 'Veuillez compléter le numéro et le nom ci-dessus puis cliquer sur Enregistrer.',
+    tr: 'Lütfen yukarıdaki belge numarası ve tam adı doldurup Kaydet’e basın.', uz: 'Yuqorida hujjat raqami va to‘liq ismni kiriting hamda Saqlashni bosing.', ru: 'Заполните номер документа и ФИО выше, затем нажмите Сохранить.', vi: 'Vui lòng điền số giấy tờ và họ tên ở trên rồi nhấn Lưu.', tl: 'Punan ang numero ng dokumento at buong pangalan sa itaas,เเล้ว pindutin ang Save.',
+    th: 'โปรดกรอกเลขเอกสารและชื่อเต็มด้านบน แล้วกดบันทึก', ms: 'Lengkapkan nombor dokumen dan nama penuh di atas, kemudian tekan Simpan.', hi: 'कृपया ऊपर दस्तावेज़ नंबर और पूरा नाम भरें, फिर सेव दबाएँ।', ur: 'براہ کرم اوپر دستاویز نمبر اور پورا نام درج کریں، پھر محفوظ کریں دبائیں۔', zh: '请在上方填写完整的证件号码和姓名，然后点击保存。',
+    ko: '위에서 문서 번호와 성명을 입력한 후 저장을 누르세요.', ja: '上部に書類番号と氏名を入力し、「保存」を押してください。', af: 'Voltooi asb. die dokumentnommer en volle naam bo en druk Stoor.', ar: 'يرجى إكمال رقم الوثيقة والاسم الكامل أعلاه ثم الضغط على حفظ.'
+  },
+  n_retry: {
+    en: 'Some fields are not detected (red). Please revise the unlocked fields above and press Save.', id: 'Ada bagian merah (belum terdeteksi). Silakan revisi pada menu di atas lalu tekan Simpan.', es: 'Algunos campos en rojo no se detectaron. Revise arriba y pulse Guardar.', de: 'Einige Felder (rot) wurden nicht erkannt. Bitte oben korrigieren und Speichern drücken.', fr: 'Certains champs (rouges) ne sont pas détectés. Corrigez ci-dessus et cliquez sur Enregistrer.',
+    tr: 'Bazı alanlar algılanmadı (kırmızı). Yukarıdan düzeltip Kaydet’e basın.', uz: 'Ba’zi qatorlar aniqlanmadi (qizil). Yuqorida tahrirlab, Saqlashni bosing.', ru: 'Некоторые поля не распознаны (красные). Исправьте их выше и нажмите Сохранить.', vi: 'Một số mục chưa phát hiện (màu đỏ). Vui lòng sửa ở menu trên và nhấn Lưu.', tl: 'May hindi na-detect (pula). Baguhin sa menu sa itaas at pindutin ang Save.',
+    th: 'บางรายการตรวจไม่พบ (สีแดง) โปรดแก้ไขที่เมนูด้านบนแล้วกดบันทึก', ms: 'Terdapat bahagian merah (belum dikesan). Sila semak di menu atas dan tekan Simpan.', hi: 'कुछ फ़ील्ड (लाल) का पता नहीं चला। कृपया ऊपर सुधारें और सेव दबाएँ।', ur: 'کچھ حصے (سرخ) شناخت نہیں ہوئے۔ اوپر مینو میں درست کریں اور محفوظ کریں دبائیں۔', zh: '部分项目未检测到（红色），请在上方菜单修正并点击保存。',
+    ko: '일부 항목이 감지되지 않았습니다(빨간색). 위 메뉴에서 수정 후 저장을 누르세요.', ja: '未検出の項目（赤色）があります。上部メニューで修正して「保存」を押してください。', af: 'Sommige velde is nie bespeur nie (rooi). Hersien bo en druk Stoor.', ar: 'بعض الحقول غير مكتشفة (بالأحمر). يرجى تعديلها في القائمة أعلاه والضغط على حفظ.'
+  },
+  n_all_green: {
+    en: '✓ All data detected! Auto-submitting to admin… (Tap "Revision" to edit)', id: '✓ Semua data terdeteksi hijau! Otomatis mengirim ke admin… (Klik "Revision" jika ingin perbaiki)', es: '✓ ¡Todos los datos detectados! Enviando al admin… (Pulse "Revisión" para editar)', de: '✓ Alle Daten erkannt! Automatische Übermittlung… ("Revision" zum Bearbeiten)', fr: '✓ Toutes les données détectées ! Envoi automatique… (Cliquez sur "Révision" pour modifier)',
+    tr: '✓ Tüm veriler algılandı! Yöneticiye gönderiliyor… (Düzenlemek için "Revizyon"a dokunun)', uz: '✓ Barcha ma’lumotlar aniqlandi! Adminga yuborilmoqda… (Tahrirlash uchun "Reviziya"ni bosing)', ru: '✓ Все данные распознаны! Автоотправка админу… (Нажмите «Ревизия» для правки)', vi: '✓ Đã phát hiện đủ dữ liệu! Đang tự động gửi admin… (Nhấn "Sửa đổi" nếu cần sửa)', tl: '✓ Na-detect lahat! Kusang ipinapadala sa admin… (Pindutin ang "Revision" para baguhin)',
+    th: '✓ ตรวจพบข้อมูลครบแล้ว! กำลังส่งให้แอดมินอัตโนมัติ… (กด "แก้ไข" หากต้องการปรับปรุง)', ms: '✓ Semua data dikesan! Menghantar automatik ke admin… (Klik "Semakan" untuk baiki)', hi: '✓ सभी डेटा की पहचान हो गई! एडमिन को स्वतः भेजा जा रहा है… (सुधार के लिए "संशोधन" दबाएँ)', ur: '✓ تمام ڈیٹا شناخت ہو گیا! ایڈمن کو خودکار بھیجا جا رہا ہے… (تبدیلی کے لیے "ترمیم" دبائیں)', zh: '✓ 所有数据已识别（全绿）！正在自动提交给管理员…（如需修改请点“修改”）',
+    ko: '✓ 모든 데이터 감지 완료! 관리자에게 자동 제출 중… (수정하려면 "수정" 클릭)', ja: '✓ 全データ検出完了！管理者へ自動送信中…（修正する場合は「修正」をタップ）', af: '✓ Alle data bespeur! Dien outomaties in… (Tik "Hersien" om te wysig)', ar: '✓ تم اكتشاف جميع البيانات! جاري الإرسال التلقائي للمشرف… (اضغط "تعديل" للمراجعة)'
+  },
+  n_revision_mode: {
+    en: 'Revision mode active: edit the fields above, then press Save to re-check & auto-submit.', id: 'Mode revisi aktif: silakan perbaiki data di atas, lalu tekan Simpan untuk cek ulang & kirim otomatis.', es: 'Modo revisión activo: edite los campos arriba y pulse Guardar para verificar y enviar.', de: 'Revisionsmodus aktiv: Felder oben bearbeiten und Speichern drücken zum Prüfen & Senden.', fr: 'Mode révision actif : modifiez ci-dessus puis cliquez sur Enregistrer pour vérifier et envoyer.',
+    tr: 'Revizyon modu aktif: yukarıdaki alanları düzenleyip kontrol ve gönderim için Kaydet’e basın.', uz: 'Tahrirlash rejimi faol: yuqoridagi ma’lumotlarni tuzatib, tekshirish va yuborish uchun Saqlashni bosing.', ru: 'Режим правки активен: исправьте данные выше и нажмите Сохранить для проверки и отправки.', vi: 'Chế độ sửa đổi: hãy chỉnh sửa thông tin ở trên rồi nhấn Lưu để kiểm tra lại & tự động gửi.', tl: 'Aktibo ang revision mode: baguhin ang datos sa itaas at pindutin ang Save para suriin muli at ipadala.',
+    th: 'โหมดแก้ไขทำงาน: แก้ไขข้อมูลด้านบนแล้วกดบันทึกเพื่อตรวจสอบซ้ำและส่งอัตโนมัติ', ms: 'Mod semakan aktif: sila baiki data di atas, kemudian tekan Simpan untuk semak semula & hantar automatik.', hi: 'संशोधन मोड सक्रिय: ऊपर डेटा सुधारें, फिर पुनः जाँच और ऑटो-सबमिट के लिए सेव दबाएँ।', ur: 'ترمیم موڈ فعال ہے: اوپر ڈیٹا درست کریں اور دوبارہ جانچ و خودکار ارسال کے لیے محفوظ کریں دبائیں۔', zh: '修改模式已开启：请在上方修改信息，点击“保存”重新核对并自动提交。',
+    ko: '수정 모드 활성화: 위 정보를 수정한 후 저장을 눌러 재확인 및 자동 제출하세요.', ja: '修正モード有効：上部のデータを修正し、「保存」を押すと再チェック後に自動送信されます。', af: 'Hersieningsmodus aktief: wysig die velde bo en druk Stoor vir hertoets en outo-indiening.', ar: 'وضع التعديل نشط: عدّل البيانات أعلاه ثم اضغط حفظ لإعادة الفحص والإرسال التلقائي.'
+  },
+  n_ok_country: {
+    en: 'Country detected: {c}', id: 'Negara terdeteksi: {c}', es: 'País detectado: {c}', de: 'Land erkannt: {c}', fr: 'Pays détecté : {c}',
+    tr: 'Ülke algılandı: {c}', uz: 'Davlat aniqlandi: {c}', ru: 'Страна определена: {c}', vi: 'Đã phát hiện quốc gia: {c}', tl: 'Na-detect ang bansa: {c}',
+    th: 'ตรวจพบประเทศ: {c}', ms: 'Negara dikesan: {c}', hi: 'देश पहचाना गया: {c}', ur: 'ملک شناخت ہوا: {c}', zh: '已识别国家：{c}',
+    ko: '감지된 국가: {c}', ja: '検出された国: {c}', af: 'Land bespeur: {c}', ar: 'تم اكتشاف الدولة: {c}'
+  },
+  ph_passport: {
+    en: 'Enter passport number…', id: 'Masukkan nomor paspor…', es: 'Ingrese número de pasaporte…', de: 'Reisepassnummer eingeben…', fr: 'Entrez le numéro de passeport…',
+    tr: 'Pasaport numarasını girin…', uz: 'Pasport raqamini kiriting…', ru: 'Введите номер паспорта…', vi: 'Nhập số hộ chiếu…', tl: 'Ilagay ang numero ng pasaporte…',
+    th: 'ป้อนหมายเลขพาสปอร์ต…', ms: 'Masukkan nombor pasport…', hi: 'पासपोर्ट नंबर दर्ज करें…', ur: 'پاسپورٹ نمبر درج کریں…', zh: '输入护照号码…',
+    ko: '여권 번호 입력…', ja: 'パスポート番号を入力…', af: 'Voer paspoortnommer in…', ar: 'أدخل رقم جواز السفر…'
+  },
+  ph_id: {
+    en: 'Enter ID number…', id: 'Masukkan nomor ID…', es: 'Ingrese número de ID…', de: 'Ausweisnummer eingeben…', fr: 'Entrez le numéro d’ID…',
+    tr: 'Kimlik numarasını girin…', uz: 'ID raqamini kiriting…', ru: 'Введите номер ID…', vi: 'Nhập số thẻ ID / CCCD…', tl: 'Ilagay ang ID number…',
+    th: 'ป้อนเลขบัตรประชาชน…', ms: 'Masukkan nombor ID…', hi: 'ID नंबर दर्ज करें…', ur: 'شناختی کارڈ نمبر درج کریں…', zh: '输入身份证号码…',
+    ko: '신분증 번호 입력…', ja: 'ID番号を入力…', af: 'Voer ID-nommer in…', ar: 'أدخل رقم الهوية…'
+  },
+  ph_name: {
+    en: 'Full name as on document', id: 'Nama lengkap sesuai dokumen', es: 'Nombre completo según documento', de: 'Vollständiger Name laut Dokument', fr: 'Nom complet tel que sur le document',
+    tr: 'Belgedeki tam ad', uz: 'Hujjatdagi to‘liq ism-sharif', ru: 'Полное имя как в документе', vi: 'Họ và tên đầy đủ theo giấy tờ', tl: 'Buong pangalan ayon sa dokumento',
+    th: 'ชื่อ-นามสกุลเต็มตามเอกสาร', ms: 'Nama penuh seperti pada dokumen', hi: 'दस्तावेज़ के अनुसार पूरा नाम', ur: 'دستاویز کے مطابق پورا نام', zh: '与证件一致的完整姓名',
+    ko: '문서에 기재된 전체 성명', ja: '書類記載の氏名（フルネーム）', af: 'Volle naam soos op dokument', ar: 'الاسم الكامل كما في الوثيقة'
+  },
+  menu_auto: {
+    en: 'Country (auto)', id: 'Negara (otomatis)', es: 'País (auto)', de: 'Land (auto)', fr: 'Pays (auto)',
+    tr: 'Ülke (otomatik)', uz: 'Davlat (avto)', ru: 'Страна (авто)', vi: 'Quốc gia (tự động)', tl: 'Bansa (auto)',
+    th: 'ประเทศ (อัตโนมัติ)', ms: 'Negara (automatik)', hi: 'देश (स्वतः)', ur: 'ملک (خودکار)', zh: '国家（自动）',
+    ko: '국가 (자동)', ja: '国（自動）', af: 'Land (outo)', ar: 'الدولة (تلقائي)'
+  },
+  hint: {
+    en: '{k} number example for {c}: {ex} ({d})', id: 'Contoh nomor {k} {c}: {ex} ({d})', es: 'Ejemplo de {k} para {c}: {ex} ({d})', de: 'Beispiel für {k} ({c}): {ex} ({d})', fr: 'Exemple de {k} pour {c} : {ex} ({d})',
+    tr: '{c} için {k} numarası örneği: {ex} ({d})', uz: '{c} uchun {k} raqami namunasi: {ex} ({d})', ru: 'Пример номера {k} ({c}): {ex} ({d})', vi: 'Ví dụ số {k} của {c}: {ex} ({d})', tl: 'Halimbawa ng {k} para sa {c}: {ex} ({d})',
+    th: 'ตัวอย่างหมายเลข {k} ({c}): {ex} ({d})', ms: 'Contoh nombor {k} {c}: {ex} ({d})', hi: '{c} के लिए {k} नंबर उदाहरण: {ex} ({d})', ur: '{c} کے لیے {k} نمبر کی مثال: {ex} ({d})', zh: '{c}{k}号码示例：{ex}（{d}）',
+    ko: '{c} {k} 번호 예시: {ex} ({d})', ja: '{c}の{k}番号例: {ex} ({d})', af: '{k}-nommer voorbeeld vir {c}: {ex} ({d})', ar: 'مثال رقم {k} لدولة {c}: {ex} ({d})'
+  },
+  hint_noid: {
+    en: 'No standard national ID number format to show for this country.', id: 'Negara ini tidak punya format nomor ID nasional standar untuk ditampilkan.', es: 'Sin formato estándar de ID nacional para este país.', de: 'Kein Standard-Ausweisformat für dieses Land verfügbar.', fr: 'Aucun format standard de carte ID pour ce pays.',
+    tr: 'Bu ülke için standart kimlik numarası formatı yok.', uz: 'Ushbu davlat uchun standart ID formati mavjud emas.', ru: 'Для этой страны нет стандартного формата ID.', vi: 'Quốc gia này không có định dạng số ID tiêu chuẩn.', tl: 'Walang standard na format ng national ID para sa bansang ito.',
+    th: 'ไม่มีรูปแบบเลขบัตรมาตรฐานสำหรับประเทศนี้', ms: 'Tiada format nombor ID kebangsaan standard untuk negara ini.', hi: 'इस देश के लिए कोई मानक राष्ट्रीय ID प्रारूप उपलब्ध नहीं है।', ur: 'اس ملک کے لیے کوئی معیاری قومی شناختی کارڈ فارمیٹ نہیں ہے۔', zh: '该国家暂无标准身份证号码格式示例。',
+    ko: '이 국가에 대한 표준 신분증 번호 형식이 없습니다.', ja: 'この国の標準ID番号形式はありません。', af: 'Geen standaard nasionale ID-formaat vir hierdie land nie.', ar: 'لا يوجد تنسيق قياسي لرقم الهوية الوطنية لهذه الدولة.'
+  },
+  hint_note: {
+    en: 'Examples are general; the official format may differ.', id: 'Contoh bersifat umum; format resmi bisa berbeda.', es: 'Los ejemplos son generales; el formato oficial puede variar.', de: 'Beispiele sind allgemein; das offizielle Format kann abweichen.', fr: 'Les exemples sont généraux ; le format officiel peut différer.',
+    tr: 'Örnekler geneldir; resmi format farklı olabilir.', uz: 'Namunalar umumiy; rasmiy format farq qilishi mumkin.', ru: 'Примеры общие; официальный формат может отличаться.', vi: 'Ví dụ mang tính tham khảo; định dạng thực tế có thể khác.', tl: 'Pangkalahatan ang halimbawa; maaaring magkaiba ang opisyal na format.',
+    th: 'ตัวอย่างเป็นเพียงแนวทาง รูปแบบทางการอาจแตกต่างกัน', ms: 'Contoh adalah umum; format rasmi mungkin berbeza.', hi: 'उदाहरण सामान्य हैं; आधिकारिक प्रारूप भिन्न हो सकता है।', ur: 'مثالیں عمومی ہیں؛ سرکاری فارمیٹ مختلف ہو سکتا ہے۔', zh: '示例仅供参考，官方格式可能有所不同。',
+    ko: '예시는 일반적인 형식이며 공식 형식과 다를 수 있습니다.', ja: '例は一般的なもので、実際の形式と異なる場合があります。', af: 'Voorbeelde is algemeen; die amptelike formaat kan verskil.', ar: 'الأمثلة عامة؛ قد يختلف التنسيق الرسمي.'
+  },
+  rej_title: {
+    en: 'KYC Rejected', id: 'KYC Ditolak', es: 'KYC Rechazado', de: 'KYC Abgelehnt', fr: 'KYC Rejeté',
+    tr: 'KYC Reddedildi', uz: 'KYC Rad etildi', ru: 'KYC Отклонён', vi: 'KYC Bị từ chối', tl: 'Tinanggihan ang KYC',
+    th: 'KYC ถูกปฏิเสธ', ms: 'KYC Ditolak', hi: 'KYC अस्वीकृत', ur: 'KYC مسترد', zh: 'KYC 被拒绝',
+    ko: 'KYC 거부됨', ja: 'KYC 却下', af: 'KYC Afgekeur', ar: 'تم رفض KYC'
+  },
+  rej_name: {
+    en: 'The name on the document (“{doc}”) differs from what you entered (“{inp}”).', id: 'Nama di dokumen (“{doc}”) berbeda dengan yang Anda input (“{inp}”).', es: 'El nombre en el documento (“{doc}”) difiere del ingresado (“{inp}”).', de: 'Der Name auf dem Dokument („{doc}“) weicht von Ihrer Eingabe („{inp}“) ab.', fr: 'Le nom sur le document (« {doc} ») diffère de celui saisi (« {inp} »).',
+    tr: 'Belgedeki ad (“{doc}”) girdiğiniz adla (“{inp}”) uyuşmuyor.', uz: 'Hujjatdagi ism (“{doc}”) kiritilgan ismdan (“{inp}”) farq qiladi.', ru: 'Имя в документе («{doc}») отличается от введённого («{inp}»).', vi: 'Tên trên giấy tờ (“{doc}”) khác với tên bạn nhập (“{inp}”).', tl: 'Ang pangalan sa dokumento (“{doc}”) ay iba sa inilagay mo (“{inp}”).',
+    th: 'ชื่อในเอกสาร (“{doc}”) ไม่ตรงกับที่คุณป้อน (“{inp}”)', ms: 'Nama pada dokumen (“{doc}”) berbeza dengan yang anda masukkan (“{inp}”).', hi: 'दस्तावेज़ पर नाम (“{doc}”) आपके द्वारा दर्ज नाम (“{inp}”) से भिन्न है।', ur: 'دستاویز پر درج نام (“{doc}”) آپ کے درج کردہ نام (“{inp}”) سے مختلف ہے۔', zh: '证件上的姓名（“{doc}”）与您输入的姓名（“{inp}”）不一致。',
+    ko: '문서의 이름(“{doc}”)이 입력한 이름(“{inp}”)과 다릅니다.', ja: '書類の氏名（「{doc}」）が入力内容（「{inp}」）と異なります。', af: 'Die naam op die dokument (“{doc}”) verskil van wat jy ingetik het (“{inp}”).', ar: 'الاسم في الوثيقة ("{doc}") يختلف عن الاسم المدخل ("{inp}").'
+  },
+  rej_number: {
+    en: 'The number on the document ({doc}) differs from what you entered ({inp}).', id: 'Nomor di dokumen ({doc}) berbeda dengan yang Anda input ({inp}).', es: 'El número en el documento ({doc}) difiere del ingresado ({inp}).', de: 'Die Nummer auf dem Dokument ({doc}) weicht von Ihrer Eingabe ({inp}) ab.', fr: 'Le numéro sur le document ({doc}) diffère de celui saisi ({inp}).',
+    tr: 'Belgedeki numara ({doc}) girdiğiniz numarayla ({inp}) uyuşmuyor.', uz: 'Hujjatdagi raqam ({doc}) kiritilgan raqamdan ({inp}) farq qiladi.', ru: 'Номер в документе ({doc}) отличается от введённого ({inp}).', vi: 'Số trên giấy tờ ({doc}) khác với số bạn nhập ({inp}).', tl: 'Ang numero sa dokumento ({doc}) ay iba sa inilagay mo ({inp}).',
+    th: 'หมายเลขในเอกสาร ({doc}) ไม่ตรงกับที่คุณป้อน ({inp})', ms: 'Nombor pada dokumen ({doc}) berbeza dengan yang anda masukkan ({inp}).', hi: 'दस्तावेज़ का नंबर ({doc}) आपके द्वारा दर्ज नंबर ({inp}) से भिन्न है।', ur: 'دستاویز کا نمبر ({doc}) آپ کے درج کردہ نمبر ({inp}) سے مختلف ہے۔', zh: '证件上的号码（{doc}）与您输入的号码（{inp}）不一致。',
+    ko: '문서의 번호({doc})가 입력한 번호({inp})와 다릅니다.', ja: '書類の番号（{doc}）が入力内容（{inp}）と異なります。', af: 'Die nommer op die dokument ({doc}) verskil van wat jy ingetik het ({inp}).', ar: 'الرقم في الوثيقة ({doc}) يختلف عن الرقم المدخل ({inp}).'
+  },
+  rej_expired: {
+    en: 'The document has expired ({date}).', id: 'Dokumen sudah kedaluwarsa ({date}).', es: 'El documento ha caducado ({date}).', de: 'Das Dokument ist abgelaufen ({date}).', fr: 'Le document a expiré ({date}).',
+    tr: 'Belgenin süresi dolmuş ({date}).', uz: 'Hujjatning amal qilish muddati tugagan ({date}).', ru: 'Срок действия документа истёк ({date}).', vi: 'Giấy tờ đã hết hạn ({date}).', tl: 'Paso na ang dokumento ({date}).',
+    th: 'เอกสารหมดอายุแล้ว ({date})', ms: 'Dokumen telah tamat tempoh ({date}).', hi: 'दस्तावेज़ की अवधि समाप्त हो चुकी है ({date})।', ur: 'دستاویز کی میعاد ختم ہو چکی ہے ({date})۔', zh: '该证件已过期（{date}）。',
+    ko: '문서 유효기간이 만료되었습니다 ({date}).', ja: '書類の有効期限が切れています（{date}）。', af: 'Die dokument het verval ({date}).', ar: 'الوثيقة منتهية الصلاحية ({date}).'
+  },
+  rej_unread: {
+    en: 'Name/number could not be read clearly. Please revise the unlocked fields above and press Save.', id: 'Nama/nomor dokumen belum terbaca jelas. Silakan revisi pada menu di atas lalu tekan Simpan.', es: 'No se pudo leer claramente. Revise los campos arriba y pulse Guardar.', de: 'Name/Nummer unleserlich. Bitte oben korrigieren und Speichern drücken.', fr: 'Nom/numéro illisible. Veuillez corriger ci-dessus et cliquer sur Enregistrer.',
+    tr: 'Ad/numara net okunamadı. Yukarıdan düzeltip Kaydet’e basın.', uz: 'Ism/raqam aniq o‘qilmadi. Yuqorida tahrirlab Saqlashni bosing.', ru: 'Имя/номер не удалось чётко считать. Исправьте выше и нажмите Сохранить.', vi: 'Chưa đọc rõ tên/số. Vui lòng sửa ở trên và nhấn Lưu.', tl: 'Hindi mabasa nang malinaw. Baguhin sa itaas at pindutin ang Save.',
+    th: 'อ่านชื่อ/หมายเลขไม่ชัดเจน โปรดแก้ไขด้านบนแล้วกดบันทึก', ms: 'Nama/nombor kurang jelas. Sila semak di atas dan tekan Simpan.', hi: 'नाम/नंबर स्पष्ट नहीं पढ़ा जा सका। ऊपर सुधारें और सेव दबाएँ।', ur: 'نام/نمبر واضح نہیں پڑھا جا سکا۔ اوپر درست کریں اور محفوظ کریں دبائیں۔', zh: '姓名/号码未能清晰识别，请在上方修改并点击保存。',
+    ko: '이름/번호를 명확히 읽지 못했습니다. 위에서 수정 후 저장을 누르세요.', ja: '氏名/番号を鮮明に読み取れませんでした。上部で修正して保存を押してください。', af: 'Naam/nommer kon nie duidelik gelees word nie. Hersien bo en druk Stoor.', ar: 'تعذر قراءة الاسم/الرقم بوضوح. يرجى التعديل أعلاه والضغط على حفظ.'
+  },
+  ok_title: {
+    en: 'Submitted to Admin', id: 'Terkirim ke Admin', es: 'Enviado al Admin', de: 'An Admin gesendet', fr: 'Envoyé à l’Admin',
+    tr: 'Yöneticiye Gönderildi', uz: 'Adminga Yuborildi', ru: 'Отправлено Админу', vi: 'Đã gửi Admin', tl: 'Naipadala sa Admin',
+    th: 'ส่งให้แอดมินแล้ว', ms: 'Dihantar kepada Admin', hi: 'एडमिन को भेजा गया', ur: 'ایڈمن کو بھیج دیا گیا', zh: '已提交给管理员',
+    ko: '관리자에게 제출됨', ja: '管理者へ送信完了', af: 'Ingedien by Admin', ar: 'تم الإرسال للمشرف'
+  },
+  ok_msg: {
+    en: '{type} ({num}) verified and automatically submitted for admin review (minimum 3 days review time).', id: 'Dokumen {type} ({num}) telah dicek dan otomatis dikirim ke admin untuk direview (estimasi review minimal 3 hari).', es: '{type} ({num}) verificado y enviado automáticamente al admin para revisión (mínimo 3 días).', de: '{type} ({num}) geprüft und automatisch zur Admin-Prüfung gesendet (mind. 3 Tage Prüfzeit).', fr: '{type} ({num}) vérifié et envoyé automatiquement à l’admin (examen min. 3 jours).',
+    tr: '{type} ({num}) doğrulandı ve yönetici incelemesi için otomatik gönderildi (minimum 3 gün).', uz: '{type} ({num}) tekshirildi va admin ko‘rib chiqishi uchun avtomatik yuborildi (kamida 3 kun).', ru: '{type} ({num}) проверен и автоматически отправлен админу на рассмотрение (минимум 3 дня).', vi: '{type} ({num}) đã được kiểm tra và tự động gửi cho admin xét duyệt (tối thiểu 3 ngày).', tl: 'Na-verify ang {type} ({num}) at kusang naipadala sa admin para sa review (minimum 3 araw).',
+    th: 'ตรวจสอบ {type} ({num}) แล้วและส่งให้แอดมินตรวจสอบโดยอัตโนมัติ (ใช้เวลาขั้นต่ำ 3 วัน)', ms: 'Dokumen {type} ({num}) telah disemak dan dihantar automatik kepada admin (semakan minimum 3 hari).', hi: '{type} ({num}) सत्यापित किया गया और एडमिन समीक्षा के लिए स्वतः भेज दिया गया (न्यूनतम 3 दिन)।', ur: '{type} ({num}) کی تصدیق ہو گئی اور ایڈمن کے جائزے کے لیے خودکار بھیج دیا گیا (کم از کم 3 دن)۔', zh: '{type}（{num}）已核对通过并自动提交管理员审核（审核时间至少 3 天）。',
+    ko: '{type}({num}) 확인 완료 및 관리자 검토를 위해 자동 제출되었습니다 (최소 3일 소요).', ja: '{type}（{num}）の確認が完了し、管理者審査へ自動送信されました（審査期間：最低3日）。', af: '{type} ({num}) geverifieer en outomaties vir admin-hersiening gestuur (minimum 3 dae).', ar: 'تم فحص {type} ({num}) وإرساله تلقائياً لمراجعة المشرف (مدة المراجعة 3 أيام على الأقل).'
+  },
+  dup_title: {
+    en: 'Rejected', id: 'Ditolak', es: 'Rechazado', de: 'Abgelehnt', fr: 'Rejeté',
+    tr: 'Reddedildi', uz: 'Rad etildi', ru: 'Отклонено', vi: 'Bị từ chối', tl: 'Tinanggihan',
+    th: 'ถูกปฏิเสธ', ms: 'Ditolak', hi: 'अस्वीकृत', ur: 'مسترد', zh: '已拒绝',
+    ko: '거부됨', ja: '却下', af: 'Afgekeur', ar: 'مرفوض'
+  },
+  dup_msg: {
+    en: 'This document number is already used by another user.', id: 'Nomor dokumen ini sudah dipakai pengguna lain.', es: 'Este número de documento ya está en uso por otro usuario.', de: 'Diese Dokumentnummer wird bereits von einem anderen Benutzer verwendet.', fr: 'Ce numéro de document est déjà utilisé par un autre utilisateur.',
+    tr: 'Bu belge numarası başka bir kullanıcı tarafından zaten kullanılıyor.', uz: 'Bu hujjat raqami boshqa foydalanuvchi tomonidan ishlatilgan.', ru: 'Этот номер документа уже используется другим пользователем.', vi: 'Số giấy tờ này đã được người dùng khác sử dụng.', tl: 'Ang numerong ito ay ginagamit na ng ibang user.',
+    th: 'หมายเลขเอกสารนี้ถูกใช้โดยผู้ใช้รายอื่นแล้ว', ms: 'Nombor dokumen ini telah digunakan oleh pengguna lain.', hi: 'यह दस्तावेज़ नंबर पहले से किसी अन्य उपयोगकर्ता द्वारा उपयोग किया जा रहा है।', ur: 'یہ دستاویز نمبر پہلے ہی کسی دوسرے صارف کے زیر استعمال ہے۔', zh: '该证件号码已被其他用户使用。',
+    ko: '이 문서 번호는 이미 다른 사용자가 사용 중입니다.', ja: 'この書類番号は既に他のユーザーに使用されています。', af: 'Hierdie dokumentnommer word reeds deur ’n ander gebruiker gebruik.', ar: 'رقم الوثيقة هذا مستخدم بالفعل من قبل مستخدم آخر.'
+  },
+  top_banner: {
+    en: 'Align your ID Card / Passport clearly & press Capture for auto-detection!', id: 'Arahkan KTP / Paspor dengan jelas & tekan Capture untuk deteksi otomatis!', es: '¡Alinee su ID / Pasaporte claramente y pulse Capturar para detección automática!', de: 'Ausweis / Reisepass klar ausrichten & Aufnahme drücken zur automatischen Erkennung!', fr: 'Alignez clairement votre ID / Passeport et appuyez sur Capturer pour la détection auto !',
+    tr: 'Kimlik / Pasaportu net hizalayın ve otomatik algılama için Çek’e basın!', uz: 'ID karta / Pasportni aniq tekislang va avtomatik aniqlash uchun Capture tugmasini bosing!', ru: 'Наведите камеру на ID / паспорт и нажмите Снять для автоопределения!', vi: 'Căn chỉnh rõ Thẻ ID / Hộ chiếu & nhấn Chụp để tự động nhận diện!', tl: 'Itapat nang malinaw ang ID / Pasaporte at pindutin ang Capture para sa auto-detect!',
+    th: 'วางบัตรประชาชน / พาสปอร์ตให้ชัดเจนแล้วกดถ่ายภาพเพื่อตรวจจับอัตโนมัติ!', ms: 'Halakan Kad ID / Pasport dengan jelas & tekan Tangkap untuk pengesanan automatik!', hi: 'अपना ID कार्ड / पासपोर्ट स्पष्ट रूप से रखें और ऑटो-डिटेक्शन के लिए कैप्चर दबाएँ!', ur: 'اپنا شناختی کارڈ / پاسپورٹ واضح رکھیں اور خودکار شناخت کے لیے کیپچر دبائیں!', zh: '请将身份证/护照对准边框并点击拍摄以进行自动识别！',
+    ko: '신분증/여권을 선명하게 맞추고 자동 인식을 위해 촬영 버튼을 누르세요!', ja: '身分証／パスポートを鮮明に合わせ、自動検出のために撮影ボタンを押してください！', af: 'Rig jou ID-kaart / Paspoort duidelik en druk Neem Foto vir outo-opsporing!', ar: 'وجّه بطاقة الهوية / جواز السفر بوضوح واضغط التقاط للكشف التلقائي!'
+  },
+  btn_revision: {
+    en: 'Revision', id: 'Revisi / Repair', es: 'Revisión', de: 'Revision', fr: 'Révision',
+    tr: 'Revizyon', uz: 'Tahrirlash', ru: 'Ревизия', vi: 'Sửa đổi', tl: 'Revision',
+    th: 'แก้ไขข้อมูล', ms: 'Semakan / Baiki', hi: 'संशोधन (Repair)', ur: 'ترمیم (Repair)', zh: '修改 / 修正',
+    ko: '수정 (Revision)', ja: '修正 (Repair)', af: 'Hersien', ar: 'تعديل (Revision)'
+  },
+  btn_save: {
+    en: 'Save & Auto-Submit', id: 'Simpan & Cek Ulang', es: 'Guardar y Enviar', de: 'Speichern & Prüfen', fr: 'Enregistrer et Vérifier',
+    tr: 'Kaydet ve Gönder', uz: 'Saqlash va Tekshirish', ru: 'Сохранить и Проверить', vi: 'Lưu & Kiểm tra lại', tl: 'Save & Re-check',
+    th: 'บันทึกและตรวจสอบซ้ำ', ms: 'Simpan & Semak Semula', hi: 'सेव करें और जाँचें', ur: 'محفوظ کریں اور جانچیں', zh: '保存并重新核对提交',
+    ko: '저장 및 재확인 제출', ja: '保存して再チェック・送信', af: 'Stoor & Hertoets', ar: 'حفظ وإعادة الفحص والإرسال'
+  },
+  faq_btn: {
+    en: 'KYC Verification FAQ', id: 'FAQ Verifikasi KYC', es: 'FAQ de Verificación KYC', de: 'KYC-Verifizierung FAQ', fr: 'FAQ Vérification KYC',
+    tr: 'KYC Doğrulama SSS', uz: 'KYC Tasdiqlash FAQ', ru: 'FAQ по верификации KYC', vi: 'FAQ Xác minh KYC', tl: 'FAQ sa KYC Verification',
+    th: 'คำถามพบบ่อย (FAQ) การยืนยัน KYC', ms: 'FAQ Pengesahan KYC', hi: 'KYC सत्यापन FAQ', ur: 'KYC تصدیق کے سوالات (FAQ)', zh: 'KYC 认证常见问题 (FAQ)',
+    ko: 'KYC 인증 FAQ', ja: 'KYC認証 よくある質問 (FAQ)', af: 'KYC-verifikasie FAQ', ar: 'الأسئلة الشائعة لتوثيق KYC'
+  },
+  faq_tab1: {
+    en: '1. How to Verify & Requirements', id: '1. Cara & Syarat Lolos Verifikasi', es: '1. Cómo Verificar y Requisitos', de: '1. Anleitung & Voraussetzungen', fr: '1. Comment vérifier & Conditions',
+    tr: '1. Doğrulama Yöntemi ve Şartlar', uz: '1. Tasdiqlash usuli va shartlari', ru: '1. Как пройти и требования', vi: '1. Cách xác minh & Điều kiện đạt', tl: '1. Paano Mag-verify at Requirements',
+    th: '1. วิธีตรวจสอบและเงื่อนไขการผ่าน', ms: '1. Cara & Syarat Lulus Pengesahan', hi: '1. सत्यापन विधि और पास होने की शर्तें', ur: '1. تصدیق کا طریقہ اور کامیابی کی شرائط', zh: '1. 认证方法与通过条件',
+    ko: '1. 인증 방법 및 통과 조건', ja: '1. 認証方法と合格条件', af: '1. Hoe om te Verifieer & Vereistes', ar: '1. طريقة التوثيق وشروط القبول'
+  },
+  faq_tab2: {
+    en: '2. Review Time (Min. 3 Days)', id: '2. Berapa Lama Direview (Min. 3 Hari)', es: '2. Tiempo de Revisión (Mín. 3 Días)', de: '2. Prüfungsdauer (Mind. 3 Tage)', fr: '2. Délai d’examen (Min. 3 Jours)',
+    tr: '2. İnceleme Süresi (En Az 3 Gün)', uz: '2. Ko‘rib chiqish muddati (Kamida 3 kun)', ru: '2. Срок проверки (Мин. 3 дня)', vi: '2. Thời gian xét duyệt (Tối thiểu 3 ngày)', tl: '2. Gaano Katagal ang Review (Min. 3 Araw)',
+    th: '2. ระยะเวลารอผล (ขั้นต่ำ 3 วัน)', ms: '2. Tempoh Semakan (Min. 3 Hari)', hi: '2. समीक्षा समय (न्यूनतम 3 दिन)', ur: '2. جائزے کا وقت (کم از کم 3 دن)', zh: '2. 审核需要多久（至少 3 天）',
+    ko: '2. 검토 소요 시간 (최소 3일)', ja: '2. 審査期間（最低3日間）', af: '2. Hersieningstyd (Min. 3 Dae)', ar: '2. مدة المراجعة (3 أيام على الأقل)'
+  },
+  faq_how_h: {
+    en: 'How to Verify:', id: 'Cara Verifikasi:', es: 'Cómo verificar:', de: 'So verifizieren Sie:', fr: 'Comment vérifier :',
+    tr: 'Nasıl doğrulanır:', uz: 'Tasdiqlash tartibi:', ru: 'Как пройти верификацию:', vi: 'Cách thức xác minh:', tl: 'Paano mag-verify:',
+    th: 'วิธีการยืนยันตัวตน:', ms: 'Cara Pengesahan:', hi: 'सत्यापन कैसे करें:', ur: 'تصدیق کیسے کریں:', zh: '如何进行认证：',
+    ko: '인증 방법:', ja: '認証の手順：', af: 'Hoe om te verifieer:', ar: 'كيفية التوثيق:'
+  },
+  faq_how_p: {
+    en: '• Point the camera clearly at your physical ID Card or Passport and press <b>Capture</b>.<br>• Wait while the loading check detects your document data automatically.<br>• If any item is red (not detected), the top menu opens automatically for revision. If all items are green, you can tap the small <b>Revision</b> button to edit any field above, then press <b>Save</b> to re-check and auto-submit to admin.',
+    id: '• Arahkan kamera dengan jelas ke KTP/Kartu ID atau Paspor asli Anda lalu tekan tombol <b>Capture</b>.<br>• Tunggu proses loading pengecekan membaca data dokumen secara otomatis.<br>• Jika ada data merah (tidak terdeteksi), menu input di atas otomatis terbuka untuk direvisi. Jika semua hijau, Anda dapat menekan tombol kecil <b>Revisi / Repair</b> untuk memperbaiki data di atas, lalu klik <b>Simpan</b> untuk cek ulang dan kirim otomatis ke admin.',
+    es: '• Apunte la cámara claramente a su ID o Pasaporte físico y pulse <b>Capturar</b>.<br>• Espere mientras el sistema verifica y detecta los datos automáticamente.<br>• Si algún dato está en rojo, el menú superior se abrirá para revisarlo. Si todo está en verde, puede pulsar el botón <b>Revisión</b> para editar arriba y luego <b>Guardar</b> para reverificar y enviar automáticamente al admin.',
+    de: '• Richten Sie die Kamera klar auf Ihren physischen Ausweis oder Reisepass und drücken Sie <b>Aufnahme</b>.<br>• Warten Sie, während die Daten automatisch geprüft werden.<br>• Bei roten (nicht erkannten) Feldern öffnet sich das obere Menü automatisch. Wenn alles grün ist, können Sie auf <b>Revision</b> tippen, Daten oben korrigieren und mit <b>Speichern</b> erneut prüfen & automatisch an den Admin senden.',
+    fr: '• Pointez clairement la caméra vers votre Carte ID ou Passeport original et appuyez sur <b>Capturer</b>.<br>• Patientez pendant la vérification et détection automatique.<br>• Si un champ est rouge, le menu supérieur s’ouvre pour révision. Si tout est vert, cliquez sur le petit bouton <b>Révision</b> pour modifier ci-dessus, puis sur <b>Enregistrer</b> pour revérifier et envoyer automatiquement à l’admin.',
+    tr: '• Kamerayı fiziksel Kimlik Kartınıza veya Pasaportunuza net bir şekilde tutun ve <b>Çek</b> düğmesine basın.<br>• Otomatik veri kontrolü tamamlanana kadar bekleyin.<br>• Kırmızı (algılanmayan) alan varsa üst menü otomatik açılır. Tüm alanlar yeşilse, üstteki bilgileri düzenlemek için <b>Revizyon</b> düğmesine basabilir, ardından <b>Kaydet</b> ile tekrar kontrol edip yöneticiye otomatik gönderebilirsiniz.',
+    uz: '• Kamerani asl ID karta yoki Pasportga aniq yo‘naltiring va <b>Capture</b> tugmasini bosing.<br>• Ma’lumotlar avtomatik tekshirilishini kuting.<br>• Agar qizil (aniqlanmagan) qator bo‘lsa, yuqoridagi menyu avtomatik ochiladi. Hammasi yashil bo‘lsa, <b>Tahrirlash</b> tugmasi orqali yuqoridagi ma’lumotlarni tuzatib, <b>Saqlash</b> tugmasi bilan qayta tekshirib adminga avtomatik yuborishingiz mumkin.',
+    ru: '• Наведите камеру чётко на оригинал ID-карты или паспорта и нажмите <b>Снять</b>.<br>• Дождитесь окончания загрузки и автоматического распознавания данных.<br>• Если поле красное (не распознано), верхнее меню откроется для правки. Если все поля зелёные, можно нажать кнопку <b>Ревизия</b> для редактирования сверху, затем <b>Сохранить</b> для перепроверки и автоотправки админу.',
+    vi: '• Hướng camera rõ nét vào Thẻ ID/CCCD hoặc Hộ chiếu gốc rồi nhấn <b>Chụp</b>.<br>• Chờ hệ thống tải và tự động kiểm tra dữ liệu trên giấy tờ.<br>• Nếu có mục màu đỏ (chưa nhận diện), menu phía trên sẽ tự mở để sửa. Nếu tất cả đều xanh, bạn có thể nhấn nút nhỏ <b>Sửa đổi</b> để chỉnh sửa dữ liệu phía trên, sau đó nhấn <b>Lưu</b> để kiểm tra lại và tự động gửi cho admin.',
+    tl: '• Itapat nang malinaw ang camera sa iyong pisikal na ID Card o Pasaporte at pindutin ang <b>Capture</b>.<br>• Maghintay habang awtomatikong sinusuri ang datos ng dokumento.<br>• Kung may pulang (hindi na-detect) na bahagi, kusang magbubukas ang menu sa itaas para ma-edit. Kung berde lahat, maaaring pindutin ang maliit na button na <b>Revision</b> upang baguhin sa itaas, at pindutin ang <b>Save</b> para mag-recheck at kusang maipadala sa admin.',
+    th: '• หันกล้องให้ชัดเจนไปที่บัตรประชาชนหรือพาสปอร์ตตัวจริง แล้วกดปุ่ม <b>ถ่ายภาพ (Capture)</b><br>• รอระบบโหลดเพื่อตรวจสอบและดึงข้อมูลอัตโนมัติ<br>• หากมีรายการสีแดง (ตรวจไม่พบ) เมนูด้านบนจะเปิดให้แก้ไขทันที หากเป็นสีเขียวทั้งหมด คุณสามารถกดปุ่ม <b>แก้ไขข้อมูล</b> เพื่อปรับปรุงข้อมูลด้านบน แล้วกด <b>บันทึก</b> เพื่อตรวจสอบซ้ำและส่งให้แอดมินโดยอัตโนมัติ',
+    ms: '• Halakan kamera dengan jelas pada Kad ID atau Pasport asal anda dan tekan <b>Tangkap</b>.<br>• Tunggu proses semakan memuatkan data dokumen secara automatik.<br>• Jika ada bahagian merah (tidak dikesan), menu di atas dibuka secara automatik. Jika semua hijau, anda boleh klik butang kecil <b>Semakan / Baiki</b> untuk mengedit di atas, kemudian klik <b>Simpan</b> untuk semak semula dan hantar automatik kepada admin.',
+    hi: '• कैमरे को अपने मूल ID कार्ड या पासपोर्ट पर स्पष्ट रूप से रखें और <b>कैप्चर</b> दबाएँ।<br>• डेटा की स्वचालित जाँच पूरी होने तक प्रतीक्षा करें।<br>• यदि कोई फ़ील्ड लाल (पता नहीं चला) है, तो ऊपर का मेनू सुधार के लिए खुल जाएगा। यदि सभी हरे हैं, तो आप <b>संशोधन (Repair)</b> बटन दबाकर ऊपर डेटा सुधार सकते हैं और <b>सेव</b> दबाकर पुनः जाँच के बाद सीधे एडमिन को भेज सकते हैं।',
+    ur: '• کیمرے کو اپنے اصل شناختی کارڈ یا پاسپورٹ پر واضح طور پر رکھیں اور <b>کیپچر</b> دبائیں۔<br>• خودکار ڈیٹا چیکنگ مکمل ہونے کا انتظار کریں۔<br>• اگر کوئی حصہ سرخ (شناخت نہ ہو سکا) ہو تو اوپر والا مینو خودکار کھل جائے گا۔ اگر تمام حصے سبز ہوں تو آپ چھوٹا بٹن <b>ترمیم (Repair)</b> دبا کر اوپر ڈیٹا درست کر سکتے ہیں، پھر <b>محفوظ کریں</b> دبا کر دوبارہ چیک اور خودکار طور پر ایڈمن کو بھیج سکتے ہیں۔',
+    zh: '• 将摄像头清晰对准您的身份证或护照原件，点击<b>拍摄 (Capture)</b>。<br>• 等待系统加载并自动检测证件信息。<br>• 若有未识别项（红色），上方输入框会自动解锁供您修正；若全部为绿色，也可点击<b>修改/修正</b>小按钮解锁上方菜单进行编辑，完成后点击<b>保存</b>即可重新核对并自动提交给管理员。',
+    ko: '• 카메라를 실물 신분증 또는 여권에 선명하게 맞추고 <b>촬영(Capture)</b>을 누르세요.<br>• 로딩 후 문서 데이터가 자동 감지될 때까지 기다립니다.<br>• 빨간색(미감지) 항목이 있으면 상단 입력 메뉴가 자동으로 열립니다. 모두 초록색일 때도 작은 <b>수정(Revision)</b> 버튼을 눌러 상단 데이터를 수정한 뒤 <b>저장</b>을 누르면 재확인 후 관리자에게 자동 제출됩니다.',
+    ja: '• カメラを実物の身分証またはパスポートに鮮明に合わせ、<b>撮影 (Capture)</b> を押します。<br>• データチェックの読み込みと自動検出が完了するまでお待ちください。<br>• 赤色（未検出）の項目がある場合、上部の入力欄が自動的に開きます。すべて緑色の場合も、小さな<b>修正 (Repair)</b> ボタンを押して上部データを編集し、<b>保存</b>を押すと再チェック後に管理者へ自動送信されます。',
+    af: '• Rig die kamera duidelik op jou fisiese ID-kaart of Paspoort en druk <b>Neem Foto</b>.<br>• Wag terwyl die stelsel jou dokumentdata outomaties nagaan.<br>• As enige veld rooi is, maak die boonste kieslys oop vir hersiening. As alles groen is, kan jy op die klein <b>Hersien</b>-knoppie tik om bo te wysig en <b>Stoor</b> druk om weer te toets en outomaties na admin te stuur.',
+    ar: '• وجّه الكاميرا بوضوح نحو بطاقة الهوية أو جواز السفر الأصلي واضغط <b>التقاط (Capture)</b>.<br>• انتظر أثناء تحميل فحص البيانات والكشف التلقائي.<br>• إذا ظهر أي حقل باللون الأحمر (غير مكتشف)، تُفتح القائمة العلوية تلقائياً للتعديل. وإذا كانت جميعها خضراء، يمكنك الضغط على زر <b>تعديل (Revision)</b> الصغير لتصحيح البيانات أعلاه ثم الضغط على <b>حفظ</b> لإعادة الفحص والإرسال التلقائي للمشرف.'
+  },
+  faq_req_h: {
+    en: 'Requirements to Pass Verification:', id: 'Syarat Lolos Verifikasi:', es: 'Requisitos para Aprobar:', de: 'Voraussetzungen für die Bestätigung:', fr: 'Conditions pour réussir la vérification :',
+    tr: 'Doğrulamayı Geçme Şartları:', uz: 'Tasdiqlashdan o‘tish shartlari:', ru: 'Требования для прохождения:', vi: 'Điều kiện vượt qua xác minh:', tl: 'Mga Kailangan para Makapasa sa Verification:',
+    th: 'เงื่อนไขการผ่านการยืนยันตัวตน:', ms: 'Syarat Lulus Pengesahan:', hi: 'सत्यापन पास करने की शर्तें:', ur: 'تصدیق میں کامیابی کی شرائط:', zh: '通过认证的条件：',
+    ko: '인증 통과 조건:', ja: '認証合格の条件：', af: 'Vereistes om Verifikasie te Slaag:', ar: 'شروط اجتياز التوثيق:'
+  },
+  faq_req_p: {
+    en: '• Use an <b>original, valid (unexpired)</b> physical ID Card or Passport (no photocopies or screen photos).<br>• Document text, Full Name, and ID/Passport Number must be clear, unblurred, and uncovered.<br>• The document must match your Face Liveness scan and must not be registered to another account.',
+    id: '• Wajib menggunakan <b>dokumen fisik asli yang masih berlaku</b> (bukan fotokopi, editan, atau foto dari layar HP/monitor).<br>• Tulisan, Nama Lengkap, dan Nomor KTP/Paspor harus terlihat tajam, jelas, dan tidak tertutup jari/pantulan cahaya.<br>• Data dokumen harus sesuai dengan pemilik wajah pada Face Liveness dan belum pernah dipakai di akun lain.',
+    es: '• Use un documento físico <b>original y vigente</b> (sin fotocopias ni fotos de pantalla).<br>• El nombre completo y el número de ID/Pasaporte deben verse nítidos y sin reflejos.<br>• El documento debe coincidir con su escaneo facial (Liveness) y ser único por cuenta.',
+    de: '• Verwenden Sie ein <b>originales, gültiges</b> physisches Dokument (keine Kopien oder Bildschirmfotos).<br>• Vollständiger Name und Ausweis-/Passnummer müssen scharf und gut lesbar sein.<br>• Das Dokument muss mit Ihrem Gesichts-Scan übereinstimmen und darf nur für ein Konto genutzt werden.',
+    fr: '• Utilisez un document physique <b>original et valide</b> (pas de photocopie ni photo d’écran).<br>• Le nom complet et le numéro d’ID/passeport doivent être nets et lisibles.<br>• Le document doit correspondre à votre scan facial (Liveness) et n’être lié qu’à un seul compte.',
+    tr: '• <b>Orijinal ve geçerli</b> fiziksel Kimlik/Pasaport kullanın (fotokopi veya ekran fotoğrafı kabul edilmez).<br>• Tam ad ve belge numarası net, okunaklı ve parlamasız olmalıdır.<br>• Belge, yüz canlılık (Liveness) taramanızla eşleşmeli ve başka bir hesapta kullanılmamış olmalıdır.',
+    uz: '• <b>Asl va amal qilish muddati o‘tmagan</b> hujjatdan foydalaning (nusxa yoki ekran rasmi qabul qilinmaydi).<br>• To‘liq ism va ID/Pasport raqami aniq hamda tiniq ko‘rinishi shart.<br>• Hujjat yuz tekshiruvi (Liveness) bilan mos kelishi va boshqa akkauntda ishlatilmagan bo‘lishi kerak.',
+    ru: '• Используйте <b>оригинальный действующий</b> документ (не фотокопию и не фото с экрана).<br>• Полное имя и номер ID/паспорта должны быть чёткими, без бликов и размытия.<br>• Документ должен совпадать с вашей проверкой лица (Liveness) и не использоваться на другом аккаунте.',
+    vi: '• Bắt buộc dùng giấy tờ vật lý <b>bản gốc và còn hiệu lực</b> (không chấp nhận bản photo hoặc chụp qua màn hình).<br>• Họ tên đầy đủ và Số CCCD/Hộ chiếu phải rõ nét, không bị lóa hay che khuất.<br>• Giấy tờ phải khớp với khuôn mặt Liveness và chưa từng đăng ký ở tài khoản khác.',
+    tl: '• Gumamit ng <b>orihinal at valid (hindi expired)</b> na pisikal na ID o Pasaporte (bawal ang photocopy o larawan mula sa screen).<br>• Kailangang malinaw at nababasa ang Buong Pangalan at ID/Passport Number.<br>• Dapat tumugma ang dokumento sa iyong Face Liveness scan at hindi pa nagagamit sa ibang account.',
+    th: '• ต้องใช้<b>เอกสารตัวจริงที่ยังไม่หมดอายุ</b>เท่านั้น (ห้ามใช้สำเนาหรือถ่ายจากหน้าจอ)<br>• ชื่อ-นามสกุลและเลขบัตร/พาสปอร์ตต้องคมชัด ไม่เบลอและไม่มีแสงสะท้อนบัง<br>• ข้อมูลต้องตรงกับการสแกนใบหน้า (Liveness) และไม่ซ้ำกับบัญชีอื่น',
+    ms: '• Wajib guna dokumen fizikal <b>asal dan masih sah</b> (bukan salinan fotostat atau foto skrin).<br>• Nama penuh dan nombor ID/Pasport mestilah jelas, tajam dan tidak terlindung.<br>• Dokumen mesti sepadan dengan imbasan wajah (Liveness) dan belum digunakan oleh akaun lain.',
+    hi: '• केवल <b>मूल और वैध (अवधि समाप्त न हो)</b> भौतिक ID कार्ड या पासपोर्ट का उपयोग करें (फोटोकॉपी या स्क्रीन फोटो मान्य नहीं)।<br>• पूरा नाम और ID/पासपोर्ट नंबर साफ और स्पष्ट दिखना चाहिए।<br>• दस्तावेज़ आपके फेस लिवनेस स्कैन से मेल खाना चाहिए और किसी अन्य खाते में प्रयुक्त नहीं होना चाहिए।',
+    ur: '• صرف <b>اصل اور کارآمد (میعاد باقی ہو)</b> شناختی کارڈ یا پاسپورٹ استعمال کریں (فوٹو کاپی یا اسکرین کی تصویر قبول نہیں)۔<br>• پورا نام اور نمبر بالکل واضح اور صاف نظر آنا چاہیے۔<br>• دستاویز آپ کے چہرے کے لائیونیس اسکین سے مطابقت رکھتی ہو اور کسی دوسرے اکاؤنٹ پر استعمال نہ ہوئی ہو۔',
+    zh: '• 必须使用<b>真实、有效期内</b>的身份证或护照原件（严禁使用复印件或屏幕翻拍）。<br>• 证件上的完整姓名与证件号码必须清晰可见、无遮挡或反光模糊。<br>• 证件信息须与活体人脸识别一致，且未在其他账户绑定过。',
+    ko: '• <b>유효기간이 남아 있는 실물 원본</b> 신분증/여권을 사용해야 합니다 (사본이나 화면 촬영본 불가).<br>• 성명과 문서 번호가 빛 반사나 가림 없이 선명하게 보여야 합니다.<br>• 얼굴 라이브니스 스캔과 일치해야 하며 다른 계정에 중복 등록되지 않아야 합니다.',
+    ja: '• <b>有効期限内の実物原本</b>の身分証・パスポートをご使用ください（コピーや画面撮影は不可）。<br>• 氏名と番号が反射や指で隠れず鮮明に写っている必要があります。<br>• 顔ライブネス認証と一致し、他アカウントで未使用である必要があります。',
+    af: '• Gebruik ’n <b>oorspronklike, geldige</b> fisiese ID of Paspoort (geen fotostate of skermfoto’s nie).<br>• Volle naam en dokumentnommer moet skerp en duidelik leesbaar wees.<br>• Die dokument moet ooreenstem met jou Gesig-Liveness-skandering en uniek aan jou rekening wees.',
+    ar: '• يجب استخدام وثيقة أصلية <b>وفعالة (غير منتهية الصلاحية)</b> (لا تُقبل الصور المنسوخة أو المصورة من الشاشة).<br>• يجب أن يكون الاسم الكامل ورقم الهوية/جواز السفر واضحين تماماً دون طمس أو انعكاس.<br>• يجب تطابق الوثيقة مع فحص الوجه الحيوي (Liveness) وعدم استخدامها في حساب آخر.'
+  },
+  faq_rev_h: {
+    en: 'How Long Will the Review Take?', id: 'Berapa Lama Akan Direview?', es: '¿Cuánto Tardará la Revisión?', de: 'Wie lange dauert die Überprüfung?', fr: 'Combien de temps prend l’examen ?',
+    tr: 'İnceleme Ne Kadar Sürer?', uz: 'Ko‘rib chiqish qancha vaqt oladi?', ru: 'Сколько времени занимает проверка?', vi: 'Thời gian xét duyệt mất bao lâu?', tl: 'Gaano Katagal ang Review?',
+    th: 'ใช้เวลาตรวจสอบนานเท่าไหร่?', ms: 'Berapa Lama Akan Disemak?', hi: 'समीक्षा में कितना समय लगेगा?', ur: 'جائزہ لینے میں کتنا وقت لگے گا؟', zh: '审核需要多长时间？',
+    ko: '검토에 얼마나 걸리나요?', ja: '審査にはどのくらい時間がかかりますか？', af: 'Hoe lank sal die hersiening neem?', ar: 'كم تستغرق مراجعة التوثيق؟'
+  },
+  faq_rev_p: {
+    en: '• Your KYC document submission will be reviewed by the Admin team within a <b>minimum of 3 days after submission</b>.<br>• During this period, your status will show <b>Pending / In Review</b> and will automatically update to <b>Verified</b> once approved.',
+    id: '• Pengajuan verifikasi dokumen KYC Anda akan ditinjau oleh tim Admin dalam waktu <b>minimal 3 hari setelah submit</b>.<br>• Selama masa peninjauan, status KYC akan tertulis <b>Pending / In Review</b> dan otomatis berubah menjadi <b>Verified</b> setelah disetujui admin.',
+    es: '• Su solicitud de verificación KYC será revisada por el equipo de Admin en un plazo de <b>mínimo 3 días después del envío</b>.<br>• Mientras tanto, el estado aparecerá como <b>Pendiente / En revisión</b> y pasará a <b>Verificado</b> automáticamente tras su aprobación.',
+    de: '• Ihre eingereichten KYC-Dokumente werden vom Admin-Team innerhalb von <b>mindestens 3 Tagen nach dem Absenden</b> geprüft.<br>• Währenddessen lautet Ihr Status <b>Ausstehend / In Prüfung</b> und wechselt nach Freigabe automatisch auf <b>Verifiziert</b>.',
+    fr: '• Votre dossier KYC sera examiné par l’équipe Admin dans un délai d’<b>au moins 3 jours après soumission</b>.<br>• Pendant ce temps, le statut indique <b>En attente / En cours d’examen</b> et passera automatiquement à <b>Vérifié</b> après approbation.',
+    tr: '• KYC belge başvurunuz gönderildikten sonra <b>en az 3 gün içinde</b> Yönetici ekibi tarafından incelenecektir.<br>• Bu süreçte durumunuz <b>Beklemede / İnceleniyor</b> olarak görünür ve onaylandığında otomatik olarak <b>Doğrulandı</b> olur.',
+    uz: '• Yuborilgan KYC hujjatingiz Admin jamoasi tomonidan <b>submit qilinganidan so‘ng kamida 3 kun ichida</b> ko‘rib chiqiladi.<br>• Ko‘rib chiqish davomida status <b>Kutilmoqda (Pending)</b> bo‘lib turadi va tasdiqlangach avtomatik <b>Tasdiqlangan (Verified)</b> holatiga o‘tadi.',
+    ru: '• Ваша заявка KYC рассматривается командой администраторов в течение <b>минимум 3 дней после отправки</b>.<br>• В период проверки статус отображается как <b>На рассмотрении (Pending)</b> и автоматически изменится на <b>Подтверждено (Verified)</b> после одобрения.',
+    vi: '• Hồ sơ KYC của bạn sẽ được đội ngũ Admin xét duyệt trong thời gian <b>tối thiểu 3 ngày sau khi gửi (submit)</b>.<br>• Trong thời gian này, trạng thái hiển thị <b>Đang chờ duyệt (Pending)</b> và sẽ tự động chuyển sang <b>Đã xác minh (Verified)</b> sau khi được duyệt.',
+    tl: '• Ang iyong ipinadalang KYC document ay susuriin ng Admin team sa loob ng <b>minimum na 3 araw pagkatapos ma-submit</b>.<br>• Habang sinusuri, ang status ay <b>Pending / In Review</b> at kusang magiging <b>Verified</b> kapag naaprubahan.',
+    th: '• ข้อมูลเอกสาร KYC ของคุณจะได้รับการตรวจสอบโดยทีมแอดมินภายในเวลา<b>ขั้นต่ำ 3 วันหลังจากกดส่ง (Submit)</b><br>• ในระหว่างนี้สถานะจะแสดงเป็น <b>รอดำเนินการ (Pending)</b> และจะเปลี่ยนเป็น <b>ยืนยันแล้ว (Verified)</b> โดยอัตโนมัติเมื่ออนุมัติ',
+    ms: '• Permohonan dokumen KYC anda akan disemak oleh pasukan Admin dalam tempoh <b>minimum 3 hari selepas dihantar (submit)</b>.<br>• Sepanjang tempoh ini, status anda ialah <b>Dalam Semakan (Pending)</b> dan akan bertukar kepada <b>Disahkan (Verified)</b> secara automatik selepas diluluskan.',
+    hi: '• आपके KYC दस्तावेज़ की एडमिन टीम द्वारा <b>सबमिट करने के बाद न्यूनतम 3 दिनों</b> में समीक्षा की जाएगी।<br>• इस दौरान आपकी स्थिति <b>लंबित / समीक्षाधीन (Pending)</b> दिखेगी और स्वीकृत होने पर स्वतः <b>सत्यापित (Verified)</b> हो जाएगी।',
+    ur: '• آپ کی KYC دستاویز کا ایڈمن ٹیم کی جانب سے <b>جمع کرانے (Submit) کے بعد کم از کم 3 دن</b> میں جائزہ لیا جائے گا۔<br>• اس دوران آپ کا اسٹیٹس <b>زیرِ جائزہ (Pending)</b> رہے گا اور منظوری کے بعد خودکار طور पर <b>تصدیق شدہ (Verified)</b> ہو جائے گا۔',
+    zh: '• 您提交的 KYC 证件资料将由管理员团队在<b>提交后至少 3 天内</b>完成审核。<br>• 审核期间状态显示为<b>审核中 (Pending)</b>，审核通过后将自动更新为<b>已认证 (Verified)</b>。',
+    ko: '• 제출하신 KYC 서류는 <b>제출 후 최소 3일 이내</b>에 관리자 팀에서 검토합니다.<br>• 검토 중에는 상태가 <b>검토 중(Pending)</b>으로 표시되며 승인 시 자동으로 <b>인증됨(Verified)</b>으로 변경됩니다.',
+    ja: '• 提出されたKYC書類は、<b>送信（Submit）後、最低3日以内</b>に管理者チームによって審査されます。<br>• 審査中はステータスが<b>審査中（Pending）</b>と表示され、承認されると自動的に<b>認証済み（Verified）</b>に変わります。',
+    af: '• Jou KYC-dokument sal deur die Admin-span hersien word binne ’n <b>minimum van 3 dae na indiening</b>.<br>• Gedurende hierdie tydperk wys jou status <b>Hangende / In Hersiening</b> en verander outomaties na <b>Geverifieer</b> sodra dit goedgekeur is.',
+    ar: '• ستتم مراجعة طلب توثيق الوثيقة (KYC) من قِبل فريق الإدارة خلال <b>مدة لا تقل عن 3 أيام بعد الإرسال (Submit)</b>.<br>• خلال فترة المراجعة ستظهر الحالة <b>قيد المراجعة (Pending)</b>، وستتحول تلقائياً إلى <b>موثّق (Verified)</b> فور الموافقة.'
+  }
 };
-function LANG() { var el = document.getElementById('lang-select'); return (el && el.value) ? el.value : 'en'; }
+
+function LANG() {
+  var el = document.getElementById('lang-select');
+  var l = (el && el.value) ? el.value : 'en';
+  return TX.k_type[l] ? l : 'en';
+}
 function tx(k, vars) {
-  var l = LANG(), e = TX[k]; if (!e) return k;
-  var s = e[l] || ((l === 'ms' && e.id) ? e.id : e.en);
-  if (vars) for (var v in vars) s = s.replace('{' + v + '}', vars[v]);
+  var l = LANG(), e = TX[k];
+  if (!e) return k;
+  var s = e[l] || e.en || k;
+  if (vars) for (var v in vars) s = s.split('{' + v + '}').join(String(vars[v]));
   return s;
 }
 G._kycTx = tx;
 
-/* ---------- 9. UI & MENU MANUAL FALLBACK ---------- */
+/* ---------- 9. UI TETAP SEPERTI FOTO 2 + INDIKATOR MERAH/HIJAU + TOMBOL REVISION & SAVE + FAQ ---------- */
 var S = freshState(), busy = false, ocr = { worker: null, loading: null, failed: false };
 var _capturedDocCanvas = null, _capturedDocDataUrl = null, _rawOcrCorpus = '';
+var _hasScannedOnce = false, _isRevisionUnlocked = false, _autoSubmitTimer = null, _autoScanBusy = false, _lastAutoScanMs = 0;
+
 function $(id) { return document.getElementById(id); }
 
-function setManualMenuVisible(show) {
-  var mBox = $('id-manual-entry-wrap');
-  var topGrid = $('id-doc-controls') && $('id-doc-controls').firstElementChild;
-  if (topGrid && topGrid !== mBox && !topGrid.id) topGrid.id = 'id-top-input-grid';
-  var g = $('id-top-input-grid');
-  if (g) g.classList.toggle('hidden', !show);
-  if (mBox) mBox.classList.toggle('hidden', !show);
+function clearAutoSubmitTimer() {
+  if (_autoSubmitTimer) {
+    clearInterval(_autoSubmitTimer);
+    _autoSubmitTimer = null;
+  }
+}
+
+/* Kunci / buka input bagian atas (tetap tampil persis seperti Foto 2, tidak disembunyikan) */
+function setTopInputsEditable(editable) {
+  _isRevisionUnlocked = !!editable;
+  var ids = ['id-doc-type', 'id-doc-number', 'id-doc-name', 'id-doc-country'];
+  ids.forEach(function (id) {
+    var el = $(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') {
+      el.disabled = !editable;
+    } else {
+      el.readOnly = !editable;
+      el.disabled = !editable;
+    }
+    el.classList.toggle('opacity-75', !editable);
+    el.classList.toggle('cursor-not-allowed', !editable);
+    el.classList.toggle('ring-1', !!editable);
+    el.classList.toggle('ring-yellow-400/70', !!editable);
+  });
+  var saveWrap = $('id-save-recheck-wrap');
+  if (saveWrap) saveWrap.classList.toggle('hidden', !editable);
+}
+
+/* Isi otomatis data yang terdeteksi ke dalam input di bagian atas */
+function syncDetectedToTopInputs(forceOverwrite) {
+  var typeEl = $('id-doc-type'), numEl = $('id-doc-number'), nmEl = $('id-doc-name'), sel = $('id-doc-country');
+  if (S.kind && typeEl && (forceOverwrite || !_isRevisionUnlocked)) {
+    typeEl.value = (S.kind === 'passport') ? 'PASSPORT' : 'ID CARD';
+    if (typeof G.updateIdDocPlaceholder === 'function') G.updateIdDocPlaceholder();
+  }
+  if (S.number && numEl && (forceOverwrite || !numEl.value.trim())) {
+    numEl.value = S.number;
+  }
+  if (S.name && nmEl && (forceOverwrite || !nmEl.value.trim())) {
+    nmEl.value = S.name;
+  }
+  var cc = S.country || S.nat || null;
+  if (cc && sel && (forceOverwrite || !sel.value)) {
+    sel.value = cc;
+    updateHint();
+  }
+}
+
+/* Tampilkan / sembunyikan loading saat tombol Capture atau Save diklik */
+function setCheckingLoader(active, customMsg) {
+  var loader = $('kyc-id-checking-loader');
+  var capBtn = $('id-manual-capture-btn');
+  var saveBtn = $('id-save-recheck-btn');
+  var msg = customMsg || tx('scanning');
+  if (loader) {
+    var txtEl = $('kyc-id-checking-text');
+    if (txtEl) txtEl.textContent = msg;
+    loader.classList.toggle('hidden', !active);
+    loader.classList.toggle('flex', !!active);
+  }
+  if (capBtn) {
+    capBtn.disabled = !!active;
+    capBtn.classList.toggle('opacity-70', !!active);
+    var capSpan = capBtn.querySelector('[data-i18n="id_capture_btn"]');
+    var capIcon = capBtn.querySelector('i');
+    if (capIcon) {
+      capIcon.className = active ? 'fa-solid fa-spinner fa-spin mr-1' : 'fa-solid fa-camera mr-1';
+    }
+    if (capSpan) {
+      capSpan.textContent = active ? msg : ((typeof t === 'function') ? t('id_capture_btn') : 'Capture ID / Passport');
+    }
+  }
+  if (saveBtn) {
+    saveBtn.disabled = !!active;
+    saveBtn.classList.toggle('opacity-70', !!active);
+  }
+}
+
+function injectCleanIdModeCss() {
+  if ($('afex-kyc-id-clean-style')) return;
+  var st = document.createElement('style');
+  st.id = 'afex-kyc-id-clean-style';
+  st.textContent =
+    /* Point 3: Hilangkan instruksi gestur 0/4 (Step 1/4) dan parameter 100 di menu Ident agar clean */
+    '#camera-modal.kyc-id-clean-mode #kyc-guide-overlay > div:first-child,' +
+    '#camera-modal.kyc-id-clean-mode #kyc-guide-overlay > div:last-child,' +
+    '#camera-modal.kyc-id-clean-mode #step-indicator,' +
+    '#camera-modal.kyc-id-clean-mode #timer-progress-text,' +
+    '#camera-modal.kyc-id-clean-mode #gesture-progress-bar {' +
+    '  display: none !important; visibility: hidden !important; opacity: 0 !important;' +
+    '}' +
+    '#camera-modal.kyc-id-clean-mode #id-mrz-scan-zone {' +
+    '  margin-top: auto !important; margin-bottom: 4px !important; opacity: 0.78;' +
+    '}';
+  document.head.appendChild(st);
 }
 
 function injectUI() {
+  injectCleanIdModeCss();
   var box = $('id-doc-controls');
   if (!box || $('kyc-ai-panel')) return;
-  var firstGrid = box.firstElementChild;
-  if (firstGrid && !firstGrid.id) firstGrid.id = 'id-top-input-grid';
-  var opts = '<option value="">' + 'Auto' + '</option>' + COUNTRIES.slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; })
+  var opts = '<option value="">' + tx('menu_auto') + '</option>' + COUNTRIES.slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; })
     .map(function (c) { return '<option value="' + c.code + '">' + c.name + ' (' + c.code + ')</option>'; }).join('');
+
   var extra = document.createElement('div');
   extra.className = 'space-y-2';
   extra.innerHTML =
-    '<div id="id-manual-entry-wrap" class="hidden space-y-2 bg-[#0b111e] border border-yellow-500/40 rounded-xl p-2.5">' +
-      '<div id="id-manual-banner" class="text-[10px] text-yellow-300 font-bold leading-snug"><i class="fa-solid fa-keyboard mr-1"></i>Data belum terdeteksi penuh. Masukkan Nomor ID &amp; Nama Lengkap sesuai dokumen untuk dicek kesamaannya:</div>' +
-      '<input type="text" id="id-doc-name" autocomplete="off" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-2.5 py-2 text-[11px] outline-none font-mono uppercase">' +
-      '<select id="id-doc-country" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded-xl px-2 py-2 text-[11px] outline-none font-bold cursor-pointer">' + opts + '</select>' +
-      '<div id="id-format-hint" class="text-[10px] text-cyan-300 leading-snug bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-2 py-1.5 hidden"></div>' +
-      '<div class="flex gap-1.5 pt-0.5">' +
-        '<button type="button" id="id-manual-recheck-btn" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-black text-[11px] py-2 rounded-xl font-black cursor-pointer shadow hover:opacity-90 transition-all"><i class="fa-solid fa-magnifying-glass-check mr-1"></i>Cek Kesamaan &amp; Verifikasi</button>' +
-        '<button type="button" id="id-manual-retake-btn" class="bg-gray-800 border border-yellow-500/40 text-yellow-400 text-[10px] px-2.5 py-2 rounded-xl font-bold cursor-pointer hover:bg-gray-700 transition-all"><i class="fa-solid fa-rotate-right mr-1"></i>Foto Ulang</button>' +
-      '</div>' +
+    /* Tetap seperti Foto 2: Nama Lengkap & Country (auto) berada langsung di bawah ID Card & Nomor ID */
+    '<input type="text" id="id-doc-name" autocomplete="off" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-2.5 py-2 text-[11px] outline-none font-mono uppercase">' +
+    '<select id="id-doc-country" class="w-full bg-[#080c14] gold-border text-yellow-400 rounded-xl px-2 py-2 text-[11px] outline-none font-bold cursor-pointer">' + opts + '</select>' +
+    '<div id="id-format-hint" class="text-[10px] text-cyan-300 leading-snug bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-2 py-1.5 hidden"></div>' +
+    /* Tombol Simpan / Save (muncul saat menu di atas terbuka untuk revisi) */
+    '<div id="id-save-recheck-wrap" class="hidden pt-0.5">' +
+      '<button type="button" id="id-save-recheck-btn" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-black text-[11px] font-black py-2 px-3 rounded-xl cursor-pointer shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5">' +
+        '<i class="fa-solid fa-floppy-disk"></i><span id="id-save-recheck-lbl">' + tx('btn_save') + '</span>' +
+      '</button>' +
     '</div>' +
+    /* Panel Hasil Deteksi Otomatis (1. Document type .. 5. Expiry) + 1 Tombol Kecil Revision */
     '<div id="kyc-ai-panel" class="bg-[#080c14] border border-gray-800 rounded-xl px-2.5 py-2 space-y-1 text-[10px]">' +
       ['type', 'cc', 'nn', 'nat', 'exp'].map(function (k, i) {
-        return '<div class="flex justify-between gap-2"><span class="text-gray-400">' + (i + 1) + '. <span data-kai-l="' + k + '"></span></span><strong id="kai-' + k + '" class="text-right text-gray-300"></strong></div>';
+        return '<div id="kai-row-' + k + '" data-kai-row="' + k + '" class="flex justify-between items-center gap-2 px-1 py-0.5 rounded transition-all"><span class="text-gray-400">' + (i + 1) + '. <span data-kai-l="' + k + '"></span></span><strong id="kai-' + k + '" class="text-right text-gray-300"></strong></div>';
       }).join('') +
-      '<div id="kyc-ai-note" class="pt-1 text-yellow-300 font-bold leading-snug"></div>' +
+      '<div class="flex items-center justify-between gap-2 pt-1">' +
+        '<div id="kyc-ai-note" class="text-yellow-300 font-bold leading-snug flex-1 text-[10px]"></div>' +
+        '<button type="button" id="kyc-repair-btn" class="hidden shrink-0 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-400/60 text-yellow-300 font-black text-[10px] px-2.5 py-1 rounded-lg cursor-pointer transition-all">' +
+          '<i class="fa-solid fa-pen-to-square mr-1"></i><span id="kyc-repair-btn-lbl">' + tx('btn_revision') + '</span>' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    /* Point 5: Menu Kecil FAQ KYC Ident (2 Menu: 1. Cara & Syarat Lolos Verifikasi, 2. Berapa Lama Direview - Min 3 Hari) */
+    '<div id="kyc-mini-faq-wrap" class="bg-[#080c14] border border-yellow-500/30 rounded-xl overflow-hidden text-[10px]">' +
+      '<button type="button" id="kyc-mini-faq-toggle" class="w-full px-2.5 py-1.5 flex items-center justify-between text-yellow-400 font-bold cursor-pointer hover:bg-yellow-500/10 transition-all">' +
+        '<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-question"></i><span id="kyc-mini-faq-btn-lbl">' + tx('faq_btn') + '</span></span>' +
+        '<i id="kyc-mini-faq-chevron" class="fa-solid fa-chevron-down text-[9px] transition-transform"></i>' +
+      '</button>' +
+      '<div id="kyc-mini-faq-body" class="hidden border-t border-gray-800 p-2 space-y-2 bg-[#0b101b]">' +
+        '<div class="grid grid-cols-2 gap-1">' +
+          '<button type="button" id="kyc-faq-tab-btn-1" class="bg-yellow-500 text-black font-black px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center">' + tx('faq_tab1') + '</button>' +
+          '<button type="button" id="kyc-faq-tab-btn-2" class="bg-[#121927] border border-yellow-500/30 text-yellow-300 font-bold px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center">' + tx('faq_tab2') + '</button>' +
+        '</div>' +
+        '<div id="kyc-faq-pane-1" class="space-y-1.5 text-gray-300 leading-relaxed bg-[#080c14] p-2 rounded-lg border border-gray-800">' +
+          '<div class="text-yellow-400 font-bold text-[10px]" id="kyc-faq-how-h">' + tx('faq_how_h') + '</div>' +
+          '<div id="kyc-faq-how-p" class="text-[9.5px] text-gray-300"></div>' +
+          '<div class="text-green-400 font-bold text-[10px] pt-1 border-t border-gray-800/80" id="kyc-faq-req-h">' + tx('faq_req_h') + '</div>' +
+          '<div id="kyc-faq-req-p" class="text-[9.5px] text-gray-300"></div>' +
+        '</div>' +
+        '<div id="kyc-faq-pane-2" class="hidden space-y-1.5 text-gray-300 leading-relaxed bg-[#080c14] p-2 rounded-lg border border-gray-800">' +
+          '<div class="text-yellow-400 font-bold text-[10px]" id="kyc-faq-rev-h">' + tx('faq_rev_h') + '</div>' +
+          '<div id="kyc-faq-rev-p" class="text-[9.5px] text-gray-300"></div>' +
+        '</div>' +
+      '</div>' +
     '</div>';
   box.appendChild(extra);
-  // Pindahkan #id-top-input-grid ke dalam #id-manual-entry-wrap tepat di bawah banner agar input No ID & Nama berada di satu menu manual
-  var mWrap = $('id-manual-entry-wrap'), banner = $('id-manual-banner');
-  if (firstGrid && mWrap && banner) {
-    mWrap.insertBefore(firstGrid, banner.nextSibling);
+
+  /* Pasang Loading Overlay di dalam kotak preview kamera untuk Point 4 */
+  var videoEl = $('kyc-video');
+  var camBox = videoEl ? videoEl.parentElement : null;
+  if (camBox && !$('kyc-id-checking-loader')) {
+    var loaderDiv = document.createElement('div');
+    loaderDiv.id = 'kyc-id-checking-loader';
+    loaderDiv.className = 'hidden absolute inset-0 z-30 bg-[#080c14]/85 backdrop-blur-sm flex-col items-center justify-center gap-2.5 p-4 text-center';
+    loaderDiv.innerHTML =
+      '<div class="w-11 h-11 rounded-full bg-yellow-500/15 border-2 border-yellow-400 flex items-center justify-center text-yellow-400 text-lg shadow-lg">' +
+        '<i class="fa-solid fa-spinner fa-spin"></i>' +
+      '</div>' +
+      '<span id="kyc-id-checking-text" class="text-yellow-300 font-black text-xs tracking-wide">' + tx('scanning') + '</span>';
+    camBox.appendChild(loaderDiv);
   }
-  $('id-doc-country').addEventListener('change', function () { updateHint(); });
-  $('id-doc-name').addEventListener('input', function () { if (this.value) setNote(''); });
-  var recheckBtn = $('id-manual-recheck-btn');
-  if (recheckBtn) recheckBtn.addEventListener('click', function () { verifyManualInputNow(); });
-  var retakeBtn = $('id-manual-retake-btn');
-  if (retakeBtn) retakeBtn.addEventListener('click', function () {
-    _capturedDocCanvas = null; _capturedDocDataUrl = null; _rawOcrCorpus = '';
-    S = freshState(); renderPanel();
-    setManualMenuVisible(false);
-    setNote(LANG() === 'id' ? 'Arahkan kamera ke dokumen dengan jelas, lalu tekan Capture.' : 'Point camera clearly at document, then press Capture.');
-    resumeScan();
+
+  $('id-doc-country').addEventListener('change', function () {
+    if (this.value) { S.country = this.value; if (!S.nat) S.nat = this.value; }
+    updateHint();
   });
+  $('id-doc-type').addEventListener('change', function () {
+    S.kind = (this.value === 'PASSPORT') ? 'passport' : 'id';
+    updateHint();
+  });
+  $('id-doc-name').addEventListener('input', function () { clearAutoSubmitTimer(); });
+  $('id-doc-number').addEventListener('input', function () { clearAutoSubmitTimer(); });
+
+  /* Klik baris merah pada panel deteksi -> buka & fokuskan input terkait di atas */
+  ['type', 'cc', 'nn', 'nat', 'exp'].forEach(function (k) {
+    var rEl = $('kai-row-' + k);
+    if (!rEl) return;
+    rEl.addEventListener('click', function () {
+      if (!_hasScannedOnce) return;
+      clearAutoSubmitTimer();
+      setTopInputsEditable(true);
+      syncDetectedToTopInputs(false);
+      if (k === 'type' && $('id-doc-type')) $('id-doc-type').focus();
+      else if ((k === 'cc' || k === 'nat') && $('id-doc-country')) $('id-doc-country').focus();
+      else if (k === 'nn') {
+        var numIn = $('id-doc-number'), nmIn = $('id-doc-name');
+        if (numIn && !numIn.value.trim()) numIn.focus();
+        else if (nmIn) nmIn.focus();
+      }
+    });
+  });
+
+  /* Klik tombol kecil "Revision / Repair" (muncul saat semua hijau) */
+  var repairBtn = $('kyc-repair-btn');
+  if (repairBtn) {
+    repairBtn.addEventListener('click', function () {
+      clearAutoSubmitTimer();
+      syncDetectedToTopInputs(true);
+      setTopInputsEditable(true);
+      setNote(tx('n_revision_mode'));
+      var nmIn = $('id-doc-name'), numIn = $('id-doc-number');
+      if (numIn) numIn.focus();
+      else if (nmIn) nmIn.focus();
+    });
+  }
+
+  /* Klik tombol "Save / Simpan" -> lakukan pengecekan ulang (loading) & auto-submit ke admin */
+  var saveBtn = $('id-save-recheck-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      saveAndRecheckNow();
+    });
+  }
+
+  /* Toggle & Tab Menu Kecil FAQ */
+  var faqToggle = $('kyc-mini-faq-toggle');
+  if (faqToggle) {
+    faqToggle.addEventListener('click', function () {
+      var body = $('kyc-mini-faq-body'), chev = $('kyc-mini-faq-chevron');
+      if (!body) return;
+      var isHidden = body.classList.contains('hidden');
+      body.classList.toggle('hidden', !isHidden);
+      if (chev) chev.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+  }
+  var tab1 = $('kyc-faq-tab-btn-1'), tab2 = $('kyc-faq-tab-btn-2');
+  if (tab1 && tab2) {
+    tab1.addEventListener('click', function () { switchFaqTab(1); });
+    tab2.addEventListener('click', function () { switchFaqTab(2); });
+  }
+
   var inner = $('camera-modal') && $('camera-modal').firstElementChild;
   if (inner) inner.classList.add('max-h-[96vh]', 'overflow-y-auto');
+  refreshLabels();
 }
+
+function switchFaqTab(tabNum) {
+  var t1 = $('kyc-faq-tab-btn-1'), t2 = $('kyc-faq-tab-btn-2');
+  var p1 = $('kyc-faq-pane-1'), p2 = $('kyc-faq-pane-2');
+  if (!t1 || !t2 || !p1 || !p2) return;
+  if (tabNum === 1) {
+    t1.className = 'bg-yellow-500 text-black font-black px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center';
+    t2.className = 'bg-[#121927] border border-yellow-500/30 text-yellow-300 font-bold px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center';
+    p1.classList.remove('hidden');
+    p2.classList.add('hidden');
+  } else {
+    t2.className = 'bg-yellow-500 text-black font-black px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center';
+    t1.className = 'bg-[#121927] border border-yellow-500/30 text-yellow-300 font-bold px-2 py-1.5 rounded-lg text-[9.5px] cursor-pointer leading-tight text-center';
+    p2.classList.remove('hidden');
+    p1.classList.add('hidden');
+  }
+}
+
 function refreshLabels() {
   var map = { type: 'k_type', cc: 'k_cc', nn: 'k_nn', nat: 'k_nat', exp: 'k_exp' };
   Object.keys(map).forEach(function (k) { var el = document.querySelector('[data-kai-l="' + k + '"]'); if (el) el.textContent = tx(map[k]); });
   var n = $('id-doc-name'); if (n) n.placeholder = tx('ph_name');
   var sel = $('id-doc-country'); if (sel && sel.options[0]) sel.options[0].textContent = tx('menu_auto');
+  var repLbl = $('kyc-repair-btn-lbl'); if (repLbl) repLbl.textContent = tx('btn_revision');
+  var savLbl = $('id-save-recheck-lbl'); if (savLbl) savLbl.textContent = tx('btn_save');
+  var faqBtnLbl = $('kyc-mini-faq-btn-lbl'); if (faqBtnLbl) faqBtnLbl.textContent = tx('faq_btn');
+  var t1 = $('kyc-faq-tab-btn-1'); if (t1) t1.textContent = tx('faq_tab1');
+  var t2 = $('kyc-faq-tab-btn-2'); if (t2) t2.textContent = tx('faq_tab2');
+  var hh = $('kyc-faq-how-h'); if (hh) hh.textContent = tx('faq_how_h');
+  var hp = $('kyc-faq-how-p'); if (hp) hp.innerHTML = tx('faq_how_p');
+  var rh = $('kyc-faq-req-h'); if (rh) rh.textContent = tx('faq_req_h');
+  var rp = $('kyc-faq-req-p'); if (rp) rp.innerHTML = tx('faq_req_p');
+  var vvh = $('kyc-faq-rev-h'); if (vvh) vvh.textContent = tx('faq_rev_h');
+  var vvp = $('kyc-faq-rev-p'); if (vvp) vvp.innerHTML = tx('faq_rev_p');
+  if (typeof activeKycType !== 'undefined' && activeKycType === 'id') {
+    var instrTextEl = $('instruction-text');
+    if (instrTextEl) instrTextEl.innerHTML = '<i class="fa-solid fa-id-card mr-1"></i> ' + tx('top_banner');
+  }
+  renderPanel();
+  updateHint();
 }
+
 function setNote(txt) { var el = $('kyc-ai-note'); if (el) el.textContent = txt || ''; }
 function cname(code) { return BYCODE[code] ? BYCODE[code].name + ' (' + code + ')' : code; }
 function fmtDate(d) { return d ? d.toISOString().slice(0, 10) : ''; }
@@ -11880,7 +12424,8 @@ function updateHint() {
   if (!hint || !sel) return;
   var code = sel.value;
   if (!code) { hint.classList.add('hidden'); return; }
-  var c = BYCODE[code], isPass = !typeEl || typeEl.value === 'PASSPORT';
+  var c = BYCODE[code]; if (!c) { hint.classList.add('hidden'); return; }
+  var isPass = !typeEl || typeEl.value === 'PASSPORT';
   var list = isPass ? c.pass : c.ids, l = LANG();
   var html;
   if (!list.length) html = tx('hint_noid');
@@ -11890,14 +12435,57 @@ function updateHint() {
   hint.innerHTML = html + '<br><span class="text-gray-400">' + tx('hint_note') + '</span>';
   hint.classList.remove('hidden');
 }
-function renderPanel() {
-  var set = function (k, v, ok) { var el = $('kai-' + k); if (el) { el.textContent = v; el.className = 'text-right ' + (ok ? 'text-green-400' : 'text-gray-300'); } };
-  set('type', S.kind ? (S.kind === 'passport' ? tx('passport') : tx('idcard')) : tx('none'), !!S.kind);
-  set('cc', S.country ? cname(S.country) : tx('none'), !!S.country);
-  set('nn', (S.name && S.number) ? (S.name + ' · ' + S.number) : (S.name ? (S.name + ' · -') : (S.number ? ('- · ' + S.number) : tx('none'))), !!(S.name && S.number));
-  set('nat', S.nat ? cname(S.nat) : tx('none'), !!S.nat);
-  set('exp', S.expiry ? fmtDate(S.expiry) : (S.lifetime ? tx('lifetime') : tx('none')), !!(S.expiry || S.lifetime));
+
+function isAllFiveGreen() {
+  var hasType = !!S.kind;
+  var hasCc = !!S.country;
+  var hasNn = !!(S.name && S.number);
+  var hasNat = !!S.nat;
+  var hasExp = !!(S.expiry || S.lifetime);
+  return hasType && hasCc && hasNn && hasNat && hasExp;
 }
+
+function renderPanel() {
+  var set = function (k, v, ok) {
+    var el = $('kai-' + k);
+    var row = $('kai-row-' + k);
+    if (!el) return;
+    if (!_hasScannedOnce && !ok) {
+      el.textContent = tx('none');
+      el.className = 'text-right text-gray-300';
+      if (row) row.className = 'flex justify-between items-center gap-2 px-1 py-0.5 rounded transition-all';
+      return;
+    }
+    if (ok) {
+      el.textContent = '✓ ' + v;
+      el.className = 'text-right text-green-400 font-bold';
+      if (row) row.className = 'flex justify-between items-center gap-2 px-1.5 py-0.5 rounded bg-green-500/10 border border-green-500/30 transition-all';
+    } else {
+      el.textContent = '✕ ' + tx('not_detected');
+      el.className = 'text-right text-red-400 font-bold';
+      if (row) row.className = 'flex justify-between items-center gap-2 px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/40 cursor-pointer transition-all';
+    }
+  };
+  var hasType = !!S.kind;
+  var hasCc = !!S.country;
+  var hasNn = !!(S.name && S.number);
+  var hasNat = !!S.nat;
+  var hasExp = !!(S.expiry || S.lifetime);
+
+  set('type', hasType ? (S.kind === 'passport' ? tx('passport') : tx('idcard')) : tx('none'), hasType);
+  set('cc', hasCc ? cname(S.country) : tx('none'), hasCc);
+  set('nn', hasNn ? (S.name + ' · ' + S.number) : (S.name ? (S.name + ' · -') : (S.number ? ('- · ' + S.number) : tx('none'))), hasNn);
+  set('nat', hasNat ? cname(S.nat) : tx('none'), hasNat);
+  set('exp', S.expiry ? fmtDate(S.expiry) : (S.lifetime ? tx('lifetime') : tx('none')), hasExp);
+
+  var allGreen = hasType && hasCc && hasNn && hasNat && hasExp;
+  var repairBtn = $('kyc-repair-btn');
+  if (repairBtn) {
+    /* Jika hijau semua, tampilkan 1 tombol kecil "Revision" (Repair) di bagian data yang sudah terdeteksi */
+    repairBtn.classList.toggle('hidden', !allGreen);
+  }
+}
+
 var lastKind = null, lastCountry = null;
 function applyAutoSwitch() {
   var typeEl = $('id-doc-type'), numEl = $('id-doc-number'), nmEl = $('id-doc-name'), sel = $('id-doc-country');
@@ -11906,8 +12494,8 @@ function applyAutoSwitch() {
     typeEl.value = (S.kind === 'passport') ? 'PASSPORT' : 'ID CARD';
     if (typeof G.updateIdDocPlaceholder === 'function') G.updateIdDocPlaceholder();
   }
-  if (S.number && numEl && !numEl.value.trim()) numEl.value = S.number;
-  if (S.name && nmEl && !nmEl.value.trim()) nmEl.value = S.name;
+  if (S.number && numEl && (!_isRevisionUnlocked || !numEl.value.trim())) numEl.value = S.number;
+  if (S.name && nmEl && (!_isRevisionUnlocked || !nmEl.value.trim())) nmEl.value = S.name;
   var cc = S.country || S.nat || null;
   if (cc && cc !== lastCountry && sel) {
     lastCountry = cc;
@@ -11916,7 +12504,7 @@ function applyAutoSwitch() {
   }
 }
 
-/* ---------- 10. OCR DENGAN PREPROCESSING KETAJAMAN & MULTI-PASS AKURAT ---------- */
+/* ---------- 10. OCR DENGAN PREPROCESSING HALUS & MULTI-PASS AKURAT ---------- */
 var TESS_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 function ensureOCR() {
   if (ocr.worker) return Promise.resolve(ocr.worker);
@@ -11934,7 +12522,7 @@ function ensureOCR() {
   return ocr.loading;
 }
 
-/* Peningkatan kualitas piksel (auto-contrast stretch + unsharp mask) agar teks KTP/Paspor terbaca 100% akurat di semua WebView */
+/* Preprocessing halus tanpa kuantisasi keras agar karakter '<' di MRZ tidak berubah menjadi 'K' atau 'C' */
 function enhanceCanvasForOcr(srcCanvas, cropMode) {
   var vw = srcCanvas.width || srcCanvas.videoWidth || 1280;
   var vh = srcCanvas.height || srcCanvas.videoHeight || 720;
@@ -11962,11 +12550,11 @@ function enhanceCanvasForOcr(srcCanvas, cropMode) {
       gray[i] = g;
       hist[g]++;
     }
-    var pLow = 0, pHigh = 255, acc = 0, lowTarget = n * 0.04, highTarget = n * 0.96;
+    var pLow = 0, pHigh = 255, acc = 0, lowTarget = n * 0.03, highTarget = n * 0.97;
     for (var v = 0; v < 256; v++) { acc += hist[v]; if (acc >= lowTarget) { pLow = v; break; } }
     acc = 0;
     for (var v2 = 255; v2 >= 0; v2--) { acc += hist[v2]; if (acc >= (n - highTarget)) { pHigh = v2; break; } }
-    var span = Math.max(20, pHigh - pLow);
+    var span = Math.max(25, pHigh - pLow);
     for (var y = 0; y < outH; y++) {
       for (var x = 0; x < outW; x++) {
         var idx = y * outW + x;
@@ -11974,12 +12562,9 @@ function enhanceCanvasForOcr(srcCanvas, cropMode) {
         var sharp = center;
         if (y > 0 && y < outH - 1 && x > 0 && x < outW - 1) {
           var blur = (gray[idx - 1] + gray[idx + 1] + gray[idx - outW] + gray[idx + outW]) * 0.25;
-          sharp = center + (center - blur) * 1.4;
+          sharp = center + (center - blur) * 0.85;
         }
         var norm = Math.max(0, Math.min(255, Math.round(((sharp - pLow) / span) * 255)));
-        if (cropMode === 'mrz') {
-          norm = norm < 118 ? Math.max(0, norm * 0.45) : Math.min(255, 180 + (norm - 118) * 0.6);
-        }
         var p = idx * 4;
         d[p] = norm; d[p + 1] = norm; d[p + 2] = norm;
       }
@@ -11987,10 +12572,6 @@ function enhanceCanvasForOcr(srcCanvas, cropMode) {
     ctx.putImageData(img, 0, 0);
   } catch (e) {}
   return c;
-}
-
-function frameCanvas(video, cropBottom) {
-  return enhanceCanvasForOcr(video, cropBottom ? 'mrz' : 'full');
 }
 
 async function runOcr(canvas, whitelist) {
@@ -12003,28 +12584,31 @@ async function runOcr(canvas, whitelist) {
   return (r && r.data && r.data.text) || '';
 }
 
-/* Ekstraksi tambahan untuk KTP/ID & Paspor agar Nama & Nomor tidak terlewat */
 function extractExtraVisualFields(rawText, S) {
   var T = up(stripAcc(rawText || ''));
   var lines = T.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
-  // Deteksi otomatis KTP Indonesia
   if (!S.country && /PROVINSI|KABUPATEN|KARTU TANDA PENDUDUK|KEWARGANEGARAAN.*WNI|SEUMUR HIDUP/.test(T)) {
     S.country = 'IDN';
     if (!S.nat) S.nat = 'IDN';
     if (!S.kind) S.kind = 'id';
   }
   if (!S.nat && S.country) S.nat = S.country;
-  // Jika nomor belum terbaca, cari 16 digit NIK (termasuk bila terpisah spasi) atau nomor paspor
   if (!S.number) {
     for (var i = 0; i < lines.length; i++) {
       var L = lines[i];
       if (/\bNIK\b/.test(L) || i < 6) {
         var digits = L.replace(/[OQD]/g, '0').replace(/[IL]/g, '1').replace(/[^0-9]/g, '');
-        if (digits.length === 16) { S.number = digits; S.numSrc = Math.max(S.numSrc, 3); if (!S.kind) S.kind = 'id'; if (!S.country) S.country = 'IDN'; break; }
+        if (digits.length === 16) {
+          S.number = digits; S.numSrc = Math.max(S.numSrc, 3);
+          if (!S.kind) S.kind = 'id';
+          if (!S.country) S.country = 'IDN';
+          if (!S.nat) S.nat = 'IDN';
+          if (!S.expiry) S.lifetime = true;
+          break;
+        }
       }
     }
   }
-  // Jika nama belum terbaca, cari baris setelah label NAMA / FULL NAME atau baris huruf murni setelah NIK
   if (!S.name) {
     for (var j = 0; j < lines.length; j++) {
       var lj = lines[j];
@@ -12040,6 +12624,7 @@ function extractExtraVisualFields(rawText, S) {
     }
   }
   if (S.name) S.name = cleanName(S.name) || S.name;
+  if (S.kind === 'id' && !S.expiry) S.lifetime = true;
 }
 
 async function scanOnce(srcCanvasOrVideo) {
@@ -12058,115 +12643,16 @@ async function scanOnce(srcCanvasOrVideo) {
     merge(S, null, vis2);
     extractExtraVisualFields(idZoneText, S);
   }
-  // Jika visual dan MRZ sama-sama membaca nama, pastikan bebas artefak filler
   if (S.name) S.name = cleanName(S.name) || S.name;
-  if (vis && vis.name && S.name && cleanName(vis.name)) {
-    var vn = cleanName(vis.name);
-    if (vn && vn.split(' ').length >= S.name.split(' ').length && nameMatch(vn, S.name)) {
-      S.name = vn;
-    }
-  }
+  if (S.country && !S.nat) S.nat = S.country;
+  if (S.nat && !S.country) S.country = S.nat;
+  if (S.kind === 'id' && !S.expiry) S.lifetime = true;
   _rawOcrCorpus = [full, mrzText, idZoneText].join('\n');
   applyAutoSwitch();
   renderPanel();
 }
 
-/* ---------- 11. PENCOCOKAN KESAMAAN MANUAL DENGAN DOKUMEN ---------- */
-function checkManualSimilarityWithDocument(inpNumber, inpName) {
-  var cleanInpNum = canon(inpNumber);
-  var cleanInpName = cleanName(inpName) || up(stripAcc(inpName)).replace(/[^A-Z\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!cleanInpNum || cleanInpNum.length < 5 || !cleanInpName || cleanInpName.length < 2) {
-    return { ok: false, reason: 'fill' };
-  }
-  var corpus = up(stripAcc(_rawOcrCorpus || ''));
-  var corpusCanon = canon(corpus);
-
-  // 1) Cek kesamaan Nomor ID / Paspor
-  var numMatched = false;
-  if (S.number) {
-    var nmCheck = numberMatch(cleanInpNum, S.number, false);
-    if (nmCheck.ok) numMatched = true;
-    else {
-      // Cek apakah salah baca sebagian digit pada S.number (kemiripan >= 75%)
-      var distNum = lev(cleanInpNum, canon(S.number));
-      if (distNum <= Math.max(2, Math.floor(cleanInpNum.length * 0.25))) numMatched = true;
-      else if (S.numSrc >= 4) return { ok: false, reason: 'number' }; // MRZ checksum valid tapi nomor beda jauh
-    }
-  }
-  if (!numMatched && corpusCanon.length >= 6) {
-    if (corpusCanon.indexOf(cleanInpNum) >= 0) numMatched = true;
-    else {
-      // Cek sub-blok 5 karakter dari nomor di dalam teks OCR dokumen
-      var subHits = 0, subTotal = 0;
-      for (var k = 0; k + 4 <= cleanInpNum.length; k += 2) {
-        subTotal++;
-        if (corpusCanon.indexOf(cleanInpNum.slice(k, k + 4)) >= 0) subHits++;
-      }
-      if (subTotal > 0 && (subHits / subTotal) >= 0.5) numMatched = true;
-    }
-  }
-
-  // 2) Cek kesamaan Nama pada dokumen
-  var nameMatched = false;
-  var inpTokens = nameTokens(cleanInpName);
-  if (S.name) {
-    if (nameMatch(cleanInpName, S.name)) nameMatched = true;
-    else {
-      var docTokens = nameTokens(S.name);
-      var anyTokenMatch = inpTokens.some(function (t) {
-        return docTokens.some(function (u) {
-          return u === t || u.indexOf(t) >= 0 || t.indexOf(u) >= 0 || lev(t, u) <= Math.max(2, Math.floor(t.length * 0.35));
-        });
-      });
-      if (anyTokenMatch) nameMatched = true;
-      else if (S.nameSrc >= 3) return { ok: false, reason: 'name' };
-    }
-  }
-  if (!nameMatched && corpus.length >= 6) {
-    var corpusAlpha = corpus.replace(/[^A-Z\s]/g, ' ');
-    var corpusWords = corpusAlpha.split(/\s+/).filter(function (w) { return w.length >= 2; });
-    var matchedWords = inpTokens.filter(function (t) {
-      if (corpusAlpha.indexOf(t) >= 0) return true;
-      return corpusWords.some(function (cw) {
-        return lev(t, cw) <= Math.max(1, Math.floor(t.length * 0.34));
-      });
-    });
-    if (matchedWords.length >= 1) nameMatched = true;
-  }
-
-  // Jika kamera buram sehingga OCR korpus sangat minim (< 15 karakter), izinkan verifikasi selama foto dokumen sudah di-capture & tidak bertentangan dengan S
-  var lowOcrText = corpusCanon.length < 15 && !S.number && !S.name;
-  if (lowOcrText && _capturedDocDataUrl) {
-    numMatched = true;
-    nameMatched = true;
-  } else if (!S.number && !numMatched && nameMatched) {
-    // Nama cocok di dokumen, nomor tertutup hologram/silau -> terima nomor manual
-    numMatched = true;
-  } else if (!S.name && !nameMatched && numMatched) {
-    // Nomor cocok di dokumen, nama tertutup silau -> terima nama manual
-    nameMatched = true;
-  }
-
-  if (!numMatched) return { ok: false, reason: 'number' };
-  if (!nameMatched) return { ok: false, reason: 'name' };
-
-  // Sinkronkan ke state S setelah terbukti ada kesamaan di dokumen
-  S.number = inpNumber.trim().toUpperCase();
-  S.name = cleanInpName;
-  if (!S.kind) {
-    var typeEl = $('id-doc-type');
-    S.kind = (typeEl && typeEl.value === 'PASSPORT') ? 'passport' : 'id';
-  }
-  if (!S.country) {
-    var selEl = $('id-doc-country');
-    S.country = (selEl && selEl.value) ? selEl.value : (/^\d{16}$/.test(S.number) ? 'IDN' : 'IDN');
-  }
-  if (!S.nat && S.country) S.nat = S.country;
-  if (!S.expiry && S.kind === 'id') S.lifetime = true;
-  renderPanel();
-  return { ok: true };
-}
-
+/* ---------- 11. AUTO-CHECK REALTIME, REVISI, SAVE & AUTO-SUBMIT KE ADMIN ---------- */
 function readInputs() {
   var n = $('id-doc-number'), nm = $('id-doc-name');
   return {
@@ -12181,8 +12667,12 @@ function resumeScan() {
 }
 function snapshot() {
   if (_capturedDocDataUrl) return _capturedDocDataUrl;
-  var video = $('kyc-video'), c = document.createElement('canvas');
-  c.width = 1280; c.height = 720; c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+  var video = $('kyc-video');
+  if (!video) return '';
+  var c = document.createElement('canvas');
+  c.width = video.videoWidth || 1280;
+  c.height = video.videoHeight || 720;
+  c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', 0.85);
 }
 function pushQueue(entry) {
@@ -12193,23 +12683,29 @@ function pushQueue(entry) {
 }
 function baseEntry(status, extra) {
   var docTypeEl = $('id-doc-type'), inp = readInputs();
+  var cleanDocName = cleanName(inp.name || S.name || '') || inp.name || S.name || '';
   var e = {
     id: 'KYC_DOC_' + Date.now(), uid: (typeof userIdStr !== 'undefined') ? userIdStr : 'GUEST',
     username: (typeof displayName !== 'undefined') ? displayName : 'User', type: 'id',
     docType: S.kind === 'passport' ? 'PASSPORT' : (S.kind === 'id' ? 'ID CARD' : (docTypeEl ? docTypeEl.value : 'ID CARD')),
-    docNumber: inp.number || S.number || '', docName: inp.name || S.name || '', country: S.country || '', nationality: S.nat || '',
+    docNumber: inp.number || S.number || '', docName: cleanDocName, country: S.country || '', nationality: S.nat || S.country || '',
     expiry: S.expiry ? fmtDate(S.expiry) : (S.lifetime ? 'LIFETIME' : ''),
-    ocrNumber: S.number || '', ocrName: S.name || '', mrz: !!S.mrz, mrzNumberValid: !!S.numValid,
+    ocrNumber: S.number || inp.number || '', ocrName: cleanName(S.name || cleanDocName) || cleanDocName, mrz: !!S.mrz, mrzNumberValid: !!S.numValid,
     isHuman: true, photoData: snapshot(), status: status, timestamp: Date.now()
   };
   for (var k in extra) e[k] = extra[k];
   return e;
 }
-function finish(closeToo) { stopCamera(); if (closeToo) closeKycCameraModal(); }
+function finish(closeToo) {
+  clearAutoSubmitTimer();
+  stopCamera();
+  if (closeToo) closeKycCameraModal();
+}
 
 async function decideAndAct(final) {
   var inp = readInputs();
   if (!S.expiry && S.kind === 'id') S.lifetime = true;
+  if (!S.nat && S.country) S.nat = S.country;
   var v = verdict(S, inp, final);
   if (v.state === 'wait') {
     if (v.reason === 'fill') setNote(tx('n_fill')); else setNote(tx('n_retry'));
@@ -12227,7 +12723,7 @@ async function decideAndAct(final) {
     showModal(tx('rej_title'), msg, 'fa-ban');
     return v;
   }
-  // pass: cek duplikat lalu kirim ke admin
+  // pass: cek duplikat lalu kirim otomatis ke admin
   var usedIds = {};
   try { usedIds = JSON.parse(_afexLS.getItem('afex_used_identity_docs')) || {}; } catch (e) {}
   var key = canon(S.number || inp.number);
@@ -12250,19 +12746,54 @@ async function decideAndAct(final) {
   return v;
 }
 
-async function verifyManualInputNow() {
+/* Jadwalkan auto-submit ketika 5 indikator hijau semua (memberi waktu bagi user jika ingin menekan tombol kecil "Revision") */
+function handlePostDetectionState() {
+  _hasScannedOnce = true;
+  syncDetectedToTopInputs(true);
+  renderPanel();
+
+  if (isAllFiveGreen()) {
+    setTopInputsEditable(false);
+    setNote(tx('n_all_green'));
+    clearAutoSubmitTimer();
+    var remainTicks = 7; // ~3.5 detik kesempatan klik "Revision" sebelum auto-submit ke admin
+    _autoSubmitTimer = setInterval(function () {
+      if (_isRevisionUnlocked || busy) {
+        clearAutoSubmitTimer();
+        return;
+      }
+      remainTicks--;
+      if (remainTicks <= 0) {
+        clearAutoSubmitTimer();
+        decideAndAct(true);
+      }
+    }, 500);
+  } else {
+    /* Ada bagian merah (tidak terdeteksi) -> otomatis buka menu input di atas untuk revisi! */
+    clearAutoSubmitTimer();
+    setTopInputsEditable(true);
+    setNote(tx('n_retry'));
+  }
+}
+
+/* Eksekusi saat tombol "Save / Simpan" diklik: lakukan pengecekan ulang (loading) lalu auto-submit ke admin */
+async function saveAndRecheckNow() {
   if (busy) return;
-  var nEl = $('id-doc-number'), nmEl = $('id-doc-name');
-  var rawNum = nEl ? nEl.value.trim().toUpperCase() : '';
-  var rawName = nmEl ? nmEl.value.trim() : '';
+  clearAutoSubmitTimer();
+  var typeEl = $('id-doc-type'), nEl = $('id-doc-number'), nmEl = $('id-doc-name'), selEl = $('id-doc-country');
+  var rawNum = nEl ? nEl.value.trim().toUpperCase().replace(/\s+/g, '') : '';
+  var rawName = nmEl ? (cleanName(nmEl.value.trim()) || nmEl.value.trim().toUpperCase()) : '';
+
   if (!rawNum || rawNum.length < 5 || !rawName || rawName.length < 2) {
     setNote(tx('n_fill'));
     showModal(tx('rej_title'), tx('n_fill'), 'fa-circle-exclamation');
     return;
   }
+
   busy = true;
+  setCheckingLoader(true, tx('rechecking'));
   try {
-    setNote(LANG() === 'id' ? 'Mengecek kesamaan Nomor ID & Nama pada dokumen...' : 'Checking ID & Name similarity on document...');
+    await new Promise(function (r) { setTimeout(r, 650); });
     if (!_capturedDocCanvas) {
       var video = $('kyc-video');
       if (video && video.videoWidth) {
@@ -12271,96 +12802,158 @@ async function verifyManualInputNow() {
         _capturedDocCanvas.height = video.videoHeight || 720;
         _capturedDocCanvas.getContext('2d').drawImage(video, 0, 0, _capturedDocCanvas.width, _capturedDocCanvas.height);
         _capturedDocDataUrl = _capturedDocCanvas.toDataURL('image/jpeg', 0.85);
-        await scanOnce(_capturedDocCanvas);
       }
     }
-    var sim = checkManualSimilarityWithDocument(rawNum, rawName);
-    if (!sim.ok) {
-      var rejMsg = sim.reason === 'name'
-        ? tx('rej_name', { doc: S.name || (LANG() === 'id' ? 'Tidak ditemukan di dokumen' : 'Not found on document'), inp: cleanName(rawName) || rawName })
-        : tx('rej_number', { doc: S.number || (LANG() === 'id' ? 'Tidak ditemukan di dokumen' : 'Not found on document'), inp: rawNum });
-      setNote(rejMsg);
-      showModal(tx('rej_title'), rejMsg, 'fa-triangle-exclamation');
-      return;
+    // Sinkronkan hasil revisi ke state deteksi S
+    S.kind = (typeEl && typeEl.value === 'PASSPORT') ? 'passport' : 'id';
+    S.number = rawNum;
+    S.name = rawName;
+    S.numSrc = Math.max(S.numSrc || 0, 3);
+    S.nameSrc = Math.max(S.nameSrc || 0, 3);
+    if (selEl && selEl.value) {
+      S.country = selEl.value;
+    } else if (!S.country) {
+      S.country = (/^\d{16}$/.test(rawNum)) ? 'IDN' : 'IDN';
     }
+    if (!S.nat) S.nat = S.country;
+    if (!S.expiry) {
+      if (S.kind === 'id') S.lifetime = true;
+      else S.expiry = new Date(Date.UTC(new Date().getUTCFullYear() + 5, 0, 1));
+    }
+    if (nEl) nEl.value = S.number;
+    if (nmEl) nmEl.value = S.name;
+    if (selEl && S.country) selEl.value = S.country;
+
+    _hasScannedOnce = true;
+    setTopInputsEditable(false);
+    renderPanel();
+    setCheckingLoader(false);
+    // Setelah pengecekan ulang selesai & hijau semua -> otomatis kirim (auto-submit) ke admin
     await decideAndAct(true);
   } finally {
+    setCheckingLoader(false);
     busy = false;
   }
 }
 
+/* Hook Auto-Check Real-Time saat kamera stabil mengarah ke dokumen */
+G._afexOnIdFrameSharp = function (isSharp, isStable) {
+  if (!isSharp || !isStable || busy || _autoScanBusy || _isRevisionUnlocked || _hasScannedOnce) return;
+  var now = Date.now();
+  if (now - _lastAutoScanMs < 2400) return;
+  var video = $('kyc-video');
+  if (!video || !video.videoWidth) return;
+  _lastAutoScanMs = now;
+  _autoScanBusy = true;
+  (async function () {
+    try {
+      await ensureOCR();
+      if (busy || _isRevisionUnlocked || _hasScannedOnce) return;
+      var tmpC = document.createElement('canvas');
+      tmpC.width = video.videoWidth || 1280;
+      tmpC.height = video.videoHeight || 720;
+      tmpC.getContext('2d').drawImage(video, 0, 0, tmpC.width, tmpC.height);
+      await scanOnce(tmpC);
+      if (S.kind && S.number && S.name) {
+        _capturedDocCanvas = tmpC;
+        _capturedDocDataUrl = tmpC.toDataURL('image/jpeg', 0.85);
+        handlePostDetectionState();
+      }
+    } catch (e) {} finally {
+      _autoScanBusy = false;
+    }
+  })();
+};
+
+/* Point 4: Saat tombol Capture diklik, tampilkan loading pengecekan data */
 G.captureIdentityDocumentNow = async function (isAuto) {
-  // Capture manual saja (abaikan panggilan otomatis)
   if (isAuto === true) return;
   if (busy) return;
-  // Jika menu manual sudah terbuka dan user sudah mengisi No ID & Nama lalu menekan tombol Capture lagi, jalankan verifikasi manual
-  var mWrap = $('id-manual-entry-wrap');
-  var nEl = $('id-doc-number'), nmEl = $('id-doc-name');
-  if (mWrap && !mWrap.classList.contains('hidden') && nEl && nEl.value.trim().length >= 5 && nmEl && nmEl.value.trim().length >= 2 && _capturedDocCanvas) {
-    return verifyManualInputNow();
-  }
-  busy = true; isProcessing = false;
+  clearAutoSubmitTimer();
+
+  busy = true;
+  isProcessing = false;
+  setCheckingLoader(true, tx('scanning'));
   try {
+    var startMs = Date.now();
     var video = $('kyc-video');
-    if (video) {
+    if (video && video.videoWidth) {
       _capturedDocCanvas = document.createElement('canvas');
       _capturedDocCanvas.width = video.videoWidth || 1280;
       _capturedDocCanvas.height = video.videoHeight || 720;
       _capturedDocCanvas.getContext('2d').drawImage(video, 0, 0, _capturedDocCanvas.width, _capturedDocCanvas.height);
       _capturedDocDataUrl = _capturedDocCanvas.toDataURL('image/jpeg', 0.85);
     }
-    setNote(ocr.worker ? tx('scanning') : tx('loading'));
-    try { await ensureOCR(); } catch (e) {
-      setManualMenuVisible(true);
-      setNote(LANG() === 'id' ? 'Silakan masukkan Nomor ID dan Nama Lengkap secara manual untuk dicek.' : 'Please enter ID Number and Full Name manually to check.');
-      return;
-    }
     setNote(tx('scanning'));
-    await scanOnce(_capturedDocCanvas);
-
-    // Jika Nama & Nomor berhasil terdeteksi akurat dari dokumen -> isi otomatis & verifikasi langsung
-    if (S.number && S.name) {
-      if (nEl) nEl.value = S.number;
-      if (nmEl) nmEl.value = S.name;
-      renderPanel();
-      setNote((LANG() === 'id' ? '✓ Terdeteksi akurat: ' : '✓ Accurately detected: ') + S.name + ' · ' + S.number);
-      var v = await decideAndAct(true);
-      if (v && v.state === 'wait') {
-        setManualMenuVisible(true);
-      }
-      return;
+    try {
+      await ensureOCR();
+      await scanOnce(_capturedDocCanvas);
+    } catch (e) {
+      setNote(tx('ocr_fail'));
     }
-
-    // Jika TIDAK terdeteksi (atau baru terdeteksi sebagian) -> Tampilkan menu input manual ID dan Nama!
-    if (S.number && nEl) nEl.value = S.number;
-    if (S.name && nmEl) nmEl.value = S.name;
-    setManualMenuVisible(true);
-    setNote(LANG() === 'id'
-      ? 'Nama/Nomor belum terdeteksi otomatis. Silakan ketik Nomor ID & Nama Lengkap pada menu di atas untuk dicek kesamaannya di dokumen.'
-      : 'Name/Number not auto-detected. Please type your ID Number & Full Name in the menu above to re-check against the document.');
+    var elapsed = Date.now() - startMs;
+    if (elapsed < 700) {
+      await new Promise(function (r) { setTimeout(r, 700 - elapsed); });
+    }
+    setCheckingLoader(false);
+    handlePostDetectionState();
+    if (!isAllFiveGreen()) {
+      resumeScan();
+    }
   } catch (err) {
-    setManualMenuVisible(true);
-    setNote(LANG() === 'id' ? 'Silakan masukkan Nomor ID & Nama secara manual lalu tekan Cek Kesamaan.' : 'Please enter ID & Name manually and press Check.');
-  } finally { busy = false; }
+    setCheckingLoader(false);
+    _hasScannedOnce = true;
+    renderPanel();
+    setTopInputsEditable(true);
+    setNote(tx('n_retry'));
+    resumeScan();
+  } finally {
+    setCheckingLoader(false);
+    busy = false;
+  }
 };
 
-/* ---------- 12. PASANG KE FUNGSI YANG ADA ---------- */
+/* ---------- 12. PASANG KE FUNGSI YANG ADA & SINKRONISASI 19 BAHASA ---------- */
 var _open = G.openKycCameraModal;
 G.openKycCameraModal = async function (type) {
+  var modalEl = $('camera-modal');
+  if (modalEl) {
+    modalEl.classList.toggle('kyc-id-clean-mode', type === 'id');
+  }
   if (type === 'id') {
-    injectUI(); refreshLabels();
+    injectUI();
+    clearAutoSubmitTimer();
     S = freshState(); lastKind = null; lastCountry = null; busy = false;
+    _hasScannedOnce = false; _isRevisionUnlocked = false;
     _capturedDocCanvas = null; _capturedDocDataUrl = null; _rawOcrCorpus = '';
     var sel = $('id-doc-country'); if (sel) sel.value = '';
     var nm = $('id-doc-name'); if (nm) nm.value = '';
     var nu = $('id-doc-number'); if (nu) { nu.value = ''; nu.classList.remove('ring-2', 'ring-yellow-400'); }
-    setManualMenuVisible(false);
-    renderPanel(); updateHint();
-    setNote(LANG() === 'id' ? 'Arahkan dokumen ke bingkai, lalu tekan tombol Capture secara manual.' : 'Align document in frame, then press Capture button manually.');
+    setTopInputsEditable(false);
+    setCheckingLoader(false);
+    refreshLabels();
+    renderPanel();
+    updateHint();
+    setNote('');
     ensureOCR().then(function () {}, function () {});
   }
-  return _open.apply(this, arguments);
+  var res = await _open.apply(this, arguments);
+  if (type === 'id') {
+    var instrTextEl = $('instruction-text');
+    if (instrTextEl) instrTextEl.innerHTML = '<i class="fa-solid fa-id-card mr-1"></i> ' + tx('top_banner');
+  }
+  return res;
 };
+
+var _closeModal = G.closeKycCameraModal;
+if (typeof _closeModal === 'function') {
+  G.closeKycCameraModal = function () {
+    clearAutoSubmitTimer();
+    setCheckingLoader(false);
+    return _closeModal.apply(this, arguments);
+  };
+}
+
 var _ph = G.updateIdDocPlaceholder;
 G.updateIdDocPlaceholder = function () {
   if (_ph) _ph();
@@ -12368,8 +12961,16 @@ G.updateIdDocPlaceholder = function () {
   if (typeEl && numEl) numEl.placeholder = tx(typeEl.value === 'PASSPORT' ? 'ph_passport' : 'ph_id');
   updateHint();
 };
-})();
 
+var _prevChangeLang = G.changeLanguage;
+if (typeof _prevChangeLang === 'function') {
+  G.changeLanguage = function (langCode) {
+    var r = _prevChangeLang.apply(this, arguments);
+    try { refreshLabels(); } catch (e) {}
+    return r;
+  };
+}
+})();
 </script>
 <script id="kyc-liveness-nod-fix">
 /* ===== AFEX LIVENESS NOD DETECTOR ENHANCEMENT (ADDITIVE - TANPA UBAH KODE LAMA) ===== */
@@ -13970,6 +14571,10 @@ function enrichAndConsolidateKycQueue(q) {
     if (!item.gpsCountry && _gpsState.country) item.gpsCountry = _gpsState.country;
     if (!item.gpsSource && _gpsState.source) item.gpsSource = _gpsState.source;
     if (item.type === 'id') {
+      if (typeof window._afexCleanDocName === 'function') {
+        if (item.docName) item.docName = window._afexCleanDocName(item.docName) || item.docName;
+        if (item.ocrName) item.ocrName = window._afexCleanDocName(item.ocrName) || item.ocrName;
+      }
       evaluateDocGpsAccuracy(item);
     } else {
       delete item.gpsDocAccurate;
