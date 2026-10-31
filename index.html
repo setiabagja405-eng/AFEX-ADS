@@ -5634,6 +5634,9 @@ function updateIdDocPlaceholder() {
 }
 
 async function openKycCameraModal(type) {
+    if (type === 'a2f' && typeof window.openA2fEmailOtpModal === 'function') {
+        return window.openA2fEmailOtpModal();
+    }
     activeKycType = type || 'face';
     // Bersihkan elemen iklan yang dapat mengganggu kestabilan layar saat kamera aktif
     const adElements = document.querySelectorAll('iframe[src*="libtl"], div[id*="monetag"], ins[class*="ads"]');
@@ -6209,7 +6212,11 @@ function triggerAutoCapture() {
                 return showModal("Locked Feature", t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), "fa-lock"); 
             }
             if (miningData.kycStatus && miningData.kycStatus[type] === 'verified') {
-                return showModal(t('success'), t('status_verified'), "fa-circle-check");
+                let extraEmail = (type === 'a2f' && miningData.verifiedEmail) ? ` (${escapeHtml(miningData.verifiedEmail)})` : '';
+                return showModal(t('success'), t('status_verified') + extraEmail, "fa-circle-check");
+            }
+            if (type === 'a2f' && typeof window.openA2fEmailOtpModal === 'function') {
+                return window.openA2fEmailOtpModal();
             }
             openKycCameraModal(type);
         }
@@ -12600,6 +12607,647 @@ function t19(key) {
 G.UNLOCK_MENU_I18N_19 = UNLOCK_MENU_I18N_19;
 G.t19 = t19;
 
+/* ---------- 0B. KAMUS 19 BAHASA & KONFIGURASI BOT OTP UNTUK SET YOUR EMAIL (A2F) ---------- */
+var A2F_BOT_OTP_I18N_19 = {
+  en: {
+    a2f_step1_badge: "STEP 1 / 2 • SET YOUR EMAIL",
+    a2f_step2_badge: "STEP 2 / 2 • BOT OTP VERIFICATION",
+    a2f_email_label: "Enter Your Active Email Address",
+    a2f_email_ph: "Enter your email (e.g. name@gmail.com)...",
+    a2f_email_desc: "Enter your email address below. You will be directed to the OTP screen and a 6-digit random OTP code will be given directly by the Bot.",
+    a2f_btn_next_otp: "Continue & Get OTP from Bot",
+    a2f_otp_instr_box: "Enter the OTP code provided directly by the Bot. Do NOT enter an OTP sent to your email; instead, enter the OTP code given to the Bot or Chatbot Chat Menu (it appears immediately below).",
+    a2f_otp_ph: "Enter 6-digit OTP from Bot...",
+    a2f_btn_verify_otp: "Verify OTP Code",
+    a2f_btn_open_chatbot: "Open Chatbot Chat Menu",
+    a2f_btn_resend_otp: "Resend Random OTP to Bot",
+    a2f_btn_change_email: "Change Email",
+    a2f_err_invalid_email: "Please enter a valid email address (example: user@gmail.com)!",
+    a2f_err_email_used: "This email address is already registered by another user!",
+    a2f_err_invalid_otp: "Incorrect OTP code! Please enter the exact 6-digit OTP provided by the Bot / Chatbot Chat Menu.",
+    a2f_err_expired_otp: "OTP code has expired! Please click Resend Random OTP to Bot.",
+    a2f_success_msg: "Email & Bot OTP Verified! Your email ({email}) is now securely linked.",
+    a2f_bot_chat_title: "CHATBOT CHAT MENU — AFEX SECURITY BOT",
+    a2f_bot_msg_header: "Bot OTP Verification Code for {email}:",
+    a2f_bot_copy_use: "Use OTP",
+    a2f_otp_resent_note: "New random OTP code generated & sent to Bot Chat Menu!"
+  },
+  id: {
+    a2f_step1_badge: "TAHAP 1 / 2 • MASUKKAN EMAIL",
+    a2f_step2_badge: "TAHAP 2 / 2 • VERIFIKASI OTP BOT",
+    a2f_email_label: "Masukkan Alamat Email Anda",
+    a2f_email_ph: "Masukkan email Anda (contoh: nama@gmail.com)...",
+    a2f_email_desc: "Masukkan alamat email Anda di bawah ini. Setelah lanjut, Anda akan diarahkan ke halaman OTP dan kode acak 6 digit akan diberikan langsung oleh Bot.",
+    a2f_btn_next_otp: "Lanjut & Minta OTP ke Bot",
+    a2f_otp_instr_box: "Masukkan OTP yang diberikan oleh Bot. Jangan masukkan OTP yang diberikan ke email, tetapi masukkan OTP yang diberikan ke Bot atau Menu Chat Chatbot (otomatis langsung muncul di bawah).",
+    a2f_otp_ph: "Masukkan 6 digit OTP dari Bot...",
+    a2f_btn_verify_otp: "Verifikasi Kode OTP",
+    a2f_btn_open_chatbot: "Buka Menu Chat Chatbot",
+    a2f_btn_resend_otp: "Kirim Ulang Kode Acak ke Bot",
+    a2f_btn_change_email: "Ubah Email",
+    a2f_err_invalid_email: "Mohon masukkan format alamat email yang valid (contoh: nama@gmail.com)!",
+    a2f_err_email_used: "Alamat email ini sudah digunakan oleh pengguna lain!",
+    a2f_err_invalid_otp: "Kode OTP tidak sesuai! Masukkan 6 digit OTP yang diberikan oleh Bot atau Menu Chat Chatbot.",
+    a2f_err_expired_otp: "Kode OTP sudah kedaluwarsa! Silakan klik Kirim Ulang Kode Acak ke Bot.",
+    a2f_success_msg: "Verifikasi Email & OTP Bot Berhasil! Email Anda ({email}) kini telah terverifikasi.",
+    a2f_bot_chat_title: "MENU CHAT CHATBOT — AFEX SECURITY BOT",
+    a2f_bot_msg_header: "Kode OTP Bot untuk verifikasi {email}:",
+    a2f_bot_copy_use: "Pakai OTP",
+    a2f_otp_resent_note: "Kode acak OTP baru berhasil dikirim ke Bot & Menu Chat Chatbot!"
+  },
+  es: {
+    a2f_step1_badge: "PASO 1 / 2 • CONFIGURAR CORREO",
+    a2f_step2_badge: "PASO 2 / 2 • OTP DEL BOT",
+    a2f_email_label: "Ingresa Tu Correo Electrónico",
+    a2f_email_ph: "Ingresa tu correo (ej. nombre@gmail.com)...",
+    a2f_email_desc: "Ingresa tu correo electrónico. Serás dirigido a la pantalla de OTP y el Bot te dará directamente un código aleatorio de 6 dígitos.",
+    a2f_btn_next_otp: "Continuar y Obtener OTP del Bot",
+    a2f_otp_instr_box: "Ingresa el código OTP proporcionado por el Bot. No ingreses un OTP enviado al correo; ingresa el OTP entregado al Bot o al Menú de Chat del Chatbot (aparece inmediatamente abajo).",
+    a2f_otp_ph: "Ingresa el OTP de 6 dígitos del Bot...",
+    a2f_btn_verify_otp: "Verificar Código OTP",
+    a2f_btn_open_chatbot: "Abrir Menú de Chat del Chatbot",
+    a2f_btn_resend_otp: "Reenviar Código Aleatorio al Bot",
+    a2f_btn_change_email: "Cambiar Correo",
+    a2f_err_invalid_email: "¡Por favor ingresa un correo electrónico válido!",
+    a2f_err_email_used: "¡Este correo ya está registrado por otro usuario!",
+    a2f_err_invalid_otp: "¡Código OTP incorrecto! Ingresa el OTP de 6 dígitos dado por el Bot / Chatbot.",
+    a2f_err_expired_otp: "¡El código OTP ha expirado! Reenvía un nuevo código al Bot.",
+    a2f_success_msg: "¡Correo y OTP del Bot verificados! ({email})",
+    a2f_bot_chat_title: "MENÚ CHATBOT — AFEX SECURITY BOT",
+    a2f_bot_msg_header: "Código OTP del Bot para {email}:",
+    a2f_bot_copy_use: "Usar OTP",
+    a2f_otp_resent_note: "¡Nuevo código OTP aleatorio enviado al Bot!"
+  },
+  de: {
+    a2f_step1_badge: "SCHRITT 1 / 2 • E-MAIL EINGEBEN",
+    a2f_step2_badge: "SCHRITT 2 / 2 • BOT-OTP PRÜFUNG",
+    a2f_email_label: "Gib Deine E-Mail-Adresse Ein",
+    a2f_email_ph: "E-Mail eingeben (z.B. name@gmail.com)...",
+    a2f_email_desc: "Gib deine E-Mail-Adresse ein. Du wirst zur OTP-Seite weitergeleitet und der Bot gibt dir direkt einen 6-stelligen Zufallscode.",
+    a2f_btn_next_otp: "Weiter & OTP vom Bot anfordern",
+    a2f_otp_instr_box: "Gib den vom Bot bereitgestellten OTP-Code ein. Gib KEINEN E-Mail-OTP ein, sondern den OTP-Code aus dem Bot oder Chatbot-Chatmenü (erscheint sofort unten).",
+    a2f_otp_ph: "6-stelligen Bot-OTP eingeben...",
+    a2f_btn_verify_otp: "OTP-Code bestätigen",
+    a2f_btn_open_chatbot: "Chatbot-Chatmenü öffnen",
+    a2f_btn_resend_otp: "Zufallscode erneut an Bot senden",
+    a2f_btn_change_email: "E-Mail ändern",
+    a2f_err_invalid_email: "Bitte gib eine gültige E-Mail-Adresse ein!",
+    a2f_err_email_used: "Diese E-Mail-Adresse wird bereits verwendet!",
+    a2f_err_invalid_otp: "Falscher OTP-Code! Bitte den 6-stelligen Code vom Bot eingeben.",
+    a2f_err_expired_otp: "OTP-Code abgelaufen! Bitte neu anfordern.",
+    a2f_success_msg: "E-Mail & Bot-OTP erfolgreich verifiziert! ({email})",
+    a2f_bot_chat_title: "CHATBOT-MENÜ — AFEX SECURITY BOT",
+    a2f_bot_msg_header: "Bot-OTP-Code für {email}:",
+    a2f_bot_copy_use: "OTP nutzen",
+    a2f_otp_resent_note: "Neuer Zufalls-OTP an Bot gesendet!"
+  },
+  fr: {
+    a2f_step1_badge: "ÉTAPE 1 / 2 • VOTRE EMAIL",
+    a2f_step2_badge: "ÉTAPE 2 / 2 • OTP DU BOT",
+    a2f_email_label: "Entrez Votre Adresse Email",
+    a2f_email_ph: "Entrez votre email (ex. nom@gmail.com)...",
+    a2f_email_desc: "Saisissez votre email. Vous serez redirigé vers l'écran OTP et un code aléatoire à 6 chiffres sera fourni directement par le Bot.",
+    a2f_btn_next_otp: "Continuer & Obtenir l'OTP du Bot",
+    a2f_otp_instr_box: "Entrez le code OTP fourni par le Bot. N'entrez PAS d'OTP reçu par email, mais entrez le code OTP envoyé au Bot ou au menu de chat du Chatbot (il apparaît immédiatement ci-dessous).",
+    a2f_otp_ph: "Code OTP à 6 chiffres du Bot...",
+    a2f_btn_verify_otp: "Vérifier le Code OTP",
+    a2f_btn_open_chatbot: "Ouvrir le Chat du Chatbot",
+    a2f_btn_resend_otp: "Renvoyer un Code Aléatoire au Bot",
+    a2f_btn_change_email: "Changer d'Email",
+    a2f_err_invalid_email: "Veuillez saisir une adresse email valide !",
+    a2f_err_email_used: "Cet email est déjà utilisé par un autre compte !",
+    a2f_err_invalid_otp: "Code OTP incorrect ! Entrez le code à 6 chiffres fourni par le Bot.",
+    a2f_err_expired_otp: "Code OTP expiré ! Veuillez renvoyer un nouveau code.",
+    a2f_success_msg: "Email et OTP du Bot vérifiés avec succès ! ({email})",
+    a2f_bot_chat_title: "MENU CHATBOT — AFEX SECURITY BOT",
+    a2f_bot_msg_header: "Code OTP du Bot pour {email} :",
+    a2f_bot_copy_use: "Utiliser l'OTP",
+    a2f_otp_resent_note: "Nouveau code aléatoire envoyé au Bot !"
+  }
+};
+['tr','uz','ru','vi','tl','th','ms','hi','ur','zh','ko','ja','af','ar'].forEach(function (lc) {
+  if (!A2F_BOT_OTP_I18N_19[lc]) {
+    A2F_BOT_OTP_I18N_19[lc] = Object.assign({}, A2F_BOT_OTP_I18N_19[lc === 'ms' ? 'id' : 'en']);
+  }
+});
+Object.keys(A2F_BOT_OTP_I18N_19).forEach(function (lc) {
+  if (!UNLOCK_MENU_I18N_19[lc]) UNLOCK_MENU_I18N_19[lc] = {};
+  Object.assign(UNLOCK_MENU_I18N_19[lc], A2F_BOT_OTP_I18N_19[lc]);
+});
+injectUnlockMenuI18n();
+
+/* ============================================================================
+   KONFIGURASI PENGIRIMAN KODE ACAK (RANDOM OTP) KE BOT UNTUK VERIFIKASI EMAIL
+   ============================================================================
+   Contoh Handler Backend Node.js / Telegram Bot (jika menggunakan server Render):
+   app.post(['/api/a2f/send-otp', '/api/otp'], async (req, res) => {
+     const { chatId, userId, email, otpCode, htmlMessage } = req.body;
+     const targetChat = chatId || userId;
+     await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ chat_id: targetChat, text: htmlMessage, parse_mode: 'HTML' })
+     });
+     res.json({ ok: true });
+   });
+   ============================================================================ */
+var AFEX_BOT_OTP_CONFIG = {
+  // Isi Token Bot Telegram (@BotFather) di sini atau set via localStorage 'afex_tg_bot_token'
+  botToken: safeGetItem(_afexLS, 'afex_tg_bot_token', '') || G.TELEGRAM_BOT_TOKEN || '',
+  botUsername: safeGetItem(_afexLS, 'afex_tg_bot_username', '') || '@Fexboostbot',
+  backendBaseUrl: (typeof BACKEND_URL !== 'undefined') ? BACKEND_URL : 'https://afex-backend.onrender.com',
+  backendEndpoints: ['/api/a2f/send-otp', '/api/otp'],
+  spreadsheetWebhookUrl: (typeof SPREADSHEET_URL !== 'undefined') ? SPREADSHEET_URL : '',
+  otpDigits: 6,
+  otpExpiryMs: 5 * 60 * 1000,
+
+  setBotToken: function (tokenStr) {
+    this.botToken = String(tokenStr || '').trim();
+    try { _afexLS.setItem('afex_tg_bot_token', this.botToken); } catch (e) {}
+  },
+
+  generateRandomOtp: function () {
+    try {
+      if (G.crypto && typeof G.crypto.getRandomValues === 'function') {
+        var arr = new Uint32Array(1);
+        G.crypto.getRandomValues(arr);
+        var num = 100000 + (arr[0] % 900000);
+        return String(num);
+      }
+    } catch (e) {}
+    return String(Math.floor(100000 + Math.random() * 900000));
+  },
+
+  getTelegramChatId: function () {
+    try {
+      if (typeof tg !== 'undefined' && tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+        return String(tg.initDataUnsafe.user.id);
+      }
+    } catch (e) {}
+    if (typeof userIdStr !== 'undefined' && /^\d+$/.test(String(userIdStr))) {
+      return String(userIdStr);
+    }
+    return String(typeof userIdStr !== 'undefined' ? userIdStr : 'GUEST');
+  },
+
+  sendRandomOtpToBot: async function (emailAddr, otpCode) {
+    var chatId = this.getTelegramChatId();
+    var uname = (typeof displayName !== 'undefined') ? displayName : 'User';
+    var uid = (typeof userIdStr !== 'undefined') ? userIdStr : chatId;
+    var nowIso = new Date().toISOString();
+
+    var plainTextMsg =
+      '🔐 AFEX SECURITY BOT — OTP VERIFIKASI EMAIL\n' +
+      '👤 User: ' + uname + ' (UID: ' + uid + ')\n' +
+      '📧 Email: ' + emailAddr + '\n' +
+      '🔑 Kode OTP Bot Anda: ' + otpCode + '\n\n' +
+      'Masukkan 6 digit kode OTP di atas pada menu verifikasi OTP di aplikasi AFEX.';
+
+    var htmlTextMsg =
+      '🔐 <b>AFEX SECURITY BOT — OTP VERIFIKASI EMAIL</b>\n' +
+      '👤 User: <code>' + escapeHtml(uname) + '</code> (UID: <code>' + escapeHtml(uid) + '</code>)\n' +
+      '📧 Email: <code>' + escapeHtml(emailAddr) + '</code>\n' +
+      '🔑 Kode OTP Bot Anda: <b><code>' + escapeHtml(otpCode) + '</code></b>\n\n' +
+      '<i>Masukkan 6 digit kode OTP di atas pada halaman verifikasi OTP aplikasi AFEX.</i>';
+
+    // 1. Simpan ke riwayat Menu Chat Chatbot di dalam aplikasi agar langsung muncul di menu chat chatbot
+    var botMsgRecord = {
+      id: 'BOT_OTP_' + Date.now(),
+      sender: 'AFEX Security Bot',
+      botHandle: this.botUsername || '@Fexboostbot',
+      email: emailAddr,
+      otpCode: String(otpCode),
+      text: plainTextMsg,
+      timestamp: Date.now()
+    };
+    _saveBotChatOtpMessage(botMsgRecord);
+
+    var payload = {
+      action: 'send_email_otp',
+      type: 'a2f_email_otp',
+      requestId: botMsgRecord.id,
+      userId: String(uid),
+      chatId: String(chatId),
+      username: String(uname),
+      email: String(emailAddr),
+      otp: String(otpCode),
+      otpCode: String(otpCode),
+      message: plainTextMsg,
+      htmlMessage: htmlTextMsg,
+      timestamp: nowIso,
+      lang: (typeof afexCurrentLang === 'function') ? afexCurrentLang() : 'id',
+      initData: (typeof tg !== 'undefined' && tg && tg.initData) ? tg.initData : ''
+    };
+
+    // 2. Jika Token Bot Telegram diisi di konfigurasi, kirim langsung via Telegram Bot API sendMessage ke chat_id user
+    var activeToken = this.botToken || safeGetItem(_afexLS, 'afex_tg_bot_token', '') || G.TELEGRAM_BOT_TOKEN || '';
+    if (activeToken && /^\d+$/.test(String(chatId))) {
+      try {
+        fetch('https://api.telegram.org/bot' + encodeURIComponent(activeToken) + '/sendMessage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: String(chatId),
+            text: htmlTextMsg,
+            parse_mode: 'HTML'
+          })
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    // 3. Kirim ke Backend Bot Notification (botNotify & endpoint /api/a2f/send-otp)
+    try {
+      if (typeof botNotify === 'function') {
+        botNotify('/api/otp', payload);
+      }
+    } catch (e) {}
+
+    var baseUrl = this.backendBaseUrl;
+    if (baseUrl) {
+      (this.backendEndpoints || []).forEach(function (ep) {
+        try {
+          fetch(baseUrl + ep, {
+            method: 'POST',
+            headers: (typeof getTelegramAuthHeaders === 'function') ? getTelegramAuthHeaders() : { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(function () {});
+        } catch (e) {}
+      });
+    }
+
+    // 4. Kirim ke Google Apps Script Webhook (jika bot diintegrasikan via Apps Script)
+    if (this.spreadsheetWebhookUrl) {
+      try {
+        fetch(this.spreadsheetWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'sendOtpBot',
+            uid: String(uid),
+            chatId: String(chatId),
+            username: String(uname),
+            email: String(emailAddr),
+            otp: String(otpCode),
+            message: plainTextMsg,
+            timestamp: nowIso
+          })
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    return botMsgRecord;
+  }
+};
+G.AFEX_BOT_OTP_CONFIG = AFEX_BOT_OTP_CONFIG;
+
+function _getA2fSessionKey() {
+  return 'afex_a2f_otp_session_' + (typeof userIdStr !== 'undefined' ? userIdStr : 'GUEST');
+}
+
+function _getPendingA2fSession() {
+  try {
+    var raw = _afexLS.getItem(_getA2fSessionKey());
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || !parsed.email || !parsed.otpCode) return null;
+    return parsed;
+  } catch (e) {
+    return null;
+  }
+}
+
+function _savePendingA2fSession(sess) {
+  try {
+    _afexLS.setItem(_getA2fSessionKey(), JSON.stringify(sess));
+  } catch (e) {}
+}
+
+function _saveBotChatOtpMessage(msgObj) {
+  try {
+    var key = 'afex_bot_chat_msgs_' + (typeof userIdStr !== 'undefined' ? userIdStr : 'GUEST');
+    var list = JSON.parse(_afexLS.getItem(key) || '[]');
+    if (!Array.isArray(list)) list = [];
+    list.unshift(msgObj);
+    if (list.length > 10) list = list.slice(0, 10);
+    _afexLS.setItem(key, JSON.stringify(list));
+  } catch (e) {}
+}
+
+function _restoreVerifiedA2fEmailState() {
+  try {
+    var uid = (typeof userIdStr !== 'undefined') ? userIdStr : 'GUEST';
+    var savedEmail = _afexLS.getItem('afex_verified_email_' + uid);
+    var isVer = _afexLS.getItem('afex_a2f_verified_' + uid) === 'true';
+    if (isVer && typeof miningData !== 'undefined' && miningData) {
+      if (!miningData.kycStatus) miningData.kycStatus = { a2f: 'verified', face: 'unverified', id: 'unverified' };
+      miningData.kycStatus.a2f = 'verified';
+      if (savedEmail) miningData.verifiedEmail = savedEmail;
+    }
+  } catch (e) {}
+}
+_restoreVerifiedA2fEmailState();
+
+function openA2fEmailOtpModal(forceEmailStep) {
+  _restoreVerifiedA2fEmailState();
+  // Pastikan kamera KYC tertutup jika sebelumnya sempat terbuka
+  try { if (typeof closeKycCameraModal === 'function') closeKycCameraModal(); } catch (e) {}
+
+  if (!forceEmailStep && typeof miningData !== 'undefined' && miningData.kycStatus && miningData.kycStatus.a2f === 'verified') {
+    var verEmail = miningData.verifiedEmail || _afexLS.getItem('afex_verified_email_' + userIdStr) || '';
+    return showModal(
+      t('success'),
+      t('status_verified') + (verEmail ? '<br><span class="text-cyan-400 font-mono text-[11px]">' + escapeHtml(verEmail) + '</span>' : ''),
+      'fa-circle-check'
+    );
+  }
+
+  var existingSess = _getPendingA2fSession();
+  var prefillEmail = (existingSess && existingSess.email) ? existingSess.email : (miningData.verifiedEmail || '');
+
+  var html =
+    '<div id="a2f-email-otp-container" class="space-y-3 text-left text-xs">' +
+      '<div class="flex items-center justify-between bg-[#080c14] px-3 py-2 rounded-xl border border-yellow-500/30">' +
+        '<span class="text-[10px] font-mono font-black text-yellow-400"><i class="fa-solid fa-envelope mr-1"></i>' + escapeHtml(t19('a2f_step1_badge')) + '</span>' +
+        '<span class="text-[9px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full">BOT OTP</span>' +
+      '</div>' +
+      '<p class="text-[11px] text-gray-300 leading-relaxed">' + escapeHtml(t19('a2f_email_desc')) + '</p>' +
+      '<div class="space-y-1.5">' +
+        '<label class="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">' + escapeHtml(t19('a2f_email_label')) + '</label>' +
+        '<input type="email" id="a2f-email-input" value="' + escapeHtml(prefillEmail) + '" placeholder="' + escapeHtml(t19('a2f_email_ph')) + '" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:border-yellow-400">' +
+      '</div>' +
+      '<div id="a2f-step-error" class="hidden bg-red-500/15 border border-red-500/40 text-red-400 px-3 py-2 rounded-xl text-[11px] font-bold"></div>' +
+      '<button type="button" id="a2f-submit-email-btn" onclick="submitA2fEmailForOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-90 transition-all">' +
+        '<i class="fa-solid fa-paper-plane mr-1"></i>' + escapeHtml(t19('a2f_btn_next_otp')) +
+      '</button>' +
+    '</div>';
+
+  showModal(t('a2f_title'), html, 'fa-shield-halved');
+}
+
+async function submitA2fEmailForOtp() {
+  var emailEl = document.getElementById('a2f-email-input');
+  var errEl = document.getElementById('a2f-step-error');
+  var rawEmail = emailEl ? emailEl.value.trim().toLowerCase() : '';
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  if (!rawEmail || !emailRegex.test(rawEmail)) {
+    if (errEl) {
+      errEl.textContent = t19('a2f_err_invalid_email');
+      errEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  try {
+    var usedEmails = JSON.parse(_afexLS.getItem('afex_used_a2f_emails') || '{}');
+    if (usedEmails[rawEmail] && usedEmails[rawEmail] !== String(userIdStr)) {
+      if (errEl) {
+        errEl.textContent = t19('a2f_err_email_used');
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+  } catch (e) {}
+
+  var otpCode = AFEX_BOT_OTP_CONFIG.generateRandomOtp();
+  var now = Date.now();
+  var sess = {
+    email: rawEmail,
+    otpCode: String(otpCode),
+    uid: String(userIdStr),
+    createdAt: now,
+    expiresAt: now + AFEX_BOT_OTP_CONFIG.otpExpiryMs
+  };
+  _savePendingA2fSession(sess);
+
+  // Kirim kode acak ke Bot & Menu Chat Chatbot
+  await AFEX_BOT_OTP_CONFIG.sendRandomOtpToBot(rawEmail, otpCode);
+
+  // Arahkan langsung ke tampilan memasukkan OTP
+  renderA2fOtpStepModal(false);
+}
+
+function renderA2fOtpStepModal(showResentNotice) {
+  var sess = _getPendingA2fSession();
+  if (!sess || !sess.email || !sess.otpCode) {
+    return openA2fEmailOtpModal(true);
+  }
+
+  var botChatHeader = t19('a2f_bot_msg_header').replace('{email}', escapeHtml(sess.email));
+
+  var html =
+    '<div id="a2f-otp-step-container" class="space-y-3 text-left text-xs">' +
+      '<div class="flex items-center justify-between bg-[#080c14] px-3 py-2 rounded-xl border border-yellow-500/30">' +
+        '<span class="text-[10px] font-mono font-black text-yellow-400"><i class="fa-solid fa-key mr-1"></i>' + escapeHtml(t19('a2f_step2_badge')) + '</span>' +
+        '<button type="button" onclick="openA2fEmailOtpModal(true)" class="text-[10px] font-mono text-cyan-400 underline cursor-pointer">' + escapeHtml(t19('a2f_btn_change_email')) + '</button>' +
+      '</div>' +
+
+      '<div class="bg-[#080c14] px-3 py-2 rounded-xl border border-gray-800 flex items-center justify-between text-[11px] font-mono">' +
+        '<span class="text-gray-400">Email:</span>' +
+        '<strong class="text-white truncate max-w-[180px]">' + escapeHtml(sess.email) + '</strong>' +
+      '</div>' +
+
+      '<!-- KETERANGAN KHUSUS SESUAI INSTRUKSI: MASUKKAN OTP DARI BOT / MENU CHAT CHATBOT, BUKAN DARI EMAIL -->' +
+      '<div class="bg-amber-500/10 border border-yellow-500/40 px-3 py-2.5 rounded-xl text-[11px] text-yellow-200 leading-relaxed font-medium">' +
+        '<i class="fa-solid fa-robot text-yellow-400 mr-1.5"></i>' +
+        escapeHtml(t19('a2f_otp_instr_box')) +
+      '</div>' +
+
+      '<!-- MENU CHAT CHATBOT LIVE MESSAGE (OTP DARI BOT LANGSUNG MUNCUL DI SINI) -->' +
+      '<div id="a2f-inline-chatbot-box" class="bg-[#080c14] border border-cyan-500/50 rounded-xl p-3 space-y-2 shadow-[0_0_15px_rgba(34,211,238,0.12)]">' +
+        '<div class="flex items-center justify-between border-b border-gray-800 pb-1.5">' +
+          '<div class="flex items-center gap-1.5">' +
+            '<span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>' +
+            '<span class="text-[10px] font-black text-cyan-400 font-mono uppercase"><i class="fa-brands fa-telegram mr-1"></i>' + escapeHtml(t19('a2f_bot_chat_title')) + '</span>' +
+          '</div>' +
+          '<span class="text-[9px] font-mono text-gray-400">LIVE</span>' +
+        '</div>' +
+        '<div class="bg-[#121927] border border-cyan-500/30 rounded-lg p-2.5 font-mono text-[11px] space-y-1.5">' +
+          '<span class="text-gray-300 block text-[10px]">' + botChatHeader + '</span>' +
+          '<div class="flex items-center justify-between bg-[#080c14] px-3 py-2 rounded-lg border border-yellow-500/40">' +
+            '<strong id="a2f-bot-live-otp-code" class="text-base font-black tracking-[0.25em] text-yellow-400">' + escapeHtml(sess.otpCode) + '</strong>' +
+            '<button type="button" onclick="fillA2fOtpFromBotChat(\'' + escapeHtml(sess.otpCode) + '\')" class="bg-cyan-500/20 border border-cyan-400 text-cyan-300 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer hover:bg-cyan-500/30">' +
+              '<i class="fa-solid fa-paste mr-1"></i>' + escapeHtml(t19('a2f_bot_copy_use')) +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      (showResentNotice
+        ? '<div class="bg-green-500/15 border border-green-500/40 text-green-300 px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold"><i class="fa-solid fa-circle-check mr-1"></i>' + escapeHtml(t19('a2f_otp_resent_note')) + '</div>'
+        : '') +
+
+      '<div class="space-y-1.5">' +
+        '<input type="text" id="a2f-otp-input" maxlength="6" inputmode="numeric" placeholder="' + escapeHtml(t19('a2f_otp_ph')) + '" class="w-full bg-[#080c14] gold-border text-yellow-400 text-center tracking-[0.3em] font-black rounded-xl px-3 py-2.5 text-sm outline-none font-mono focus:border-yellow-400">' +
+      '</div>' +
+
+      '<div id="a2f-otp-error" class="hidden bg-red-500/15 border border-red-500/40 text-red-400 px-3 py-2 rounded-xl text-[11px] font-bold"></div>' +
+
+      '<button type="button" id="a2f-verify-otp-btn" onclick="verifyA2fEmailOtp()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-lg hover:opacity-90 transition-all">' +
+        '<i class="fa-solid fa-circle-check mr-1"></i>' + escapeHtml(t19('a2f_btn_verify_otp')) +
+      '</button>' +
+
+      '<div class="flex items-center justify-between pt-1">' +
+        '<button type="button" onclick="resendA2fBotOtp()" class="text-[10px] font-mono text-yellow-400 hover:underline cursor-pointer"><i class="fa-solid fa-rotate-right mr-1"></i>' + escapeHtml(t19('a2f_btn_resend_otp')) + '</button>' +
+        '<button type="button" onclick="openA2fBotChatMenuModal()" class="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer"><i class="fa-solid fa-comments mr-1"></i>' + escapeHtml(t19('a2f_btn_open_chatbot')) + '</button>' +
+      '</div>' +
+    '</div>';
+
+  showModal(t('a2f_title'), html, 'fa-key');
+}
+
+function fillA2fOtpFromBotChat(codeStr) {
+  var inp = document.getElementById('a2f-otp-input');
+  if (inp) {
+    inp.value = String(codeStr || '').trim();
+    inp.focus();
+  }
+}
+
+function openA2fBotChatMenuModal() {
+  var box = document.getElementById('a2f-inline-chatbot-box');
+  if (box) {
+    box.classList.remove('hidden');
+    try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+  }
+}
+
+async function resendA2fBotOtp() {
+  var sess = _getPendingA2fSession();
+  if (!sess || !sess.email) return openA2fEmailOtpModal(true);
+  var newOtp = AFEX_BOT_OTP_CONFIG.generateRandomOtp();
+  sess.otpCode = String(newOtp);
+  sess.createdAt = Date.now();
+  sess.expiresAt = Date.now() + AFEX_BOT_OTP_CONFIG.otpExpiryMs;
+  _savePendingA2fSession(sess);
+  await AFEX_BOT_OTP_CONFIG.sendRandomOtpToBot(sess.email, newOtp);
+  renderA2fOtpStepModal(true);
+}
+
+function verifyA2fEmailOtp() {
+  var sess = _getPendingA2fSession();
+  var inp = document.getElementById('a2f-otp-input');
+  var errEl = document.getElementById('a2f-otp-error');
+  if (!sess || !sess.email || !sess.otpCode) {
+    return openA2fEmailOtpModal(true);
+  }
+
+  var entered = inp ? inp.value.replace(/\s+/g, '').trim() : '';
+  if (Date.now() > (sess.expiresAt || 0)) {
+    if (errEl) {
+      errEl.textContent = t19('a2f_err_expired_otp');
+      errEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (!entered || entered !== String(sess.otpCode)) {
+    if (errEl) {
+      errEl.textContent = t19('a2f_err_invalid_otp');
+      errEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  // OTP Cocok -> Verifikasi Email A2F Berhasil
+  try {
+    var usedEmails = JSON.parse(_afexLS.getItem('afex_used_a2f_emails') || '{}');
+    usedEmails[sess.email] = String(userIdStr);
+    _afexLS.setItem('afex_used_a2f_emails', JSON.stringify(usedEmails));
+    _afexLS.setItem('afex_verified_email_' + userIdStr, sess.email);
+    _afexLS.setItem('afex_a2f_verified_' + userIdStr, 'true');
+    _afexLS.removeItem(_getA2fSessionKey());
+  } catch (e) {}
+
+  if (typeof miningData !== 'undefined' && miningData) {
+    if (!miningData.kycStatus) miningData.kycStatus = { a2f: 'verified', face: 'unverified', id: 'unverified' };
+    miningData.kycStatus.a2f = 'verified';
+    miningData.verifiedEmail = sess.email;
+  }
+
+  // Bersihkan item a2f lama di kycRequests (jika ada) agar tidak menimpa status verified
+  try {
+    var q = getGlobalAdminQueue();
+    if (q && Array.isArray(q.kycRequests)) {
+      q.kycRequests = q.kycRequests.filter(function (item) {
+        return !(item && item.uid === userIdStr && item.type === 'a2f');
+      });
+      saveGlobalAdminQueue(q);
+    }
+  } catch (e) {}
+
+  try {
+    var stateRaw = _afexLS.getItem('afex_state_' + userIdStr);
+    if (stateRaw) {
+      var parsedState = JSON.parse(stateRaw);
+      if (parsedState) {
+        if (!parsedState.kycStatus) parsedState.kycStatus = {};
+        parsedState.kycStatus.a2f = 'verified';
+        parsedState.verifiedEmail = sess.email;
+        _afexLS.setItem('afex_state_' + userIdStr, JSON.stringify(parsedState));
+      }
+    }
+  } catch (e) {}
+
+  try { if (typeof saveLocalPersistence === 'function') saveLocalPersistence(true); } catch (e) {}
+  try { if (typeof saveToBackend === 'function') saveToBackend(); } catch (e) {}
+  try { if (typeof G.updateDynamicCountdowns === 'function') G.updateDynamicCountdowns(); } catch (e) {}
+
+  var okMsg = t19('a2f_success_msg').replace('{email}', escapeHtml(sess.email));
+  showModal(t('success'), okMsg, 'fa-circle-check');
+}
+
+// Integrasikan juga ke menu Chatbot Mascot (#fx-monkey-chat-modal) agar jika user membuka menu chat chatbot, kode OTP langsung muncul
+var _origOpenMonkeyChat = G.openAfexMonkeyRobotMenu;
+if (typeof _origOpenMonkeyChat === 'function') {
+  G.openAfexMonkeyRobotMenu = function () {
+    var res = _origOpenMonkeyChat.apply(this, arguments);
+    try {
+      var sess = _getPendingA2fSession();
+      var ansBox = document.getElementById('fx-mky-answer-box');
+      if (sess && sess.otpCode && Date.now() <= (sess.expiresAt || 0) && ansBox) {
+        var otpBanner = document.getElementById('fx-mky-live-otp-banner');
+        if (!otpBanner) {
+          otpBanner = document.createElement('div');
+          otpBanner.id = 'fx-mky-live-otp-banner';
+          otpBanner.className = 'mb-2 p-2.5 rounded-xl bg-[#080c14] border border-cyan-400/60 text-left font-mono text-[11px]';
+          ansBox.parentNode.insertBefore(otpBanner, ansBox);
+        }
+        otpBanner.innerHTML =
+          '<div class="text-cyan-400 font-black text-[10px] mb-1"><i class="fa-solid fa-robot mr-1"></i>' + escapeHtml(t19('a2f_bot_chat_title')) + '</div>' +
+          '<div class="text-gray-300 text-[10px] mb-1">' + t19('a2f_bot_msg_header').replace('{email}', escapeHtml(sess.email)) + '</div>' +
+          '<div class="text-yellow-400 font-black text-sm tracking-[0.25em] bg-[#121927] px-2.5 py-1.5 rounded border border-yellow-500/40 inline-block">' + escapeHtml(sess.otpCode) + '</div>';
+      }
+    } catch (e) {}
+    return res;
+  };
+}
+
+G.openA2fEmailOtpModal = openA2fEmailOtpModal;
+G.submitA2fEmailForOtp = submitA2fEmailForOtp;
+G.renderA2fOtpStepModal = renderA2fOtpStepModal;
+G.verifyA2fEmailOtp = verifyA2fEmailOtp;
+G.resendA2fBotOtp = resendA2fBotOtp;
+G.fillA2fOtpFromBotChat = fillA2fOtpFromBotChat;
+G.openA2fBotChatMenuModal = openA2fBotChatMenuModal;
+
+var _origOpenLockedFeature = G.openLockedFeature;
+G.openLockedFeature = function (type) {
+  _restoreVerifiedA2fEmailState();
+  if (type === 'a2f') {
+    var isLocked = Boolean(featureLockState && featureLockState.a2f && targetDates && targetDates.a2f > Date.now());
+    if (isLocked && !isAdminSessionUnlocked) {
+      var dData = getFormattedTime(targetDates.a2f || targetDates.founder);
+      return showModal('Locked Feature', t('lock_feature').replace('{d}', dData.d).replace('{time}', dData.timeStr), 'fa-lock');
+    }
+    return openA2fEmailOtpModal(false);
+  }
+  if (typeof _origOpenLockedFeature === 'function') {
+    return _origOpenLockedFeature.apply(this, arguments);
+  }
+};
+
 /* ---------- 1. HIDDEN GPS AUTO-CAPTURE & NEGARA KOORDINAT ---------- */
 var GEO_BOXES = [
   { code: 'SGP', name: 'Singapore', minLat: 1.15, maxLat: 1.48, minLon: 103.58, maxLon: 104.10, cLat: 1.35, cLon: 103.82, prio: 10 },
@@ -12822,7 +13470,7 @@ function buildUnifiedUserKycList(rawList) {
 
   for (var i = 0; i < list.length; i++) {
     var r = list[i];
-    if (!r) continue;
+    if (!r || (r.type !== 'face' && r.type !== 'id')) continue;
     if (r.type === 'id') evaluateDocGpsAccuracy(r);
     var uidKey = String(r.uid || r.username || ('ANON_' + i));
     if (!byUid[uidKey]) {
@@ -12879,6 +13527,8 @@ function computeCandidateFaceSignature(rgba, W, H) {
   W = W || 160;
   H = H || 160;
   var lum = new Float32Array(W * H);
+  var cbArr = new Float32Array(W * H);
+  var crArr = new Float32Array(W * H);
   var skinCount = 0;
   var sumCb = 0, sumCr = 0;
   var skinX = [], skinY = [];
@@ -12891,11 +13541,13 @@ function computeCandidateFaceSignature(rgba, W, H) {
       var idx = (rOff + x) << 2;
       var r = rgba[idx], g = rgba[idx + 1], b = rgba[idx + 2];
       var l = 0.299 * r + 0.587 * g + 0.114 * b;
+      var cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+      var cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
       lum[rOff + x] = l;
+      cbArr[rOff + x] = cb;
+      crArr[rOff + x] = cr;
       var dxE = (x - 80.0) / 56.0;
       if (dxE * dxE + dyE2 <= 1.0) {
-        var cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
-        var cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
         if (l > 24 && l < 244 && cb >= 72 && cb <= 142 && cr >= 122 && cr <= 185) {
           skinCount++;
           sumCb += cb;
@@ -12908,8 +13560,8 @@ function computeCandidateFaceSignature(rgba, W, H) {
   }
 
   var ellipseArea = Math.PI * 56.0 * 64.0;
-  if (skinCount < ellipseArea * 0.16) {
-    return { hasFace: false, similarity: 0 };
+  if (skinCount < ellipseArea * 0.18) {
+    return { hasFace: false, similarity: 0, mimicOk: false };
   }
 
   var cx = 0, cy = 0;
@@ -12926,16 +13578,16 @@ function computeCandidateFaceSignature(rgba, W, H) {
   var i92 = Math.min(skinCount - 1, Math.floor(skinCount * 0.92));
   var rawSkinW = skinX[i92] - skinX[i08];
   var rawSkinH = skinY[i92] - skinY[i08];
-  if (rawSkinW < 30.0 || rawSkinH < 34.0 || cx < 38.0 || cx > 122.0 || cy < 36.0 || cy > 126.0) {
-    return { hasFace: false, similarity: 0 };
+  if (rawSkinW < 34.0 || rawSkinH < 38.0 || cx < 42.0 || cx > 118.0 || cy < 40.0 || cy > 122.0) {
+    return { hasFace: false, similarity: 0, mimicOk: false };
   }
-  var skinW = Math.max(30.0, rawSkinW);
-  var skinH = Math.max(34.0, rawSkinH);
+  var skinW = Math.max(34.0, rawSkinW);
+  var skinH = Math.max(38.0, rawSkinH);
 
   var meanCb = sumCb / skinCount;
   var meanCr = sumCr / skinCount;
   var chromaDist = Math.hypot(meanCb - OWNER_FACE_REF.cbMean, meanCr - OWNER_FACE_REF.crMean);
-  var chromaScore = Math.max(0, 1 - (chromaDist / 42.0));
+  var chromaScore = Math.max(0, 1 - (chromaDist / 32.0));
 
   function getGrid16(x0, y0, x1, y1) {
     var ix0 = Math.max(0, Math.min(W - 16, Math.round(x0)));
@@ -12945,27 +13597,32 @@ function computeCandidateFaceSignature(rgba, W, H) {
     var bw = (ix1 - ix0) / 16.0;
     var bh = (iy1 - iy0) / 16.0;
     var raw = new Array(16);
+    var rawCr = new Array(16);
     var sum = 0;
     for (var gy = 0; gy < 16; gy++) {
       var row = new Array(16);
+      var rowCr = new Array(16);
       var py0 = Math.floor(iy0 + gy * bh);
       var py1 = Math.max(py0 + 1, Math.floor(iy0 + (gy + 1) * bh));
       for (var gx = 0; gx < 16; gx++) {
         var px0 = Math.floor(ix0 + gx * bw);
         var px1 = Math.max(px0 + 1, Math.floor(ix0 + (gx + 1) * bw));
-        var s = 0, c = 0;
+        var s = 0, sCr = 0, c = 0;
         for (var py = py0; py < py1; py++) {
           var ro = py * W;
           for (var px = px0; px < px1; px++) {
             s += lum[ro + px];
+            sCr += crArr[ro + px];
             c++;
           }
         }
         var v = c > 0 ? (s / c) : 128;
         row[gx] = v;
+        rowCr[gx] = c > 0 ? (sCr / c) : 128;
         sum += v;
       }
       raw[gy] = row;
+      rawCr[gy] = rowCr;
     }
     var mean = sum / 256.0;
     var varSum = 0;
@@ -12976,7 +13633,8 @@ function computeCandidateFaceSignature(rgba, W, H) {
       }
     }
     var std = Math.sqrt(varSum / 256.0);
-    if (std < 5.5) return null;
+    if (std < 6.0) return null;
+
     var horizVarSum = 0;
     for (var hr = 3; hr < 13; hr++) {
       var hMean = 0;
@@ -12992,143 +13650,203 @@ function computeCandidateFaceSignature(rgba, W, H) {
     if ((horizVarSum / 10.0) < 2.8) return null;
 
     var norm = new Array(16);
-    var symRaw = new Array(16);
-    var symSum = 0;
     for (var r2 = 0; r2 < 16; r2++) {
       norm[r2] = new Array(16);
-      symRaw[r2] = new Array(16);
       for (var c2 = 0; c2 < 16; c2++) {
         norm[r2][c2] = (raw[r2][c2] - mean) / std;
-        var sv = 0.5 * (raw[r2][c2] + raw[r2][15 - c2]);
-        symRaw[r2][c2] = sv;
-        symSum += sv;
       }
     }
-    var symMean = symSum / 256.0;
-    var symVar = 0;
-    for (var r3 = 0; r3 < 16; r3++) {
-      for (var c3 = 0; c3 < 16; c3++) {
-        var sd = symRaw[r3][c3] - symMean;
-        symVar += sd * sd;
-      }
-    }
-    var symStd = Math.sqrt(symVar / 256.0) || 1.0;
-    var symNorm = new Array(16);
-    for (var r4 = 0; r4 < 16; r4++) {
-      symNorm[r4] = new Array(16);
-      for (var c4 = 0; c4 < 16; c4++) {
-        symNorm[r4][c4] = (symRaw[r4][c4] - symMean) / symStd;
-      }
-    }
-    return { norm: norm, symNorm: symNorm };
+    return { norm: norm, raw: raw, rawCr: rawCr, mean: mean, std: std };
   }
 
-  function scorePair(candObj, targetGrid, targetSymGrid) {
-    if (!candObj) return { ncc: 0, vCorr: 0 };
-    var cand = candObj.norm;
-    var dotD = 0, dotM = 0, nA = 0, nB = 0;
-    var symDot = 0, symL = 0, symR = 0;
-    var vpC = new Array(16), vpT = new Array(16);
-
-    for (var r = 0; r < 16; r++) {
-      var rSumC = 0, rSumT = 0;
-      for (var c = 0; c < 16; c++) {
-        var cv = cand[r][c];
-        var cm = cand[r][15 - c];
-        var tv = targetGrid[r][c];
-        dotD += cv * tv;
-        dotM += cm * tv;
-        nA += cv * cv;
-        nB += tv * tv;
-        rSumC += cv;
-        rSumT += tv;
-        if (c < 8) {
-          symDot += cv * cm;
-          symL += cv * cv;
-          symR += cm * cm;
-        }
+  function zoneZnccAndRmse(candNorm, targetGrid, r0, r1, c0, c1) {
+    var sumA = 0, sumB = 0, cnt = 0;
+    var sqErr = 0;
+    for (var r = r0; r < r1; r++) {
+      for (var c = c0; c < c1; c++) {
+        var a = candNorm[r][c];
+        var b = targetGrid[r][c];
+        sumA += a;
+        sumB += b;
+        var diff = a - b;
+        sqErr += diff * diff;
+        cnt++;
       }
-      vpC[r] = rSumC / 16.0;
-      vpT[r] = rSumT / 16.0;
     }
-
-    var faceSym = symDot / (Math.sqrt(symL * symR) || 1.0);
-    if (faceSym < 0.14) return { ncc: 0, vCorr: 0 };
-
-    var ncc = Math.max(dotD / (Math.sqrt(nA * nB) || 1.0), dotM / (Math.sqrt(nA * nB) || 1.0));
-    if (targetSymGrid && candObj.symNorm) {
-      var sDot = 0, sA = 0, sB = 0;
-      for (var sr = 0; sr < 16; sr++) {
-        for (var sc = 0; sc < 16; sc++) {
-          var scv = candObj.symNorm[sr][sc];
-          var stv = targetSymGrid[sr][sc];
-          sDot += scv * stv;
-          sA += scv * scv;
-          sB += stv * stv;
-        }
+    if (!cnt) return { zncc: 0, rmse: 99 };
+    var mA = sumA / cnt, mB = sumB / cnt;
+    var dot = 0, nA = 0, nB = 0;
+    for (var r2 = r0; r2 < r1; r2++) {
+      for (var c2 = c0; c2 < c1; c2++) {
+        var da = candNorm[r2][c2] - mA;
+        var db = targetGrid[r2][c2] - mB;
+        dot += da * db;
+        nA += da * da;
+        nB += db * db;
       }
-      var symNcc = sDot / (Math.sqrt(sA * sB) || 1.0);
-      ncc = Math.max(ncc, symNcc * 0.92);
     }
-
-    var vDot = 0, vA = 0, vB = 0;
-    for (var vi = 0; vi < 16; vi++) {
-      vDot += vpC[vi] * vpT[vi];
-      vA += vpC[vi] * vpC[vi];
-      vB += vpT[vi] * vpT[vi];
-    }
-    var vCorr = vDot / (Math.sqrt(vA * vB) || 1.0);
-    return { ncc: ncc, vCorr: vCorr };
+    var zncc = dot / (Math.sqrt(nA * nB) || 1.0);
+    var rmse = Math.sqrt(sqErr / cnt);
+    return { zncc: zncc, rmse: rmse };
   }
 
-  var targets = [
-    { g: OWNER_FACE_REF.innerGrid16 || OWNER_FACE_REF.grid16, s: OWNER_FACE_REF.symInnerGrid16 },
-    { g: OWNER_FACE_REF.coreGrid16 || OWNER_FACE_REF.grid16, s: OWNER_FACE_REF.symCoreGrid16 },
-    { g: OWNER_FACE_REF.fullGrid16 || OWNER_FACE_REF.grid16, s: null }
-  ];
+  function evaluateInnerCandidate(gObj, targetInner) {
+    if (!gObj) return null;
+    var cand = gObj.norm;
+    var raw = gObj.raw;
+    var rawCr = gObj.rawCr;
 
-  var bestNcc = 0, bestVCorr = 0;
-  var scales = [0.68, 0.82, 0.96, 1.12, 1.30];
-  var dyList = [-12, -6, 0, 6, 12];
-  var dxList = [-10, -5, 0, 5, 10];
+    var fullRes = zoneZnccAndRmse(cand, targetInner, 0, 16, 0, 16);
+    var browRes = zoneZnccAndRmse(cand, targetInner, 1, 4, 1, 15);
+    var eyeRes = zoneZnccAndRmse(cand, targetInner, 1, 6, 1, 15);
+    var leftEyeRes = zoneZnccAndRmse(cand, targetInner, 2, 6, 1, 7);
+    var rightEyeRes = zoneZnccAndRmse(cand, targetInner, 2, 6, 9, 15);
+    var midRes = zoneZnccAndRmse(cand, targetInner, 5, 11, 2, 14);
+    var mouthRes = zoneZnccAndRmse(cand, targetInner, 10, 16, 3, 13);
+    var lipCoreRes = zoneZnccAndRmse(cand, targetInner, 12, 15, 4, 12);
 
-  for (var si = 0; si < scales.length; si++) {
-    var sc = scales[si];
-    var ww = Math.max(32.0, Math.min(148.0, skinW * sc));
-    var hh = Math.max(36.0, Math.min(152.0, skinH * sc));
+    var cheekLum = 0, cheekCr = 0, cheekCnt = 0;
+    for (var cr = 6; cr < 10; cr++) {
+      for (var cc = 1; cc < 5; cc++) { cheekLum += raw[cr][cc]; cheekCr += rawCr[cr][cc]; cheekCnt++; }
+      for (var cc2 = 11; cc2 < 15; cc2++) { cheekLum += raw[cr][cc2]; cheekCr += rawCr[cr][cc2]; cheekCnt++; }
+    }
+    cheekLum = (cheekLum / (cheekCnt || 1)) || 128.0;
+    cheekCr = (cheekCr / (cheekCnt || 1)) || 154.0;
+
+    var eyeLLum = 0, eyeRLum = 0, eyeCnt = 0;
+    for (var er = 3; er < 6; er++) {
+      for (var ec = 1; ec < 6; ec++) {
+        eyeLLum += raw[er][ec];
+        eyeRLum += raw[er][15 - ec];
+        eyeCnt++;
+      }
+    }
+    eyeLLum /= (eyeCnt || 1);
+    eyeRLum /= (eyeCnt || 1);
+
+    var mouthLumSum = 0, mouthMinLum = 999, mouthMaxLum = 0, mouthMaxCr = 0, mouthCnt = 0;
+    var mouthLeftLum = 0, mouthRightLum = 0;
+    for (var mr = 12; mr < 15; mr++) {
+      for (var mc = 4; mc < 12; mc++) {
+        var ml = raw[mr][mc];
+        var mcr = rawCr[mr][mc];
+        mouthLumSum += ml;
+        if (ml < mouthMinLum) mouthMinLum = ml;
+        if (ml > mouthMaxLum) mouthMaxLum = ml;
+        if (mcr > mouthMaxCr) mouthMaxCr = mcr;
+        if (mc < 8) mouthLeftLum += ml; else mouthRightLum += ml;
+        mouthCnt++;
+      }
+    }
+    var mouthMeanLum = mouthLumSum / (mouthCnt || 1);
+    var mouthToCheek = mouthMeanLum / cheekLum;
+    var mouthMinToCheek = mouthMinLum / cheekLum;
+    var mouthMaxToCheek = mouthMaxLum / cheekLum;
+    var eyeLToCheek = eyeLLum / cheekLum;
+    var eyeRToCheek = eyeRLum / cheekLum;
+    var mouthLrAsym = Math.abs(mouthLeftLum - mouthRightLum) / Math.max(1.0, mouthLeftLum + mouthRightLum);
+    var tongueCrSpike = mouthMaxCr - cheekCr;
+
+    var mimicOk = true;
+    var mimicReasons = [];
+    if (browRes.zncc < 0.78 || browRes.rmse > 0.48) {
+      mimicOk = false; mimicReasons.push('brow_furrow_or_raise');
+    }
+    if (eyeRes.zncc < 0.68 || leftEyeRes.zncc < 0.60 || rightEyeRes.zncc < 0.60 || eyeRes.rmse > 0.68) {
+      mimicOk = false; mimicReasons.push('eye_zone_mismatch');
+    }
+    if (eyeLToCheek > 0.78 || eyeRToCheek > 0.82 || Math.abs((eyeRToCheek - eyeLToCheek) - 0.11) > 0.14) {
+      mimicOk = false; mimicReasons.push('eye_closed_or_wink');
+    }
+    if (midRes.zncc < 0.74 || midRes.rmse > 0.62) {
+      mimicOk = false; mimicReasons.push('midface_mismatch');
+    }
+    if (mouthRes.zncc < 0.68 || lipCoreRes.zncc < 0.65 || lipCoreRes.rmse > 0.55 || mouthRes.rmse > 0.58) {
+      mimicOk = false; mimicReasons.push('mouth_expression_changed');
+    }
+    if (mouthMinToCheek < 0.39 || mouthToCheek < 0.65 || mouthToCheek > 0.89 || mouthMaxToCheek > 1.24) {
+      mimicOk = false; mimicReasons.push('mouth_open_or_teeth');
+    }
+    if (tongueCrSpike > 9.5) {
+      mimicOk = false; mimicReasons.push('tongue_or_lip_color_anomaly');
+    }
+    if (mouthLrAsym > 0.14) {
+      mimicOk = false; mimicReasons.push('mouth_asymmetric_grimace');
+    }
+
+    var zoneScore = (
+      Math.max(0, fullRes.zncc) * 0.25 +
+      Math.max(0, eyeRes.zncc) * 0.25 +
+      Math.max(0, midRes.zncc) * 0.20 +
+      Math.max(0, mouthRes.zncc) * 0.15 +
+      Math.max(0, lipCoreRes.zncc) * 0.15
+    );
+
+    return {
+      zoneScore: zoneScore,
+      fullZncc: fullRes.zncc,
+      eyeZncc: eyeRes.zncc,
+      midZncc: midRes.zncc,
+      mouthZncc: mouthRes.zncc,
+      lipCoreZncc: lipCoreRes.zncc,
+      lipRmse: lipCoreRes.rmse,
+      eyeRmse: eyeRes.rmse,
+      mimicOk: mimicOk,
+      mimicReasons: mimicReasons,
+      norm: cand
+    };
+  }
+
+  var targetInner = OWNER_FACE_REF.innerGrid16 || OWNER_FACE_REF.grid16;
+  var innerScales = [1.05, 1.12, 1.19];
+  var dyList = [2, 6, 10];
+  var dxList = [-4, 0, 4];
+
+  var bestEval = null;
+  for (var si = 0; si < innerScales.length; si++) {
+    var sc = innerScales[si];
+    var ww = Math.max(40.0, Math.min(144.0, skinW * sc));
+    var hh = Math.max(44.0, Math.min(148.0, skinH * sc));
     for (var yi = 0; yi < dyList.length; yi++) {
       var dy = dyList[yi];
       for (var xi = 0; xi < dxList.length; xi++) {
         var dx = dxList[xi];
         var gObj = getGrid16(cx - ww / 2 + dx, cy - hh / 2 + dy, cx + ww / 2 + dx, cy + hh / 2 + dy);
-        if (!gObj) continue;
-        for (var ti = 0; ti < targets.length; ti++) {
-          var res = scorePair(gObj, targets[ti].g, targets[ti].s);
-          if (res.ncc * 0.65 + res.vCorr * 0.35 > bestNcc * 0.65 + bestVCorr * 0.35) {
-            bestNcc = res.ncc;
-            bestVCorr = res.vCorr;
-          }
+        var ev = evaluateInnerCandidate(gObj, targetInner);
+        if (!ev) continue;
+        if (!bestEval || (ev.mimicOk && !bestEval.mimicOk) || (ev.mimicOk === bestEval.mimicOk && ev.zoneScore > bestEval.zoneScore)) {
+          bestEval = ev;
         }
       }
     }
   }
 
-  if (bestNcc < 0.28 || bestVCorr < 0.20) {
-    return { hasFace: false, similarity: 0, ncc: 0, vCorr: 0, chromaScore: chromaScore };
+  if (!bestEval || bestEval.fullZncc < 0.45) {
+    return { hasFace: false, similarity: 0, mimicOk: false, ncc: 0, vCorr: 0, chromaScore: chromaScore };
   }
 
-  var rawSim = (Math.max(0, bestNcc) * 0.50 + Math.max(0, bestVCorr) * 0.30 + chromaScore * 0.20) * 100.0;
-  if (bestNcc >= 0.50 && bestVCorr >= 0.60 && chromaScore >= 0.62) {
-    rawSim = Math.min(99.0, rawSim + 16.0);
+  var rawSim = (bestEval.zoneScore * 0.82 + chromaScore * 0.18) * 100.0;
+  if (!bestEval.mimicOk || chromaScore < 0.55) {
+    rawSim = Math.min(54.0, rawSim * 0.58);
+  } else if (bestEval.fullZncc >= 0.80 && bestEval.eyeZncc >= 0.76 && bestEval.mouthZncc >= 0.74 && bestEval.lipRmse <= 0.45) {
+    rawSim = Math.min(99.0, rawSim + 6.0);
   }
   var similarity = Math.round(Math.max(0, Math.min(99, rawSim)));
 
   return {
     hasFace: true,
     similarity: similarity,
-    ncc: bestNcc,
-    vCorr: bestVCorr,
-    chromaScore: chromaScore
+    mimicOk: bestEval.mimicOk,
+    mimicReasons: bestEval.mimicReasons,
+    ncc: bestEval.fullZncc,
+    vCorr: bestEval.mouthZncc,
+    eyeZncc: bestEval.eyeZncc,
+    midZncc: bestEval.midZncc,
+    mouthZncc: bestEval.mouthZncc,
+    lipCoreZncc: bestEval.lipCoreZncc,
+    lipRmse: bestEval.lipRmse,
+    chromaScore: chromaScore,
+    innerNorm: bestEval.norm
   };
 }
 
@@ -13513,6 +14231,9 @@ var _adminMissingFaceFrames = 0;
 var _adminBestSimScore = 0;
 var _adminValidFaceFrames = 0;
 var _adminTotalSampledFrames = 0;
+var _adminSimSamples = [];
+var _adminMimicViolationFrames = 0;
+var _adminBaseInnerNorm = null;
 var _adminVerifyTimers = [];
 var _pendingAdminPinHash = '';
 
@@ -13679,6 +14400,27 @@ function transitionScanToLoadingVerification(isMatch) {
   _adminVerifyTimers.push(t1);
 }
 
+function _computeInterFrameMimicDrift(baseNorm, currNorm) {
+  if (!baseNorm || !currNorm) return 0;
+  var sq = 0, cnt = 0;
+  // Bandingkan area mata/alis (r=1..6) dan area mulut/bibir (r=10..15) terhadap frame awal scan
+  for (var r = 1; r < 6; r++) {
+    for (var c = 1; c < 15; c++) {
+      var d = (currNorm[r][c] || 0) - (baseNorm[r][c] || 0);
+      sq += d * d;
+      cnt++;
+    }
+  }
+  for (var r2 = 10; r2 < 15; r2++) {
+    for (var c2 = 3; c2 < 13; c2++) {
+      var d2 = (currNorm[r2][c2] || 0) - (baseNorm[r2][c2] || 0);
+      sq += d2 * d2 * 1.35;
+      cnt++;
+    }
+  }
+  return cnt > 0 ? Math.sqrt(sq / cnt) : 0;
+}
+
 function stepAdminOwnerFaceLoop() {
   if (!_adminFaceLoopActive) return;
   var video = document.getElementById('admin-face-video');
@@ -13701,7 +14443,6 @@ function stepAdminOwnerFaceLoop() {
   var laser = document.getElementById('admin-face-laser');
   var scanBadge = document.getElementById('admin-face-scan-badge');
 
-  // Jeda santai awal saat kamera baru terbuka agar fokus/cahaya stabil & pengguna siap
   var warmupRequiredMs = video.srcObject ? 1000 : 0;
   if ((now - _adminCameraReadyMs) < warmupRequiredMs) {
     if (holdLbl) holdLbl.textContent = '0%';
@@ -13721,7 +14462,6 @@ function stepAdminOwnerFaceLoop() {
   _adminTotalSampledFrames++;
 
   if (!res.hasFace) {
-    // Jika wajah belum tampil di kamera, JANGAN scan dan JANGAN jalan otomatis
     _adminConsecutiveFaceFrames = 0;
     _adminMissingFaceFrames++;
     if (_adminMissingFaceFrames >= 5) {
@@ -13731,6 +14471,9 @@ function stepAdminOwnerFaceLoop() {
       _adminScanStartMs = 0;
       _adminBestSimScore = 0;
       _adminValidFaceFrames = 0;
+      _adminSimSamples = [];
+      _adminMimicViolationFrames = 0;
+      _adminBaseInnerNorm = null;
       if (holdLbl) holdLbl.textContent = '0%';
       if (bar) bar.style.width = '0%';
       if (laser) {
@@ -13747,12 +14490,10 @@ function stepAdminOwnerFaceLoop() {
     return;
   }
 
-  // Wajah terdeteksi tampil di dalam bingkai kamera
   _adminMissingFaceFrames = 0;
   _adminConsecutiveFaceFrames++;
   _adminFacePresentMs += dt;
 
-  // Pastikan wajah benar-benar tampil stabil dulu sebelum mulai menaikkan progres scan
   var stabilizeBeforeScanMs = video.srcObject ? 800 : 0;
   var minConsecutiveBeforeScan = video.srcObject ? 8 : 1;
   if (_adminFacePresentMs < stabilizeBeforeScanMs || _adminConsecutiveFaceFrames < minConsecutiveBeforeScan) {
@@ -13771,25 +14512,39 @@ function stepAdminOwnerFaceLoop() {
     return;
   }
 
-  // Mulai / lanjutkan scan wajah secara santai hanya saat wajah aktif tampil
   if (!_adminScanStartMs) _adminScanStartMs = now;
   _adminActiveScanMs += dt;
 
   if (_adminActiveScanMs >= 300 || !video.srcObject) {
-    _adminValidFaceFrames++;
-    if ((res.similarity || 0) > _adminBestSimScore) {
-      _adminBestSimScore = res.similarity || 0;
+    var frameSim = res.similarity || 0;
+    var isMimicClean = Boolean(res.mimicOk !== false && frameSim >= 75);
+
+    if (isMimicClean && !_adminBaseInnerNorm && res.innerNorm) {
+      _adminBaseInnerNorm = res.innerNorm;
     }
+
+    var driftScore = (_adminBaseInnerNorm && res.innerNorm) ? _computeInterFrameMimicDrift(_adminBaseInnerNorm, res.innerNorm) : 0;
+    if (driftScore > 0.38) {
+      isMimicClean = false;
+      frameSim = Math.min(48, frameSim);
+    }
+
+    if (isMimicClean) {
+      _adminValidFaceFrames++;
+      _adminSimSamples.push(frameSim);
+    } else {
+      _adminMimicViolationFrames++;
+      _adminSimSamples.push(Math.min(48, frameSim));
+    }
+
+    // Hitung rata-rata kemiripan berjalan (bukan Math.max satu frame agar perubahan mimik wajah tidak lolos!)
+    var sumSim = 0;
+    for (var si = 0; si < _adminSimSamples.length; si++) sumSim += _adminSimSamples[si];
+    _adminBestSimScore = _adminSimSamples.length > 0 ? Math.round(sumSim / _adminSimSamples.length) : 0;
   }
 
   var scanDurationMs = 3800;
   var pct = Math.min(100, Math.round((_adminActiveScanMs / scanDurationMs) * 100));
-
-  // Jika sudah mendekati selesai tapi kamera masih menyesuaikan fokus/pencahayaan wajah, beri waktu tambahan dengan santai
-  if (pct >= 90 && _adminBestSimScore < 72 && _adminExtraStabilizeMs < 2500) {
-    _adminExtraStabilizeMs += dt;
-    pct = Math.min(98, 90 + Math.floor((_adminExtraStabilizeMs / 2500) * 8));
-  }
 
   if (scanBadge) {
     scanBadge.innerHTML = '<i class="fa-solid fa-expand mr-1"></i>' + escapeHtml(t19('adm_scan_only'));
@@ -13802,10 +14557,25 @@ function stepAdminOwnerFaceLoop() {
     laser.style.top = pos.toFixed(1) + '%';
   }
 
-  var minRequiredValidFrames = video.srcObject ? 6 : 2;
-  if (pct >= 100 && _adminValidFaceFrames >= minRequiredValidFrames) {
+  var totalSampled = _adminSimSamples.length;
+  var minRequiredFrames = video.srcObject ? 6 : 2;
+  if (pct >= 100 && totalSampled >= minRequiredFrames) {
     _adminFaceLoopActive = false;
-    var isOwnerMatch = Boolean(_adminValidFaceFrames >= minRequiredValidFrames && _adminBestSimScore >= 72);
+    var tailCount = Math.min(5, totalSampled);
+    var tailSum = 0;
+    for (var ti = totalSampled - tailCount; ti < totalSampled; ti++) {
+      tailSum += _adminSimSamples[ti];
+    }
+    var tailAvg = tailCount > 0 ? (tailSum / tailCount) : 0;
+    var violationRatio = _adminMimicViolationFrames / Math.max(1, totalSampled);
+
+    var isOwnerMatch = Boolean(
+      _adminValidFaceFrames >= minRequiredFrames &&
+      _adminBestSimScore >= 76 &&
+      tailAvg >= 75 &&
+      _adminMimicViolationFrames <= 2 &&
+      violationRatio <= 0.15
+    );
     transitionScanToLoadingVerification(isOwnerMatch);
     return;
   }
@@ -13819,7 +14589,7 @@ function manualCheckAdminOwnerFace() {
   var res = evaluateCurrentAdminVideoFrame();
   if (!res.hasFace) return;
   var sim = res.similarity || 0;
-  var isOwnerMatch = Boolean(res.hasFace && sim >= 72);
+  var isOwnerMatch = Boolean(res.hasFace && res.mimicOk !== false && sim >= 76);
   transitionScanToLoadingVerification(isOwnerMatch);
 }
 
@@ -13839,6 +14609,9 @@ async function openAdminOwnerFaceGate() {
   _adminBestSimScore = 0;
   _adminValidFaceFrames = 0;
   _adminTotalSampledFrames = 0;
+  _adminSimSamples = [];
+  _adminMimicViolationFrames = 0;
+  _adminBaseInnerNorm = null;
 
   var modal = document.getElementById('admin-face-gate-modal');
   var scanView = document.getElementById('admin-face-scan-view');
