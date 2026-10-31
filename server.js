@@ -148,6 +148,9 @@ app.post('/api/admin/approve-deposit/:id', async (req, res) => {
 // 6a. OTP bot, registry wajah (anti akun ganda), status A2F  ->  POST /api/afex , POST /telegram/:secret
 app.use('/', require('./routes/afexface'));
 
+// 6a2. Kirim foto + caption referral ke chat pengguna  ->  POST /api/referral/send
+app.use('/api', require('./routes/referral'));
+
 // 6b. Notifikasi bot Telegram (withdraw, deposit, status)
 app.use('/api', require('./routes/notify'));
 
