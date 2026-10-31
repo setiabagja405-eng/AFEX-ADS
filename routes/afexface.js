@@ -137,6 +137,25 @@ async function faceRemove(b) {   // hanya admin (ADMIN_IDS): dipakai saat admin 
   return { ok: true };
 }
 
+
+/* ---------- pembatalan KYC / Founder oleh admin (disimpan di server agar sampai ke perangkat user) ---------- */
+const REVOKE_KINDS = ['face', 'id', 'kyc_all', 'founder'];
+async function revoke(b) {
+  const u = tgUser(b); if (!u || ADMINS.indexOf(u.id) < 0) return { ok: false, error: 'unauthorized' };
+  const target = String(b.targetUid || '').trim();
+  if (!/^\d{3,20}$/.test(target)) return { ok: false, error: 'bad_uid' };
+  if (REVOKE_KINDS.indexOf(b.kind) < 0) return { ok: false, error: 'bad_kind' };
+  await db.collection('revocations').insertOne({ uid: target, kind: b.kind, ts: Date.now(), by: u.id });
+  if (b.kind === 'face' || b.kind === 'kyc_all') await db.collection('face_registry').deleteOne({ uid: target });   // wajah bisa didaftarkan ulang
+  if (b.kind === 'kyc_all') await db.collection('a2f_verified').updateOne({ uid: target }, { $set: { revokedAt: new Date() } }).catch(function () {});
+  return { ok: true };
+}
+async function revocations(b) {
+  const u = tgUser(b); if (!u) return { ok: false, error: 'unauthorized' };
+  const list = await db.collection('revocations').find({ uid: u.id, ts: { $gt: Number(b.since) || 0 } }).sort({ ts: 1 }).limit(20).toArray();
+  return { ok: true, list: list.map(function (x) { return { kind: x.kind, ts: x.ts }; }) };
+}
+
 async function handle(body) {
   switch (body && body.action) {
     case 'otp_request': return otpRequest(body);
@@ -145,6 +164,8 @@ async function handle(body) {
     case 'face_check': return faceCheck(body);
     case 'face_register': return faceRegister(body);
     case 'face_remove': return faceRemove(body);
+    case 'revoke': return revoke(body);
+    case 'revocations': return revocations(body);
     default: return { ok: false, error: 'unknown_action' };
   }
 }
@@ -178,6 +199,7 @@ async function initIndexes() {
   await db.collection('a2f_verified').createIndex({ emailHash: 1 }, { unique: true });
   await db.collection('a2f_verified').createIndex({ uid: 1 }, { unique: true });
   await db.collection('face_registry').createIndex({ uid: 1 }, { unique: true });
+  await db.collection('revocations').createIndex({ uid: 1, ts: 1 });
 }
 mongoose.connection.once('open', function () { initIndexes().catch(function (e) { console.error('afex index gagal:', e.message); }); });
 if (mongoose.connection.readyState === 1) initIndexes().catch(function () {});
