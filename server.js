@@ -160,6 +160,12 @@ mountRoute('/api', './routes/referral');
 // 6b. Notifikasi bot Telegram (withdraw, deposit, status)
 mountRoute('/api', './routes/notify');
 
+// 6c. Hadiah massal (Kirim Hadiah dari Panel Admin)  ->  /api/gift/send , /api/gift/list , /api/gift/open
+mountRoute('/api', './routes/gift');
+
+// 6d. Sinkron lock menu + Founder Gacha sederhana  ->  /api/cfg/get , /api/cfg/set , /api/founder/check , /api/founder/claim , /api/founder/grant
+mountRoute('/api', './routes/appcfg');
+
 // 7. Jalankan Server di Port Render
 ['MONGODB_URI','OTP_BOT_TOKEN','HASH_SALT','WEBHOOK_SECRET'].forEach(function (k) {
     if (!process.env[k]) console.warn('PERINGATAN: Environment variable ' + k + ' belum diisi');
