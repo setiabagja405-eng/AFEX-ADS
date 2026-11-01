@@ -37,21 +37,56 @@ function tgUser(body) {
 }
 
 /* ---------- Telegram ---------- */
-async function tgSend(chatId, html) {
+const OTP_TOKEN = String(E.OTP_BOT_TOKEN || '').trim();
+const BASE_URL = String(E.PUBLIC_URL || E.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
+
+/* panggilan umum ke Telegram Bot API (OTP bot). Tidak pernah melempar error; hasilnya selalu {ok, code, desc, data}. */
+async function tgCall(method, payload) {
+  if (!OTP_TOKEN) return { ok: false, code: 0, desc: 'OTP_BOT_TOKEN belum diisi di Environment Render' };
+  if (typeof fetch !== 'function') return { ok: false, code: 0, desc: 'Node.js < 18 (fetch tidak ada). Set NODE_VERSION=20 di Render' };
+  const ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 10000);
   try {
-    const r = await fetch('https://api.telegram.org/bot' + E.OTP_BOT_TOKEN + '/sendMessage', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true })
+    const r = await fetch('https://api.telegram.org/bot' + OTP_TOKEN + '/' + method, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload || {}), signal: ctl.signal
     });
-    return { ok: r.ok, code: r.status };
-  } catch (e) { return { ok: false, code: 0 }; }
+    let data = null; try { data = await r.json(); } catch (e) {}
+    return { ok: !!(r.ok && data && data.ok), code: r.status, desc: (data && data.description) || '', data: data && data.result };
+  } catch (e) {
+    return { ok: false, code: 0, desc: 'koneksi ke Telegram gagal: ' + (e && e.message) };
+  } finally { clearTimeout(tm); }
+}
+async function tgSend(chatId, html) {
+  const r = await tgCall('sendMessage', { chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true });
+  if (!r.ok) console.error('[OTP] sendMessage gagal -> kode ' + r.code + ': ' + r.desc);
+  return { ok: r.ok, code: r.code, desc: r.desc };
+}
+
+/* daftarkan webhook bot OTP otomatis (sebelumnya tidak ada yang memanggil setWebhook, sehingga /start tidak pernah dibalas) */
+async function setupWebhook() {
+  if (!OTP_TOKEN || !E.WEBHOOK_SECRET || !BASE_URL) {
+    console.warn('[OTP] Webhook TIDAK didaftarkan. Kurang: ' + [!OTP_TOKEN && 'OTP_BOT_TOKEN', !E.WEBHOOK_SECRET && 'WEBHOOK_SECRET', !BASE_URL && 'PUBLIC_URL/RENDER_EXTERNAL_URL'].filter(Boolean).join(', '));
+    return { ok: false, desc: 'env kurang' };
+  }
+  if (MAIN_TOKEN && OTP_TOKEN === MAIN_TOKEN) {   // jangan rebut webhook bot utama (Fexboostbot)
+    console.error('[OTP] OTP_BOT_TOKEN SAMA dengan BOT_TOKEN. Isi OTP_BOT_TOKEN dengan token bot OTP (@afexotpbot) dari BotFather. Webhook tidak dipasang.');
+    return { ok: false, desc: 'OTP_BOT_TOKEN sama dengan BOT_TOKEN' };
+  }
+  const r = await tgCall('setWebhook', { url: BASE_URL + '/telegram/' + E.WEBHOOK_SECRET, allowed_updates: ['message'] });
+  console.log('[OTP] setWebhook ' + (r.ok ? 'OK' : 'GAGAL (' + r.code + ') ' + r.desc));
+  return r;
 }
 
 /* ---------- OTP ---------- */
 async function otpRequest(b) {
-  const u = tgUser(b); if (!u) return { ok: false, error: 'unauthorized' };
+  const u = tgUser(b);
+  if (!u) {
+    console.error('[OTP] unauthorized: ' + (!MAIN_TOKEN ? 'MAIN_BOT_TOKEN/BOT_TOKEN kosong di Render' : (b.initData ? 'initData tidak cocok dengan token bot mini app (token salah / bukan bot yang membuka mini app)' : 'initData kosong (mini app tidak dibuka lewat Telegram)')));
+    return { ok: false, error: 'unauthorized' };
+  }
   const email = String(b.email || '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return { ok: false, error: 'bad_email' };
+  if (!OTP_TOKEN) { console.error('[OTP] OTP_BOT_TOKEN kosong di Environment Render'); return { ok: false, error: 'send_failed' }; }
+  if (!E.HASH_SALT) console.warn('[OTP] HASH_SALT belum diisi (hash jadi lemah). Isi dengan teks acak panjang.');
   const emailHash = sha(E.HASH_SALT + email);
   const owner = await db.collection('a2f_verified').findOne({ emailHash: emailHash });
   if (owner && owner.uid !== u.id) return { ok: false, error: 'email_used' };
@@ -182,14 +217,43 @@ router.post('/api/afex', async function (req, res) {
   try { res.json(await handle(body)); } catch (e) { console.error('afex api error', e && e.message); res.json({ ok: false, error: 'server_error' }); }
 });
 router.post('/telegram/:secret', async function (req, res) {
-  if (!E.WEBHOOK_SECRET || req.params.secret !== E.WEBHOOK_SECRET) return res.sendStatus(403);
+  if (!E.WEBHOOK_SECRET || req.params.secret !== E.WEBHOOK_SECRET) { console.warn('[OTP] webhook ditolak: secret tidak cocok / WEBHOOK_SECRET kosong'); return res.sendStatus(403); }
   try {
-    const up = parseBody(req) || {}, m = up.message, txt = String((m && m.text) || '');
-    if (m && m.chat && (txt.indexOf('/start') === 0 || txt.indexOf('/help') === 0)) {
+    const up = parseBody(req) || {}, m = up.message;
+    if (m && m.chat) {   // balas SEMUA pesan pribadi (bukan hanya /start) supaya bot terasa hidup
+      console.log('[OTP] pesan masuk dari chat ' + m.chat.id);
       await tgSend(m.chat.id, '\uD83D\uDC4B <b>Bot OTP AFEX</b>\n\nBuka mini app AFEX \u2192 menu <b>OTP (A2F)</b> \u2192 tekan <b>Get</b>. Kode 6 digit dikirim ke sini dan berlaku 5 menit.');
     }
-  } catch (e) {}
+  } catch (e) { console.error('[OTP] webhook error', e && e.message); }
   res.sendStatus(200);
+});
+
+/* diagnosa: buka https://<server>/api/afex/health di browser. Tidak menampilkan nilai rahasia. ?fix=1 = daftarkan ulang webhook */
+router.get('/api/afex/health', async function (req, res) {
+  const out = {
+    node: process.version, fetch: typeof fetch,
+    env: {
+      MONGODB_URI: !!E.MONGODB_URI, OTP_BOT_TOKEN: !!OTP_TOKEN,
+      MAIN_BOT_TOKEN_atau_BOT_TOKEN: !!MAIN_TOKEN, HASH_SALT: !!E.HASH_SALT,
+      WEBHOOK_SECRET: !!E.WEBHOOK_SECRET, ADMIN_IDS: ADMINS.length, BASE_URL: BASE_URL || null
+    },
+    token_otp_sama_dengan_bot_utama: !!(MAIN_TOKEN && OTP_TOKEN && OTP_TOKEN === MAIN_TOKEN),
+    mongo: getDb() ? 'terhubung' : 'TIDAK terhubung (readyState=' + (mongoose.connection && mongoose.connection.readyState) + ')'
+  };
+  if (OTP_TOKEN) {
+    const me = await tgCall('getMe');
+    out.otpBot = me.ok ? { ok: true, username: '@' + me.data.username } : { ok: false, kode: me.code, alasan: me.desc };
+    if (req.query.fix === '1') { const f = await setupWebhook(); out.fixWebhook = f.ok ? 'OK' : f.desc; }
+    const wi = await tgCall('getWebhookInfo');
+    if (wi.ok) {
+      const expected = E.WEBHOOK_SECRET && BASE_URL ? BASE_URL + '/telegram/' + E.WEBHOOK_SECRET : null;
+      out.webhook = {
+        terpasang: !!wi.data.url, cocok_dengan_server_ini: !!expected && wi.data.url === expected,
+        update_tertunda: wi.data.pending_update_count, error_terakhir: wi.data.last_error_message || null
+      };
+    } else out.webhook = { ok: false, alasan: wi.desc };
+  }
+  res.json(out);
 });
 
 /* indeks dibuat sekali setelah mongoose tersambung */
@@ -201,6 +265,7 @@ async function initIndexes() {
   await db.collection('face_registry').createIndex({ uid: 1 }, { unique: true });
   await db.collection('revocations').createIndex({ uid: 1, ts: 1 });
 }
+setTimeout(function () { setupWebhook().catch(function (e) { console.error('[OTP] setupWebhook error', e && e.message); }); }, 3000);
 mongoose.connection.once('open', function () { initIndexes().catch(function (e) { console.error('afex index gagal:', e.message); }); });
 if (mongoose.connection.readyState === 1) initIndexes().catch(function () {});
 
