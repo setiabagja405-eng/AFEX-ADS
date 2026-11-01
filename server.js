@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
     username: { type: String, default: 'Tamu' },
     balanceAfex: { type: Number, default: 0 },
     usdtBalance: { type: Number, default: 0 },
+    usdtDepositBalance: { type: Number, default: 0 },
     userPoints: { type: Number, default: 0 },
     lastCheckInTime: { type: Number, default: 0 },
     checkInDay: { type: Number, default: 1 },
@@ -54,56 +55,89 @@ const depositSchema = new mongoose.Schema({
 const Deposit = mongoose.model('Deposit', depositSchema);
 
 // ==========================================
-// 5. ROUTE USER (Sync & Update)
+// 5. ROUTE USER (Sync & Update)  -- dilindungi initData Telegram
 // ==========================================
-app.post('/api/user/sync', async (req, res) => {
+const crypto = require('crypto');
+const MAIN_TOKEN = String(process.env.MAIN_BOT_TOKEN || process.env.BOT_TOKEN || '').trim();
+
+// Validasi initData Telegram (header X-Telegram-Init-Data atau body.initData). Mengembalikan { id } atau null.
+function authUser(req) {
     try {
-        const { userId, username } = req.body;
-        if (!userId) return res.status(400).json({ error: 'userId diperlukan' });
+        if (!MAIN_TOKEN) return null;
+        const initData = String((req.headers && (req.headers['x-telegram-init-data'])) || (req.body && req.body.initData) || '');
+        if (!initData) return null;
+        const p = new URLSearchParams(initData), hash = p.get('hash');
+        if (!hash) return null;
+        p.delete('hash');
+        const dcs = Array.from(p.keys()).sort().map(k => k + '=' + p.get(k)).join('\n');
+        const secret = crypto.createHmac('sha256', 'WebAppData').update(MAIN_TOKEN).digest();
+        const calc = crypto.createHmac('sha256', secret).update(dcs).digest('hex');
+        const a = Buffer.from(calc), b = Buffer.from(hash);
+        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+        if (Math.abs(Date.now() / 1000 - Number(p.get('auth_date') || 0)) > 86400) return null;
+        const u = JSON.parse(p.get('user') || '{}');
+        return u.id ? { id: String(u.id) } : null;
+    } catch (e) { return null; }
+}
+
+// Frontend memanggil GET /api/user/sync?userId=..  dan membaca data.user  (POST tetap didukung)
+async function syncHandler(req, res) {
+    try {
+        const src = req.method === 'GET' ? (req.query || {}) : (req.body || {});
+        const userId = String(src.userId || '');
+        if (!userId) return res.status(400).json({ success: false, error: 'userId diperlukan' });
+        const au = authUser(req);
+        if (!au || au.id !== userId) return res.status(401).json({ success: false, error: 'initData tidak valid' });
 
         let user = await User.findOne({ userId });
         if (!user) {
-            user = new User({ userId, username: username || 'Tamu' });
+            user = new User({ userId, username: String(src.username || 'Tamu') });
             await user.save();
         }
-        res.json(user);
+        res.json({ success: true, user });
     } catch (error) {
-        console.error("Error Sync:", error);
-        res.status(500).json({ error: error.message });
+        console.error('Error Sync:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
-});
+}
+app.get('/api/user/sync', syncHandler);
+app.post('/api/user/sync', syncHandler);
 
 app.post('/api/user/update', async (req, res) => {
     try {
-        const { 
-            userId, username, balanceAfex, usdtBalance, userPoints, 
-            lastCheckInTime, checkInDay, usdtSpeedBoost, isMining, 
-            miningStartTime, miningEndTime, tgTaskEndTime 
+        const {
+            userId, username, balanceAfex, usdtBalance, usdtDepositBalance, userPoints,
+            lastCheckInTime, checkInDay, usdtSpeedBoost, isMining,
+            miningStartTime, miningEndTime, tgTaskEndTime
         } = req.body;
 
-        if (!userId) return res.status(400).json({ error: 'userId diperlukan' });
+        if (!userId) return res.status(400).json({ success: false, error: 'userId diperlukan' });
+        const au = authUser(req);
+        if (!au || au.id !== String(userId)) return res.status(401).json({ success: false, error: 'initData tidak valid' });
 
+        const num = v => { const n = Number(v); return isFinite(n) && n >= 0 ? n : 0; };
         const updatedUser = await User.findOneAndUpdate(
-            { userId },
-            { 
-                username, 
-                balanceAfex: Number(balanceAfex) || 0, 
-                usdtBalance: Number(usdtBalance) || 0, 
-                userPoints: Number(userPoints) || 0, 
-                lastCheckInTime: Number(lastCheckInTime) || 0, 
-                checkInDay: Number(checkInDay) || 1, 
-                usdtSpeedBoost: Number(usdtSpeedBoost) || 0, 
-                isMining: Boolean(isMining), 
-                miningStartTime: Number(miningStartTime) || 0, 
-                miningEndTime: Number(miningEndTime) || 0, 
-                tgTaskEndTime: Number(tgTaskEndTime) || 0 
-            },
+            { userId: au.id },
+            { $set: {
+                username: String(username || 'Tamu').slice(0, 64),
+                balanceAfex: num(balanceAfex),
+                usdtBalance: num(usdtBalance),
+                usdtDepositBalance: num(usdtDepositBalance),
+                userPoints: num(userPoints),
+                lastCheckInTime: num(lastCheckInTime),
+                checkInDay: Number(checkInDay) || 1,
+                usdtSpeedBoost: num(usdtSpeedBoost),
+                isMining: Boolean(isMining),
+                miningStartTime: num(miningStartTime),
+                miningEndTime: num(miningEndTime),
+                tgTaskEndTime: num(tgTaskEndTime)
+            } },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
         res.json({ success: true, user: updatedUser });
     } catch (error) {
-        console.error("Error Update:", error);
+        console.error('Error Update:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -168,6 +202,9 @@ mountRoute('/api', './routes/appcfg');
 
 // 6e. Menu User (admin) + OTP pemulihan akun per user (5 menit)  ->  /api/users/list , /api/users/otp , /api/users/verify , /api/users/my-otp
 mountRoute('/api', './routes/users');
+
+// 6e2. Pengaturan hadiah REFERRAL & MILESTONE (admin)  ->  /api/refcfg/get , /api/refcfg/set , /api/refcfg/reset
+mountRoute('/api', './routes/refcfg');
 
 // 6f. Daftar TIM (nama + jabatan) di menu About, diatur admin dari Panel Admin  ->  /api/team/get , /api/team/set , /api/team/reset
 mountRoute('/api', './routes/team');
