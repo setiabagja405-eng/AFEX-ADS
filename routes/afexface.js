@@ -76,6 +76,42 @@ async function setupWebhook() {
   return r;
 }
 
+/* ---------- Bahasa pesan bot OTP: mengikuti bahasa yang dipilih user di mini app (19 bahasa) ---------- */
+const OTP_TXT = {
+  en: { code: 'Your OTP code', acct: 'For A2F account', valid: 'Valid for <b>5 minutes</b>. Never share this code with anyone.', hello: 'Open the AFEX mini app → <b>OTP (A2F)</b> menu → press <b>Get</b>. The 6-digit code is sent here and is valid for 5 minutes.' },
+  id: { code: 'Kode OTP Anda', acct: 'Untuk akun A2F', valid: 'Berlaku <b>5 menit</b>. Jangan bagikan kode ini ke siapa pun.', hello: 'Buka mini app AFEX → menu <b>OTP (A2F)</b> → tekan <b>Get</b>. Kode 6 digit dikirim ke sini dan berlaku 5 menit.' },
+  es: { code: 'Tu código OTP', acct: 'Para la cuenta A2F', valid: 'Válido por <b>5 minutos</b>. No compartas este código con nadie.', hello: 'Abre la mini app de AFEX → menú <b>OTP (A2F)</b> → pulsa <b>Get</b>. El código de 6 dígitos se envía aquí y es válido por 5 minutos.' },
+  de: { code: 'Dein OTP-Code', acct: 'Für A2F-Konto', valid: '<b>5 Minuten</b> gültig. Gib diesen Code an niemanden weiter.', hello: 'Öffne die AFEX-Mini-App → Menü <b>OTP (A2F)</b> → tippe auf <b>Get</b>. Der 6-stellige Code wird hierher gesendet und ist 5 Minuten gültig.' },
+  fr: { code: 'Votre code OTP', acct: 'Pour le compte A2F', valid: 'Valable <b>5 minutes</b>. Ne partagez jamais ce code avec personne.', hello: 'Ouvrez la mini-app AFEX → menu <b>OTP (A2F)</b> → appuyez sur <b>Get</b>. Le code à 6 chiffres est envoyé ici et reste valable 5 minutes.' },
+  tr: { code: 'OTP kodunuz', acct: 'A2F hesabı için', valid: '<b>5 dakika</b> geçerlidir. Bu kodu kimseyle paylaşmayın.', hello: 'AFEX mini uygulamasını açın → <b>OTP (A2F)</b> menüsü → <b>Get</b>\'e basın. 6 haneli kod buraya gönderilir ve 5 dakika geçerlidir.' },
+  uz: { code: 'Sizning OTP kodingiz', acct: 'A2F hisobi uchun', valid: '<b>5 daqiqa</b> amal qiladi. Bu kodni hech kimga bermang.', hello: 'AFEX mini ilovasini oching → <b>OTP (A2F)</b> menyusi → <b>Get</b> tugmasini bosing. 6 xonali kod shu yerga yuboriladi va 5 daqiqa amal qiladi.' },
+  ru: { code: 'Ваш OTP-код', acct: 'Для A2F-аккаунта', valid: 'Действителен <b>5 минут</b>. Никому не сообщайте этот код.', hello: 'Откройте мини-приложение AFEX → меню <b>OTP (A2F)</b> → нажмите <b>Get</b>. 6-значный код придёт сюда и действует 5 минут.' },
+  vi: { code: 'Mã OTP của bạn', acct: 'Cho tài khoản A2F', valid: 'Có hiệu lực <b>5 phút</b>. Không chia sẻ mã này với bất kỳ ai.', hello: 'Mở mini app AFEX → menu <b>OTP (A2F)</b> → nhấn <b>Get</b>. Mã 6 chữ số sẽ được gửi tới đây và có hiệu lực 5 phút.' },
+  tl: { code: 'Ang iyong OTP code', acct: 'Para sa A2F account', valid: 'Valid sa loob ng <b>5 minuto</b>. Huwag ibahagi ang code na ito kaninuman.', hello: 'Buksan ang AFEX mini app → menu na <b>OTP (A2F)</b> → pindutin ang <b>Get</b>. Ipapadala rito ang 6-digit na code at valid ito sa loob ng 5 minuto.' },
+  th: { code: 'รหัส OTP ของคุณ', acct: 'สำหรับบัญชี A2F', valid: 'ใช้ได้ <b>5 นาที</b> อย่าแชร์รหัสนี้กับผู้อื่น', hello: 'เปิดมินิแอป AFEX → เมนู <b>OTP (A2F)</b> → กด <b>Get</b> รหัส 6 หลักจะถูกส่งมาที่นี่และใช้ได้ 5 นาที' },
+  ms: { code: 'Kod OTP anda', acct: 'Untuk akaun A2F', valid: 'Sah selama <b>5 minit</b>. Jangan kongsi kod ini dengan sesiapa.', hello: 'Buka mini app AFEX → menu <b>OTP (A2F)</b> → tekan <b>Get</b>. Kod 6 digit dihantar ke sini dan sah selama 5 minit.' },
+  hi: { code: 'आपका OTP कोड', acct: 'A2F खाते के लिए', valid: '<b>5 मिनट</b> मान्य। इस कोड को किसी के साथ साझा न करें।', hello: 'AFEX मिनी ऐप खोलें → <b>OTP (A2F)</b> मेनू → <b>Get</b> दबाएं। 6 अंकों का कोड यहीं भेजा जाएगा और 5 मिनट मान्य रहेगा।' },
+  ur: { code: 'آپ کا OTP کوڈ', acct: 'A2F اکاؤنٹ کے لیے', valid: '<b>5 منٹ</b> تک درست۔ یہ کوڈ کسی کے ساتھ شیئر نہ کریں۔', hello: 'AFEX منی ایپ کھولیں → <b>OTP (A2F)</b> مینو → <b>Get</b> دبائیں۔ 6 ہندسوں کا کوڈ یہیں بھیجا جائے گا اور 5 منٹ تک درست ہے۔' },
+  zh: { code: '您的 OTP 验证码', acct: 'A2F 账号', valid: '有效期 <b>5 分钟</b>。请勿将此验证码告诉任何人。', hello: '打开 AFEX 小程序 → <b>OTP (A2F)</b> 菜单 → 点击 <b>Get</b>。6 位验证码会发送到这里，有效期 5 分钟。' },
+  ko: { code: 'OTP 코드', acct: 'A2F 계정', valid: '<b>5분</b> 동안 유효합니다. 이 코드를 절대 다른 사람과 공유하지 마세요.', hello: 'AFEX 미니 앱 열기 → <b>OTP (A2F)</b> 메뉴 → <b>Get</b> 누르기. 6자리 코드가 이곳으로 전송되며 5분간 유효합니다.' },
+  ja: { code: 'OTPコード', acct: 'A2Fアカウント', valid: '<b>5分間</b>有効です。このコードは誰にも教えないでください。', hello: 'AFEXミニアプリを開く → <b>OTP (A2F)</b> メニュー → <b>Get</b> を押してください。6桁のコードがここに送信され、5分間有効です。' },
+  af: { code: 'Jou OTP-kode', acct: 'Vir A2F-rekening', valid: 'Geldig vir <b>5 minute</b>. Moenie hierdie kode met enigiemand deel nie.', hello: 'Maak die AFEX-mini-app oop → <b>OTP (A2F)</b>-kieslys → druk <b>Get</b>. Die 6-syfer kode word hierheen gestuur en is 5 minute geldig.' },
+  ar: { code: 'رمز OTP الخاص بك', acct: 'لحساب A2F', valid: 'صالح لمدة <b>5 دقائق</b>. لا تشارك هذا الرمز مع أي شخص.', hello: 'افتح تطبيق AFEX المصغّر → قائمة <b>OTP (A2F)</b> → اضغط <b>Get</b>. سيصل الرمز المكوّن من 6 أرقام هنا وهو صالح لمدة 5 دقائق.' }
+};
+const LANG_ALIAS = { fil: 'tl', in: 'id', iw: 'en', 'zh-hans': 'zh', 'zh-hant': 'zh', no: 'en' };
+function normLang(l) {
+  l = String(l || '').toLowerCase().replace('_', '-');
+  if (LANG_ALIAS[l]) return LANG_ALIAS[l];
+  const two = l.slice(0, 2);
+  if (OTP_TXT[two]) return two;
+  return LANG_ALIAS[two] || 'en';
+}
+function otpMessage(lang, code, who) {
+  const T = OTP_TXT[normLang(lang)];
+  return '🔐 <b>AFEX OTP</b>\n\n' + T.code + ': <b><code>' + code + '</code></b>\n' + T.acct + ': ' + who + '\n⏱ ' + T.valid;
+}
+function helloMessage(lang) { return '👋 <b>AFEX OTP Bot</b>\n\n' + OTP_TXT[normLang(lang)].hello; }
+
 /* ---------- OTP ---------- */
 async function otpRequest(b) {
   const u = tgUser(b);
@@ -98,11 +134,10 @@ async function otpRequest(b) {
   if (rate.n >= MAX_REQ_HOUR) return { ok: false, error: 'too_many' };
 
   const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
-  const sent = await tgSend(u.id,
-    '\uD83D\uDD10 <b>AFEX OTP</b>\n\nKode OTP Anda: <b><code>' + code + '</code></b>\n' +
-    'Untuk akun A2F: ' + (u.username ? '@' + u.username : u.id) + '\n' +
-    '\u23F1 Berlaku <b>5 menit</b>. Jangan bagikan kode ini ke siapa pun.');
+  const lang = normLang(b.lang);   // bahasa yang sedang dipakai di mini app
+  const sent = await tgSend(u.id, otpMessage(lang, code, u.username ? '@' + u.username : u.id));
   if (!sent.ok) return { ok: false, error: sent.code === 403 ? 'need_start' : 'send_failed' };
+  await db.collection('user_lang').updateOne({ _id: u.id }, { $set: { lang: lang, at: new Date() } }, { upsert: true }).catch(function () {});
 
   await db.collection('otp_codes').replaceOne({ _id: u.id },
     { _id: u.id, h: sha(E.HASH_SALT + u.id + email + code), email: email, exp: new Date(now + TTL_MS), tries: 0 }, { upsert: true });
@@ -222,7 +257,9 @@ router.post('/telegram/:secret', async function (req, res) {
     const up = parseBody(req) || {}, m = up.message;
     if (m && m.chat) {   // balas SEMUA pesan pribadi (bukan hanya /start) supaya bot terasa hidup
       console.log('[OTP] pesan masuk dari chat ' + m.chat.id);
-      await tgSend(m.chat.id, '\uD83D\uDC4B <b>Bot OTP AFEX</b>\n\nBuka mini app AFEX \u2192 menu <b>OTP (A2F)</b> \u2192 tekan <b>Get</b>. Kode 6 digit dikirim ke sini dan berlaku 5 menit.');
+      let hl = normLang(m.from && m.from.language_code);   // cadangan: bahasa Telegram pengguna
+      try { db = db || getDb(); const sl = db && await db.collection('user_lang').findOne({ _id: String(m.chat.id) }); if (sl && sl.lang) hl = sl.lang; } catch (e) {}   // utama: bahasa mini app
+      await tgSend(m.chat.id, helloMessage(hl));
     }
   } catch (e) { console.error('[OTP] webhook error', e && e.message); }
   res.sendStatus(200);
