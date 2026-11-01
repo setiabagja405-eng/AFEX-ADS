@@ -166,6 +166,12 @@ mountRoute('/api', './routes/gift');
 // 6d. Sinkron lock menu + Founder Gacha sederhana  ->  /api/cfg/get , /api/cfg/set , /api/founder/check , /api/founder/claim , /api/founder/grant
 mountRoute('/api', './routes/appcfg');
 
+// 6e. Menu User (admin) + OTP pemulihan akun per user (5 menit)  ->  /api/users/list , /api/users/otp , /api/users/verify , /api/users/my-otp
+mountRoute('/api', './routes/users');
+
+// 6f. Daftar TIM (nama + jabatan) di menu About, diatur admin dari Panel Admin  ->  /api/team/get , /api/team/set , /api/team/reset
+mountRoute('/api', './routes/team');
+
 // 7. Jalankan Server di Port Render
 ['MONGODB_URI','OTP_BOT_TOKEN','HASH_SALT','WEBHOOK_SECRET'].forEach(function (k) {
     if (!process.env[k]) console.warn('PERINGATAN: Environment variable ' + k + ' belum diisi');
