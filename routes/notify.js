@@ -103,7 +103,7 @@ function buildText(n, lang) {
     lines.push(`${T.network}: ${esc(n.network)}`);
     lines.push(`${T.amount}: ${Number(n.amount).toFixed(2)} USDT`);
     if (n.type === 'withdraw' && n.netReceive != null) lines.push(`${T.received}: ${Number(n.netReceive).toFixed(2)} USDT`);
-    if (n.txHash && n.txHash !== 'Pending Admin Input') lines.push(`TxHash: <code>${esc(n.txHash)}</code>`);
+    if (n.txHash && !/^Pending (Admin|Team) Input$/.test(String(n.txHash))) lines.push(`TxHash: <code>${esc(n.txHash)}</code>`);
     lines.push(`${T.status}: <b>${T[n.status] || esc(n.status)}</b>`);
     lines.push(`${T.request}: <code>${esc(n.requestId)}</code>`);
     return lines.join('\n');
