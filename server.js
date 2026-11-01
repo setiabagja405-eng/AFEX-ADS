@@ -145,16 +145,27 @@ app.post('/api/admin/approve-deposit/:id', async (req, res) => {
     }
 });
 
+// Pasang route dengan aman: jika file route belum ada / error, server TETAP hidup dan penyebabnya dicetak di log
+function mountRoute(base, file) {
+    try { app.use(base, require(file)); console.log('Route dimuat: ' + file); }
+    catch (e) { console.error('GAGAL memuat ' + file + ' -> ' + e.message); }
+}
+
 // 6a. OTP bot, registry wajah (anti akun ganda), status A2F  ->  POST /api/afex , POST /telegram/:secret
-app.use('/', require('./routes/afexface'));
+mountRoute('/', './routes/afexface');
 
 // 6a2. Kirim foto + caption referral ke chat pengguna  ->  POST /api/referral/send
-app.use('/api', require('./routes/referral'));
+mountRoute('/api', './routes/referral');
 
 // 6b. Notifikasi bot Telegram (withdraw, deposit, status)
-app.use('/api', require('./routes/notify'));
+mountRoute('/api', './routes/notify');
 
 // 7. Jalankan Server di Port Render
+['MONGODB_URI','OTP_BOT_TOKEN','HASH_SALT','WEBHOOK_SECRET'].forEach(function (k) {
+    if (!process.env[k]) console.warn('PERINGATAN: Environment variable ' + k + ' belum diisi');
+});
+if (!process.env.MAIN_BOT_TOKEN && !process.env.BOT_TOKEN) console.warn('PERINGATAN: MAIN_BOT_TOKEN / BOT_TOKEN belum diisi (OTP akan unauthorized)');
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server berjalan di port ${PORT}`);
