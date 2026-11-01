@@ -11849,7 +11849,58 @@ function merge(S, mrz, vis) {
 function nameTokens(s) {
   return up(stripAcc(s)).replace(/[^A-Z\s]/g, ' ').split(/\s+/).map(stripOcrFillerNoise).filter(function (t) { return t.length >= 2; });
 }
+var NAME_FILLER = 'KCLIE1X';
+function rawNameTokens(s) {
+  return up(stripAcc(String(s || ''))).replace(/[^A-Z\s]/g, ' ').split(/\s+/).filter(function (t) { return t.length >= 2; });
+}
+function pieceEq(p, t) {
+  if (p === t) return true;
+  if (t.length >= 5 && Math.abs(p.length - t.length) <= 1 && lev(p, t) <= 1) return true;
+  return false;
+}
+/* Uraikan satu kata hasil OCR (mis. BAGJAKSETIA) menjadi kata-kata referensi + filler '<' yang terbaca K/C/L/I/E/1/X.
+   Mengembalikan daftar token referensi yang dipakai, atau null bila tidak bisa diuraikan penuh. */
+function explainToken(u, toks) {
+  var n = u.length;
+  function skipFill(i, maxSkip) { var out = [i]; for (var k = 1; k <= maxSkip && i + k <= n; k++) { if (NAME_FILLER.indexOf(u[i + k - 1]) >= 0) out.push(i + k); else break; } return out; }
+  function go(i, used) {
+    if (i >= n) return used;
+    var starts = skipFill(i, 2);
+    for (var si = 0; si < starts.length; si++) {
+      var st = starts[si];
+      if (st >= n) { if (used.length) return used; continue; }
+      for (var ti = 0; ti < toks.length; ti++) {
+        var t = toks[ti], lens = t.length >= 5 ? [t.length, t.length - 1, t.length + 1] : [t.length];
+        for (var li = 0; li < lens.length; li++) {
+          var L = lens[li];
+          if (st + L > n) continue;
+          if (pieceEq(u.substr(st, L), t)) {
+            var r = go(st + L, used.concat([t]));
+            if (r) return r;
+          }
+        }
+      }
+    }
+    return null;
+  }
+  return go(0, []);
+}
+function nameMatchSmart(inp, doc) {
+  var A = rawNameTokens(inp), B = rawNameTokens(doc);
+  if (!A.length || !B.length) return false;
+  var usedA = {}, allExplained = true;
+  B.forEach(function (u) {
+    var r = explainToken(u, A);
+    if (r) r.forEach(function (t) { usedA[t] = true; }); else allExplained = false;
+  });
+  var allInputFound = A.every(function (t) { return usedA[t]; });
+  return allInputFound || allExplained;
+}
 function nameMatch(inp, doc) {
+  try { if (nameMatchSmart(inp, doc)) return true; } catch (e) {}
+  return nameMatchLegacy(inp, doc);
+}
+function nameMatchLegacy(inp, doc) {
   var A = nameTokens(inp), B = nameTokens(doc);
   if (!A.length || !B.length) return false;
   var small = A.length <= B.length ? A : B, big = A.length <= B.length ? B : A;
@@ -11954,7 +12005,7 @@ var TX = {
     en: 'ID card', id: 'Kartu ID', es: 'Documento ID', de: 'Personalausweis', fr: 'Carte ID',
     tr: 'Kimlik Kartı', uz: 'ID karta', ru: 'ID-карта', vi: 'Thẻ căn cước', tl: 'ID card',
     th: 'บัตรประชาชน', ms: 'Kad ID', hi: 'पहचान पत्र', ur: 'شناختی کارڈ', zh: '身份证',
-    ko: '신분증', ja: '身分증', af: 'ID-kaart', ar: 'بطاقة هوية'
+    ko: '신분증', ja: '身分証', af: 'ID-kaart', ar: 'بطاقة هوية'
   },
   none: {
     en: 'not read yet', id: 'belum terbaca', es: 'aún no leído', de: 'noch nicht gelesen', fr: 'non lu',
@@ -12147,6 +12198,12 @@ var TX = {
     tr: 'Kimlik / Pasaportu net hizalayın ve otomatik algılama için Çek’e basın!', uz: 'ID karta / Pasportni aniq tekislang va avtomatik aniqlash uchun Capture tugmasini bosing!', ru: 'Наведите камеру на ID / паспорт и нажмите Снять для автоопределения!', vi: 'Căn chỉnh rõ Thẻ ID / Hộ chiếu & nhấn Chụp để tự động nhận diện!', tl: 'Itapat nang malinaw ang ID / Pasaporte at pindutin ang Capture para sa auto-detect!',
     th: 'วางบัตรประชาชน / พาสปอร์ตให้ชัดเจนแล้วกดถ่ายภาพเพื่อตรวจจับอัตโนมัติ!', ms: 'Halakan Kad ID / Pasport dengan jelas & tekan Tangkap untuk pengesanan automatik!', hi: 'अपना ID कार्ड / पासपोर्ट स्पष्ट रूप से रखें और ऑटो-डिटेक्शन के लिए कैप्चर दबाएँ!', ur: 'اپنا شناختی کارڈ / پاسپورٹ واضح رکھیں اور خودکار شناخت کے لیے کیپچر دبائیں!', zh: '请将身份证/护照对准边框并点击拍摄以进行自动识别！',
     ko: '신분증/여권을 선명하게 맞추고 자동 인식을 위해 촬영 버튼을 누르세요!', ja: '身分証／パスポートを鮮明に合わせ、自動検出のために撮影ボタンを押してください！', af: 'Rig jou ID-kaart / Paspoort duidelik en druk Neem Foto vir outo-opsporing!', ar: 'وجّه بطاقة الهوية / جواز السفر بوضوح واضغط التقاط للكشف التلقائي!'
+  },
+  retake_photo: {
+    en: 'Retake Photo', id: 'Ulangi Foto', es: 'Repetir foto', de: 'Foto wiederholen', fr: 'Reprendre la photo',
+    tr: 'Fotoğrafı Tekrarla', uz: 'Rasmni qayta olish', ru: 'Переснять фото', vi: 'Chụp lại ảnh', tl: 'Ulitin ang Larawan',
+    th: 'ถ่ายภาพใหม่', ms: 'Ulang Foto', hi: 'फोटो दोबारा लें', ur: 'تصویر دوبارہ لیں', zh: '重新拍照',
+    ko: '다시 촬영', ja: '撮り直す', af: 'Neem foto oor', ar: 'إعادة التقاط الصورة'
   },
   btn_revision: {
     en: 'Revision', id: 'Revisi / Repair', es: 'Revisión', de: 'Revision', fr: 'Révision',
@@ -12346,20 +12403,48 @@ function setCheckingLoader(active, customMsg) {
   if (capBtn) {
     capBtn.disabled = !!active;
     capBtn.classList.toggle('opacity-70', !!active);
-    var capSpan = capBtn.querySelector('[data-i18n="id_capture_btn"]');
+    var capSpan = capBtn.querySelector('span');
     var capIcon = capBtn.querySelector('i');
+    var _hasPhotoNow = !!_capturedDocDataUrl;
     if (capIcon) {
-      capIcon.className = active ? 'fa-solid fa-spinner fa-spin mr-1' : 'fa-solid fa-camera mr-1';
+      capIcon.className = active ? 'fa-solid fa-spinner fa-spin mr-1' : (_hasPhotoNow ? 'fa-solid fa-rotate-left mr-1' : 'fa-solid fa-camera mr-1');
     }
     if (capSpan) {
-      capSpan.textContent = active ? msg : ((typeof t === 'function') ? t('id_capture_btn') : 'Capture ID / Passport');
+      if (active) capSpan.textContent = msg;
+      else if (_hasPhotoNow) { capSpan.removeAttribute('data-i18n'); capSpan.textContent = tx('retake_photo'); }
+      else { capSpan.setAttribute('data-i18n', 'id_capture_btn'); capSpan.textContent = (typeof t === 'function') ? t('id_capture_btn') : 'Capture ID / Passport'; }
     }
+    capBtn.setAttribute('data-mode', _hasPhotoNow ? 'retake' : 'capture');
   }
   if (saveBtn) {
     saveBtn.disabled = !!active;
     saveBtn.classList.toggle('opacity-70', !!active);
   }
 }
+
+/* Tombol Capture 2 fungsi: belum ada foto = Capture, sudah ada foto = Ulangi Foto */
+function syncCaptureBtn() {
+  var b = $('id-manual-capture-btn');
+  if (!b || b.disabled) return;
+  setCheckingLoader(false);
+}
+function retakeIdPhoto() {
+  clearAutoSubmitTimer();
+  S = freshState(); lastKind = null; lastCountry = null; busy = false;
+  _hasScannedOnce = false; _isRevisionUnlocked = false;
+  _capturedDocCanvas = null; _capturedDocDataUrl = null; _rawOcrCorpus = '';
+  _autoScanBusy = false; _lastAutoScanMs = Date.now() + 1500;
+  var sel = $('id-doc-country'); if (sel) sel.value = '';
+  var nm = $('id-doc-name'); if (nm) nm.value = '';
+  var nu = $('id-doc-number'); if (nu) { nu.value = ''; nu.classList.remove('ring-2', 'ring-yellow-400'); }
+  setTopInputsEditable(false);
+  setCheckingLoader(false);
+  renderPanel();
+  updateHint();
+  setNote('');
+  resumeScan();
+}
+G._afexRetakeIdPhoto = retakeIdPhoto;
 
 function injectCleanIdModeCss() {
   if ($('afex-kyc-id-clean-style')) return;
@@ -12579,6 +12664,7 @@ function refreshLabels() {
   }
   renderPanel();
   updateHint();
+  syncCaptureBtn();
 }
 
 function setNote(txt) { var el = $('kyc-ai-note'); if (el) el.textContent = txt || ''; }
@@ -12797,6 +12883,31 @@ function extractExtraVisualFields(rawText, S) {
   if (S.kind === 'id' && !S.expiry) S.lifetime = true;
 }
 
+function unglueDetectedName(name, corpus) {
+  var toks = rawNameTokens(name);
+  if (!toks.length) return null;
+  var words = {};
+  String(corpus || '').split(/\r?\n/).forEach(function (ln) {
+    var c = ln.replace(/\s+/g, '');
+    if (ln.indexOf('<') >= 0 || c.length >= 28) return; /* lewati baris MRZ */
+    rawNameTokens(ln).forEach(function (w) { if (w.length >= 3 && w.length <= 16) words[w] = true; });
+  });
+  var hints = [];
+  try { var ne = document.getElementById('id-doc-name'); if (ne && ne.value) hints = hints.concat(rawNameTokens(ne.value)); } catch (e) {}
+  try { if (typeof displayName !== 'undefined' && displayName) hints = hints.concat(rawNameTokens(displayName)); } catch (e) {}
+  hints.forEach(function (w) { if (w.length >= 3) words[w] = true; });
+  var out = [], changed = false;
+  toks.forEach(function (w) {
+    if (w.length >= 7) {
+      var cands = Object.keys(words).filter(function (x) { return x !== w && x.length < w.length; });
+      var r = cands.length ? explainToken(w, cands) : null;
+      if (r && r.length >= 2) { r.forEach(function (x) { out.push(x); }); changed = true; return; }
+    }
+    out.push(w);
+  });
+  return changed ? out.join(' ') : null;
+}
+
 async function scanOnce(srcCanvasOrVideo) {
   var src = srcCanvasOrVideo || _capturedDocCanvas || $('kyc-video');
   if (!src) return;
@@ -12818,6 +12929,7 @@ async function scanOnce(srcCanvasOrVideo) {
   if (S.nat && !S.country) S.country = S.nat;
   if (S.kind === 'id' && !S.expiry) S.lifetime = true;
   _rawOcrCorpus = [full, mrzText, idZoneText].join('\n');
+  try { if (S.name) { var _ug = unglueDetectedName(S.name, _rawOcrCorpus); if (_ug) S.name = _ug; } } catch (_e) {}
   applyAutoSwitch();
   renderPanel();
 }
@@ -12972,6 +13084,7 @@ function handlePostDetectionState() {
   _hasScannedOnce = true;
   syncDetectedToTopInputs(true);
   renderPanel();
+  syncCaptureBtn();
 
   if (isAllFiveGreen()) {
     setTopInputsEditable(false);
@@ -13080,6 +13193,7 @@ G._afexOnIdFrameSharp = function (isSharp, isStable) {
 G.captureIdentityDocumentNow = async function (isAuto) {
   if (isAuto === true) return;
   if (busy) return;
+  if (_capturedDocDataUrl) { retakeIdPhoto(); return; }
   clearAutoSubmitTimer();
 
   busy = true;
@@ -17185,7 +17299,21 @@ var D = {
   id: { step: 'LANGKAH 2 / 2 - OTP VIA BOT', info: 'Tekan Get. Bot OTP akan mengirim kode 6 digit ke akun Telegram Anda. Kode berlaku 5 menit.', get: 'Get', getting: 'Meminta kode...', sent: 'Kode dikirim ke chat bot OTP. Cek Telegram Anda.', timer: 'Berlaku', expired: 'OTP tidak valid lagi (lewat 5 menit). Tekan Get untuk kode baru.', invalid: 'OTP tidak valid.', left: 'Sisa percobaan:', locked: 'Terlalu banyak salah. Tekan Get untuk kode baru.', needStart: 'Buka bot OTP dan tekan START dulu, lalu tekan Get lagi.', openBot: 'Buka Bot OTP', cooldown: 'Tunggu sebentar sebelum meminta lagi.', tooMany: 'Terlalu banyak permintaan. Coba lagi satu jam lagi.', emailUsed: 'Email ini sudah dipakai akun lain.', net: 'Koneksi ke server OTP gagal. Coba lagi.', unauth: 'Sesi Telegram tidak valid. Buka ulang mini app dari Telegram.', pressGet: 'Tekan Get dulu untuk menerima OTP.', verify: 'Verifikasi OTP', change: 'Ganti email', ph: 'OTP 6 digit' },
   es: { step: 'PASO 2 / 2 - OTP POR BOT', info: 'Pulsa Get. El bot OTP enviará un código de 6 dígitos a tu cuenta de Telegram. Válido 5 minutos.', get: 'Get', getting: 'Solicitando...', sent: 'Código enviado al chat del bot OTP. Revisa Telegram.', timer: 'Válido', expired: 'El OTP ya no es válido (más de 5 minutos). Pulsa Get para uno nuevo.', invalid: 'OTP no válido.', left: 'Intentos restantes:', locked: 'Demasiados intentos. Pulsa Get para un código nuevo.', needStart: 'Abre el bot OTP y pulsa START primero; luego pulsa Get.', openBot: 'Abrir bot OTP', cooldown: 'Espera antes de solicitar de nuevo.', tooMany: 'Demasiadas solicitudes. Inténtalo en una hora.', emailUsed: 'Este correo ya lo usa otra cuenta.', net: 'Falló la conexión con el servidor OTP.', unauth: 'Sesión de Telegram no válida. Reabre la mini app desde Telegram.', pressGet: 'Pulsa Get primero para recibir tu OTP.', verify: 'Verificar OTP', change: 'Cambiar correo', ph: 'OTP de 6 dígitos' },
   de: { step: 'SCHRITT 2 / 2 - OTP PER BOT', info: 'Tippe auf Get. Der OTP-Bot sendet einen 6-stelligen Code an dein Telegram-Konto. 5 Minuten gültig.', get: 'Get', getting: 'Wird angefordert...', sent: 'Code an den OTP-Bot-Chat gesendet. Prüfe Telegram.', timer: 'Gültig', expired: 'OTP nicht mehr gültig (über 5 Minuten). Tippe auf Get für einen neuen Code.', invalid: 'Ungültiger OTP.', left: 'Verbleibende Versuche:', locked: 'Zu viele Fehlversuche. Tippe auf Get für einen neuen Code.', needStart: 'Öffne den OTP-Bot und tippe zuerst auf START, dann erneut auf Get.', openBot: 'OTP-Bot öffnen', cooldown: 'Bitte kurz warten.', tooMany: 'Zu viele Anfragen. Versuche es in einer Stunde erneut.', emailUsed: 'Diese E-Mail wird bereits von einem anderen Konto genutzt.', net: 'Verbindung zum OTP-Server fehlgeschlagen.', unauth: 'Telegram-Sitzung ungültig. Mini-App neu aus Telegram öffnen.', pressGet: 'Tippe zuerst auf Get, um den OTP zu erhalten.', verify: 'OTP prüfen', change: 'E-Mail ändern', ph: '6-stelliger OTP' },
-  fr: { step: 'ÉTAPE 2 / 2 - OTP PAR BOT', info: 'Appuyez sur Get. Le bot OTP enverra un code à 6 chiffres à votre compte Telegram. Valable 5 minutes.', get: 'Get', getting: 'Demande en cours...', sent: 'Code envoyé dans le chat du bot OTP. Vérifiez Telegram.', timer: 'Valable', expired: 'OTP expiré (plus de 5 minutes). Appuyez sur Get pour un nouveau code.', invalid: 'OTP invalide.', left: 'Essais restants :', locked: 'Trop d\u2019erreurs. Appuyez sur Get pour un nouveau code.', needStart: 'Ouvrez le bot OTP, appuyez sur START, puis sur Get.', openBot: 'Ouvrir le bot OTP', cooldown: 'Patientez avant de redemander.', tooMany: 'Trop de demandes. Réessayez dans une heure.', emailUsed: 'Cet e-mail est déjà utilisé par un autre compte.', net: 'Connexion au serveur OTP impossible.', unauth: 'Session Telegram invalide. Rouvrez la mini app depuis Telegram.', pressGet: 'Appuyez d\u2019abord sur Get pour recevoir votre OTP.', verify: 'Vérifier l\u2019OTP', change: 'Changer d\u2019e-mail', ph: 'OTP à 6 chiffres' }
+  fr: { step: 'ÉTAPE 2 / 2 - OTP PAR BOT', info: 'Appuyez sur Get. Le bot OTP enverra un code à 6 chiffres à votre compte Telegram. Valable 5 minutes.', get: 'Get', getting: 'Demande en cours...', sent: 'Code envoyé dans le chat du bot OTP. Vérifiez Telegram.', timer: 'Valable', expired: 'OTP expiré (plus de 5 minutes). Appuyez sur Get pour un nouveau code.', invalid: 'OTP invalide.', left: 'Essais restants :', locked: 'Trop d\u2019erreurs. Appuyez sur Get pour un nouveau code.', needStart: 'Ouvrez le bot OTP, appuyez sur START, puis sur Get.', openBot: 'Ouvrir le bot OTP', cooldown: 'Patientez avant de redemander.', tooMany: 'Trop de demandes. Réessayez dans une heure.', emailUsed: 'Cet e-mail est déjà utilisé par un autre compte.', net: 'Connexion au serveur OTP impossible.', unauth: 'Session Telegram invalide. Rouvrez la mini app depuis Telegram.', pressGet: 'Appuyez d\u2019abord sur Get pour recevoir votre OTP.', verify: 'Vérifier l\u2019OTP', change: 'Changer d\u2019e-mail', ph: 'OTP à 6 chiffres' },
+  tr: { step: "ADIM 2 / 2 - BOT İLE OTP", info: "Get'e basın. OTP botu Telegram hesabınıza 6 haneli bir kod gönderecek. Kod 5 dakika geçerlidir.", get: "Get", getting: "İsteniyor...", sent: "Kod OTP bot sohbetine gönderildi. Telegram'ı kontrol edin.", timer: "Geçerlilik", expired: "OTP artık geçerli değil (5 dakikayı aştı). Yeni kod için Get'e basın.", invalid: "Geçersiz OTP.", left: "Kalan deneme:", locked: "Çok fazla yanlış deneme. Yeni kod için Get'e basın.", needStart: "Önce OTP botunu açıp START'a basın, sonra tekrar Get'e basın.", openBot: "OTP Botunu Aç", cooldown: "Tekrar istemeden önce lütfen bekleyin.", tooMany: "Çok fazla istek. Bir saat sonra tekrar deneyin.", emailUsed: "Bu e-posta başka bir hesap tarafından kullanılıyor.", net: "OTP sunucusuna bağlantı başarısız. Tekrar deneyin.", unauth: "Telegram oturumu geçersiz. Mini uygulamayı Telegram'dan yeniden açın.", pressGet: "OTP almak için önce Get'e basın.", verify: "OTP Doğrula", change: "E-postayı değiştir", ph: "6 haneli OTP" },
+  uz: { step: "2 / 2-QADAM - BOT ORQALI OTP", info: "Get tugmasini bosing. OTP bot Telegram hisobingizga 6 xonali kod yuboradi. Kod 5 daqiqa amal qiladi.", get: "Get", getting: "So'ralmoqda...", sent: "Kod OTP bot chatiga yuborildi. Telegramni tekshiring.", timer: "Amal qilish muddati", expired: "OTP endi yaroqsiz (5 daqiqadan oshdi). Yangi kod uchun Get tugmasini bosing.", invalid: "OTP noto'g'ri.", left: "Qolgan urinishlar:", locked: "Juda ko'p noto'g'ri urinish. Yangi kod uchun Get tugmasini bosing.", needStart: "Avval OTP botni ochib START tugmasini bosing, so'ng yana Get tugmasini bosing.", openBot: "OTP botni ochish", cooldown: "Qayta so'rashdan oldin biroz kuting.", tooMany: "Juda ko'p so'rov. Bir soatdan keyin urinib ko'ring.", emailUsed: "Bu email boshqa hisob tomonidan ishlatilgan.", net: "OTP serveriga ulanib bo'lmadi. Qayta urinib ko'ring.", unauth: "Telegram sessiyasi yaroqsiz. Mini ilovani Telegramdan qayta oching.", pressGet: "OTP olish uchun avval Get tugmasini bosing.", verify: "OTPni tasdiqlash", change: "Emailni o'zgartirish", ph: "6 xonali OTP" },
+  ru: { step: "ШАГ 2 / 2 - OTP ЧЕРЕЗ БОТА", info: "Нажмите Get. OTP-бот отправит 6-значный код в ваш аккаунт Telegram. Код действителен 5 минут.", get: "Get", getting: "Запрос...", sent: "Код отправлен в чат OTP-бота. Проверьте Telegram.", timer: "Действителен", expired: "OTP больше не действителен (прошло более 5 минут). Нажмите Get для нового кода.", invalid: "Неверный OTP.", left: "Осталось попыток:", locked: "Слишком много неверных попыток. Нажмите Get для нового кода.", needStart: "Откройте OTP-бота и сначала нажмите START, затем снова нажмите Get.", openBot: "Открыть OTP-бота", cooldown: "Подождите перед повторным запросом.", tooMany: "Слишком много запросов. Повторите через час.", emailUsed: "Этот email уже используется другим аккаунтом.", net: "Не удалось подключиться к серверу OTP. Повторите попытку.", unauth: "Сессия Telegram недействительна. Откройте мини-приложение из Telegram заново.", pressGet: "Сначала нажмите Get, чтобы получить OTP.", verify: "Подтвердить OTP", change: "Изменить email", ph: "6-значный OTP" },
+  vi: { step: "BƯỚC 2 / 2 - OTP QUA BOT", info: "Nhấn Get. Bot OTP sẽ gửi mã 6 chữ số đến tài khoản Telegram của bạn. Mã có hiệu lực trong 5 phút.", get: "Get", getting: "Đang yêu cầu...", sent: "Đã gửi mã đến cuộc trò chuyện của bot OTP. Hãy kiểm tra Telegram.", timer: "Hiệu lực", expired: "OTP không còn hiệu lực (quá 5 phút). Nhấn Get để lấy mã mới.", invalid: "OTP không hợp lệ.", left: "Số lần thử còn lại:", locked: "Sai quá nhiều lần. Nhấn Get để lấy mã mới.", needStart: "Hãy mở bot OTP và nhấn START trước, sau đó nhấn Get lại.", openBot: "Mở Bot OTP", cooldown: "Vui lòng đợi trước khi yêu cầu lại.", tooMany: "Quá nhiều yêu cầu. Hãy thử lại sau một giờ.", emailUsed: "Email này đã được tài khoản khác sử dụng.", net: "Kết nối đến máy chủ OTP thất bại. Hãy thử lại.", unauth: "Phiên Telegram không hợp lệ. Hãy mở lại mini app từ Telegram.", pressGet: "Hãy nhấn Get trước để nhận OTP.", verify: "Xác minh OTP", change: "Đổi email", ph: "OTP 6 chữ số" },
+  tl: { step: "HAKBANG 2 / 2 - OTP SA PAMAMAGITAN NG BOT", info: "Pindutin ang Get. Magpapadala ang OTP bot ng 6-digit na code sa iyong Telegram account. Valid ang code sa loob ng 5 minuto.", get: "Get", getting: "Humihiling...", sent: "Naipadala ang code sa chat ng OTP bot. Tingnan ang Telegram.", timer: "Valid sa loob ng", expired: "Hindi na valid ang OTP (lampas 5 minuto). Pindutin ang Get para sa bagong code.", invalid: "Maling OTP.", left: "Natitirang pagsubok:", locked: "Masyadong maraming maling pagsubok. Pindutin ang Get para sa bagong code.", needStart: "Buksan muna ang OTP bot at pindutin ang START, saka pindutin muli ang Get.", openBot: "Buksan ang OTP Bot", cooldown: "Maghintay muna bago humiling muli.", tooMany: "Masyadong maraming kahilingan. Subukan muli pagkalipas ng isang oras.", emailUsed: "Ginagamit na ng ibang account ang email na ito.", net: "Nabigo ang koneksyon sa OTP server. Subukan muli.", unauth: "Di-wasto ang Telegram session. Buksan muli ang mini app mula sa Telegram.", pressGet: "Pindutin muna ang Get para matanggap ang iyong OTP.", verify: "I-verify ang OTP", change: "Palitan ang email", ph: "6-digit na OTP" },
+  th: { step: "ขั้นตอน 2 / 2 - OTP ผ่านบอท", info: "กด Get บอท OTP จะส่งรหัส 6 หลักไปยังบัญชี Telegram ของคุณ รหัสใช้ได้ 5 นาที", get: "Get", getting: "กำลังร้องขอ...", sent: "ส่งรหัสไปยังแชทบอท OTP แล้ว โปรดตรวจสอบ Telegram", timer: "ใช้ได้อีก", expired: "OTP หมดอายุแล้ว (เกิน 5 นาที) กด Get เพื่อรับรหัสใหม่", invalid: "OTP ไม่ถูกต้อง", left: "จำนวนครั้งที่เหลือ:", locked: "ใส่ผิดหลายครั้งเกินไป กด Get เพื่อรับรหัสใหม่", needStart: "เปิดบอท OTP แล้วกด START ก่อน จากนั้นกด Get อีกครั้ง", openBot: "เปิดบอท OTP", cooldown: "โปรดรอสักครู่ก่อนร้องขออีกครั้ง", tooMany: "ร้องขอบ่อยเกินไป ลองใหม่ในอีกหนึ่งชั่วโมง", emailUsed: "อีเมลนี้ถูกใช้โดยบัญชีอื่นแล้ว", net: "เชื่อมต่อเซิร์ฟเวอร์ OTP ไม่สำเร็จ ลองอีกครั้ง", unauth: "เซสชัน Telegram ไม่ถูกต้อง เปิดมินิแอปจาก Telegram ใหม่อีกครั้ง", pressGet: "กด Get ก่อนเพื่อรับ OTP ของคุณ", verify: "ยืนยัน OTP", change: "เปลี่ยนอีเมล", ph: "OTP 6 หลัก" },
+  ms: { step: "LANGKAH 2 / 2 - OTP MELALUI BOT", info: "Tekan Get. Bot OTP akan menghantar kod 6 digit ke akaun Telegram anda. Kod sah selama 5 minit.", get: "Get", getting: "Sedang meminta...", sent: "Kod dihantar ke sembang bot OTP. Semak Telegram.", timer: "Sah selama", expired: "OTP tidak lagi sah (melebihi 5 minit). Tekan Get untuk kod baharu.", invalid: "OTP tidak sah.", left: "Percubaan berbaki:", locked: "Terlalu banyak percubaan salah. Tekan Get untuk kod baharu.", needStart: "Buka bot OTP dan tekan START dahulu, kemudian tekan Get semula.", openBot: "Buka Bot OTP", cooldown: "Sila tunggu sebelum meminta semula.", tooMany: "Terlalu banyak permintaan. Cuba lagi dalam sejam.", emailUsed: "Emel ini telah digunakan oleh akaun lain.", net: "Sambungan ke pelayan OTP gagal. Cuba lagi.", unauth: "Sesi Telegram tidak sah. Buka semula aplikasi mini dari Telegram.", pressGet: "Tekan Get dahulu untuk menerima OTP anda.", verify: "Sahkan OTP", change: "Tukar emel", ph: "OTP 6 digit" },
+  hi: { step: "चरण 2 / 2 - बॉट द्वारा OTP", info: "Get दबाएं। OTP बॉट आपके Telegram अकाउंट पर 6 अंकों का कोड भेजेगा। कोड 5 मिनट के लिए मान्य है।", get: "Get", getting: "अनुरोध किया जा रहा है...", sent: "कोड OTP बॉट चैट में भेज दिया गया। Telegram देखें।", timer: "मान्य", expired: "OTP अब मान्य नहीं है (5 मिनट से अधिक)। नया कोड पाने के लिए Get दबाएं।", invalid: "अमान्य OTP।", left: "शेष प्रयास:", locked: "बहुत अधिक गलत प्रयास। नया कोड पाने के लिए Get दबाएं।", needStart: "पहले OTP बॉट खोलकर START दबाएं, फिर दोबारा Get दबाएं।", openBot: "OTP बॉट खोलें", cooldown: "दोबारा अनुरोध करने से पहले कृपया प्रतीक्षा करें।", tooMany: "बहुत अधिक अनुरोध। एक घंटे बाद पुनः प्रयास करें।", emailUsed: "यह ईमेल पहले से किसी अन्य खाते द्वारा उपयोग किया जा रहा है।", net: "OTP सर्वर से कनेक्शन विफल। पुनः प्रयास करें।", unauth: "Telegram सत्र अमान्य है। मिनी ऐप को Telegram से दोबारा खोलें।", pressGet: "अपना OTP पाने के लिए पहले Get दबाएं।", verify: "OTP सत्यापित करें", change: "ईमेल बदलें", ph: "6 अंकों का OTP" },
+  ur: { step: "مرحلہ 2 / 2 - بوٹ کے ذریعے OTP", info: "Get دبائیں۔ OTP بوٹ آپ کے Telegram اکاؤنٹ پر 6 ہندسوں کا کوڈ بھیجے گا۔ کوڈ 5 منٹ تک درست ہے۔", get: "Get", getting: "درخواست کی جا رہی ہے...", sent: "کوڈ OTP بوٹ چیٹ میں بھیج دیا گیا۔ Telegram چیک کریں۔", timer: "درست رہے گا", expired: "OTP اب درست نہیں (5 منٹ سے زیادہ ہو گئے)۔ نئے کوڈ کے لیے Get دبائیں۔", invalid: "غلط OTP۔", left: "باقی کوششیں:", locked: "بہت زیادہ غلط کوششیں۔ نئے کوڈ کے لیے Get دبائیں۔", needStart: "پہلے OTP بوٹ کھول کر START دبائیں، پھر دوبارہ Get دبائیں۔", openBot: "OTP بوٹ کھولیں", cooldown: "دوبارہ درخواست کرنے سے پہلے براہِ کرم انتظار کریں۔", tooMany: "بہت زیادہ درخواستیں۔ ایک گھنٹے بعد دوبارہ کوشش کریں۔", emailUsed: "یہ ای میل پہلے ہی کسی اور اکاؤنٹ میں استعمال ہو رہا ہے۔", net: "OTP سرور سے رابطہ ناکام ہوا۔ دوبارہ کوشش کریں۔", unauth: "Telegram سیشن غلط ہے۔ منی ایپ کو Telegram سے دوبارہ کھولیں۔", pressGet: "اپنا OTP حاصل کرنے کے لیے پہلے Get دبائیں۔", verify: "OTP کی تصدیق کریں", change: "ای میل تبدیل کریں", ph: "6 ہندسوں کا OTP" },
+  zh: { step: "第 2 / 2 步 - 通过机器人获取 OTP", info: "点击 Get。OTP 机器人会向您的 Telegram 账号发送 6 位验证码，验证码 5 分钟内有效。", get: "Get", getting: "请求中...", sent: "验证码已发送到 OTP 机器人聊天，请查看 Telegram。", timer: "有效时间", expired: "OTP 已失效（超过 5 分钟）。请点击 Get 获取新验证码。", invalid: "OTP 无效。", left: "剩余尝试次数：", locked: "错误次数过多。请点击 Get 获取新验证码。", needStart: "请先打开 OTP 机器人并点击 START，然后再次点击 Get。", openBot: "打开 OTP 机器人", cooldown: "请稍候再重新请求。", tooMany: "请求过于频繁，请一小时后再试。", emailUsed: "该邮箱已被其他账号使用。", net: "连接 OTP 服务器失败，请重试。", unauth: "Telegram 会话无效，请从 Telegram 重新打开小程序。", pressGet: "请先点击 Get 以接收 OTP。", verify: "验证 OTP", change: "更换邮箱", ph: "6 位 OTP" },
+  ko: { step: "2 / 2 단계 - 봇으로 OTP", info: "Get을 누르세요. OTP 봇이 Telegram 계정으로 6자리 코드를 보냅니다. 코드는 5분간 유효합니다.", get: "Get", getting: "요청 중...", sent: "코드가 OTP 봇 채팅으로 전송되었습니다. Telegram을 확인하세요.", timer: "유효 시간", expired: "OTP가 만료되었습니다 (5분 초과). 새 코드를 받으려면 Get을 누르세요.", invalid: "잘못된 OTP입니다.", left: "남은 시도 횟수:", locked: "잘못된 시도가 너무 많습니다. 새 코드를 받으려면 Get을 누르세요.", needStart: "먼저 OTP 봇을 열어 START를 누른 후 다시 Get을 누르세요.", openBot: "OTP 봇 열기", cooldown: "다시 요청하기 전에 잠시 기다려 주세요.", tooMany: "요청이 너무 많습니다. 한 시간 후 다시 시도하세요.", emailUsed: "이 이메일은 이미 다른 계정에서 사용 중입니다.", net: "OTP 서버 연결에 실패했습니다. 다시 시도하세요.", unauth: "Telegram 세션이 유효하지 않습니다. Telegram에서 미니앱을 다시 여세요.", pressGet: "OTP를 받으려면 먼저 Get을 누르세요.", verify: "OTP 인증", change: "이메일 변경", ph: "6자리 OTP" },
+  ja: { step: "ステップ 2 / 2 - ボット経由のOTP", info: "Getを押してください。OTPボットがTelegramアカウントに6桁のコードを送信します。コードの有効期限は5分です。", get: "Get", getting: "リクエスト中...", sent: "コードをOTPボットのチャットに送信しました。Telegramを確認してください。", timer: "有効時間", expired: "OTPの有効期限が切れました（5分超過）。Getを押して新しいコードを取得してください。", invalid: "無効なOTPです。", left: "残り試行回数:", locked: "誤入力が多すぎます。Getを押して新しいコードを取得してください。", needStart: "まずOTPボットを開いてSTARTを押し、もう一度Getを押してください。", openBot: "OTPボットを開く", cooldown: "再リクエストの前に少しお待ちください。", tooMany: "リクエストが多すぎます。1時間後にもう一度お試しください。", emailUsed: "このメールは既に別のアカウントで使用されています。", net: "OTPサーバーへの接続に失敗しました。もう一度お試しください。", unauth: "Telegramセッションが無効です。Telegramからミニアプリを開き直してください。", pressGet: "OTPを受け取るには、まずGetを押してください。", verify: "OTPを認証", change: "メールを変更", ph: "6桁のOTP" },
+  af: { step: "STAP 2 / 2 - OTP VIA BOT", info: "Druk Get. Die OTP-bot sal 'n 6-syfer kode na jou Telegram-rekening stuur. Die kode is 5 minute geldig.", get: "Get", getting: "Versoek tans...", sent: "Kode na die OTP-bot-gesprek gestuur. Kyk in Telegram.", timer: "Geldig vir", expired: "OTP is nie meer geldig nie (meer as 5 minute). Druk Get vir 'n nuwe kode.", invalid: "Ongeldige OTP.", left: "Pogings oor:", locked: "Te veel verkeerde pogings. Druk Get vir 'n nuwe kode.", needStart: "Maak eers die OTP-bot oop en druk START, druk dan weer Get.", openBot: "Maak OTP-bot oop", cooldown: "Wag asseblief voordat jy weer versoek.", tooMany: "Te veel versoeke. Probeer oor 'n uur weer.", emailUsed: "Hierdie e-pos word reeds deur 'n ander rekening gebruik.", net: "Verbinding met OTP-bediener het misluk. Probeer weer.", unauth: "Telegram-sessie ongeldig. Maak die mini-app weer vanaf Telegram oop.", pressGet: "Druk eers Get om jou OTP te ontvang.", verify: "Verifieer OTP", change: "Verander e-pos", ph: "6-syfer OTP" },
+  ar: { step: "الخطوة 2 / 2 - OTP عبر البوت", info: "اضغط Get. سيرسل بوت OTP رمزاً من 6 أرقام إلى حسابك على Telegram. الرمز صالح لمدة 5 دقائق.", get: "Get", getting: "جارٍ الطلب...", sent: "تم إرسال الرمز إلى دردشة بوت OTP. تحقق من Telegram.", timer: "صالح لمدة", expired: "انتهت صلاحية OTP (أكثر من 5 دقائق). اضغط Get للحصول على رمز جديد.", invalid: "OTP غير صالح.", left: "المحاولات المتبقية:", locked: "محاولات خاطئة كثيرة. اضغط Get للحصول على رمز جديد.", needStart: "افتح بوت OTP واضغط START أولاً، ثم اضغط Get مرة أخرى.", openBot: "فتح بوت OTP", cooldown: "يرجى الانتظار قبل الطلب مرة أخرى.", tooMany: "طلبات كثيرة جداً. حاول مرة أخرى بعد ساعة.", emailUsed: "هذا البريد الإلكتروني مستخدم بالفعل في حساب آخر.", net: "فشل الاتصال بخادم OTP. حاول مرة أخرى.", unauth: "جلسة Telegram غير صالحة. أعد فتح التطبيق المصغر من Telegram.", pressGet: "اضغط Get أولاً لتلقي OTP.", verify: "تحقق من OTP", change: "تغيير البريد الإلكتروني", ph: "OTP من 6 أرقام" }
 };
 function lang() { try { return (typeof afexCurrentLang === 'function' ? afexCurrentLang() : 'en') || 'en'; } catch (e) { return 'en'; } }
 function L(k) { var lc = lang(); var d = D[lc] || (lc === 'ms' ? D.id : D.en); return d[k] || D.en[k] || k; }
@@ -17404,7 +17532,8 @@ var G = window, LIMIT = 5, DEDUPE_MS = 10 * 60 * 1000, T0 = Date.now();
 var LABEL = {
   DUP_IP: 'Akun ganda di 1 IP', DUP_FACE: 'Wajah sama dengan akun lain', ADS_NOT_SHOWN: 'Reward iklan tanpa iklan tampil',
   SPEED_JUMP: 'Kecepatan mining naik tanpa transaksi sah', BALANCE_JUMP: 'Saldo AFEX naik tanpa transaksi sah',
-  CLOCK_TAMPER: 'Jam perangkat dimundurkan', STATE_TAMPER: 'Data lokal dimodifikasi', MANUAL: 'Ditandai admin'
+  CLOCK_TAMPER: 'Jam perangkat diubah (mundur/maju)', STATE_TAMPER: 'Data lokal dimodifikasi', MANUAL: 'Ditandai admin',
+  EXTERNAL_WRITE: 'Nilai diubah dari luar aplikasi (konsol/script)', KYC_FORGED: 'Status KYC tanpa persetujuan admin', FOUNDER_FORGED: 'Status Founder tanpa persetujuan admin', DUP_DEVICE: 'Beberapa akun di 1 perangkat'
 };
 function esc(s) { return (typeof escapeHtml === 'function') ? escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 function Q() { return getGlobalAdminQueue(); }
@@ -19040,6 +19169,443 @@ if (typeof _prevTrigger === 'function') {
     return _prevTrigger.apply(self, args);
   };
 }
+})();
+</script>
+<script id="afex-kyc-camera-speed">
+/* ===== [PERBAIKAN] KYC: AKSES KAMERA CEPAT (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   - Stream kamera diminta SEGERA saat tombol KYC ditekan (pointerdown) / saat openKycCameraModal dipanggil,
+     lalu dipakai ulang oleh kode lama sehingga tidak menunggu rantai wrapper & inisialisasi OCR/UI.
+   - Constraint ringan (tanpa frameRate) agar negosiasi kamera lebih cepat; fallback otomatis bila gagal. */
+(function () {
+'use strict';
+var G = window;
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || navigator.mediaDevices.__afexFastCam) return;
+var md = navigator.mediaDevices;
+var _gum = md.getUserMedia.bind(md);
+var pending = null; /* { type, promise, ts, timer } */
+
+function wantType(c) {
+  try { return JSON.stringify(c && c.video && c.video.facingMode || '').indexOf('environment') >= 0 ? 'id' : 'face'; } catch (e) { return 'face'; }
+}
+function fastConstraints(type) {
+  return type === 'id'
+    ? { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
+    : { video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } }, audio: false };
+}
+function dropPending(stop) {
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  var p = pending; pending = null;
+  if (stop) { p.promise.then(function (s) { try { s.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }, function () {}); }
+}
+function warm(type) {
+  if (pending && pending.type === type && (Date.now() - pending.ts) < 3500) return pending;
+  dropPending(true);
+  var pr = _gum(fastConstraints(type)).catch(function () {
+    return _gum({ video: { facingMode: type === 'id' ? 'environment' : 'user' }, audio: false });
+  }).catch(function () { return _gum({ video: true, audio: false }); });
+  pending = { type: type, promise: pr, ts: Date.now(), timer: setTimeout(function () { dropPending(true); }, 3500) };
+  pr.catch(function () { if (pending && pending.promise === pr) { clearTimeout(pending.timer); pending = null; } });
+  return pending;
+}
+function modalOpen() { var m = document.getElementById('camera-modal'); return !!(m && !m.classList.contains('hidden')); }
+
+/* Intercept getUserMedia: kalau ada stream hangat untuk tipe yang sama, pakai itu (sekali pakai) */
+md.getUserMedia = function (constraints) {
+  if (pending && constraints && constraints.video && wantType(constraints) === pending.type && (Date.now() - pending.ts) < 3500) {
+    var p = pending; pending = null; clearTimeout(p.timer);
+    return p.promise.then(function (s) {
+      var live = s.getVideoTracks().some(function (t) { return t.readyState === 'live'; });
+      return live ? s : _gum(constraints);
+    }, function () { return _gum(constraints); });
+  }
+  return _gum(constraints);
+};
+md.__afexFastCam = true;
+
+function kycAvailable(type) {
+  try {
+    if (type !== 'face' && type !== 'id') return false;
+    if (typeof featureLockState !== 'undefined' && featureLockState[type] && targetDates[type] > Date.now() && !isAdminSessionUnlocked) return false;
+    if (miningData && miningData.kycStatus && miningData.kycStatus[type] === 'verified') return false;
+    return true;
+  } catch (e) { return true; }
+}
+
+/* Pemanasan paling awal: saat jari menyentuh tombol KYC (sebelum click) */
+function onDown(ev) {
+  try {
+    var el = ev.target && ev.target.closest ? ev.target.closest('[onclick*="openLockedFeature"]') : null;
+    if (!el) return;
+    var m = /openLockedFeature\(\s*['"](\w+)['"]/.exec(el.getAttribute('onclick') || '');
+    if (m && kycAvailable(m[1]) && !modalOpen()) warm(m[1]);
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', onDown, true);
+document.addEventListener('touchstart', onDown, { capture: true, passive: true });
+
+/* Pemanasan juga saat fungsi dipanggil (jalur tanpa pointerdown) – sebelum wrapper lain berjalan */
+var _prev = G.openKycCameraModal;
+if (typeof _prev === 'function') {
+  G.openKycCameraModal = function (type) {
+    try { if (type === 'face' || type === 'id') warm(type); } catch (e) {}
+    return _prev.apply(this, arguments);
+  };
+}
+/* openLockedFeature memanggil openKycCameraModal lewat nama global – pastikan mengarah ke versi ini */
+try { openKycCameraModal = G.openKycCameraModal; } catch (e) {}
+
+/* Jangan biarkan stream hangat menggantung bila modal ditutup */
+document.addEventListener('visibilitychange', function () { if (document.hidden) dropPending(true); });
+})();
+</script>
+<script id="afex-cancel-menu-list">
+/* ===== [PERBAIKAN] MENU PEMBATALAN: LANGSUNG TAMPIL ID YANG SUDAH KYC & SUDAH UPGRADE FOUNDER (ADDITIVE - TANPA UBAH KODE LAMA) ===== */
+(function () {
+'use strict';
+var G = window;
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+/* Kumpulkan semua user: antrean admin + state tersimpan di perangkat (afex_state_<uid>, afex_founder_state_<uid>) */
+function collect() {
+  var users = {};
+  function U(uid, name) {
+    uid = String(uid == null ? '' : uid).trim(); if (!uid || uid === 'GUEST' || uid === 'undefined') return null;
+    var u = users[uid] || (users[uid] = { uid: uid, name: '', face: false, id: false, founder: false, tier: '' });
+    if (name && !u.name) u.name = String(name);
+    return u;
+  }
+  try {
+    var q = getGlobalAdminQueue() || {};
+    (q.kycRequests || []).forEach(function (k) {
+      if (!k) return; var u = U(k.uid, k.username); if (!u) return;
+      if (k.status === 'verified') { if (k.type === 'face') u.face = true; else if (k.type === 'id') u.id = true; }
+    });
+    (q.founderRequests || []).forEach(function (r) {
+      if (!r) return; var u = U(r.uid, r.username); if (!u) return;
+      if (r.status === 'approved' || r.status === 'success') { u.founder = true; u.tier = u.tier || r.tier || r.amount || ''; }
+    });
+    (q.depRequests || []).forEach(function (d) {
+      if (!d) return; var u = U(d.uid, d.username); if (!u) return;
+      if (d.isFounderPass && (d.status === 'approved' || d.status === 'success')) { u.founder = true; u.tier = u.tier || d.founderTier || d.amount || ''; }
+    });
+    Object.keys(q.founderVaultState || {}).forEach(function (uid) {
+      var v = q.founderVaultState[uid]; if (v && v.approved) { var u = U(uid); if (u) { u.founder = true; u.tier = u.tier || v.tier || ''; } }
+    });
+  } catch (e) {}
+  try {
+    var n = _afexLS.length;
+    for (var i = 0; i < n; i++) {
+      var key = _afexLS.key(i); if (!key) continue;
+      var m = /^afex_state_(.+)$/.exec(key);
+      if (m) {
+        try { var st = JSON.parse(_afexLS.getItem(key)) || {}, ks = st.kycStatus || {};
+          if (ks.face === 'verified' || ks.id === 'verified') { var u = U(m[1], st.username || st.displayName); if (u) { if (ks.face === 'verified') u.face = true; if (ks.id === 'verified') u.id = true; } }
+        } catch (e) {}
+        continue;
+      }
+      m = /^afex_founder_state_(.+)$/.exec(key);
+      if (m) {
+        try { var fs = JSON.parse(_afexLS.getItem(key)) || {};
+          if (fs.status === 'approved' && Number(fs.tier) > 0) { var u2 = U(m[1]); if (u2) { u2.founder = true; u2.tier = u2.tier || fs.tier; } }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+  try { /* user yang sedang aktif */
+    if (typeof miningData !== 'undefined' && miningData && miningData.kycStatus && typeof userIdStr !== 'undefined') {
+      var me = null;
+      if (miningData.kycStatus.face === 'verified' || miningData.kycStatus.id === 'verified') { me = U(userIdStr, typeof displayName !== 'undefined' ? displayName : ''); if (me) { if (miningData.kycStatus.face === 'verified') me.face = true; if (miningData.kycStatus.id === 'verified') me.id = true; } }
+      if (typeof founderState !== 'undefined' && founderState && founderState.status === 'approved') { me = U(userIdStr, typeof displayName !== 'undefined' ? displayName : ''); if (me) { me.founder = true; me.tier = me.tier || founderState.tier || ''; } }
+    }
+  } catch (e) {}
+  return Object.keys(users).map(function (k) { return users[k]; }).filter(function (u) { return u.face || u.id || u.founder; });
+}
+
+function ensureBox(m) {
+  var box = m.querySelector('#afex-cm-list');
+  if (box) return box;
+  var res = m.querySelector('#afex-cm-result'); if (!res || !res.parentNode) return null;
+  box = document.createElement('div'); box.id = 'afex-cm-list'; box.className = 'border border-red-500/30 rounded-xl p-2 space-y-1.5';
+  box.innerHTML = '<span class="text-red-300 font-bold block"><i class="fa-solid fa-users mr-1"></i>ID TERVERIFIKASI (KYC &amp; FOUNDER)</span>' +
+    '<input id="afex-cm-filter" type="text" placeholder="Cari UID / username..." class="w-full bg-[#080c14] border border-gray-700 text-yellow-300 rounded p-1.5 outline-none">' +
+    '<div id="afex-cm-rows" class="max-h-64 overflow-y-auto space-y-1"></div>';
+  res.parentNode.insertBefore(box, res);
+  box.querySelector('#afex-cm-filter').addEventListener('input', function () { render(m); });
+  box.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-pick]'); if (!b) return;
+    var uidEl = m.querySelector('#afex-cm-uid'); if (uidEl) uidEl.value = b.getAttribute('data-uid');
+    var act = m.querySelector('button[data-cm="' + b.getAttribute('data-pick') + '"]');
+    if (act) act.click();   /* pakai alur lama: konfirmasi + wajib scan wajah admin */
+  });
+  return box;
+}
+function badge(txt, cls) { return '<span class="px-1.5 py-0.5 rounded text-[9px] font-black ' + cls + '">' + txt + '</span>'; }
+function render(m) {
+  var box = ensureBox(m); if (!box) return;
+  var host = box.querySelector('#afex-cm-rows');
+  var f = (box.querySelector('#afex-cm-filter').value || '').trim().toLowerCase();
+  var list = collect().filter(function (u) { return !f || u.uid.toLowerCase().indexOf(f) >= 0 || u.name.toLowerCase().indexOf(f) >= 0; });
+  list.sort(function (a, b) { return (b.founder && (b.face || b.id) ? 2 : (b.founder || b.face || b.id ? 1 : 0)) - (a.founder && (a.face || a.id) ? 2 : (a.founder || a.face || a.id ? 1 : 0)); });
+  if (!list.length) { host.innerHTML = '<p class="text-gray-500 text-[10px]">Belum ada ID yang sudah KYC / Founder di perangkat ini.</p>'; return; }
+  host.innerHTML = list.map(function (u) {
+    var bs = '';
+    if (u.face) bs += badge('KYC WAJAH', 'bg-cyan-500/20 text-cyan-300');
+    if (u.id) bs += badge('KYC ID', 'bg-cyan-500/20 text-cyan-300');
+    if (u.founder) bs += badge('FOUNDER' + (u.tier ? ' $' + esc(u.tier) : ''), 'bg-yellow-500/20 text-yellow-300');
+    var btns = '';
+    if (u.founder) btns += '<button type="button" data-pick="founder" data-uid="' + esc(u.uid) + '" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold px-1.5 py-1 rounded cursor-pointer">Batal Founder</button>';
+    if (u.face) btns += '<button type="button" data-pick="face" data-uid="' + esc(u.uid) + '" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold px-1.5 py-1 rounded cursor-pointer">Batal KYC Wajah</button>';
+    if (u.id) btns += '<button type="button" data-pick="id" data-uid="' + esc(u.uid) + '" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold px-1.5 py-1 rounded cursor-pointer">Batal KYC ID</button>';
+    if ((u.face || u.id) && u.founder) btns += '<button type="button" data-pick="kyc_all" data-uid="' + esc(u.uid) + '" class="bg-red-600 text-white font-black px-1.5 py-1 rounded cursor-pointer">Batal Semua KYC</button>';
+    return '<div class="bg-[#080c14] border border-gray-800 rounded-lg p-1.5 space-y-1">' +
+      '<div class="text-yellow-300 break-all font-bold">' + esc(u.name || '-') + ' <span class="text-gray-400 font-normal">(' + esc(u.uid) + ')</span></div>' +
+      '<div class="flex flex-wrap gap-1">' + bs + '</div><div class="flex flex-wrap gap-1 text-[9px]">' + btns + '</div></div>';
+  }).join('');
+}
+
+var timer = null, last = null;
+function watch() {
+  var m = document.getElementById('afex-cancel-menu');
+  var open = !!(m && !m.classList.contains('hidden'));
+  if (open) { if (last !== true) render(m); last = true; if (!timer) timer = setInterval(function () { var mm = document.getElementById('afex-cancel-menu'); if (mm && !mm.classList.contains('hidden')) render(mm); }, 4000); }
+  else { last = false; if (timer) { clearInterval(timer); timer = null; } }
+}
+setInterval(watch, 400);
+G.afexRenderCancelList = function () { var m = document.getElementById('afex-cancel-menu'); if (m) render(m); };
+})();
+</script>
+<script id="afex-fraud-guard-v2">
+/* ===== [PERBAIKAN] ANTI-KECURANGAN v2: deteksi lebih akurat & selalu tercatat (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   1) Tulis-langsung ke saldo / speed / iklan / status KYC / status Founder dari LUAR kode aplikasi (konsol, userscript, ekstensi) -> EXTERNAL_WRITE
+   2) Jam perangkat dimajukan (bukan hanya dimundurkan) -> CLOCK_TAMPER
+   3) Status KYC / Founder "terverifikasi" tanpa catatan persetujuan admin (setelah sinkron server, 3x cek berturut) -> KYC_FORGED / FOUNDER_FORGED
+   4) Beberapa akun UID dalam satu perangkat/penyimpanan -> DUP_DEVICE (untuk semua UID yang terlibat)
+   Semua laporan lewat AFEXFraud.report (strike 1-5, peringatan & blokir tetap dari kode lama). */
+(function () {
+'use strict';
+var G = window;
+function F() { return G.AFEXFraud; }
+function rep(type, detail, key, uid, name) { try { var f = F(); if (f && f.report) return f.report(type, detail, key, uid, name); } catch (e) {} return false; }
+function me() { try { return String(userIdStr); } catch (e) { return ''; } }
+function isAdminUid(uid) { try { return !!(adminUsers && adminUsers[String(uid)]); } catch (e) { return false; } }
+
+/* ---------- 1. TULIS-LANGSUNG DARI LUAR APLIKASI ---------- */
+var DOC = (location.origin && location.origin !== 'null' ? location.origin : 'file://') + location.pathname;
+function foreignCaller() {
+  var st = ''; try { st = String(new Error().stack || ''); } catch (e) { return false; }
+  var lines = st.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  /* buang baris "Error" dan semua frame milik setter penjaga ini */
+  var i = 0; while (i < lines.length && (lines[i] === 'Error' || lines[i].indexOf('afexGuardSet') >= 0 || lines[i].indexOf('afexGuardCheck') >= 0)) i++;
+  var f = lines[i];
+  if (!f) return true;                                   /* tidak ada pemanggil = dijalankan dari konsol */
+  if (/<anonymous>|\beval\b|VM\d+|debugger eval|chrome-extension:|moz-extension:|safari-extension:|userscript|tampermonkey|greasemonkey/i.test(f)) return true;
+  if (f.indexOf(DOC) >= 0) return false;                 /* kode halaman sendiri */
+  if (/^(global code)?@?:?\d*:?\d*$/.test(f)) return true;
+  /* frame dari URL lain (bukan halaman ini) */
+  if (/(https?|file):\/\//i.test(f)) return true;
+  return false;
+}
+var hooked = (typeof WeakMap === 'function') ? new WeakMap() : null;
+function hook(obj, key, label, kind) {
+  if (!obj || typeof obj !== 'object' || !hooked) return;
+  var done = hooked.get(obj) || {}; if (done[key]) return;
+  var d = Object.getOwnPropertyDescriptor(obj, key);
+  if (!d || d.get || d.set || !d.configurable || !('value' in d)) return;
+  var val = d.value;
+  try {
+    Object.defineProperty(obj, key, {
+      enumerable: d.enumerable, configurable: true,
+      get: function () { return val; },
+      set: function afexGuardSet(v) {
+        var old = val; val = v;
+        try { afexGuardCheck(label, kind, old, v); } catch (e) {}
+      }
+    });
+    done[key] = 1; hooked.set(obj, done);
+  } catch (e) {}
+}
+function afexGuardCheck(label, kind, old, v) {
+  var raise = false;
+  if (kind === 'num') raise = (typeof v === 'number' && typeof old === 'number' && v > old + 0.0000001);
+  else if (kind === 'ok') raise = (v === 'verified' || v === 'approved') && old !== v;
+  else if (kind === 'tier') raise = (Number(v) > Number(old || 0));
+  if (!raise) return;
+  if (!foreignCaller()) return;
+  var uid = me(); if (!uid || isAdminUid(uid)) return;
+  rep('EXTERNAL_WRITE', label + ': ' + String(old) + ' -> ' + String(v) + ' (diubah dari luar aplikasi)', 'ext|' + label + '|' + Math.floor(Date.now() / 30000));
+}
+function installHooks() {
+  try {
+    if (typeof miningData !== 'undefined' && miningData) {
+      hook(miningData, 'balance', 'Saldo AFEX', 'num');
+      hook(miningData, 'usdtBalance', 'Saldo USDT', 'num');
+      hook(miningData, 'usdtDepositBalance', 'Saldo deposit USDT', 'num');
+      hook(miningData, 'usdtSpeedBoost', 'Speed mining', 'num');
+      hook(miningData, 'adsWatchedToday', 'Iklan hari ini', 'num');
+      hook(miningData, 'totalAdsWatched', 'Total iklan', 'num');
+      hook(miningData, 'userPoints', 'Poin user', 'num');
+      if (miningData.kycStatus) { hook(miningData.kycStatus, 'face', 'KYC Wajah', 'ok'); hook(miningData.kycStatus, 'id', 'KYC ID', 'ok'); }
+    }
+    if (typeof founderState !== 'undefined' && founderState) {
+      hook(founderState, 'status', 'Status Founder', 'ok');
+      hook(founderState, 'tier', 'Tier Founder', 'tier');
+    }
+  } catch (e) {}
+}
+installHooks(); setInterval(installHooks, 1000);   /* pasang ulang bila objek diganti (mis. kycStatus dimuat ulang) */
+
+/* ---------- 2. JAM DIMAJUKAN ---------- */
+var lastW = Date.now(), lastP = performance.now(), hiddenSince = 0, skipUntil = Date.now() + 4000;
+document.addEventListener('visibilitychange', function () { skipUntil = Date.now() + 5000; });
+try { G.addEventListener('pageshow', function () { skipUntil = Date.now() + 5000; }); G.addEventListener('focus', function () { skipUntil = Date.now() + 3000; }); } catch (e) {}
+setInterval(function () {
+  var w = Date.now(), p = performance.now(), dw = w - lastW, dp = p - lastP;
+  lastW = w; lastP = p;
+  if (document.hidden || w < skipUntil) return;
+  if (dp > 3000) return;                                 /* timer tertahan / perangkat tidur: abaikan */
+  if (dw - dp > 15000) {
+    var uid = me(); if (uid && !isAdminUid(uid)) rep('CLOCK_TAMPER', 'Jam perangkat dimajukan ' + Math.round((dw - dp) / 1000) + ' detik', 'clkfwd|' + Math.floor(w / 60000));
+  }
+}, 1000);
+
+/* ---------- 3. STATUS "TERVERIFIKASI" TANPA CATATAN ADMIN ---------- */
+var synced = false, strikes = { kyc: 0, fnd: 0 };
+(function () {
+  var _f = G.fetchRemoteSpreadsheetQueue;
+  if (typeof _f === 'function' && !_f.__afexV2) {
+    var w = async function () { var r = await _f.apply(this, arguments); synced = true; return r; };
+    w.__afexV2 = 1; G.fetchRemoteSpreadsheetQueue = w;
+  }
+})();
+setInterval(function () {
+  if (!synced) return;
+  var uid = me(); if (!uid || isAdminUid(uid)) return;
+  var q; try { q = getGlobalAdminQueue(); } catch (e) { return; }
+  try {
+    var ks = miningData && miningData.kycStatus || {};
+    var bad = ['face', 'id'].filter(function (t) {
+      return ks[t] === 'verified' && !(q.kycRequests || []).some(function (k) { return k && String(k.uid) === uid && k.type === t && k.status === 'verified'; });
+    });
+    if (bad.length) { if (++strikes.kyc >= 3) rep('KYC_FORGED', 'Status KYC ' + bad.join('/') + ' terverifikasi tanpa catatan persetujuan admin', 'kycf|' + bad.join(',')); }
+    else strikes.kyc = 0;
+  } catch (e) {}
+  try {
+    var fs = (typeof founderState !== 'undefined') ? founderState : null;
+    if (fs && fs.status === 'approved' && Number(fs.tier) > 0) {
+      var ok = (q.founderRequests || []).some(function (r) { return r && String(r.uid) === uid && (r.status === 'approved' || r.status === 'success'); }) ||
+               (q.depRequests || []).some(function (d) { return d && String(d.uid) === uid && d.isFounderPass && (d.status === 'approved' || d.status === 'success'); }) ||
+               !!(q.founderVaultState && q.founderVaultState[uid] && q.founderVaultState[uid].approved);
+      if (!ok) { if (++strikes.fnd >= 3) rep('FOUNDER_FORGED', 'Status Founder aktif (tier ' + fs.tier + ') tanpa catatan persetujuan admin', 'fndf|' + fs.tier); }
+      else strikes.fnd = 0;
+    } else strikes.fnd = 0;
+  } catch (e) {}
+}, 15000);
+
+/* ---------- 4. BANYAK AKUN DI SATU PERANGKAT ---------- */
+var SEEN = 'afex_fraud_seen_v2';
+function seenSet() { try { return JSON.parse(_afexLS.getItem(SEEN)) || {}; } catch (e) { return {}; } }
+function checkDevice() {
+  var uid = me(); if (!uid) return;
+  var ids = {};
+  try {
+    var n = _afexLS.length;
+    for (var i = 0; i < n; i++) { var k = _afexLS.key(i), m = k && /^afex_state_(\d{3,20})$/.exec(k); if (m) ids[m[1]] = 1; }
+  } catch (e) {}
+  ids[uid] = 1;
+  var list = Object.keys(ids).filter(function (u) { return !isAdminUid(u); });
+  if (list.length < 2) return;
+  list.sort();
+  var key = 'dev|' + list.join(','), s = seenSet();
+  if (s[key]) return;
+  s[key] = Date.now(); try { _afexLS.setItem(SEEN, JSON.stringify(s)); } catch (e) {}
+  list.forEach(function (u) {
+    rep('DUP_DEVICE', 'Perangkat sama dipakai UID: ' + list.filter(function (x) { return x !== u; }).join(', '), key, u, u === uid && typeof displayName !== 'undefined' ? displayName : '');
+  });
+}
+setTimeout(checkDevice, 4500); setInterval(checkDevice, 10 * 60 * 1000);
+})();
+</script>
+<script id="afex-founder-lock-guard">
+/* ===== [PERBAIKAN] MENU FOUNDER SETELAH DI-LOCK ADMIN: TIDAK BISA MASUK SAMA SEKALI (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   Masalah lama: saat sesi admin aktif (isAdminSessionUnlocked) atau lewat jalur lain (nav bawah, banner, kartu tier, klaim USDT, openFounderExperience),
+   menu Founder tetap terbuka walau sudah di-LOCK. Sekarang semua pintu masuk dicek ke status lock terbaru (localStorage) dan ditutup paksa bila terkunci.
+   Lock dibuka kembali hanya lewat tombol Unlock di Panel Admin atau saat waktu lock habis. */
+(function () {
+'use strict';
+var G = window;
+function isLocked() {
+  try {
+    var td = safeParseStorage('afex_global_target_dates', targetDates);
+    var fl = safeParseStorage('afex_global_lock_state', featureLockState);
+    return !!(fl && fl.founder && td && Number(td.founder) > Date.now());
+  } catch (e) { return false; }
+}
+var lastMsg = 0;
+function deny() {
+  var n = Date.now(); if (n - lastMsg < 600) return; lastMsg = n;
+  try {
+    var td = safeParseStorage('afex_global_target_dates', targetDates);
+    var d = getFormattedTime(td.founder);
+    showModal('Founder VIP', t('founder_avail').replace('{d}', d.d).replace('{time}', d.timeStr), 'fa-lock');
+  } catch (e) {}
+}
+['handleFounderClick', 'openFounderExperience', 'openFounderTierSelectionModal', 'claimFounderUsdt'].forEach(function (name) {
+  var prev = G[name];
+  if (typeof prev !== 'function' || prev.__afexFounderLock) return;
+  var w = function () {
+    if (isLocked()) { deny(); return; }
+    return prev.apply(this, arguments);
+  };
+  w.__afexFounderLock = 1;
+  G[name] = w;
+});
+try { handleFounderClick = G.handleFounderClick; } catch (e) {}
+
+/* Jaring pengaman: kalau tampilan Founder sempat terbuka (jalur internal) saat status terkunci -> tutup paksa */
+function forceClose() {
+  var closed = false;
+  ['fx-root', 'fx-menu'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el && (el.classList.contains('fx-show') || el.classList.contains('fx-vis'))) {
+      el.classList.remove('fx-vis'); el.classList.remove('fx-show'); closed = true;
+    }
+  });
+  var tm = document.getElementById('fx-tier-modal');
+  if (tm && tm.classList.contains('fx-open')) { tm.classList.remove('fx-open'); closed = true; }
+  if (closed) {
+    try { var pb = document.getElementById('fx-btn-pause'); if (pb) pb.click(); } catch (e) {}
+    try { document.body.style.overflow = ''; } catch (e) {}
+    deny();
+  }
+}
+setInterval(function () { if (isLocked()) forceClose(); }, 300);
+})();
+</script>
+<script id="afex-i18n-19-complete">
+/* ===== [PERBAIKAN] TERJEMAHAN 19 BAHASA LENGKAP (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   Menutup celah: menu Set Email / OTP Bot (a2f_*) sebelumnya tampil Inggris di 14 bahasa (tr, uz, ru, vi, tl, th, ms, hi, ur, zh, ko, ja, af, ar),
+   dan judul "invalid_input" belum ada di semua bahasa (tampil teks mentah). Bahasa: en, id, es, de, fr, tr, uz, ru, vi, tl, th, ms, hi, ur, zh, ko, ja, af, ar. */
+(function () {
+'use strict';
+var G = window;
+var A2F = {"tr":{"a2f_step1_badge":"ADIM 1 / 2 • E-POSTANIZI AYARLAYIN","a2f_step2_badge":"ADIM 2 / 2 • BOT OTP DOĞRULAMA","a2f_email_label":"Aktif E-posta Adresinizi Girin","a2f_email_ph":"E-postanızı girin (örn. ad@gmail.com)...","a2f_email_desc":"E-posta adresinizi aşağıya girin. OTP ekranına yönlendirileceksiniz ve 6 haneli rastgele OTP kodu doğrudan Bot tarafından verilecektir.","a2f_btn_next_otp":"Devam Et ve Bot'tan OTP Al","a2f_otp_instr_box":"Bot tarafından doğrudan verilen OTP kodunu girin. E-postanıza gönderilen bir OTP'yi GİRMEYİN; bunun yerine Bot veya Chatbot Sohbet Menüsü'nde verilen OTP kodunu girin (hemen aşağıda görünür).","a2f_otp_ph":"Bot'tan 6 haneli OTP girin...","a2f_btn_verify_otp":"OTP Kodunu Doğrula","a2f_btn_open_chatbot":"Chatbot Sohbet Menüsünü Aç","a2f_btn_resend_otp":"Rastgele OTP'yi Bot'a Yeniden Gönder","a2f_btn_change_email":"E-postayı Değiştir","a2f_err_invalid_email":"Lütfen geçerli bir e-posta adresi girin (örnek: user@gmail.com)!","a2f_err_email_used":"Bu e-posta adresi başka bir kullanıcı tarafından zaten kayıtlı!","a2f_err_invalid_otp":"Yanlış OTP kodu! Lütfen Bot / Chatbot Sohbet Menüsü tarafından verilen 6 haneli OTP'yi aynen girin.","a2f_err_expired_otp":"OTP kodunun süresi doldu! Lütfen Rastgele OTP'yi Bot'a Yeniden Gönder'e tıklayın.","a2f_success_msg":"E-posta ve Bot OTP Doğrulandı! E-postanız ({email}) artık güvenle bağlandı.","a2f_bot_chat_title":"CHATBOT SOHBET MENÜSÜ — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} için Bot OTP Doğrulama Kodu:","a2f_bot_copy_use":"OTP Kullan","a2f_otp_resent_note":"Yeni rastgele OTP kodu oluşturuldu ve Bot Sohbet Menüsü'ne gönderildi!"},"uz":{"a2f_step1_badge":"1 / 2-QADAM • EMAILINGIZNI KIRITING","a2f_step2_badge":"2 / 2-QADAM • BOT OTP TASDIQLASH","a2f_email_label":"Faol email manzilingizni kiriting","a2f_email_ph":"Emailingizni kiriting (masalan: ism@gmail.com)...","a2f_email_desc":"Email manzilingizni quyida kiriting. Siz OTP sahifasiga yo'naltirilasiz va 6 xonali tasodifiy OTP kodini Bot to'g'ridan-to'g'ri beradi.","a2f_btn_next_otp":"Davom etish va Botdan OTP olish","a2f_otp_instr_box":"Bot tomonidan berilgan OTP kodni kiriting. Emailingizga yuborilgan OTPni KIRITMANG; Bot yoki Chatbot Chat Menyusida berilgan OTP kodni kiriting (u darhol pastda ko'rinadi).","a2f_otp_ph":"Botdan 6 xonali OTP kiriting...","a2f_btn_verify_otp":"OTP kodni tasdiqlash","a2f_btn_open_chatbot":"Chatbot Chat Menyusini ochish","a2f_btn_resend_otp":"Tasodifiy OTPni Botga qayta yuborish","a2f_btn_change_email":"Emailni o'zgartirish","a2f_err_invalid_email":"Iltimos, to'g'ri email manzil kiriting (misol: user@gmail.com)!","a2f_err_email_used":"Bu email manzil boshqa foydalanuvchi tomonidan allaqachon ro'yxatdan o'tkazilgan!","a2f_err_invalid_otp":"OTP kod noto'g'ri! Iltimos, Bot / Chatbot Chat Menyusi bergan 6 xonali OTPni aynan kiriting.","a2f_err_expired_otp":"OTP kodning muddati tugadi! Iltimos, «Tasodifiy OTPni Botga qayta yuborish» tugmasini bosing.","a2f_success_msg":"Email va Bot OTP tasdiqlandi! Emailingiz ({email}) endi xavfsiz bog'landi.","a2f_bot_chat_title":"CHATBOT CHAT MENYUSI — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} uchun Bot OTP tasdiqlash kodi:","a2f_bot_copy_use":"OTPdan foydalanish","a2f_otp_resent_note":"Yangi tasodifiy OTP kod yaratildi va Bot Chat Menyusiga yuborildi!"},"ru":{"a2f_step1_badge":"ШАГ 1 / 2 • УКАЖИТЕ ВАШ EMAIL","a2f_step2_badge":"ШАГ 2 / 2 • ПРОВЕРКА OTP ЧЕРЕЗ БОТА","a2f_email_label":"Введите ваш активный адрес эл. почты","a2f_email_ph":"Введите email (напр. name@gmail.com)...","a2f_email_desc":"Введите адрес эл. почты ниже. Вы перейдёте на экран OTP, а 6-значный случайный код OTP будет выдан непосредственно Ботом.","a2f_btn_next_otp":"Продолжить и получить OTP от Бота","a2f_otp_instr_box":"Введите код OTP, выданный непосредственно Ботом. НЕ вводите OTP, отправленный на вашу почту; вводите код OTP, выданный Ботом или в меню чата Чат-бота (он появится сразу ниже).","a2f_otp_ph":"Введите 6-значный OTP от Бота...","a2f_btn_verify_otp":"Подтвердить код OTP","a2f_btn_open_chatbot":"Открыть меню чата Чат-бота","a2f_btn_resend_otp":"Отправить новый случайный OTP Боту","a2f_btn_change_email":"Изменить email","a2f_err_invalid_email":"Введите корректный адрес эл. почты (пример: user@gmail.com)!","a2f_err_email_used":"Этот адрес эл. почты уже зарегистрирован другим пользователем!","a2f_err_invalid_otp":"Неверный код OTP! Введите точный 6-значный OTP, выданный Ботом / в меню чата Чат-бота.","a2f_err_expired_otp":"Срок действия кода OTP истёк! Нажмите «Отправить новый случайный OTP Боту».","a2f_success_msg":"Email и OTP Бота подтверждены! Ваш email ({email}) надёжно привязан.","a2f_bot_chat_title":"МЕНЮ ЧАТА ЧАТ-БОТА — AFEX SECURITY BOT","a2f_bot_msg_header":"Код подтверждения OTP от Бота для {email}:","a2f_bot_copy_use":"Использовать OTP","a2f_otp_resent_note":"Новый случайный код OTP создан и отправлен в меню чата Бота!"},"vi":{"a2f_step1_badge":"BƯỚC 1 / 2 • THIẾT LẬP EMAIL","a2f_step2_badge":"BƯỚC 2 / 2 • XÁC MINH OTP QUA BOT","a2f_email_label":"Nhập địa chỉ email đang dùng của bạn","a2f_email_ph":"Nhập email của bạn (vd: ten@gmail.com)...","a2f_email_desc":"Nhập địa chỉ email bên dưới. Bạn sẽ được chuyển đến màn hình OTP và mã OTP ngẫu nhiên 6 chữ số sẽ do Bot gửi trực tiếp.","a2f_btn_next_otp":"Tiếp tục & Nhận OTP từ Bot","a2f_otp_instr_box":"Nhập mã OTP do Bot cung cấp trực tiếp. KHÔNG nhập OTP gửi đến email của bạn; hãy nhập mã OTP do Bot hoặc Menu Trò chuyện Chatbot cung cấp (hiện ngay bên dưới).","a2f_otp_ph":"Nhập OTP 6 chữ số từ Bot...","a2f_btn_verify_otp":"Xác minh mã OTP","a2f_btn_open_chatbot":"Mở Menu Trò chuyện Chatbot","a2f_btn_resend_otp":"Gửi lại OTP ngẫu nhiên cho Bot","a2f_btn_change_email":"Đổi email","a2f_err_invalid_email":"Vui lòng nhập địa chỉ email hợp lệ (ví dụ: user@gmail.com)!","a2f_err_email_used":"Địa chỉ email này đã được người dùng khác đăng ký!","a2f_err_invalid_otp":"Mã OTP không đúng! Vui lòng nhập chính xác OTP 6 chữ số do Bot / Menu Trò chuyện Chatbot cung cấp.","a2f_err_expired_otp":"Mã OTP đã hết hạn! Vui lòng nhấn Gửi lại OTP ngẫu nhiên cho Bot.","a2f_success_msg":"Đã xác minh Email & OTP Bot! Email của bạn ({email}) đã được liên kết an toàn.","a2f_bot_chat_title":"MENU TRÒ CHUYỆN CHATBOT — AFEX SECURITY BOT","a2f_bot_msg_header":"Mã xác minh OTP từ Bot cho {email}:","a2f_bot_copy_use":"Dùng OTP","a2f_otp_resent_note":"Đã tạo mã OTP ngẫu nhiên mới và gửi đến Menu Trò chuyện của Bot!"},"tl":{"a2f_step1_badge":"HAKBANG 1 / 2 • ITAKDA ANG IYONG EMAIL","a2f_step2_badge":"HAKBANG 2 / 2 • BOT OTP VERIFICATION","a2f_email_label":"Ilagay ang Iyong Aktibong Email Address","a2f_email_ph":"Ilagay ang iyong email (hal. pangalan@gmail.com)...","a2f_email_desc":"Ilagay ang iyong email address sa ibaba. Dadalhin ka sa OTP screen at ang 6-digit na random OTP code ay direktang ibibigay ng Bot.","a2f_btn_next_otp":"Magpatuloy at Kumuha ng OTP mula sa Bot","a2f_otp_instr_box":"Ilagay ang OTP code na direktang ibinigay ng Bot. HUWAG ilagay ang OTP na ipinadala sa iyong email; sa halip, ilagay ang OTP code na ibinigay ng Bot o ng Chatbot Chat Menu (lalabas agad sa ibaba).","a2f_otp_ph":"Ilagay ang 6-digit na OTP mula sa Bot...","a2f_btn_verify_otp":"I-verify ang OTP Code","a2f_btn_open_chatbot":"Buksan ang Chatbot Chat Menu","a2f_btn_resend_otp":"Ipadala Muli ang Random OTP sa Bot","a2f_btn_change_email":"Palitan ang Email","a2f_err_invalid_email":"Maglagay ng wastong email address (halimbawa: user@gmail.com)!","a2f_err_email_used":"Ang email address na ito ay nakarehistro na sa ibang user!","a2f_err_invalid_otp":"Maling OTP code! Ilagay ang eksaktong 6-digit na OTP na ibinigay ng Bot / Chatbot Chat Menu.","a2f_err_expired_otp":"Nag-expire na ang OTP code! I-click ang Ipadala Muli ang Random OTP sa Bot.","a2f_success_msg":"Na-verify ang Email at Bot OTP! Ligtas nang nakakonekta ang iyong email ({email}).","a2f_bot_chat_title":"CHATBOT CHAT MENU — AFEX SECURITY BOT","a2f_bot_msg_header":"Bot OTP Verification Code para sa {email}:","a2f_bot_copy_use":"Gamitin ang OTP","a2f_otp_resent_note":"Nakagawa ng bagong random OTP code at naipadala sa Bot Chat Menu!"},"th":{"a2f_step1_badge":"ขั้นตอน 1 / 2 • ตั้งค่าอีเมลของคุณ","a2f_step2_badge":"ขั้นตอน 2 / 2 • ยืนยัน OTP ผ่านบอท","a2f_email_label":"กรอกที่อยู่อีเมลที่ใช้งานอยู่ของคุณ","a2f_email_ph":"กรอกอีเมลของคุณ (เช่น name@gmail.com)...","a2f_email_desc":"กรอกที่อยู่อีเมลของคุณด้านล่าง คุณจะถูกนำไปยังหน้า OTP และบอทจะส่งรหัส OTP แบบสุ่ม 6 หลักให้โดยตรง","a2f_btn_next_otp":"ดำเนินการต่อ & รับ OTP จากบอท","a2f_otp_instr_box":"กรอกรหัส OTP ที่บอทให้โดยตรง ห้ามกรอก OTP ที่ส่งไปยังอีเมลของคุณ ให้กรอกรหัส OTP ที่บอทหรือเมนูแชทแชทบอทให้แทน (จะแสดงทันทีด้านล่าง)","a2f_otp_ph":"กรอก OTP 6 หลักจากบอท...","a2f_btn_verify_otp":"ยืนยันรหัส OTP","a2f_btn_open_chatbot":"เปิดเมนูแชทแชทบอท","a2f_btn_resend_otp":"ส่ง OTP แบบสุ่มให้บอทอีกครั้ง","a2f_btn_change_email":"เปลี่ยนอีเมล","a2f_err_invalid_email":"โปรดกรอกอีเมลที่ถูกต้อง (ตัวอย่าง: user@gmail.com)!","a2f_err_email_used":"อีเมลนี้ถูกลงทะเบียนโดยผู้ใช้อื่นแล้ว!","a2f_err_invalid_otp":"รหัส OTP ไม่ถูกต้อง! โปรดกรอก OTP 6 หลักที่บอท / เมนูแชทแชทบอทให้ให้ตรงทุกตัว","a2f_err_expired_otp":"รหัส OTP หมดอายุแล้ว! โปรดกดส่ง OTP แบบสุ่มให้บอทอีกครั้ง","a2f_success_msg":"ยืนยันอีเมลและ OTP บอทแล้ว! อีเมลของคุณ ({email}) เชื่อมโยงอย่างปลอดภัยแล้ว","a2f_bot_chat_title":"เมนูแชทแชทบอท — AFEX SECURITY BOT","a2f_bot_msg_header":"รหัสยืนยัน OTP จากบอทสำหรับ {email}:","a2f_bot_copy_use":"ใช้ OTP","a2f_otp_resent_note":"สร้างรหัส OTP แบบสุ่มใหม่และส่งไปยังเมนูแชทของบอทแล้ว!"},"ms":{"a2f_step1_badge":"LANGKAH 1 / 2 • TETAPKAN EMEL ANDA","a2f_step2_badge":"LANGKAH 2 / 2 • PENGESAHAN OTP BOT","a2f_email_label":"Masukkan Alamat Emel Aktif Anda","a2f_email_ph":"Masukkan emel anda (cth: nama@gmail.com)...","a2f_email_desc":"Masukkan alamat emel anda di bawah. Anda akan dibawa ke skrin OTP dan kod OTP rawak 6 digit akan diberikan terus oleh Bot.","a2f_btn_next_otp":"Teruskan & Dapatkan OTP daripada Bot","a2f_otp_instr_box":"Masukkan kod OTP yang diberikan terus oleh Bot. JANGAN masukkan OTP yang dihantar ke emel anda; sebaliknya, masukkan kod OTP yang diberikan oleh Bot atau Menu Sembang Chatbot (muncul serta-merta di bawah).","a2f_otp_ph":"Masukkan OTP 6 digit daripada Bot...","a2f_btn_verify_otp":"Sahkan Kod OTP","a2f_btn_open_chatbot":"Buka Menu Sembang Chatbot","a2f_btn_resend_otp":"Hantar Semula OTP Rawak ke Bot","a2f_btn_change_email":"Tukar Emel","a2f_err_invalid_email":"Sila masukkan alamat emel yang sah (contoh: user@gmail.com)!","a2f_err_email_used":"Alamat emel ini telah didaftarkan oleh pengguna lain!","a2f_err_invalid_otp":"Kod OTP salah! Sila masukkan tepat OTP 6 digit yang diberikan oleh Bot / Menu Sembang Chatbot.","a2f_err_expired_otp":"Kod OTP telah tamat tempoh! Sila klik Hantar Semula OTP Rawak ke Bot.","a2f_success_msg":"Emel & OTP Bot Disahkan! Emel anda ({email}) kini dipautkan dengan selamat.","a2f_bot_chat_title":"MENU SEMBANG CHATBOT — AFEX SECURITY BOT","a2f_bot_msg_header":"Kod Pengesahan OTP Bot untuk {email}:","a2f_bot_copy_use":"Guna OTP","a2f_otp_resent_note":"Kod OTP rawak baharu dijana & dihantar ke Menu Sembang Bot!"},"hi":{"a2f_step1_badge":"चरण 1 / 2 • अपना ईमेल सेट करें","a2f_step2_badge":"चरण 2 / 2 • बॉट OTP सत्यापन","a2f_email_label":"अपना सक्रिय ईमेल पता दर्ज करें","a2f_email_ph":"अपना ईमेल दर्ज करें (जैसे name@gmail.com)...","a2f_email_desc":"नीचे अपना ईमेल पता दर्ज करें। आपको OTP स्क्रीन पर भेजा जाएगा और 6 अंकों का रैंडम OTP कोड सीधे बॉट द्वारा दिया जाएगा।","a2f_btn_next_otp":"जारी रखें और बॉट से OTP लें","a2f_otp_instr_box":"बॉट द्वारा सीधे दिया गया OTP कोड दर्ज करें। आपके ईमेल पर भेजा गया OTP दर्ज न करें; इसके बजाय बॉट या चैटबॉट चैट मेनू द्वारा दिया गया OTP कोड दर्ज करें (यह तुरंत नीचे दिखाई देता है)।","a2f_otp_ph":"बॉट से 6 अंकों का OTP दर्ज करें...","a2f_btn_verify_otp":"OTP कोड सत्यापित करें","a2f_btn_open_chatbot":"चैटबॉट चैट मेनू खोलें","a2f_btn_resend_otp":"रैंडम OTP बॉट को दोबारा भेजें","a2f_btn_change_email":"ईमेल बदलें","a2f_err_invalid_email":"कृपया मान्य ईमेल पता दर्ज करें (उदाहरण: user@gmail.com)!","a2f_err_email_used":"यह ईमेल पता पहले से किसी अन्य उपयोगकर्ता द्वारा पंजीकृत है!","a2f_err_invalid_otp":"OTP कोड गलत है! कृपया बॉट / चैटबॉट चैट मेनू द्वारा दिया गया सटीक 6 अंकों का OTP दर्ज करें।","a2f_err_expired_otp":"OTP कोड की समय सीमा समाप्त हो गई! कृपया 'रैंडम OTP बॉट को दोबारा भेजें' पर क्लिक करें।","a2f_success_msg":"ईमेल और बॉट OTP सत्यापित! आपका ईमेल ({email}) अब सुरक्षित रूप से जुड़ गया है।","a2f_bot_chat_title":"चैटबॉट चैट मेनू — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} के लिए बॉट OTP सत्यापन कोड:","a2f_bot_copy_use":"OTP उपयोग करें","a2f_otp_resent_note":"नया रैंडम OTP कोड बनाया गया और बॉट चैट मेनू में भेजा गया!"},"ur":{"a2f_step1_badge":"مرحلہ 1 / 2 • اپنا ای میل سیٹ کریں","a2f_step2_badge":"مرحلہ 2 / 2 • بوٹ OTP تصدیق","a2f_email_label":"اپنا فعال ای میل ایڈریس درج کریں","a2f_email_ph":"اپنا ای میل درج کریں (مثلاً name@gmail.com)...","a2f_email_desc":"نیچے اپنا ای میل ایڈریس درج کریں۔ آپ کو OTP اسکرین پر لے جایا جائے گا اور 6 ہندسوں کا رینڈم OTP کوڈ براہِ راست بوٹ دے گا۔","a2f_btn_next_otp":"جاری رکھیں اور بوٹ سے OTP حاصل کریں","a2f_otp_instr_box":"بوٹ کا براہِ راست دیا ہوا OTP کوڈ درج کریں۔ آپ کے ای میل پر بھیجا گیا OTP درج نہ کریں؛ بلکہ بوٹ یا چیٹ بوٹ چیٹ مینو کا دیا ہوا OTP کوڈ درج کریں (یہ فوراً نیچے ظاہر ہوتا ہے)۔","a2f_otp_ph":"بوٹ سے 6 ہندسوں کا OTP درج کریں...","a2f_btn_verify_otp":"OTP کوڈ کی تصدیق کریں","a2f_btn_open_chatbot":"چیٹ بوٹ چیٹ مینو کھولیں","a2f_btn_resend_otp":"رینڈم OTP بوٹ کو دوبارہ بھیجیں","a2f_btn_change_email":"ای میل تبدیل کریں","a2f_err_invalid_email":"براہِ کرم درست ای میل ایڈریس درج کریں (مثال: user@gmail.com)!","a2f_err_email_used":"یہ ای میل ایڈریس پہلے ہی کسی دوسرے صارف نے رجسٹر کر رکھا ہے!","a2f_err_invalid_otp":"OTP کوڈ غلط ہے! براہِ کرم بوٹ / چیٹ بوٹ چیٹ مینو کا دیا ہوا درست 6 ہندسوں کا OTP درج کریں۔","a2f_err_expired_otp":"OTP کوڈ کی میعاد ختم ہو گئی! براہِ کرم «رینڈم OTP بوٹ کو دوبارہ بھیجیں» پر کلک کریں۔","a2f_success_msg":"ای میل اور بوٹ OTP کی تصدیق ہو گئی! آپ کا ای میل ({email}) اب محفوظ طریقے سے منسلک ہے۔","a2f_bot_chat_title":"چیٹ بوٹ چیٹ مینو — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} کے لیے بوٹ OTP تصدیقی کوڈ:","a2f_bot_copy_use":"OTP استعمال کریں","a2f_otp_resent_note":"نیا رینڈم OTP کوڈ بنایا گیا اور بوٹ چیٹ مینو میں بھیج دیا گیا!"},"zh":{"a2f_step1_badge":"第 1 / 2 步 • 设置您的邮箱","a2f_step2_badge":"第 2 / 2 步 • 机器人 OTP 验证","a2f_email_label":"请输入您常用的邮箱地址","a2f_email_ph":"请输入邮箱（例如 name@gmail.com）...","a2f_email_desc":"请在下方输入您的邮箱地址。您将进入 OTP 页面，6 位随机 OTP 验证码将由机器人直接发送给您。","a2f_btn_next_otp":"继续并向机器人获取 OTP","a2f_otp_instr_box":"请输入机器人直接提供的 OTP 验证码。请勿输入发送到邮箱的 OTP；请输入机器人或聊天机器人聊天菜单提供的 OTP 验证码（会立即显示在下方）。","a2f_otp_ph":"输入机器人提供的 6 位 OTP...","a2f_btn_verify_otp":"验证 OTP 验证码","a2f_btn_open_chatbot":"打开聊天机器人聊天菜单","a2f_btn_resend_otp":"重新向机器人发送随机 OTP","a2f_btn_change_email":"更换邮箱","a2f_err_invalid_email":"请输入有效的邮箱地址（例如：user@gmail.com）！","a2f_err_email_used":"该邮箱地址已被其他用户注册！","a2f_err_invalid_otp":"OTP 验证码错误！请准确输入机器人 / 聊天机器人聊天菜单提供的 6 位 OTP。","a2f_err_expired_otp":"OTP 验证码已过期！请点击“重新向机器人发送随机 OTP”。","a2f_success_msg":"邮箱和机器人 OTP 已验证！您的邮箱（{email}）已安全绑定。","a2f_bot_chat_title":"聊天机器人聊天菜单 — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} 的机器人 OTP 验证码：","a2f_bot_copy_use":"使用 OTP","a2f_otp_resent_note":"已生成新的随机 OTP 验证码并发送到机器人聊天菜单！"},"ko":{"a2f_step1_badge":"1 / 2 단계 • 이메일 설정","a2f_step2_badge":"2 / 2 단계 • 봇 OTP 인증","a2f_email_label":"사용 중인 이메일 주소를 입력하세요","a2f_email_ph":"이메일을 입력하세요 (예: name@gmail.com)...","a2f_email_desc":"아래에 이메일 주소를 입력하세요. OTP 화면으로 이동하며 6자리 임의 OTP 코드는 봇이 직접 전달합니다.","a2f_btn_next_otp":"계속 & 봇에서 OTP 받기","a2f_otp_instr_box":"봇이 직접 제공한 OTP 코드를 입력하세요. 이메일로 전송된 OTP는 입력하지 마세요. 대신 봇 또는 챗봇 채팅 메뉴가 제공한 OTP 코드를 입력하세요 (바로 아래에 표시됩니다).","a2f_otp_ph":"봇에서 받은 6자리 OTP 입력...","a2f_btn_verify_otp":"OTP 코드 인증","a2f_btn_open_chatbot":"챗봇 채팅 메뉴 열기","a2f_btn_resend_otp":"임의 OTP를 봇에 다시 보내기","a2f_btn_change_email":"이메일 변경","a2f_err_invalid_email":"올바른 이메일 주소를 입력하세요 (예: user@gmail.com)!","a2f_err_email_used":"이 이메일 주소는 이미 다른 사용자가 등록했습니다!","a2f_err_invalid_otp":"OTP 코드가 올바르지 않습니다! 봇 / 챗봇 채팅 메뉴가 제공한 6자리 OTP를 정확히 입력하세요.","a2f_err_expired_otp":"OTP 코드가 만료되었습니다! '임의 OTP를 봇에 다시 보내기'를 눌러 주세요.","a2f_success_msg":"이메일 및 봇 OTP 인증 완료! 이메일({email})이 안전하게 연결되었습니다.","a2f_bot_chat_title":"챗봇 채팅 메뉴 — AFEX SECURITY BOT","a2f_bot_msg_header":"{email}의 봇 OTP 인증 코드:","a2f_bot_copy_use":"OTP 사용","a2f_otp_resent_note":"새 임의 OTP 코드가 생성되어 봇 채팅 메뉴로 전송되었습니다!"},"ja":{"a2f_step1_badge":"ステップ 1 / 2 • メールを設定","a2f_step2_badge":"ステップ 2 / 2 • ボットOTP認証","a2f_email_label":"使用中のメールアドレスを入力","a2f_email_ph":"メールアドレスを入力（例: name@gmail.com）...","a2f_email_desc":"下にメールアドレスを入力してください。OTP画面に移動し、6桁のランダムなOTPコードはボットから直接届きます。","a2f_btn_next_otp":"続行してボットからOTPを取得","a2f_otp_instr_box":"ボットが直接提供したOTPコードを入力してください。メールに送られたOTPは入力しないでください。ボットまたはチャットボットのチャットメニューで提供されたOTPコードを入力します（すぐ下に表示されます）。","a2f_otp_ph":"ボットからの6桁OTPを入力...","a2f_btn_verify_otp":"OTPコードを認証","a2f_btn_open_chatbot":"チャットボットのチャットメニューを開く","a2f_btn_resend_otp":"ランダムOTPをボットに再送信","a2f_btn_change_email":"メールを変更","a2f_err_invalid_email":"有効なメールアドレスを入力してください（例: user@gmail.com）！","a2f_err_email_used":"このメールアドレスは既に他のユーザーが登録しています！","a2f_err_invalid_otp":"OTPコードが正しくありません！ボット／チャットボットのチャットメニューが提供した6桁のOTPを正確に入力してください。","a2f_err_expired_otp":"OTPコードの有効期限が切れました！「ランダムOTPをボットに再送信」をクリックしてください。","a2f_success_msg":"メールとボットOTPを認証しました！メール（{email}）が安全に連携されました。","a2f_bot_chat_title":"チャットボット チャットメニュー — AFEX SECURITY BOT","a2f_bot_msg_header":"{email} のボットOTP認証コード:","a2f_bot_copy_use":"OTPを使用","a2f_otp_resent_note":"新しいランダムOTPコードを生成し、ボットのチャットメニューに送信しました！"},"af":{"a2f_step1_badge":"STAP 1 / 2 • STEL JOU E-POS","a2f_step2_badge":"STAP 2 / 2 • BOT OTP-VERIFIKASIE","a2f_email_label":"Voer Jou Aktiewe E-posadres In","a2f_email_ph":"Voer jou e-pos in (bv. naam@gmail.com)...","a2f_email_desc":"Voer jou e-posadres hieronder in. Jy sal na die OTP-skerm geneem word en 'n 6-syfer ewekansige OTP-kode sal direk deur die Bot gegee word.","a2f_btn_next_otp":"Gaan voort & kry OTP van Bot","a2f_otp_instr_box":"Voer die OTP-kode in wat direk deur die Bot gegee is. MOENIE 'n OTP in wat na jou e-pos gestuur is nie; voer eerder die OTP-kode in wat deur die Bot of Chatbot-gesprekmenu gegee is (dit verskyn dadelik hieronder).","a2f_otp_ph":"Voer 6-syfer OTP van Bot in...","a2f_btn_verify_otp":"Verifieer OTP-kode","a2f_btn_open_chatbot":"Maak Chatbot-gesprekmenu oop","a2f_btn_resend_otp":"Stuur ewekansige OTP weer na Bot","a2f_btn_change_email":"Verander e-pos","a2f_err_invalid_email":"Voer asseblief 'n geldige e-posadres in (voorbeeld: user@gmail.com)!","a2f_err_email_used":"Hierdie e-posadres is reeds deur 'n ander gebruiker geregistreer!","a2f_err_invalid_otp":"Verkeerde OTP-kode! Voer asseblief die presiese 6-syfer OTP in wat deur die Bot / Chatbot-gesprekmenu gegee is.","a2f_err_expired_otp":"OTP-kode het verval! Klik asseblief Stuur ewekansige OTP weer na Bot.","a2f_success_msg":"E-pos & Bot OTP geverifieer! Jou e-pos ({email}) is nou veilig gekoppel.","a2f_bot_chat_title":"CHATBOT-GESPREKMENU — AFEX SECURITY BOT","a2f_bot_msg_header":"Bot OTP-verifikasiekode vir {email}:","a2f_bot_copy_use":"Gebruik OTP","a2f_otp_resent_note":"Nuwe ewekansige OTP-kode gegenereer & na Bot-gesprekmenu gestuur!"},"ar":{"a2f_step1_badge":"الخطوة 1 / 2 • تعيين بريدك الإلكتروني","a2f_step2_badge":"الخطوة 2 / 2 • التحقق من OTP عبر البوت","a2f_email_label":"أدخل عنوان بريدك الإلكتروني النشط","a2f_email_ph":"أدخل بريدك الإلكتروني (مثال: name@gmail.com)...","a2f_email_desc":"أدخل عنوان بريدك الإلكتروني أدناه. سيتم توجيهك إلى شاشة OTP وسيعطيك البوت رمز OTP عشوائياً من 6 أرقام مباشرة.","a2f_btn_next_otp":"متابعة والحصول على OTP من البوت","a2f_otp_instr_box":"أدخل رمز OTP الذي قدمه البوت مباشرة. لا تدخل OTP المرسل إلى بريدك الإلكتروني؛ بل أدخل رمز OTP الذي قدمه البوت أو قائمة دردشة الشات بوت (يظهر فوراً أدناه).","a2f_otp_ph":"أدخل OTP من 6 أرقام من البوت...","a2f_btn_verify_otp":"تحقق من رمز OTP","a2f_btn_open_chatbot":"فتح قائمة دردشة الشات بوت","a2f_btn_resend_otp":"إعادة إرسال OTP عشوائي إلى البوت","a2f_btn_change_email":"تغيير البريد الإلكتروني","a2f_err_invalid_email":"يرجى إدخال عنوان بريد إلكتروني صالح (مثال: user@gmail.com)!","a2f_err_email_used":"عنوان البريد الإلكتروني هذا مسجل بالفعل لدى مستخدم آخر!","a2f_err_invalid_otp":"رمز OTP غير صحيح! يرجى إدخال OTP المكون من 6 أرقام كما قدمه البوت / قائمة دردشة الشات بوت.","a2f_err_expired_otp":"انتهت صلاحية رمز OTP! يرجى النقر على «إعادة إرسال OTP عشوائي إلى البوت».","a2f_success_msg":"تم التحقق من البريد الإلكتروني وOTP البوت! تم ربط بريدك ({email}) بأمان.","a2f_bot_chat_title":"قائمة دردشة الشات بوت — AFEX SECURITY BOT","a2f_bot_msg_header":"رمز التحقق OTP من البوت لـ {email}:","a2f_bot_copy_use":"استخدام OTP","a2f_otp_resent_note":"تم إنشاء رمز OTP عشوائي جديد وإرساله إلى قائمة دردشة البوت!"}};
+var INV = {"en":"Invalid Input","id":"Input Tidak Valid","es":"Entrada no válida","de":"Ungültige Eingabe","fr":"Saisie invalide","tr":"Geçersiz Giriş","uz":"Noto'g'ri kiritish","ru":"Неверный ввод","vi":"Dữ liệu không hợp lệ","tl":"Di-wastong Input","th":"ข้อมูลไม่ถูกต้อง","ms":"Input Tidak Sah","hi":"अमान्य इनपुट","ur":"غلط اندراج","zh":"输入无效","ko":"잘못된 입력","ja":"無効な入力","af":"Ongeldige invoer","ar":"إدخال غير صالح"};
+function apply() {
+  try {
+    var U = G.UNLOCK_MENU_I18N_19;
+    Object.keys(A2F).forEach(function (lc) {
+      if (U) { if (!U[lc]) U[lc] = {}; Object.assign(U[lc], A2F[lc]); }
+      if (typeof i18n !== 'undefined' && i18n) { if (!i18n[lc]) i18n[lc] = {}; Object.assign(i18n[lc], A2F[lc]); }
+    });
+    if (typeof i18n !== 'undefined' && i18n) {
+      Object.keys(INV).forEach(function (lc) { if (!i18n[lc]) i18n[lc] = {}; i18n[lc].invalid_input = INV[lc]; });
+    }
+  } catch (e) {}
+}
+apply();
+/* injectUnlockMenuI18n() menimpa i18n dari UNLOCK_MENU_I18N_19 saat countdown berjalan; karena UNLOCK sudah diisi di atas, hasilnya tetap terjemahan benar. */
+setTimeout(apply, 0); setTimeout(apply, 1500);
 })();
 </script>
 </body>
