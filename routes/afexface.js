@@ -174,7 +174,7 @@ async function faceRemove(b) {   // hanya admin (ADMIN_IDS): dipakai saat admin 
 
 
 /* ---------- pembatalan KYC / Founder oleh admin (disimpan di server agar sampai ke perangkat user) ---------- */
-const REVOKE_KINDS = ['face', 'id', 'kyc_all', 'founder'];
+const REVOKE_KINDS = ['face', 'id', 'kyc_all', 'founder', 'a2f'];
 async function revoke(b) {
   const u = tgUser(b); if (!u || ADMINS.indexOf(u.id) < 0) return { ok: false, error: 'unauthorized' };
   const target = String(b.targetUid || '').trim();
@@ -183,12 +183,33 @@ async function revoke(b) {
   await db.collection('revocations').insertOne({ uid: target, kind: b.kind, ts: Date.now(), by: u.id });
   if (b.kind === 'face' || b.kind === 'kyc_all') await db.collection('face_registry').deleteOne({ uid: target });   // wajah bisa didaftarkan ulang
   if (b.kind === 'kyc_all') await db.collection('a2f_verified').updateOne({ uid: target }, { $set: { revokedAt: new Date() } }).catch(function () {});
+  if (b.kind === 'a2f') {   // Batalkan A2F: hapus status terverifikasi + kode OTP tersisa, user wajib OTP ulang
+    await db.collection('a2f_verified').deleteOne({ uid: target });
+    await db.collection('otp_codes').deleteOne({ _id: target }).catch(function () {});
+  }
   return { ok: true };
 }
 async function revocations(b) {
   const u = tgUser(b); if (!u) return { ok: false, error: 'unauthorized' };
-  const list = await db.collection('revocations').find({ uid: u.id, ts: { $gt: Number(b.since) || 0 } }).sort({ ts: 1 }).limit(20).toArray();
+  const filter = { uid: u.id, ts: { $gt: Number(b.since) || 0 } };
+  if (b.a2f !== true) filter.kind = { $ne: 'a2f' };
+  else {   // pembatalan A2F lama (sebelum user verifikasi ulang) tidak boleh mereset A2F yang sudah baru
+    const ver = await db.collection('a2f_verified').findOne({ uid: u.id });
+    const vts = ver && ver.at ? new Date(ver.at).getTime() : 0;
+    if (vts) filter.$or = [{ kind: { $ne: 'a2f' } }, { kind: 'a2f', ts: { $gt: vts } }];
+  }
+  const list = await db.collection('revocations').find(filter).sort({ ts: 1 }).limit(20).toArray();
   return { ok: true, list: list.map(function (x) { return { kind: x.kind, ts: x.ts }; }) };
+}
+
+function maskEmail(e) {
+  e = String(e || ''); const i = e.indexOf('@'); if (i < 1) return '***';
+  return e.slice(0, 1) + '***' + e.slice(i);
+}
+async function a2fList(b) {   // admin saja: daftar UID dengan A2F aktif (email disamarkan)
+  const u = tgUser(b); if (!u || ADMINS.indexOf(u.id) < 0) return { ok: false, error: 'unauthorized' };
+  const rows = await db.collection('a2f_verified').find({ revokedAt: { $exists: false } }).sort({ at: -1 }).limit(200).project({ uid: 1, email: 1, at: 1 }).toArray();
+  return { ok: true, list: rows.map(function (x) { return { uid: x.uid, email: maskEmail(x.email), at: x.at ? new Date(x.at).getTime() : 0 }; }) };
 }
 
 async function handle(body) {
@@ -201,6 +222,7 @@ async function handle(body) {
     case 'face_remove': return faceRemove(body);
     case 'revoke': return revoke(body);
     case 'revocations': return revocations(body);
+    case 'a2f_list': return a2fList(body);
     default: return { ok: false, error: 'unknown_action' };
   }
 }
