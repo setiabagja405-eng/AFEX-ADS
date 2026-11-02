@@ -23433,6 +23433,425 @@ G.AFEXNumZone = { HINTS: HINTS, update: update, hide: hide, locate: locate, flat
 })();
 </script>
 
+<script id="afex-kyc-fullscreen-vector">
+/* ===== [PERBAIKAN] KYC WAJAH LAYAR PENUH + KAMERA ANTI-BLANK + PEMICU BERBASIS VEKTOR + BATALKAN A2F (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   1) Layar penuh: saat KYC wajah, kamera memenuhi layar; oval hanya panduan (luar oval digelapkan). Bukaan kamera lebih besar = wajah lebih mudah terbaca.
+   2) Kamera: pembungkus PALING LUAR. Bila rantai lama gagal / mengembalikan stream mati, kamera depan diminta langsung ke API asli.
+      Watchdog memasang ulang stream bila gambar tidak muncul, dan tombol ketuk (gestur) memakai jalur langsung yang sama.
+   3) Vektor wajah (seperti di Termux): wajah dibaca face-api -> vektor 128 angka -> cek duplikat & simpan di MongoDB (face_check / face_register).
+      Capture otomatis begitu wajah terbaca stabil + 1 tanda hidup (kedip ATAU tengok pelan). Alur gestur lama dihentikan hanya setelah wajah terbaca;
+      bila model wajah tidak termuat, alur gestur lama tetap berjalan sebagai cadangan.
+   4) Menu pembatalan: tombol + daftar "Batalkan A2F" (status A2F kembali belum verifikasi, email bisa dipakai lagi, user OTP ulang). */
+(function () {
+'use strict';
+var G = window;
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+
+/* ---------- 0) teks 19 bahasa ---------- */
+var TX = {
+  afex_fs_hint: {
+    en: 'Position your face inside the oval, then blink once.',
+    id: 'Posisikan wajah di dalam oval, lalu berkedip sekali.',
+    es: 'Coloca tu rostro dentro del óvalo y parpadea una vez.',
+    de: 'Positioniere dein Gesicht im Oval und blinzle einmal.',
+    fr: 'Placez votre visage dans l’ovale, puis clignez des yeux une fois.',
+    tr: 'Yüzünüzü ovalin içine yerleştirin, sonra bir kez göz kırpın.',
+    uz: 'Yuzingizni oval ichiga joylashtiring, so‘ng bir marta ko‘z qirpib qo‘ying.',
+    ru: 'Расположите лицо внутри овала и моргните один раз.',
+    vi: 'Đặt khuôn mặt vào trong hình oval, rồi chớp mắt một lần.',
+    tl: 'Ilagay ang mukha sa loob ng oval, pagkatapos ay kumurap nang isang beses.',
+    th: 'วางใบหน้าไว้ในวงรี แล้วกะพริบตาหนึ่งครั้ง',
+    ms: 'Letakkan wajah anda di dalam bujur, kemudian kelip mata sekali.',
+    hi: 'अपना चेहरा अंडाकार के अंदर रखें, फिर एक बार पलक झपकाएँ।',
+    ur: 'اپنا چہرہ بیضوی کے اندر رکھیں، پھر ایک بار پلک جھپکیں۔',
+    zh: '请将脸放在椭圆框内，然后眨眼一次。',
+    ko: '얼굴을 타원 안에 맞추고 눈을 한 번 깜빡여 주세요.',
+    ja: '顔を楕円の中に合わせて、一度まばたきしてください。',
+    af: 'Plaas jou gesig binne die ovaal en knip dan een keer met jou oë.',
+    ar: 'ضع وجهك داخل الشكل البيضاوي ثم ارمش مرة واحدة.'
+  },
+  afex_fs_reading: {
+    en: 'Reading your face… keep looking at the camera.',
+    id: 'Membaca wajah… tetap menghadap kamera.',
+    es: 'Leyendo tu rostro… sigue mirando a la cámara.',
+    de: 'Gesicht wird gelesen … schau weiter in die Kamera.',
+    fr: 'Lecture du visage… continuez de regarder la caméra.',
+    tr: 'Yüzünüz okunuyor… kameraya bakmaya devam edin.',
+    uz: 'Yuzingiz o‘qilmoqda… kameraga qarashda davom eting.',
+    ru: 'Считываем лицо… продолжайте смотреть в камеру.',
+    vi: 'Đang đọc khuôn mặt… hãy tiếp tục nhìn vào camera.',
+    tl: 'Binabasa ang mukha… patuloy na tumingin sa camera.',
+    th: 'กำลังอ่านใบหน้า… โปรดมองกล้องต่อไป',
+    ms: 'Membaca wajah… teruskan memandang kamera.',
+    hi: 'चेहरा पढ़ा जा रहा है… कैमरे की ओर देखते रहें।',
+    ur: 'چہرہ پڑھا جا رہا ہے… کیمرے کی طرف دیکھتے رہیں۔',
+    zh: '正在读取人脸…请继续看向摄像头。',
+    ko: '얼굴을 읽는 중… 계속 카메라를 봐 주세요.',
+    ja: '顔を読み取り中…そのままカメラを見てください。',
+    af: 'Lees tans jou gesig… bly na die kamera kyk.',
+    ar: 'جارٍ قراءة وجهك… استمر في النظر إلى الكاميرا.'
+  },
+  afex_a2f_revoked: {
+    en: 'Your A2F verification was cancelled by Our Team. Please verify with OTP again.',
+    id: 'Verifikasi A2F Anda dibatalkan oleh Tim Kami. Silakan verifikasi ulang dengan OTP.',
+    es: 'Nuestro equipo canceló tu verificación A2F. Verifica de nuevo con OTP.',
+    de: 'Deine A2F-Verifizierung wurde von unserem Team widerrufen. Bitte verifiziere erneut mit OTP.',
+    fr: 'Votre vérification A2F a été annulée par notre équipe. Veuillez vérifier à nouveau avec un OTP.',
+    tr: 'A2F doğrulamanız ekibimiz tarafından iptal edildi. Lütfen OTP ile yeniden doğrulayın.',
+    uz: 'A2F tasdiqlashingiz jamoamiz tomonidan bekor qilindi. Iltimos, OTP bilan qayta tasdiqlang.',
+    ru: 'Ваша верификация A2F отменена нашей командой. Пожалуйста, пройдите проверку по OTP снова.',
+    vi: 'Xác minh A2F của bạn đã bị đội ngũ của chúng tôi hủy. Vui lòng xác minh lại bằng OTP.',
+    tl: 'Kinansela ng aming team ang iyong A2F verification. Paki-verify ulit gamit ang OTP.',
+    th: 'ทีมของเราได้ยกเลิกการยืนยัน A2F ของคุณ กรุณายืนยันด้วย OTP อีกครั้ง',
+    ms: 'Pengesahan A2F anda telah dibatalkan oleh pasukan kami. Sila sahkan semula dengan OTP.',
+    hi: 'आपका A2F सत्यापन हमारी टीम द्वारा रद्द कर दिया गया है। कृपया OTP से दोबारा सत्यापित करें।',
+    ur: 'آپ کی A2F تصدیق ہماری ٹیم نے منسوخ کر دی ہے۔ براہ کرم OTP کے ساتھ دوبارہ تصدیق کریں۔',
+    zh: '您的 A2F 验证已被我们团队取消，请重新使用 OTP 验证。',
+    ko: 'A2F 인증이 우리 팀에 의해 취소되었습니다. OTP로 다시 인증해 주세요.',
+    ja: 'A2F認証は私たちのチームによって取り消されました。OTPで再度認証してください。',
+    af: 'Jou A2F-verifikasie is deur ons span gekanselleer. Verifieer asseblief weer met OTP.',
+    ar: 'تم إلغاء التحقق A2F الخاص بك من قبل فريقنا. يرجى التحقق مرة أخرى باستخدام OTP.'
+  }
+};
+try {
+  if (typeof i18n !== 'undefined') {
+    Object.keys(TX).forEach(function (k) {
+      Object.keys(i18n).forEach(function (l) { if (i18n[l]) i18n[l][k] = TX[k][l] || TX[k].en; });
+    });
+  }
+} catch (e) {}
+function tr(k) { try { return t(k); } catch (e) { return (TX[k] && TX[k].en) || k; } }
+
+/* ---------- 1) CSS layar penuh ---------- */
+var css = document.createElement('style');
+css.id = 'afex-kyc-fullscreen-css';
+css.textContent =
+  '#camera-modal.afex-fs{padding:0!important;align-items:stretch!important;justify-content:stretch!important;background:#000!important;z-index:3500!important}' +
+  '#camera-modal.afex-fs > div{max-width:none!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:none!important;border-radius:0!important;padding:0!important;border:0!important;background:#000!important;box-shadow:none!important;overflow:hidden!important;position:relative!important;margin:0!important}' +
+  '#camera-modal.afex-fs > div > *{margin-top:0!important}' +
+  '#camera-modal.afex-fs #kyc-modal-heading{position:absolute!important;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:8;text-shadow:0 1px 4px #000;pointer-events:none;margin:0!important}' +
+  '#camera-modal.afex-fs #instruction-box{position:absolute!important;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 36px);height:auto!important;min-height:34px;z-index:8;background:rgba(0,0,0,.55)!important}' +
+  '#camera-modal.afex-fs .kyc-face-mode{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;background:#000!important;transform:none!important}' +
+  '#camera-modal.afex-fs .kyc-face-mode > video#kyc-video{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;aspect-ratio:auto!important;border-radius:0!important;transform:scaleX(-1)!important;object-fit:cover!important;z-index:1!important;display:block!important;opacity:1!important;visibility:visible!important;filter:none!important}' +
+  '#camera-modal.afex-fs .kyc-face-mode::before{content:""!important;position:absolute!important;left:50%!important;top:46%!important;transform:translate(-50%,-50%)!important;height:min(58vh,460px)!important;width:auto!important;aspect-ratio:4/5!important;max-width:none!important;border-radius:50% 50% 50% 50% / 45% 45% 55% 55%!important;box-shadow:0 0 0 3px rgba(250,204,21,.95),0 0 0 200vmax rgba(0,0,0,.52)!important;pointer-events:none!important;z-index:3!important;animation:none!important;opacity:1!important}' +
+  '#camera-modal.afex-fs .kyc-face-mode.afex-ring-ok::before{box-shadow:0 0 0 3px rgba(74,222,128,.95),0 0 0 200vmax rgba(0,0,0,.52)!important}' +
+  '#camera-modal.afex-fs .kyc-face-mode #kyc-guide-overlay{position:absolute!important;inset:auto!important;left:12px!important;right:12px!important;top:calc(env(safe-area-inset-top,0px) + 86px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 70px)!important;z-index:7!important;border:0!important;padding:0!important}' +
+  '#camera-modal.afex-fs video.afex-bg-blur,#camera-modal.afex-fs canvas.afex-face-mesh{display:none!important}' +
+  '#camera-modal.afex-fs > div > .flex.gap-2{position:absolute!important;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:9}';
+document.head.appendChild(css);
+
+/* ---------- 2) kamera: pembungkus paling luar + jalur langsung ---------- */
+var md = navigator.mediaDevices;
+var NATIVE = null;
+try { if (G.MediaDevices && G.MediaDevices.prototype.getUserMedia && md) NATIVE = G.MediaDevices.prototype.getUserMedia.bind(md); } catch (e) {}
+var mine = [];                                   /* stream yang dibuat modul ini (dimatikan saat layar ditutup) */
+function isPerm(e) { return !!e && (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError' || e.name === 'SecurityError'); }
+function liveStream(s) { try { return !!s && s.getVideoTracks().some(function (t) { return t.readyState === 'live'; }); } catch (e) { return false; } }
+function stopStream(s) { try { s.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }
+function faceType() { try { return activeKycType === 'face'; } catch (e) { return false; } }
+function modalOpen() { var m = $('camera-modal'); return !!(m && !m.classList.contains('hidden')); }
+function faceCam(c) {
+  try {
+    if (!c || !c.video || c.audio) return false;
+    if (JSON.stringify(c.video.facingMode || '').indexOf('environment') >= 0) return false;
+    return modalOpen() && faceType();
+  } catch (e) { return false; }
+}
+async function nativeFace() {
+  var base = NATIVE || (md && md.getUserMedia && md.getUserMedia.bind(md));
+  if (!base) throw new Error('no getUserMedia');
+  var tries = [
+    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+    { video: { facingMode: 'user' }, audio: false },
+    { video: true, audio: false }
+  ], last = null, denied = 0;
+  for (var i = 0; i < tries.length; i++) {
+    try {
+      var s = await base(tries[i]);
+      if (liveStream(s)) { mine.push(s); return s; }
+      stopStream(s);
+    } catch (e) { last = e; if (isPerm(e) && ++denied >= 2) break; }
+  }
+  throw last || new Error('camera');
+}
+async function upgrade(s) {
+  try {
+    var t = s.getVideoTracks()[0], st = (t && t.getSettings) ? t.getSettings() : {};
+    if (t && t.applyConstraints && (Math.max(st.width || 0, st.height || 0) < 640)) await t.applyConstraints({ width: { ideal: 1280 }, height: { ideal: 720 } });
+  } catch (e) {}
+}
+if (md && md.getUserMedia && !md.__afexFsCam) {
+  var chain = md.getUserMedia.bind(md);
+  md.getUserMedia = async function (c) {
+    if (!faceCam(c)) return chain.apply(md, arguments);
+    var s = null;
+    try { s = await chain(c); } catch (e) { s = await nativeFace(); }
+    if (!liveStream(s)) { stopStream(s); s = await nativeFace(); }
+    upgrade(s);
+    return s;
+  };
+  md.__afexFsCam = true;
+}
+
+function videoOk(v) { return !!(v && v.srcObject && !v.paused && v.readyState >= 2 && v.videoWidth > 0); }
+var acquiring = false, lastDirect = 0, badSince = 0;
+async function directStart() {
+  if (acquiring) return; acquiring = true;
+  try {
+    var v = $('kyc-video'); if (!v) return;
+    try { if (v.srcObject) stopStream(v.srcObject); } catch (e) {}
+    var s = await nativeFace();
+    try { videoStream = s; } catch (e) {}
+    v.srcObject = s; v.muted = true; v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+    try { await v.play(); } catch (e) {}
+    upgrade(s);
+    var tap = $('afex-cam-tap'); if (tap) tap.classList.remove('on');
+  } catch (err) { /* tombol ketuk (afex-cam-tap) tetap tampil */ }
+  finally { acquiring = false; }
+}
+/* ketukan pada tombol "Tap to start camera" = gestur pengguna -> jalur langsung */
+document.addEventListener('click', function (ev) {
+  var el = ev.target && ev.target.closest ? ev.target.closest('#afex-cam-tap') : null;
+  if (!el || !fsOn) return;
+  ev.stopImmediatePropagation(); ev.preventDefault();
+  lastDirect = Date.now(); directStart();
+}, true);
+setInterval(function () {
+  if (!fsOn) { badSince = 0; return; }
+  var v = $('kyc-video');
+  if (videoOk(v)) { badSince = 0; return; }
+  if (v && v.srcObject && v.paused) { try { v.muted = true; v.play(); } catch (e) {} }
+  if (!badSince) badSince = Date.now();
+  var limit = (v && v.srcObject) ? 3500 : 9000;   /* tanpa stream = mungkin masih menunggu dialog izin */
+  if (Date.now() - badSince > limit && !acquiring && Date.now() - lastDirect > 6000) { lastDirect = Date.now(); directStart(); }
+}, 500);
+
+/* ---------- 3) vektor wajah -> capture otomatis ---------- */
+var fsOn = false, VS = {};
+var capLock = false, cropNext = false;
+function resetVS() { VS = { busy: false, fired: false, face: 0, blinks: 0, closed: false, earMax: 0, yawMin: 9, yawMax: -9, t0: 0, lastFace: 0, opt: null }; }
+resetVS();
+function setText(txt) { var el = $('gesture-status'); if (el && el.textContent !== txt) el.textContent = txt; }
+function setBar(p) { var b = $('gesture-progress-bar'); if (b) b.style.width = Math.max(0, Math.min(100, Math.round(p * 100))) + '%'; }
+function setStep(txt) { var el = $('step-indicator'); if (el) el.textContent = txt; var tm = $('timer-progress-text'); if (tm) tm.textContent = ''; }
+function setRing(on) { var v = $('kyc-video'); if (v && v.parentElement) v.parentElement.classList.toggle('afex-ring-ok', !!on); }
+function modelsReady() {
+  try {
+    var fa = G.faceapi; if (!fa || !fa.nets) return false;
+    return !!(fa.nets.tinyFaceDetector.isLoaded && fa.nets.faceLandmark68Net.isLoaded && fa.nets.faceRecognitionNet.isLoaded);
+  } catch (e) { return false; }
+}
+function ear(p, a) {
+  function d(i, j) { return Math.hypot(p[a + i].x - p[a + j].x, p[a + i].y - p[a + j].y); }
+  return (d(1, 5) + d(2, 4)) / (2 * d(0, 3) || 1);
+}
+function fire() {
+  VS.fired = true;
+  setText(tr('afex_fs_reading')); setBar(1);
+  try { nodCount = Math.max(nodCount || 0, 1); } catch (e) {}
+  try { _livenessState._allGesturesVerified = true; } catch (e) {}   /* tanda hidup sudah diperiksa di sini (kedip / tengok) */
+  try { isProcessing = false; } catch (e) {}
+  cropNext = true; setTimeout(function () { cropNext = false; }, 6000);
+  setTimeout(function () { try { G.triggerAutoCapture(); } catch (e) { VS.fired = false; cropNext = false; } }, 350);
+}
+async function vtick() {
+  if (!fsOn || VS.busy || VS.fired || capLock) return;
+  var v = $('kyc-video'); if (!videoOk(v) || !modelsReady()) return;
+  VS.busy = true;
+  try {
+    var fa = G.faceapi;
+    if (!VS.opt) VS.opt = new fa.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.35 });
+    var r = await fa.detectSingleFace(v, VS.opt).withFaceLandmarks();
+    if (!fsOn || VS.fired) return;
+    var now = Date.now();
+    var okFace = !!(r && r.detection && r.detection.score >= 0.5 && (r.detection.box.width / (v.videoWidth || 1)) >= 0.14);
+    if (!okFace) {
+      if (now - VS.lastFace > 1200) { setRing(false); setText(tr('afex_fs_hint')); }
+      return;
+    }
+    var p = r.landmarks.positions;
+    VS.face++; VS.lastFace = now; if (!VS.t0) VS.t0 = now;
+    try { if (isProcessing) isProcessing = false; } catch (e) {}   /* wajah terbaca -> vektor yang memutuskan, hentikan alur gestur lama */
+    var fw = (p[16].x - p[0].x) || 1, yr = (p[30].x - p[0].x) / fw;
+    if (yr < VS.yawMin) VS.yawMin = yr; if (yr > VS.yawMax) VS.yawMax = yr;
+    var e = (ear(p, 36) + ear(p, 42)) / 2;
+    VS.earMax = Math.max(VS.earMax * 0.995, e);
+    if (e < Math.min(0.2, VS.earMax * 0.7)) VS.closed = true;
+    else if (VS.closed && e > VS.earMax * 0.85) { VS.closed = false; VS.blinks++; }
+    var live = VS.blinks >= 1 || (VS.yawMax - VS.yawMin) >= 0.08;
+    setRing(true);
+    setStep(Math.min(VS.face, 8) + ' / 8');
+    setBar(Math.min(1, VS.face / 8) * 0.6 + (live ? 0.4 : 0));
+    setText(live ? tr('afex_fs_reading') : tr('afex_fs_hint'));
+    if (VS.face >= 8 && (now - VS.t0) >= 1800 && live) fire();
+  } catch (e2) {} finally { VS.busy = false; }
+}
+setInterval(vtick, 110);
+
+/* tidak ada dua capture sekaligus (alur gestur lama + vektor) */
+var _tac = G.triggerAutoCapture;
+if (typeof _tac === 'function') {
+  G.triggerAutoCapture = function () {
+    if (capLock) return;
+    capLock = true; setTimeout(function () { capLock = false; }, 4000);
+    return _tac.apply(this, arguments);
+  };
+}
+/* foto KYC: kamera layar penuh tidak persegi -> potong tengah agar foto 320x320 tidak gepeng */
+try {
+  var CP = G.CanvasRenderingContext2D && G.CanvasRenderingContext2D.prototype;
+  if (CP && !CP.__afexCrop) {
+    var od = CP.drawImage;
+    CP.drawImage = function (img, a, b, c, d) {
+      if (cropNext && arguments.length === 5 && img && img.id === 'kyc-video' && img.videoWidth && img.videoHeight && c === d) {
+        var vw = img.videoWidth, vh = img.videoHeight, side = Math.min(vw, vh);
+        return od.call(this, img, (vw - side) / 2, (vh - side) / 2, side, side, a, b, c, d);
+      }
+      return od.apply(this, arguments);
+    };
+    CP.__afexCrop = true;
+  }
+} catch (e) {}
+
+/* ---------- sinkron layar penuh ---------- */
+setInterval(function () {
+  var m = $('camera-modal'); if (!m) return;
+  var on = modalOpen() && faceType();
+  m.classList.toggle('afex-fs', on);
+  if (on !== fsOn) {
+    fsOn = on;
+    if (on) { resetVS(); capLock = false; cropNext = false; lastDirect = Date.now(); badSince = 0; try { G.Telegram.WebApp.expand(); } catch (e) {} }
+    else { setRing(false); mine.forEach(stopStream); mine = []; }
+  }
+}, 150);
+G.AFEXFullscreenKyc = { directStart: directStart, state: function () { return { fsOn: fsOn, vs: { face: VS.face, blinks: VS.blinks, yaw: VS.yawMax - VS.yawMin, fired: VS.fired }, models: modelsReady() }; } };
+
+/* ---------- 4) BATALKAN A2F (menu pembatalan admin) ---------- */
+function a2fCall(action, extra) {
+  var c = G.AFEX_OTP_CFG, ep = c && c.endpoint; if (!ep) return Promise.resolve(null);
+  var init = ''; try { init = G.Telegram.WebApp.initData || ''; } catch (e) {}
+  return fetch(ep, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ action: action, initData: init, uid: String(userIdStr) }, extra || {})) })
+    .then(function (r) { return r.json(); }).catch(function () { return null; });
+}
+/* A2F lokal kembali "belum verifikasi" (tidak menyentuh KYC wajah/ID) */
+function localA2fReset(uid) {
+  uid = String(uid);
+  try {
+    var used = JSON.parse(_afexLS.getItem('afex_used_a2f_emails') || '{}'), ch = false;
+    Object.keys(used).forEach(function (em) { if (String(used[em]) === uid) { delete used[em]; ch = true; } });
+    if (ch) _afexLS.setItem('afex_used_a2f_emails', JSON.stringify(used));
+  } catch (e) {}
+  try { _afexLS.removeItem('afex_a2f_verified_' + uid); _afexLS.removeItem('afex_verified_email_' + uid); } catch (e) {}
+  try {
+    var key = 'afex_state_' + uid, raw = _afexLS.getItem(key);
+    if (raw) { var st = JSON.parse(raw); st.kycStatus = st.kycStatus || {}; st.kycStatus.a2f = 'unverified'; st.verifiedEmail = ''; _afexLS.setItem(key, JSON.stringify(st)); }
+  } catch (e) {}
+  try {
+    var q = getGlobalAdminQueue();
+    if (q && Array.isArray(q.kycRequests)) {
+      var n0 = q.kycRequests.length;
+      q.kycRequests = q.kycRequests.filter(function (k) { return !(k && String(k.uid) === uid && k.type === 'a2f'); });
+      if (q.kycRequests.length !== n0) saveGlobalAdminQueue(q);
+    }
+  } catch (e) {}
+  if (uid === String(userIdStr) && typeof miningData !== 'undefined' && miningData) {
+    if (!miningData.kycStatus) miningData.kycStatus = {};
+    miningData.kycStatus.a2f = 'unverified'; miningData.verifiedEmail = '';
+    try { saveLocalPersistence(true); } catch (e) {}
+    try { updateDynamicCountdowns(); } catch (e) {}
+    try { updateUI(); } catch (e) {}
+  }
+}
+/* sisi user: terapkan pembatalan A2F dari server */
+function pullA2f() {
+  var uid; try { uid = String(userIdStr); } catch (e) { return; }
+  if (!uid || uid === 'GUEST' || uid === 'undefined') return;
+  var K = 'afex_a2f_revoke_applied_' + uid, since = 0;
+  try { since = Number(_afexLS.getItem(K)) || 0; } catch (e) {}
+  a2fCall('revocations', { since: since, a2f: true }).then(function (r) {
+    if (!r || !r.ok || !r.list || !r.list.length) return;
+    var max = since, hit = false;
+    r.list.forEach(function (x) { if (x.kind === 'a2f') hit = true; if (x.ts > max) max = x.ts; });
+    try { _afexLS.setItem(K, String(max)); } catch (e) {}
+    if (hit) {
+      localA2fReset(uid);
+      try { showModal(t('notification'), tr('afex_a2f_revoked'), 'fa-circle-exclamation'); } catch (e) {}
+    }
+  });
+}
+setTimeout(pullA2f, 6000); setInterval(pullA2f, 30000);
+
+/* sisi admin: kotak "Batalkan A2F" di dalam menu pembatalan yang sudah ada */
+var menuSeenAt = 0, FACE_TTL = 15 * 60 * 1000;
+function needFaceA2f(cb) {
+  /* menu hanya terbuka setelah scan wajah admin; bila sudah >15 menit, minta scan ulang seperti aksi lain */
+  if (menuSeenAt && Date.now() - menuSeenAt < FACE_TTL) return cb();
+  G._afterAdminFace = function () { menuSeenAt = Date.now(); cb(); };
+  try { G.openAdminOwnerFaceGate(); } catch (e) { cb(); }
+}
+function doRevokeA2f(uid, m) {
+  var res = m.querySelector('#afex-cm-result');
+  if (!/^\d{3,20}$/.test(uid)) { res.innerHTML = '<span class="text-red-400">Isi UID user dengan benar (angka).</span>'; return; }
+  if (!confirm('Batalkan A2F untuk UID ' + uid + '?')) return;
+  needFaceA2f(function () {
+    res.innerHTML = '<span class="text-yellow-400">Memproses...</span>';
+    localA2fReset(uid);
+    a2fCall('revoke', { targetUid: uid, kind: 'a2f' }).then(function (r) {
+      if (r && r.ok) res.innerHTML = '<span class="text-green-400">A2F UID ' + esc(uid) + ' dibatalkan. User wajib verifikasi OTP lagi.</span>';
+      else res.innerHTML = '<span class="text-yellow-400">Dibatalkan di perangkat ini, tetapi server gagal (' + esc((r && r.error) || 'tidak terjangkau') + '). Pastikan ID admin ada di ADMIN_IDS, lalu ulangi.</span>';
+      loadA2fList(m);
+    });
+  });
+}
+function loadA2fList(m) {
+  var host = m.querySelector('#afex-cm-a2f-rows'); if (!host) return;
+  a2fCall('a2f_list').then(function (r) {
+    if (!host.isConnected) return;
+    if (!r || !r.ok) { host.innerHTML = '<p class="text-gray-500 text-[10px]">Daftar A2F tidak bisa dimuat (' + esc((r && r.error) || 'server tidak terjangkau') + '). Isi UID di atas lalu tekan Batalkan A2F.</p>'; return; }
+    var f = ((m.querySelector('#afex-cm-a2f-filter') || {}).value || '').trim().toLowerCase();
+    var list = (r.list || []).filter(function (x) { return !f || String(x.uid).toLowerCase().indexOf(f) >= 0 || String(x.email).toLowerCase().indexOf(f) >= 0; });
+    host.innerHTML = list.length ? list.map(function (x) {
+      return '<div class="flex items-center justify-between gap-2 bg-[#080c14] border border-gray-800 rounded-lg p-1.5">' +
+        '<span class="text-yellow-300 break-all">' + esc(x.uid) + ' <span class="text-gray-400">' + esc(x.email) + '</span></span>' +
+        '<button type="button" data-a2f-uid="' + esc(x.uid) + '" class="bg-red-500/20 border border-red-500/60 text-red-400 font-bold px-1.5 py-1 rounded cursor-pointer shrink-0">Batal A2F</button></div>';
+    }).join('') : '<p class="text-gray-500 text-[10px]">Belum ada A2F aktif.</p>';
+  });
+}
+function injectA2f(m) {
+  var box = document.createElement('div');
+  box.id = 'afex-cm-a2f'; box.className = 'border border-emerald-500/30 rounded-xl p-2 space-y-1.5';
+  box.innerHTML = '<span class="text-emerald-300 font-bold block"><i class="fa-solid fa-envelope-circle-check mr-1"></i>A2F (OTP email) - status kembali belum verifikasi</span>' +
+    '<button type="button" id="afex-cm-a2f-btn" class="w-full bg-red-500/20 border border-red-500/60 text-red-400 font-bold py-2 rounded cursor-pointer">Batalkan A2F (UID di kolom atas)</button>' +
+    '<input id="afex-cm-a2f-filter" type="text" placeholder="Cari UID / email..." class="w-full bg-[#080c14] border border-gray-700 text-yellow-300 rounded p-1.5 outline-none">' +
+    '<div id="afex-cm-a2f-rows" class="max-h-48 overflow-y-auto space-y-1"><p class="text-gray-500 text-[10px]">Memuat...</p></div>';
+  var allBtn = m.querySelector('button[data-cm="kyc_all"]');
+  var kycBox = allBtn && allBtn.closest ? allBtn.closest('.border') : null;
+  if (kycBox && kycBox.parentNode) kycBox.parentNode.insertBefore(box, kycBox.nextSibling);
+  else { var res = m.querySelector('#afex-cm-result'); if (res && res.parentNode) res.parentNode.insertBefore(box, res); else return; }
+  box.querySelector('#afex-cm-a2f-btn').addEventListener('click', function () {
+    var uidEl = m.querySelector('#afex-cm-uid'); doRevokeA2f(uidEl ? uidEl.value.trim() : '', m);
+  });
+  box.querySelector('#afex-cm-a2f-filter').addEventListener('input', function () { loadA2fList(m); });
+  box.addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('button[data-a2f-uid]') : null; if (!b) return;
+    var uid = b.getAttribute('data-a2f-uid'), uidEl = m.querySelector('#afex-cm-uid'); if (uidEl) uidEl.value = uid;
+    doRevokeA2f(uid, m);
+  });
+  loadA2fList(m);
+}
+var listTick = 0;
+setInterval(function () {
+  var m = $('afex-cancel-menu'), open = !!(m && !m.classList.contains('hidden'));
+  if (!open) { menuSeenAt = 0; listTick = 0; return; }
+  if (!menuSeenAt) menuSeenAt = Date.now();
+  if (!m.querySelector('#afex-cm-a2f')) { injectA2f(m); listTick = Date.now(); return; }
+  if (Date.now() - listTick > 8000) { listTick = Date.now(); loadA2fList(m); }
+}, 400);
+})();
+</script>
+
 <script src="afex-patch.js"></script>
 </body>
 </html>
