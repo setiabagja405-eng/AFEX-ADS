@@ -3968,6 +3968,8 @@ div:not(.kyc-face-mode) > #kyc-video { position: absolute !important; inset: 0 !
                         network: netName,
                         wallet: targetAddr,
                         amount: amt,
+                        fee: feeAmt,
+                        netReceive: netReceive,
                         timestamp: new Date().toISOString()
                     })
                 });
@@ -5097,6 +5099,7 @@ div:not(.kyc-face-mode) > #kyc-video { position: absolute !important; inset: 0 !
                         <span class="text-gray-400 block text-[10px]">NETWORK & AMOUNT:</span>
                         <strong class="text-white text-xs">${record.amount} USDT (${record.network || 'BEP-20'})</strong>
                     </div>
+                    ${category === 'dep' ? '' : `<div>${afexWdBoxHtml(record)}</div>`}
                     <div>
                         <span class="text-gray-400 block text-[10px]">WALLET ADDRESS:</span>
                         <div class="flex items-center gap-1.5 mt-0.5">
@@ -5197,6 +5200,31 @@ div:not(.kyc-face-mode) > #kyc-video { position: absolute !important; inset: 0 !
             closeModal();
             showModal(t('success'), "Tugas baru berhasil ditambahkan dan dipublikasikan ke halaman Task!", "fa-circle-check");
         }
+        /* [PERBAIKAN WD ADMIN] hitung jumlah WD asli, fee, dan jumlah yang harus dikirim (setelah fee) untuk satu request WD.
+           Pakai nilai yang tersimpan di record (fee / netReceive). Record lama / dari Spreadsheet tanpa nilai itu -> dihitung 2% (ditandai estimasi). */
+        function afexWdAmounts(w) {
+            const okNum = v => v !== undefined && v !== null && v !== '' && isFinite(Number(v)) && Number(v) >= 0;
+            let amount = okNum(w && w.amount) ? Number(w.amount) : 0;
+            let hasFee = okNum(w && w.fee), hasNet = okNum(w && w.netReceive);
+            let fee, net, estimated = false;
+            if (hasFee && hasNet) { fee = Number(w.fee); net = Number(w.netReceive); }
+            else if (hasFee) { fee = Number(w.fee); net = amount - fee; }
+            else if (hasNet) { net = Number(w.netReceive); fee = amount - net; }
+            else { fee = amount * 0.02; net = amount - fee; estimated = true; }
+            fee = Math.max(0, Math.round(fee * 1e6) / 1e6);
+            net = Math.max(0, Math.round(net * 1e6) / 1e6);
+            let pct = amount > 0 ? (fee / amount) * 100 : 0;
+            return { amount, fee, net, pct, estimated };
+        }
+        function afexWdBoxHtml(w) {
+            const a = afexWdAmounts(w), star = a.estimated ? '*' : '';
+            const pctTxt = (Math.round(a.pct * 10) / 10).toString();
+            return `<div class="grid grid-cols-3 gap-1 text-center bg-[#121927] rounded-lg p-1.5 border border-gray-800 text-[9px]">
+                <div><span class="text-gray-400 block">WD ASLI</span><strong class="text-yellow-400 text-[11px]">${a.amount.toFixed(2)}</strong></div>
+                <div><span class="text-gray-400 block">FEE ${pctTxt}%${star}</span><strong class="text-red-400 text-[11px]">-${a.fee.toFixed(2)}</strong></div>
+                <div><span class="text-gray-400 block">KIRIM (NET)</span><strong class="text-green-400 text-[11px]">${a.net.toFixed(2)}</strong></div>
+            </div>${a.estimated ? '<div class="text-[8px] text-gray-500 text-center">*estimasi fee 2% (data fee tidak ada di record ini)</div>' : ''}`;
+        }
         async function fetchRemoteSpreadsheetQueue() {
             try {
                 let res = await fetch(`${SPREADSHEET_URL}?action=getQueue`);
@@ -5237,6 +5265,7 @@ div:not(.kyc-face-mode) > #kyc-video { position: absolute !important; inset: 0 !
                         </div>
                         <span class="text-yellow-400 font-bold">${Number(w.amount).toFixed(2)} USDT</span>
                     </div>
+                    ${afexWdBoxHtml(w)}
                     <div class="text-[9px] text-gray-400 break-all">Wallet (${escapeHtml(w.network)}): ${escapeHtml(w.address)}</div>
                     <input type="text" id="admin-wd-txhash-${escapeHtml(w.id)}" placeholder="Input Payout TxHash..." class="w-full bg-[#121927] border border-gray-700 text-cyan-400 rounded p-1.5 text-[10px] outline-none font-mono">
                     <div class="flex gap-1.5 pt-1">
@@ -11032,6 +11061,12 @@ function triggerAutoCapture() {
                 if (latestWd && latestWd.fee > 0) {
                     latestWd.fee = 0;
                     latestWd.netReceive = amt;
+                    /* [PERBAIKAN WD ADMIN] antrean admin menyimpan salinan sendiri (fee 2%); samakan agar admin melihat jumlah kirim yang benar */
+                    try {
+                        var _qf = getGlobalAdminQueue();
+                        var _itf = (_qf.wdRequests || []).find(function (w) { return w.id === latestWd.id; });
+                        if (_itf) { _itf.fee = 0; _itf.netReceive = amt; saveGlobalAdminQueue(_qf); }
+                    } catch (e) {}
                 }
                 founderState.freeWdUsedThisWeek = (founderState.freeWdUsedThisWeek || 0) + 1;
                 saveFounderState();
@@ -17597,11 +17632,11 @@ G.afexOtpGet = async function () {
   try {
     var r = await api('otp_request', { email: S.email });
     if (r && r.ok) {
-      S.expiresAt = r.expiresAt || (Date.now() + 300000); S.cdUntil = Date.now() + 30000;
+      S.expiresAt = r.expiresAt || (Date.now() + 300000); S.cdUntil = Date.now() + 30000; S.waitingBot = false;
       setMsg('afex-otp-status', L('sent'), 'ok');
       var inp = document.getElementById('a2f-otp-input'); if (inp) { inp.value = ''; inp.focus(); }
     } else {
-      if (r && r.error === 'need_start') { var bb = document.getElementById('afex-otp-bot-btn'); if (bb) bb.classList.remove('hidden'); }
+      if (r && r.error === 'need_start') { S.waitingBot = true; var bb = document.getElementById('afex-otp-bot-btn'); if (bb) bb.classList.remove('hidden'); }   /* [PERBAIKAN OTP] server menunggu user menekan Start di bot; kode dikirim bot -> verifikasi harus boleh dilakukan */
       if (r && r.error === 'cooldown') S.cdUntil = Date.now() + ((r.retryIn || 30) * 1000);
       setMsg('afex-otp-status', mapErr(r), 'err');
     }
@@ -17612,8 +17647,8 @@ var origVerify = G.verifyA2fEmailOtp;
 G.afexOtpVerify = async function () {
   hideErr();
   var inp = document.getElementById('a2f-otp-input'), code = inp ? inp.value.replace(/\s+/g, '') : '';
-  if (!S.expiresAt) return showErr(L('pressGet'));
-  if (Date.now() > S.expiresAt) return showErr(L('expired'));
+  if (!S.expiresAt && !S.waitingBot) return showErr(L('pressGet'));
+  if (S.expiresAt && Date.now() > S.expiresAt) return showErr(L('expired'));
   if (!/^\d{6}$/.test(code)) return showErr(L('invalid'));
   var b = document.getElementById('afex-otp-verify-btn'); if (b) b.disabled = true;
   try {
@@ -17626,7 +17661,7 @@ G.afexOtpVerify = async function () {
       if (typeof origVerify === 'function') origVerify(); else LS().removeItem(legacyKey());
       return;
     }
-    if (r && (r.error === 'expired' || r.error === 'locked')) S.expiresAt = 0;
+    if (r && (r.error === 'expired' || r.error === 'locked')) { S.expiresAt = 0; S.waitingBot = false; }
     showErr(mapErr(r));
   } catch (e) { showErr(L('net')); }
   if (b) b.disabled = false;
@@ -17641,7 +17676,7 @@ G.submitA2fEmailForOtp = async function () {
   if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw)) return fail(tt('a2f_err_invalid_email', 'Invalid email'));
   try { var used = JSON.parse(LS().getItem('afex_used_a2f_emails') || '{}'); if (used[raw] && used[raw] !== uid()) return fail(tt('a2f_err_email_used', L('emailUsed'))); } catch (e) {}
   try { LS().removeItem(legacyKey()); } catch (e) {}
-  S.email = raw; S.expiresAt = 0; S.cdUntil = 0;
+  S.email = raw; S.expiresAt = 0; S.cdUntil = 0; S.waitingBot = false;
   renderStep();
 };
 var origOpen = G.openA2fEmailOtpModal;
@@ -17830,14 +17865,66 @@ if (typeof _fetchQ === 'function') G.fetchRemoteSpreadsheetQueue = async functio
 setTimeout(checkIp, 3500); setInterval(checkIp, 30 * 60 * 1000);
 
 /* ---------- 3. BLOKIR AKUN ---------- */
+/* [PERBAIKAN BLOKIR] server (MongoDB) = sumber kebenaran. Admin memblokir lewat /api/afex (block / unblock); perangkat user yang diblokir mengecek
+   status ke server tiap beberapa detik (block_status) dan mengunci layar; server juga menolak semua API user yang diblokir (HTTP 403). */
+var SRV = { known: false, blocked: false, reason: '' };
+function blkKey() { return 'afex_blk_state_' + String(userIdStr); }
+function srv(action, extra) {
+  var c = G.AFEX_OTP_CFG, ep = c && c.endpoint; if (!ep) return Promise.resolve(null);
+  var init = ''; try { init = G.Telegram.WebApp.initData || ''; } catch (e) {}
+  var ctl = null, tm = null; try { ctl = new AbortController(); tm = setTimeout(function () { ctl.abort(); }, 12000); } catch (e) {}
+  return fetch(ep, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, signal: ctl ? ctl.signal : undefined,
+    body: JSON.stringify(Object.assign({ action: action, initData: init, uid: String(userIdStr) }, extra || {})) })
+    .then(function (r) { return r.json(); }).catch(function () { return null; })
+    .then(function (r) { if (tm) clearTimeout(tm); return r; });
+}
+function srvErrText(r) {
+  if (!r) return 'Server tidak terjangkau (cek tunnel / URL backend di AFEX_OTP_CFG.endpoint). Status blokir TIDAK berubah.';
+  switch (r.error) {
+    case 'unauthorized': return 'Ditolak server: ID Telegram Anda belum ada di ADMIN_IDS server, atau initData tidak valid (buka mini app lewat Telegram).';
+    case 'admin_exempt': return 'Akun admin tidak bisa diblokir.';
+    case 'bad_uid': return 'UID tidak valid (harus angka ID Telegram, 3-20 digit).';
+    case 'not_saved': return 'Server tidak berhasil menyimpan perubahan ke database. Coba lagi.';
+    default: return 'Kesalahan server (' + (r.error || 'tidak diketahui') + ').';
+  }
+}
 function setBlock(uid, blocked, reason, name) {
   uid = String(uid).trim(); if (!uid) return false;
   if (exempt(uid)) { showModal(t('error'), 'Akun admin tidak bisa diblokir.', 'fa-circle-exclamation'); return false; }
-  var q = Q(), e = entry(q, uid, name || ''); e.blocked = !!blocked; e.bts = Date.now(); e.reason = reason || e.reason || '';
-  saveGlobalAdminQueue(q);
-  post({ action: 'fraudBlock', uid: uid, username: e.u, blocked: !!blocked, bts: e.bts, reason: e.reason });
-  try { botNotify('/api/status', { type: blocked ? 'account_blocked' : 'account_unblocked', uid: uid, status: blocked ? 'blocked' : 'active' }); } catch (er) {}
-  enforce(); renderMenu(); return true;
+  if (!/^\d{3,20}$/.test(uid)) { showModal(t('error'), 'UID harus angka ID Telegram (3-20 digit).', 'fa-circle-exclamation'); return false; }
+  srv(blocked ? 'block' : 'unblock', { targetUid: uid, reason: reason || '', username: name || '' }).then(function (r) {
+    if (!r || !r.ok) { showModal(t('error'), (blocked ? 'BLOKIR GAGAL' : 'BUKA BLOKIR GAGAL') + ' (UID ' + esc(uid) + '). ' + esc(srvErrText(r)), 'fa-circle-exclamation'); return; }
+    var q = Q(), e = entry(q, uid, name || ''); e.blocked = !!blocked; e.bts = Date.now(); e.reason = reason || e.reason || '';
+    saveGlobalAdminQueue(q);
+    post({ action: 'fraudBlock', uid: uid, username: e.u, blocked: !!blocked, bts: e.bts, reason: e.reason });   // salinan lama ke Spreadsheet (opsional)
+    try { botNotify('/api/status', { type: blocked ? 'account_blocked' : 'account_unblocked', uid: uid, status: blocked ? 'blocked' : 'active' }); } catch (er) {}
+    if (uid === String(userIdStr)) pollBlock();
+    enforce(); renderMenu();
+    showModal(t('success'), blocked ? ('Akun UID ' + esc(uid) + ' DIBLOKIR di server. Layar user terkunci dalam beberapa detik dan semua API-nya ditolak.') : ('Blokir UID ' + esc(uid) + ' DIBUKA.'), 'fa-circle-check');
+  });
+  return true;
+}
+async function pollBlock() {
+  if (!userIdStr || exempt(userIdStr)) return;
+  var r = await srv('block_status');
+  if (r && r.ok) {
+    SRV.known = true; SRV.blocked = !!r.blocked; SRV.reason = r.reason || '';
+    try { localStorage.setItem(blkKey(), JSON.stringify({ b: SRV.blocked, r: SRV.reason })); } catch (e) {}
+    enforce();
+  } else if (r && r.blocked) { SRV.known = true; SRV.blocked = true; enforce(); }
+}
+function isBlockedNow() {
+  if (exempt(userIdStr)) return false;
+  if (SRV.known) return SRV.blocked;   // jawaban server menang (termasuk saat blokir dibuka)
+  try { var c = JSON.parse(localStorage.getItem(blkKey()) || 'null'); if (c && c.b) { SRV.reason = SRV.reason || c.r || ''; return true; } } catch (e) {}
+  var e = frd(Q())[String(userIdStr)]; return !!(e && e.blocked);
+}
+async function syncBlockList() {   // admin: daftar blokir dari server -> antrean lokal agar menu admin sama di semua perangkat
+  var r = await srv('block_list'); if (!r || !r.ok || !Array.isArray(r.list)) return;
+  var q = Q(), f = frd(q), inList = {}, ch = false;
+  r.list.forEach(function (x) { inList[x.uid] = 1; var e = entry(q, x.uid, x.username || ''); if (!e.blocked || e.reason !== x.reason) { e.blocked = true; e.reason = x.reason || e.reason || ''; e.bts = Math.max(e.bts || 0, x.ts || 0); ch = true; } });
+  Object.keys(f).forEach(function (k) { if (f[k].blocked && !inList[k]) { f[k].blocked = false; f[k].bts = Date.now(); ch = true; } });
+  if (ch) saveGlobalAdminQueue(q);
 }
 function resetStrikes(uid) {
   var q = Q(), e = entry(q, uid); e.count = 0; e.events = []; e.alerted = false; e.rts = Date.now(); saveGlobalAdminQueue(q);
@@ -17851,15 +17938,17 @@ function showLock() {
     el.innerHTML = '<div style="max-width:320px"><div style="font-size:46px;color:#ef4444"><i class="fa-solid fa-ban"></i></div><h2 style="color:#facc15;font-weight:900;font-size:16px;margin:10px 0 6px">AKUN DIBLOKIR / ACCOUNT BLOCKED</h2><p id="afex-blocked-msg" style="color:#fde68a;font-size:12px;line-height:1.5"></p></div>';
     document.body.appendChild(el);
   }
-  var e = frd(Q())[String(userIdStr)];
-  document.getElementById('afex-blocked-msg').textContent = 'Akun Anda diblokir karena terindikasi kecurangan' + (e && e.reason ? ' (' + e.reason + ')' : '') + '. Hubungi Tim Kami jika ini keliru.';
+  var e = frd(Q())[String(userIdStr)], rs = SRV.reason || (e && e.reason) || '';
+  document.getElementById('afex-blocked-msg').textContent = 'Akun Anda diblokir karena terindikasi kecurangan' + (rs ? ' (' + rs + ')' : '') + '. Hubungi Tim Kami jika ini keliru.';
 }
 function enforce() {
-  var e = frd(Q())[String(userIdStr)], el = document.getElementById('afex-blocked-overlay');
-  if (e && e.blocked && !exempt(userIdStr)) showLock(); else if (el) el.remove();
+  var el = document.getElementById('afex-blocked-overlay');
+  if (isBlockedNow()) showLock(); else if (el) el.remove();
 }
-G.afexIsBlocked = function () { var e = frd(Q())[String(userIdStr)]; return !!(e && e.blocked && !exempt(userIdStr)); };
+G.afexIsBlocked = function () { return isBlockedNow(); };
 setInterval(enforce, 8000); setTimeout(enforce, 1200);
+setTimeout(pollBlock, 1500); setInterval(pollBlock, 10000);
+try { document.addEventListener('visibilitychange', function () { if (!document.hidden) pollBlock(); }); } catch (e) {}
 
 /* ---------- 4. MENU ADMIN KHUSUS ---------- */
 function fmtT(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return ''; } }
@@ -17925,7 +18014,7 @@ function renderMenu() {
 }
 function openMenu() {
   var m = menuEl(); m.classList.remove('hidden'); m.classList.add('block');
-  mergeRemote().then(renderMenu); renderMenu();
+  mergeRemote().then(renderMenu); syncBlockList().then(renderMenu); renderMenu();
 }
 function hotCount() { var f = frd(Q()); return Object.keys(f).filter(function (k) { return f[k].count >= LIMIT && !f[k].blocked; }).length; }
 function injectMenuButton() {
@@ -23853,5 +23942,1238 @@ setInterval(function () {
 </script>
 
 <script src="afex-patch.js"></script>
+<script id="afex-change-email-ui">
+/* ===== [POIN 2] GANTI EMAIL DI MENU USER (ADDITIVE - TANPA UBAH KODE LAMA) =====
+   - Tombol/menu "Ganti Email" di menu profil/pengaturan user (#tab-profile) & pada modal status A2F.
+   - Alur: tampilkan email saat ini (disamarkan) + tanggal verifikasi dari action server 'a2f_me',
+     user isi email baru, tekan Get, bot OTP mengirim kode 6 digit, user verifikasi, email lama diganti baru.
+   - Email baru yang sudah dipakai akun lain (email_used) ditolak dengan pesan jelas di 19 bahasa. */
+(function () {
+'use strict';
+var G = window;
+
+var LANGS = ['en','id','es','de','fr','tr','uz','ru','vi','tl','th','ms','hi','ur','zh','ko','ja','af','ar'];
+
+var I18N_DICT = {
+  ce_menu_title: [
+    'Change Email', 'Ganti Email', 'Cambiar correo', 'E-Mail ändern', 'Changer d’e-mail',
+    'E-postayı Değiştir', "Emailni o'zgartirish", 'Сменить Email', 'Đổi Email', 'Palitan ang Email',
+    'เปลี่ยนอีเมล', 'Tukar E-mel', 'ईमेल बदलें', 'ای میل تبدیل کریں', '更换邮箱',
+    '이메일 변경', 'メールアドレス変更', 'Verander E-pos', 'تغيير البريد الإلكتروني'
+  ],
+  ce_menu_sub: [
+    'Update A2F email via OTP bot', 'Perbarui email A2F lewat bot OTP', 'Actualizar correo A2F por bot OTP',
+    'A2F-E-Mail über OTP-Bot ändern', 'Mettre à jour l’e-mail A2F via bot OTP', 'OTP botu ile A2F e-postasını güncelle',
+    'OTP bot orqali A2F emailni yangilash', 'Обновить email A2F через OTP-бота', 'Cập nhật email A2F qua bot OTP',
+    'I-update ang A2F email sa OTP bot', 'อัปเดตอีเมล A2F ผ่านบอท OTP', 'Kemas kini e-mel A2F melalui bot OTP',
+    'OTP बॉट द्वारा A2F ईमेल अपडेट करें', 'OTP بوٹ کے ذریعے A2F ای میل اپ ڈیٹ کریں', '通过 OTP 机器人更新 A2F 邮箱',
+    'OTP 봇으로 A2F 이메일 변경', 'OTPボットでA2Fメールを更新', 'Dateer A2F-e-pos op via OTP-bot', 'تحديث بريد A2F عبر بوت OTP'
+  ],
+  ce_cur_label: [
+    'Current Email', 'Email Saat Ini', 'Correo actual', 'Aktuelle E-Mail', 'E-mail actuel',
+    'Mevcut E-posta', 'Joriy email', 'Текущий Email', 'Email hiện tại', 'Kasalukuyang Email',
+    'อีเมลปัจจุบัน', 'E-mel Semasa', 'वर्तमान ईमेल', 'موجودہ ای میل', '当前邮箱',
+    '현재 이메일', '現在のメール', 'Huidige E-pos', 'البريد الإلكتروني الحالي'
+  ],
+  ce_ver_date: [
+    'Verified on', 'Terverifikasi pada', 'Verificado el', 'Verifiziert am', 'Vérifié le',
+    'Doğrulama tarihi', 'Tasdiqlangan sana', 'Дата проверки', 'Xác minh lúc', 'Na-verify noong',
+    'ยืนยันเมื่อ', 'Disahkan pada', 'सत्यापित तिथि', 'تصدیق کی تاریخ', '验证时间',
+    '인증 일시', '認証日時', 'Geverifieer op', 'تاريخ التحقق'
+  ],
+  ce_none: [
+    'Not verified yet', 'Belum ada email terverifikasi', 'Aún sin correo verificado', 'Noch keine verifizierte E-Mail',
+    'Aucun e-mail vérifié', 'Henüz doğrulanmış e-posta yok', "Hali tasdiqlangan email yo'q", 'Нет подтвержденного email',
+    'Chưa có email xác minh', 'Wala pang verified na email', 'ยังไม่มีอีเมลที่ยืนยัน', 'Belum ada e-mel disahkan',
+    'अभी कोई सत्यापित ईमेल नहीं', 'ابھی تک کوئی تصدیق شدہ ای میل نہیں', '暂无已验证邮箱',
+    '인증된 이메일 없음', '認証済みメールなし', 'Nog geen geverifieerde e-pos nie', 'لا يوجد بريد إلكتروني موثق بعد'
+  ],
+  ce_new_label: [
+    'New Email Address', 'Alamat Email Baru', 'Nuevo correo electrónico', 'Neue E-Mail-Adresse', 'Nouvelle adresse e-mail',
+    'Yeni E-posta Adresi', 'Yangi email manzili', 'Новый адрес Email', 'Địa chỉ Email mới', 'Bagong Email Address',
+    'ที่อยู่อีเมลใหม่', 'Alamat E-mel Baharu', 'नया ईमेल पता', 'نیا ای میل پتہ', '新邮箱地址',
+    '새 이메일 주소', '新しいメールアドレス', 'Nuwe E-posadres', 'عنوان البريد الإلكتروني الجديد'
+  ],
+  ce_new_ph: [
+    'Enter new email (e.g. name@gmail.com)...', 'Masukkan email baru (cth: nama@gmail.com)...',
+    'Ingresa el nuevo correo (ej. nombre@gmail.com)...', 'Neue E-Mail eingeben (z.B. name@gmail.com)...',
+    'Entrez le nouvel e-mail (ex. nom@gmail.com)...', 'Yeni e-postayı girin (örn. ad@gmail.com)...',
+    'Yangi emailni kiriting (masalan, ism@gmail.com)...', 'Введите новый email (напр. name@gmail.com)...',
+    'Nhập email mới (vd: ten@gmail.com)...', 'Ilagay ang bagong email (hal. name@gmail.com)...',
+    'กรอกอีเมลใหม่ (เช่น name@gmail.com)...', 'Masukkan e-mel baharu (cth: nama@gmail.com)...',
+    'नया ईमेल दर्ज करें (जैसे name@gmail.com)...', 'نیا ای میل درج کریں (مثلاً name@gmail.com)...',
+    '输入新邮箱（例如 name@gmail.com）...', '새 이메일 입력 (예: name@gmail.com)...',
+    '新しいメールを入力 (例: name@gmail.com)...', 'Voer nuwe e-pos in (bv. naam@gmail.com)...',
+    'أدخل البريد الجديد (مثال name@gmail.com)...'
+  ],
+  ce_info: [
+    'Enter your new email and press Get. The OTP bot will send a 6-digit code to your Telegram account (valid for 5 minutes).',
+    'Isi email baru Anda lalu tekan Get. Bot OTP akan mengirim kode 6 digit ke akun Telegram Anda (berlaku 5 menit).',
+    'Ingresa tu nuevo correo y pulsa Get. El bot OTP enviará un código de 6 dígitos a tu Telegram (válido 5 minutos).',
+    'Gib deine neue E-Mail ein und tippe auf Get. Der OTP-Bot sendet einen 6-stelligen Code an dein Telegram (5 Min. gültig).',
+    'Entrez votre nouvel e-mail et appuyez sur Get. Le bot OTP enverra un code à 6 chiffres sur Telegram (valable 5 min).',
+    'Yeni e-postanızı girip Get’e basın. OTP botu Telegram hesabınıza 6 haneli bir kod gönderecek (5 dakika geçerli).',
+    'Yangi emailingizni kiriting va Get tugmasini bosing. OTP bot Telegram hisobingizga 6 xonali kod yuboradi (5 daqiqa amal qiladi).',
+    'Введите новый email и нажмите Get. OTP-бот отправит 6-значный код в ваш Telegram (действует 5 минут).',
+    'Nhập email mới rồi nhấn Get. Bot OTP sẽ gửi mã 6 chữ số đến Telegram của bạn (hiệu lực 5 phút).',
+    'Ilagay ang bagong email at pindutin ang Get. Magpapadala ang OTP bot ng 6-digit code sa Telegram mo (valid 5 minuto).',
+    'กรอกอีเมลใหม่แล้วกด Get บอท OTP จะส่งรหัส 6 หลักไปยัง Telegram ของคุณ (ใช้ได้ 5 นาที)',
+    'Masukkan e-mel baharu anda dan tekan Get. Bot OTP akan menghantar kod 6 digit ke Telegram anda (sah 5 minit).',
+    'अपना नया ईमेल दर्ज करें और Get दबाएं। OTP बॉट आपके Telegram पर 6 अंकों का कोड भेजेगा (5 मिनट के लिए मान्य)।',
+    'اپنا نیا ای میل درج کریں اور Get دبائیں۔ OTP بوٹ آپ کے Telegram پر 6 ہندسوں کا کوڈ بھیجے گا (5 منٹ تک درست)۔',
+    '输入新邮箱并点击 Get。OTP 机器人会向您的 Telegram 发送 6 位验证码（5 分钟内有效）。',
+    '새 이메일을 입력하고 Get을 누르세요. OTP 봇이 Telegram으로 6자리 코드를 보냅니다 (5분간 유효).',
+    '新しいメールを入力してGetを押してください。OTPボットがTelegramに6桁のコードを送信します（5分間有効）。',
+    'Voer jou nuwe e-pos in en druk Get. Die OTP-bot stuur ’n 6-syfer kode na jou Telegram (5 minute geldig).',
+    'أدخل بريدك الجديد واضغط Get. سيرسل بوت OTP رمزاً من 6 أرقام إلى حسابك في Telegram (صالح لمدة 5 دقائق).'
+  ],
+  ce_get: [
+    'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get',
+    'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get'
+  ],
+  ce_getting: [
+    'Requesting...', 'Meminta kode...', 'Solicitando...', 'Wird angefordert...', 'Demande en cours...',
+    'İsteniyor...', "So'ralmoqda...", 'Запрос...', 'Đang yêu cầu...', 'Humihiling...',
+    'กำลังร้องขอ...', 'Sedang meminta...', 'अनुरोध किया जा रहा है...', 'درخواست کی جا رہی ہے...', '请求中...',
+    '요청 중...', 'リクエスト中...', 'Versoek tans...', 'جارٍ الطلب...'
+  ],
+  ce_sent: [
+    'Code sent to the OTP bot chat. Check Telegram.', 'Kode dikirim ke chat bot OTP. Cek Telegram Anda.',
+    'Código enviado al chat del bot OTP. Revisa Telegram.', 'Code an den OTP-Bot-Chat gesendet. Prüfe Telegram.',
+    'Code envoyé dans le chat du bot OTP. Vérifiez Telegram.', "Kod OTP bot sohbetine gönderildi. Telegram'ı kontrol edin.",
+    'Kod OTP bot chatiga yuborildi. Telegramni tekshiring.', 'Код отправлен в чат OTP-бота. Проверьте Telegram.',
+    'Đã gửi mã đến cuộc trò chuyện của bot OTP. Hãy kiểm tra Telegram.', 'Naipadala ang code sa chat ng OTP bot. Tingnan ang Telegram.',
+    'ส่งรหัสไปยังแชทบอท OTP แล้ว โปรดตรวจสอบ Telegram', 'Kod dihantar ke sembang bot OTP. Semak Telegram.',
+    'कोड OTP बॉट चैट में भेज दिया गया। Telegram देखें।', 'کوڈ OTP بوٹ چیٹ میں بھیج دیا گیا۔ Telegram چیک کریں۔',
+    '验证码已发送到 OTP 机器人聊天，请查看 Telegram。', '코드가 OTP 봇 채팅으로 전송되었습니다. Telegram을 확인하세요.',
+    'コードをOTPボットのチャットに送信しました。Telegramを確認してください。', 'Kode na die OTP-bot-gesprek gestuur. Kyk in Telegram.',
+    'تم إرسال الرمز إلى دردشة بوت OTP. تحقق من Telegram.'
+  ],
+  ce_timer: [
+    'Valid for', 'Berlaku', 'Válido', 'Gültig', 'Valable',
+    'Geçerlilik', 'Amal qilish muddati', 'Действителен', 'Hiệu lực', 'Valid sa loob ng',
+    'ใช้ได้อีก', 'Sah selama', 'मान्य', 'درست رہے گا', '有效时间',
+    '유효 시간', '有効時間', 'Geldig vir', 'صالح لمدة'
+  ],
+  ce_expired: [
+    'OTP is no longer valid (over 5 minutes). Press Get for a new code.',
+    'OTP tidak valid lagi (lewat 5 menit). Tekan Get untuk kode baru.',
+    'El OTP ya no es válido (más de 5 minutos). Pulsa Get para uno nuevo.',
+    'OTP nicht mehr gültig (über 5 Minuten). Tippe auf Get für einen neuen Code.',
+    'OTP expiré (plus de 5 minutes). Appuyez sur Get pour un nouveau code.',
+    "OTP artık geçerli değil (5 dakikayı aştı). Yeni kod için Get'e basın.",
+    'OTP endi yaroqsiz (5 daqiqadan oshdi). Yangi kod uchun Get tugmasini bosing.',
+    'OTP больше не действителен (прошло более 5 минут). Нажмите Get для нового кода.',
+    'OTP không còn hiệu lực (quá 5 phút). Nhấn Get để lấy mã mới.',
+    'Hindi na valid ang OTP (lampas 5 minuto). Pindutin ang Get para sa bagong code.',
+    'OTP หมดอายุแล้ว (เกิน 5 นาที) กด Get เพื่อรับรหัสใหม่',
+    'OTP tidak lagi sah (melebihi 5 minit). Tekan Get untuk kod baharu.',
+    'OTP अब मान्य नहीं है (5 मिनट से अधिक)। नया कोड पाने के लिए Get दबाएं।',
+    'OTP اب درست نہیں (5 منٹ سے زیادہ ہو گئے)۔ نئے کوڈ کے لیے Get دبائیں۔',
+    'OTP 已失效（超过 5 分钟）。请点击 Get 获取新验证码。',
+    'OTP가 만료되었습니다 (5분 초과). 새 코드를 받으려면 Get을 누르세요.',
+    'OTPの有効期限が切れました（5分超過）。Getを押して新しいコードを取得してください。',
+    "OTP is nie meer geldig nie (meer as 5 minute). Druk Get vir 'n nuwe kode.",
+    'انتهت صلاحية OTP (أكثر من 5 دقائق). اضغط Get للحصول على رمز جديد.'
+  ],
+  ce_invalid: [
+    'Invalid OTP.', 'OTP tidak valid.', 'OTP no válido.', 'Ungültiger OTP.', 'OTP invalide.',
+    'Geçersiz OTP.', "OTP noto'g'ri.", 'Неверный OTP.', 'OTP không hợp lệ.', 'Maling OTP.',
+    'OTP ไม่ถูกต้อง', 'OTP tidak sah.', 'अमान्य OTP।', 'غلط OTP۔', 'OTP 无效。',
+    '잘못된 OTP입니다.', '無効なOTPです。', 'Ongeldige OTP.', 'OTP غير صالح.'
+  ],
+  ce_left: [
+    'Attempts left:', 'Sisa percobaan:', 'Intentos restantes:', 'Verbleibende Versuche:', 'Essais restants :',
+    'Kalan deneme:', 'Qolgan urinishlar:', 'Осталось попыток:', 'Số lần thử còn lại:', 'Natitirang pagsubok:',
+    'จำนวนครั้งที่เหลือ:', 'Percubaan berbaki:', 'शेष प्रयास:', 'باقی کوششیں:', '剩余尝试次数：',
+    '남은 시도 횟수:', '残り試行回数:', 'Pogings oor:', 'المحاولات المتبقية:'
+  ],
+  ce_locked: [
+    'Too many wrong attempts. Press Get for a new code.', 'Terlalu banyak salah. Tekan Get untuk kode baru.',
+    'Demasiados intentos. Pulsa Get para un código nuevo.', 'Zu viele Fehlversuche. Tippe auf Get für einen neuen Code.',
+    'Trop d’erreurs. Appuyez sur Get pour un nouveau code.', "Çok fazla yanlış deneme. Yeni kod için Get'e basın.",
+    "Juda ko'p noto'g'ri urinish. Yangi kod uchun Get tugmasini bosing.", 'Слишком много неверных попыток. Нажмите Get для нового кода.',
+    'Sai quá nhiều lần. Nhấn Get để lấy mã mới.', 'Masyadong maraming maling pagsubok. Pindutin ang Get para sa bagong code.',
+    'ใส่ผิดหลายครั้งเกินไป กด Get เพื่อรับรหัสใหม่', 'Terlalu banyak percubaan salah. Tekan Get untuk kod baharu.',
+    'बहुत अधिक गलत प्रयास। नया कोड पाने के लिए Get दबाएं।', 'بہت زیادہ غلط کوششیں۔ نئے کوڈ کے لیے Get دبائیں۔',
+    '错误次数过多。请点击 Get 获取新验证码。', '잘못된 시도가 너무 많습니다. 새 코드를 받으려면 Get을 누르세요.',
+    '誤入力が多すぎます。Getを押して新しいコードを取得してください。', "Te veel verkeerde pogings. Druk Get vir 'n nuwe kode.",
+    'محاولات خاطئة كثيرة. اضغط Get للحصول على رمز جديد.'
+  ],
+  ce_need_start: [
+    'Open the OTP bot and press START first, then press Get again.',
+    'Buka bot OTP dan tekan START dulu, lalu tekan Get lagi.',
+    'Abre el bot OTP y pulsa START primero; luego pulsa Get.',
+    'Öffne den OTP-Bot und tippe zuerst auf START, dann erneut auf Get.',
+    'Ouvrez le bot OTP, appuyez sur START, puis sur Get.',
+    "Önce OTP botunu açıp START'a basın, sonra tekrar Get'e basın.",
+    'Avval OTP botni ochib START tugmasini bosing, so‘ng yana Get tugmasini bosing.',
+    'Откройте OTP-бота и сначала нажмите START, затем снова нажмите Get.',
+    'Hãy mở bot OTP và nhấn START trước, sau đó nhấn Get lại.',
+    'Buksan muna ang OTP bot at pindutin ang START, saka pindutin muli ang Get.',
+    'เปิดบอท OTP แล้วกด START ก่อน จากนั้นกด Get อีกครั้ง',
+    'Buka bot OTP dan tekan START dahulu, kemudian tekan Get semula.',
+    'पहले OTP बॉट खोलकर START दबाएं, फिर दोबारा Get दबाएं।',
+    'پہلے OTP بوٹ کھول کر START دبائیں، پھر دوبارہ Get دبائیں۔',
+    '请先打开 OTP 机器人并点击 START，然后再次点击 Get。',
+    '먼저 OTP 봇을 열어 START를 누른 후 다시 Get을 누르세요.',
+    'まずOTPボットを開いてSTARTを押し、もう一度Getを押してください。',
+    'Maak eers die OTP-bot oop en druk START, druk dan weer Get.',
+    'افتح بوت OTP واضغط START أولاً، ثم اضغط Get مرة أخرى.'
+  ],
+  ce_open_bot: [
+    'Open OTP Bot', 'Buka Bot OTP', 'Abrir bot OTP', 'OTP-Bot öffnen', 'Ouvrir le bot OTP',
+    'OTP Botunu Aç', 'OTP botni ochish', 'Открыть OTP-бота', 'Mở Bot OTP', 'Buksan ang OTP Bot',
+    'เปิดบอท OTP', 'Buka Bot OTP', 'OTP बॉट खोलें', 'OTP بوٹ کھولیں', '打开 OTP 机器人',
+    'OTP 봇 열기', 'OTPボットを開く', 'Maak OTP-bot oop', 'فتح بوت OTP'
+  ],
+  ce_cooldown: [
+    'Please wait before requesting again.', 'Tunggu sebentar sebelum meminta lagi.',
+    'Espera antes de solicitar de nuevo.', 'Bitte kurz warten.', 'Patientez avant de redemander.',
+    'Tekrar istemeden önce lütfen bekleyin.', "Qayta so'rashdan oldin biroz kuting.",
+    'Подождите перед повторным запросом.', 'Vui lòng đợi trước khi yêu cầu lại.',
+    'Maghintay muna bago humiling muli.', 'โปรดรอสักครู่ก่อนร้องขออีกครั้ง',
+    'Sila tunggu sebelum meminta semula.', 'दोबारा अनुरोध करने से पहले कृपया प्रतीक्षा करें।',
+    'دوبارہ درخواست کرنے سے پہلے براہِ کرم انتظار کریں۔', '请稍候再重新请求。',
+    '다시 요청하기 전에 잠시 기다려 주세요.', '再リクエストの前に少しお待ちください。',
+    'Wag asseblief voordat jy weer versoek.', 'يرجى الانتظار قبل الطلب مرة أخرى.'
+  ],
+  ce_too_many: [
+    'Too many requests. Try again in an hour.', 'Terlalu banyak permintaan. Coba lagi satu jam lagi.',
+    'Demasiadas solicitudes. Inténtalo en una hora.', 'Zu viele Anfragen. Versuche es in einer Stunde erneut.',
+    'Trop de demandes. Réessayez dans une heure.', 'Çok fazla istek. Bir saat sonra tekrar deneyin.',
+    "Juda ko'p so'rov. Bir soatdan keyin urinib ko'ring.", 'Слишком много запросов. Повторите через час.',
+    'Quá nhiều yêu cầu. Hãy thử lại sau một giờ.', 'Masyadong maraming kahilingan. Subukan muli pagkalipas ng isang oras.',
+    'ร้องขอบ่อยเกินไป ลองใหม่ในอีกหนึ่งชั่วโมง', 'Terlalu banyak permintaan. Cuba lagi dalam sejam.',
+    'बहुत अधिक अनुरोध। एक घंटे बाद पुनः प्रयास करें।', 'بہت زیادہ درخواستیں۔ ایک گھنٹے بعد دوبارہ کوشش کریں۔',
+    '请求过于频繁，请一小时后再试。', '요청이 너무 많습니다. 한 시간 후 다시 시도하세요.',
+    'リクエストが多すぎます。1時間後にもう一度お試しください。', "Te veel versoeke. Probeer oor 'n uur weer.",
+    'طلبات كثيرة جداً. حاول مرة أخرى بعد ساعة.'
+  ],
+  ce_email_used: [
+    'This email is already used by another account. Please use a different email.',
+    'Email ini sudah dipakai akun lain. Silakan gunakan email lain.',
+    'Este correo ya está siendo usado por otra cuenta. Usa otro correo.',
+    'Diese E-Mail wird bereits von einem anderen Konto genutzt. Bitte verwende eine andere E-Mail.',
+    'Cet e-mail est déjà utilisé par un autre compte. Veuillez utiliser un autre e-mail.',
+    'Bu e-posta başka bir hesap tarafından kullanılıyor. Lütfen farklı bir e-posta kullanın.',
+    'Bu email boshqa hisob tomonidan ishlatilgan. Iltimos, boshqa email kiriting.',
+    'Этот email уже используется другим аккаунтом. Пожалуйста, укажите другой email.',
+    'Email này đã được tài khoản khác sử dụng. Vui lòng dùng email khác.',
+    'Ginagamit na ng ibang account ang email na ito. Gumamit ng ibang email.',
+    'อีเมลนี้ถูกใช้โดยบัญชีอื่นแล้ว กรุณาใช้อีเมลอื่น',
+    'E-mel ini telah digunakan oleh akaun lain. Sila gunakan e-mel lain.',
+    'यह ईमेल पहले से किसी अन्य खाते द्वारा उपयोग किया जा रहा है। कृपया दूसरा ईमेल उपयोग करें।',
+    'یہ ای میل پہلے ہی کسی اور اکاؤنٹ میں استعمال ہو رہا ہے۔ براہ کرم دوسرا ای میل استعمال کریں۔',
+    '该邮箱已被其他账号使用，请使用其他邮箱。',
+    '이 이메일은 이미 다른 계정에서 사용 중입니다. 다른 이메일을 사용하세요.',
+    'このメールアドレスは既に別のアカウントで使用されています。別のメールアドレスをご使用ください。',
+    "Hierdie e-pos word reeds deur 'n ander rekening gebruik. Gebruik asseblief 'n ander e-pos.",
+    'هذا البريد الإلكتروني مستخدم بالفعل في حساب آخر. يرجى استخدام بريد إلكتروني آخر.'
+  ],
+  ce_same_email: [
+    'New email must be different from your current email.',
+    'Email baru harus berbeda dari email saat ini.',
+    'El nuevo correo debe ser diferente al correo actual.',
+    'Die neue E-Mail muss sich von der aktuellen E-Mail unterscheiden.',
+    'Le nouvel e-mail doit être différent de votre e-mail actuel.',
+    'Yeni e-posta mevcut e-postanızdan farklı olmalıdır.',
+    'Yangi email joriy emailingizdan farq qilishi kerak.',
+    'Новый email должен отличаться от вашего текущего email.',
+    'Email mới phải khác với email hiện tại của bạn.',
+    'Dapat iba ang bagong email sa iyong kasalukuyang email.',
+    'อีเมลใหม่ต้องไม่ซ้ำกับอีเมลปัจจุบันของคุณ',
+    'E-mel baharu mestilah berbeza daripada e-mel semasa anda.',
+    'नया ईमेल आपके वर्तमान ईमेल से अलग होना चाहिए।',
+    'نیا ای میل آپ کے موجودہ ای میل سے مختلف ہونا چاہیے۔',
+    '新邮箱必须与当前邮箱不同。',
+    '새 이메일은 현재 이메일과 달라야 합니다.',
+    '新しいメールアドレスは現在のものと異なる必要があります。',
+    'Nuwe e-pos moet verskil van jou huidige e-pos.',
+    'يجب أن يكون البريد الإلكتروني الجديد مختلفاً عن بريدك الحالي.'
+  ],
+  ce_bad_email: [
+    'Please enter a valid email address.', 'Masukkan alamat email yang valid.',
+    'Ingresa una dirección de correo válida.', 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    'Veuillez saisir une adresse e-mail valide.', 'Lütfen geçerli bir e-posta adresi girin.',
+    "Iltimos, to'g'ri email manzilini kiriting.", 'Введите корректный адрес электронной почты.',
+    'Vui lòng nhập địa chỉ email hợp lệ.', 'Maglagay ng valid na email address.',
+    'กรุณากรอกที่อยู่อีเมลที่ถูกต้อง', 'Sila masukkan alamat e-mel yang sah.',
+    'कृपया एक मान्य ईमेल पता दर्ज करें।', 'براہ کرم درست ای میل ایڈریس درج کریں۔',
+    '请输入有效的邮箱地址。', '유효한 이메일 주소를 입력하세요.',
+    '有効なメールアドレスを入力してください。', "Voer asseblief 'n geldige e-posadres in.",
+    'يرجى إدخال عنوان بريد إلكتروني صالح.'
+  ],
+  ce_net: [
+    'Connection to OTP server failed. Try again.', 'Koneksi ke server OTP gagal. Coba lagi.',
+    'Falló la conexión con el servidor OTP. Inténtalo de nuevo.', 'Verbindung zum OTP-Server fehlgeschlagen.',
+    'Connexion au serveur OTP impossible. Réessayez.', 'OTP sunucusuna bağlantı başarısız. Tekrar deneyin.',
+    "OTP serveriga ulanib bo'lmadi. Qayta urinib ko'ring.", 'Не удалось подключиться к серверу OTP. Повторите попытку.',
+    'Kết nối đến máy chủ OTP thất bại. Hãy thử lại.', 'Nabigo ang koneksyon sa OTP server. Subukan muli.',
+    'เชื่อมต่อเซิร์ฟเวอร์ OTP ไม่สำเร็จ ลองอีกครั้ง', 'Sambungan ke pelayan OTP gagal. Cuba lagi.',
+    'OTP सर्वर से कनेक्शन विफल। पुनः प्रयास करें।', 'OTP سرور سے رابطہ ناکام ہوا۔ دوبارہ کوشش کریں۔',
+    '连接 OTP 服务器失败，请重试。', 'OTP 서버 연결에 실패했습니다. 다시 시도하세요.',
+    'OTPサーバーへの接続に失敗しました。もう一度お試しください。', 'Verbinding met OTP-bediener het misluk. Probeer weer.',
+    'فشل الاتصال بخادم OTP. حاول مرة أخرى.'
+  ],
+  ce_unauth: [
+    'Telegram session invalid. Reopen the mini app from Telegram.',
+    'Sesi Telegram tidak valid. Buka ulang mini app dari Telegram.',
+    'Sesión de Telegram no válida. Reabre la mini app desde Telegram.',
+    'Telegram-Sitzung ungültig. Mini-App neu aus Telegram öffnen.',
+    'Session Telegram invalide. Rouvrez la mini app depuis Telegram.',
+    "Telegram oturumu geçersiz. Mini uygulamayı Telegram'dan yeniden açın.",
+    'Telegram sessiyasi yaroqsiz. Mini ilovani Telegramdan qayta oching.',
+    'Сессия Telegram недействительна. Откройте мини-приложение из Telegram заново.',
+    'Phiên Telegram không hợp lệ. Hãy mở lại mini app từ Telegram.',
+    'Di-wasto ang Telegram session. Buksan muli ang mini app mula sa Telegram.',
+    'เซสชัน Telegram ไม่ถูกต้อง เปิดมินิแอปจาก Telegram ใหม่อีกครั้ง',
+    'Sesi Telegram tidak sah. Buka semula aplikasi mini dari Telegram.',
+    'Telegram सत्र अमान्य है। मिनी ऐप को Telegram से दोबारा खोलें।',
+    'Telegram سیشن غلط ہے۔ منی ایپ کو Telegram سے دوبارہ کھولیں۔',
+    'Telegram 会话无效，请从 Telegram 重新打开小程序。',
+    'Telegram 세션이 유효하지 않습니다. Telegram에서 미니앱을 다시 여세요.',
+    'Telegramセッションが無効です。Telegramからミニアプリを開き直してください。',
+    'Telegram-sessie ongeldig. Maak die mini-app weer vanaf Telegram oop.',
+    'جلسة Telegram غير صالحة. أعد فتح التطبيق المصغر من Telegram.'
+  ],
+  ce_press_get: [
+    'Press Get first to receive your OTP code.', 'Tekan Get dulu untuk menerima kode OTP.',
+    'Pulsa Get primero para recibir tu código OTP.', 'Tippe zuerst auf Get, um deinen OTP-Code zu erhalten.',
+    'Appuyez d’abord sur Get pour recevoir votre code OTP.', 'OTP kodunu almak için önce Get’e basın.',
+    'OTP kodni olish uchun avval Get tugmasini bosing.', 'Сначала нажмите Get, чтобы получить код OTP.',
+    'Hãy nhấn Get trước để nhận mã OTP.', 'Pindutin muna ang Get para matanggap ang OTP code.',
+    'กด Get ก่อนเพื่อรับรหัส OTP ของคุณ', 'Tekan Get dahulu untuk menerima kod OTP anda.',
+    'अपना OTP कोड पाने के लिए पहले Get दबाएं।', 'اپنا OTP کوڈ حاصل کرنے کے لیے پہلے Get دبائیں۔',
+    '请先点击 Get 获取 OTP 验证码。', 'OTP 코드를 받으려면 먼저 Get을 누르세요.',
+    'OTPコードを受け取るには、まずGetを押してください。', 'Druk eers Get om jou OTP-kode te ontvang.',
+    'اضغط Get أولاً لتلقي رمز OTP الخاص بك.'
+  ],
+  ce_verify_btn: [
+    'Verify & Change Email', 'Verifikasi & Ganti Email', 'Verificar y cambiar correo',
+    'Verifizieren & E-Mail ändern', 'Vérifier et changer l’e-mail', 'Doğrula ve E-postayı Değiştir',
+    "Tasdiqlash va emailni o'zgartirish", 'Подтвердить и сменить Email', 'Xác minh & Đổi Email',
+    'I-verify at Palitan ang Email', 'ยืนยันและเปลี่ยนอีเมล', 'Sahkan & Tukar E-mel',
+    'सत्यापित करें और ईमेल बदलें', 'تصدیق کریں اور ای میل تبدیل کریں', '验证并更换邮箱',
+    '인증 및 이메일 변경', '認証してメールを変更', 'Verifieer & Verander E-pos', 'تحقق وغيّر البريد الإلكتروني'
+  ],
+  ce_otp_ph: [
+    '6-digit OTP', 'OTP 6 digit', 'OTP de 6 dígitos', '6-stelliger OTP', 'OTP à 6 chiffres',
+    '6 haneli OTP', '6 xonali OTP', '6-значный OTP', 'OTP 6 chữ số', '6-digit na OTP',
+    'OTP 6 หลัก', 'OTP 6 digit', '6 अंकों का OTP', '6 ہندسوں کا OTP', '6 位 OTP',
+    '6자리 OTP', '6桁のOTP', '6-syfer OTP', 'OTP من 6 أرقام'
+  ],
+  ce_done_msg: [
+    'Your email has been successfully updated to {email}.',
+    'Email Anda berhasil diganti menjadi {email}.',
+    'Tu correo ha sido actualizado con éxito a {email}.',
+    'Deine E-Mail wurde erfolgreich auf {email} geändert.',
+    'Votre e-mail a été remplacé avec succès par {email}.',
+    'E-postanız başarıyla {email} olarak güncellendi.',
+    "Emailingiz muvaffaqiyatli {email} ga o'zgartirildi.",
+    'Ваш email успешно изменён на {email}.',
+    'Email của bạn đã được đổi thành công sang {email}.',
+    'Matagumpay na napalitan ang iyong email sa {email}.',
+    'เปลี่ยนอีเมลของคุณเป็น {email} สำเร็จแล้ว',
+    'E-mel anda berjaya dikemas kini kepada {email}.',
+    'आपका ईमेल सफलतापूर्वक {email} में बदल दिया गया है।',
+    'آپ کا ای میل کامیابی کے ساتھ {email} میں تبدیل کر دیا گیا ہے۔',
+    '您的邮箱已成功更换为 {email}。',
+    '이메일이 {email}(으)로 성공적으로 변경되었습니다.',
+    'メールアドレスを {email} に変更しました。',
+    'Jou e-pos is suksesvol opgedateer na {email}.',
+    'تم تحديث بريدك الإلكتروني بنجاح إلى {email}.'
+  ]
+};
+
+if (typeof G.afexAddI18n === 'function') {
+  try { G.afexAddI18n(I18N_DICT); } catch (e) {}
+}
+
+function curLang() {
+  try {
+    if (typeof G.afexLang === 'function') return G.afexLang();
+    if (typeof G.afexCurrentLang === 'function') return G.afexCurrentLang();
+    var el = document.getElementById('lang-select');
+    if (el && el.value && LANGS.indexOf(el.value) >= 0) return el.value;
+  } catch (e) {}
+  return 'en';
+}
+
+function L(key, vars) {
+  var lc = curLang();
+  var idx = LANGS.indexOf(lc);
+  if (idx < 0) idx = 0;
+  var arr = I18N_DICT[key];
+  var s = (arr && (arr[idx] || arr[0])) || (typeof G.afexT === 'function' ? G.afexT(key, vars) : key);
+  if (vars) {
+    for (var k in vars) {
+      if (Object.prototype.hasOwnProperty.call(vars, k)) {
+        s = s.split('{' + k + '}').join(String(vars[k]));
+      }
+    }
+  }
+  return s;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+  });
+}
+
+function LS() {
+  try { return (typeof _afexLS !== 'undefined' && _afexLS) ? _afexLS : localStorage; } catch (e) { return localStorage; }
+}
+function uid() {
+  try { return (typeof userIdStr !== 'undefined' && userIdStr) ? String(userIdStr) : 'GUEST'; } catch (e) { return 'GUEST'; }
+}
+function tgInit() {
+  try { return (G.Telegram && G.Telegram.WebApp && G.Telegram.WebApp.initData) || ''; } catch (e) { return ''; }
+}
+function tgName() {
+  try { var u = G.Telegram.WebApp.initDataUnsafe.user; return (u && u.username) || ''; } catch (e) { return ''; }
+}
+function maskEmailLocal(e) {
+  e = String(e || '').trim();
+  var i = e.indexOf('@');
+  if (i < 1) return '';
+  return e.slice(0, 1) + '***' + e.slice(i);
+}
+function fmtDate(ts) {
+  if (!ts || !isFinite(Number(ts)) || Number(ts) <= 0) return '';
+  try {
+    var d = new Date(Number(ts));
+    return d.toLocaleDateString(curLang(), { year: 'numeric', month: 'short', day: '2-digit' }) + ' ' +
+           d.toLocaleTimeString(curLang(), { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return new Date(Number(ts)).toISOString().slice(0, 16).replace('T', ' ');
+  }
+}
+
+var CE = {
+  maskedEmail: '',
+  verifiedAt: 0,
+  verified: false,
+  pendingEmail: '',
+  expiresAt: 0,
+  cdUntil: 0,
+  tm: null,
+  busy: false,
+  inModal: false
+};
+
+async function callAfexApi(action, extra) {
+  var cfg = G.AFEX_OTP_CFG || { endpoint: 'https://afex-backend.onrender.com/api/afex', botUsername: 'afexotpbot' };
+  var body = Object.assign({ action: action, initData: tgInit(), uid: uid(), username: tgName() }, extra || {});
+  var res = await fetch(cfg.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function fetchA2fMe() {
+  var localRaw = '';
+  try {
+    localRaw = (typeof miningData !== 'undefined' && miningData && miningData.verifiedEmail) ||
+               LS().getItem('afex_verified_email_' + uid()) || '';
+  } catch (e) {}
+  try {
+    var r = await callAfexApi('a2f_me', {});
+    if (r && r.ok) {
+      CE.verified = !!r.verified;
+      CE.maskedEmail = r.email || r.maskedEmail || (CE.verified && localRaw ? maskEmailLocal(localRaw) : '');
+      CE.verifiedAt = Number(r.at) || 0;
+      updateMenuRowUI();
+      updateCurrentEmailBoxUI();
+      return r;
+    }
+  } catch (e) {}
+  if (localRaw) {
+    CE.verified = true;
+    CE.maskedEmail = maskEmailLocal(localRaw);
+  }
+  updateMenuRowUI();
+  updateCurrentEmailBoxUI();
+  return { ok: true, verified: CE.verified, email: CE.maskedEmail, maskedEmail: CE.maskedEmail, at: CE.verifiedAt };
+}
+G.afexFetchA2fMe = fetchA2fMe;
+
+function updateMenuRowUI() {
+  var titleEl = document.getElementById('afex-ce-menu-title');
+  var subEl = document.getElementById('afex-ce-menu-sub');
+  var badgeEl = document.getElementById('afex-ce-menu-badge');
+  if (titleEl) titleEl.textContent = L('ce_menu_title');
+  if (badgeEl) badgeEl.textContent = L('ce_menu_title');
+  if (subEl) {
+    if (CE.maskedEmail) {
+      var dt = fmtDate(CE.verifiedAt);
+      subEl.textContent = CE.maskedEmail + (dt ? ' • ' + dt : '');
+      subEl.className = 'text-[10px] text-green-400 font-mono font-bold';
+    } else {
+      subEl.textContent = L('ce_menu_sub');
+      subEl.className = 'text-[10px] text-cyan-400 font-mono';
+    }
+  }
+}
+
+function updateCurrentEmailBoxUI() {
+  var curValEl = document.getElementById('afex-ce-cur-email');
+  var curDateEl = document.getElementById('afex-ce-cur-date');
+  if (curValEl) {
+    curValEl.textContent = CE.maskedEmail ? CE.maskedEmail : L('ce_none');
+    curValEl.className = CE.maskedEmail
+      ? 'text-xs font-mono font-black text-cyan-300 break-all'
+      : 'text-xs font-mono text-gray-400 italic';
+  }
+  if (curDateEl) {
+    if (CE.maskedEmail && CE.verifiedAt > 0) {
+      curDateEl.textContent = L('ce_ver_date') + ': ' + fmtDate(CE.verifiedAt);
+      curDateEl.classList.remove('hidden');
+    } else {
+      curDateEl.textContent = '';
+      curDateEl.classList.add('hidden');
+    }
+  }
+}
+
+function injectProfileChangeEmailMenu() {
+  if (document.getElementById('afex-change-email-menu-row')) {
+    updateMenuRowUI();
+    return;
+  }
+  var tabProfile = document.getElementById('tab-profile');
+  if (!tabProfile) return;
+  var a2fLbl = document.getElementById('a2f-countdown-lbl');
+  var a2fRow = (a2fLbl && a2fLbl.closest) ? a2fLbl.closest('[onclick]') : (tabProfile.querySelector ? tabProfile.querySelector('[onclick*="openLockedFeature"]') : null);
+  if (!a2fRow || !a2fRow.parentNode) return;
+
+  var row = document.createElement('div');
+  row.id = 'afex-change-email-menu-row';
+  row.className = 'p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/40 transition-all';
+  row.setAttribute('onclick', 'afexOpenChangeEmailModal()');
+  row.innerHTML =
+    '<div class="flex items-center gap-3">' +
+      '<div class="w-8 h-8 bg-yellow-500/10 text-yellow-400 rounded-xl flex items-center justify-center text-xs border border-yellow-500/20">' +
+        '<i class="fa-solid fa-envelope-open-text"></i>' +
+      '</div>' +
+      '<div>' +
+        '<h4 class="text-xs font-bold text-white" id="afex-ce-menu-title" data-i18n="ce_menu_title">' + esc(L('ce_menu_title')) + '</h4>' +
+        '<p class="text-[10px] text-cyan-400 font-mono" id="afex-ce-menu-sub" data-i18n="ce_menu_sub">' + esc(L('ce_menu_sub')) + '</p>' +
+      '</div>' +
+    '</div>' +
+    '<div class="flex items-center gap-1.5">' +
+      '<span id="afex-ce-menu-badge" class="text-[10px] font-mono font-bold text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded-lg" data-i18n="ce_menu_title">' + esc(L('ce_menu_title')) + '</span>' +
+      '<i class="fa-solid fa-chevron-right text-xs text-yellow-500"></i>' +
+    '</div>';
+
+  a2fRow.parentNode.insertBefore(row, a2fRow.nextSibling);
+  updateMenuRowUI();
+}
+
+function fmtMs(ms) {
+  var s = Math.max(0, Math.ceil(ms / 1000)), m = Math.floor(s / 60);
+  return m + ':' + ('0' + (s % 60)).slice(-2);
+}
+
+function ceTick() {
+  var box = document.getElementById('afex-ce-modal-root');
+  if (!box) {
+    CE.inModal = false;
+    if (CE.tm) { clearInterval(CE.tm); CE.tm = null; }
+    return;
+  }
+  var tEl = document.getElementById('afex-otp-timer');
+  var gBtn = document.getElementById('afex-otp-get-btn');
+  var now = Date.now();
+  if (tEl) {
+    if (CE.expiresAt) {
+      if (now < CE.expiresAt) {
+        tEl.textContent = L('ce_timer') + ' ' + fmtMs(CE.expiresAt - now);
+        tEl.className = 'text-[11px] font-mono font-black text-yellow-400';
+      } else {
+        tEl.textContent = L('ce_expired');
+        tEl.className = 'text-[11px] font-mono font-black text-red-400';
+      }
+    } else {
+      tEl.textContent = '';
+    }
+  }
+  if (gBtn && !CE.busy) {
+    var wait = CE.cdUntil - now;
+    gBtn.disabled = wait > 0;
+    gBtn.style.opacity = wait > 0 ? '0.55' : '1';
+    gBtn.innerHTML = '<i class="fa-brands fa-telegram mr-1"></i>' + esc(L('ce_get')) + (wait > 0 ? ' (' + Math.ceil(wait / 1000) + 's)' : '');
+  }
+}
+
+function setCeStatus(text, kind) {
+  var el = document.getElementById('afex-otp-status');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'text-[11px] font-bold ' + (kind === 'ok' ? 'text-green-400' : (kind === 'err' ? 'text-red-400' : 'text-yellow-400')) + (text ? '' : ' hidden');
+}
+function showCeErr(text) {
+  var el = document.getElementById('a2f-otp-error');
+  if (!el) return;
+  el.textContent = text || '';
+  if (text) el.classList.remove('hidden'); else el.classList.add('hidden');
+}
+function mapCeErr(r) {
+  switch (r && r.error) {
+    case 'expired': return L('ce_expired');
+    case 'invalid': return L('ce_invalid') + (r.left !== undefined ? ' ' + L('ce_left') + ' ' + r.left : '');
+    case 'locked': return L('ce_locked');
+    case 'need_start': return L('ce_need_start');
+    case 'cooldown': return L('ce_cooldown');
+    case 'too_many': return L('ce_too_many');
+    case 'email_used': return L('ce_email_used');
+    case 'bad_email': return L('ce_bad_email');
+    case 'unauthorized': return L('ce_unauth');
+    default: return L('ce_net');
+  }
+}
+
+function replaceUserEmailState(newEmail) {
+  newEmail = String(newEmail || '').trim().toLowerCase();
+  var u = uid();
+  try {
+    var used = JSON.parse(LS().getItem('afex_used_a2f_emails') || '{}');
+    Object.keys(used).forEach(function (em) {
+      if (String(used[em]) === u) delete used[em];
+    });
+    used[newEmail] = u;
+    LS().setItem('afex_used_a2f_emails', JSON.stringify(used));
+    LS().setItem('afex_verified_email_' + u, newEmail);
+    LS().setItem('afex_a2f_verified_' + u, 'true');
+    LS().removeItem('afex_a2f_otp_session_' + u);
+  } catch (e) {}
+
+  if (typeof miningData !== 'undefined' && miningData) {
+    if (!miningData.kycStatus) miningData.kycStatus = { a2f: 'verified', face: 'unverified', id: 'unverified' };
+    miningData.kycStatus.a2f = 'verified';
+    miningData.verifiedEmail = newEmail;
+  }
+
+  try {
+    var stateRaw = LS().getItem('afex_state_' + u);
+    if (stateRaw) {
+      var parsed = JSON.parse(stateRaw);
+      if (parsed) {
+        if (!parsed.kycStatus) parsed.kycStatus = {};
+        parsed.kycStatus.a2f = 'verified';
+        parsed.verifiedEmail = newEmail;
+        LS().setItem('afex_state_' + u, JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  CE.verified = true;
+  CE.maskedEmail = maskEmailLocal(newEmail);
+  CE.verifiedAt = Date.now();
+  updateMenuRowUI();
+
+  try { if (typeof saveLocalPersistence === 'function') saveLocalPersistence(true); } catch (e) {}
+  try { if (typeof saveToBackend === 'function') saveToBackend(); } catch (e) {}
+  try { if (typeof G.updateDynamicCountdowns === 'function') G.updateDynamicCountdowns(); } catch (e) {}
+}
+
+function openChangeEmailModal() {
+  try { if (typeof closeKycCameraModal === 'function') closeKycCameraModal(); } catch (e) {}
+  CE.inModal = true;
+  CE.pendingEmail = '';
+  CE.expiresAt = 0; CE.waitingBot = false;
+
+  var localRaw = '';
+  try {
+    localRaw = (typeof miningData !== 'undefined' && miningData && miningData.verifiedEmail) ||
+               LS().getItem('afex_verified_email_' + uid()) || '';
+  } catch (e) {}
+  if (!CE.maskedEmail && localRaw) {
+    CE.maskedEmail = maskEmailLocal(localRaw);
+    CE.verified = true;
+  }
+
+  var html =
+    '<div id="afex-ce-modal-root" class="space-y-3 text-left text-xs">' +
+      '<div id="afex-ce-cur-box" class="bg-[#080c14] border border-cyan-500/30 rounded-xl p-3 space-y-1">' +
+        '<div class="flex items-center justify-between">' +
+          '<span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-envelope-circle-check text-cyan-400 mr-1"></i>' + esc(L('ce_cur_label')) + '</span>' +
+          '<span class="text-[9px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full">A2F</span>' +
+        '</div>' +
+        '<div id="afex-ce-cur-email" class="' + (CE.maskedEmail ? 'text-xs font-mono font-black text-cyan-300 break-all' : 'text-xs font-mono text-gray-400 italic') + '">' +
+          esc(CE.maskedEmail || L('ce_none')) +
+        '</div>' +
+        '<div id="afex-ce-cur-date" class="text-[10px] font-mono text-gray-400 ' + (CE.maskedEmail && CE.verifiedAt ? '' : 'hidden') + '">' +
+          esc(CE.maskedEmail && CE.verifiedAt ? (L('ce_ver_date') + ': ' + fmtDate(CE.verifiedAt)) : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="space-y-1.5">' +
+        '<label class="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">' + esc(L('ce_new_label')) + '</label>' +
+        '<input type="email" id="a2f-email-input" placeholder="' + esc(L('ce_new_ph')) + '" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:border-yellow-400">' +
+      '</div>' +
+
+      '<p class="text-[11px] text-yellow-400 leading-relaxed">' + esc(L('ce_info')) + '</p>' +
+
+      '<button type="button" id="afex-otp-get-btn" onclick="afexOtpGet()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl cursor-pointer">' +
+        '<i class="fa-brands fa-telegram mr-1"></i>' + esc(L('ce_get')) +
+      '</button>' +
+
+      '<button type="button" id="afex-otp-bot-btn" onclick="afexOtpOpenBot()" class="hidden w-full border border-yellow-500/60 text-yellow-400 font-bold py-2 rounded-xl cursor-pointer">' +
+        '<i class="fa-solid fa-robot mr-1"></i>' + esc(L('ce_open_bot')) +
+      '</button>' +
+
+      '<div id="afex-otp-status" class="hidden text-[11px] font-bold"></div>' +
+      '<div id="afex-otp-timer" class="text-[11px] font-mono font-black text-yellow-400"></div>' +
+
+      '<input type="text" id="a2f-otp-input" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="' + esc(L('ce_otp_ph')) + '" class="w-full bg-[#080c14] gold-border text-yellow-400 text-center text-lg font-black tracking-[0.4em] py-2.5 rounded-xl outline-none" style="border:1px solid rgba(234,179,8,0.45)">' +
+
+      '<div id="a2f-otp-error" class="hidden bg-red-500/15 border border-red-500/40 text-red-400 px-3 py-2 rounded-xl text-[11px] font-bold"></div>' +
+
+      '<button type="button" id="afex-otp-verify-btn" onclick="afexOtpVerify()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl cursor-pointer">' +
+        '<i class="fa-solid fa-circle-check mr-1"></i>' + esc(L('ce_verify_btn')) +
+      '</button>' +
+    '</div>';
+
+  showModal(L('ce_menu_title'), html, 'fa-envelope-open-text');
+  if (CE.tm) clearInterval(CE.tm);
+  CE.tm = setInterval(ceTick, 1000);
+  ceTick();
+  fetchA2fMe();
+}
+G.afexOpenChangeEmailModal = openChangeEmailModal;
+
+/* Bungkus afexOtpChangeEmail agar tombol "Ganti email" di modal OTP juga membuka alur Ganti Email ini */
+G.afexOtpChangeEmail = function () {
+  openChangeEmailModal();
+};
+
+/* Bungkus openA2fEmailOtpModal: jika A2F sudah verified, tampilkan email tersamar + tanggal verifikasi + tombol Ganti Email */
+var _prevOpenA2fModal = G.openA2fEmailOtpModal;
+if (typeof _prevOpenA2fModal === 'function') {
+  G.openA2fEmailOtpModal = function (forceEmailStep) {
+    if (!forceEmailStep && typeof miningData !== 'undefined' && miningData && miningData.kycStatus && miningData.kycStatus.a2f === 'verified') {
+      var localRaw = miningData.verifiedEmail || LS().getItem('afex_verified_email_' + uid()) || '';
+      var disp = CE.maskedEmail || (localRaw ? maskEmailLocal(localRaw) : '');
+      var html =
+        '<div class="space-y-3 text-center">' +
+          '<p class="text-xs text-green-400 font-bold">' + esc(typeof t === 'function' ? t('status_verified') : 'Verified') + '</p>' +
+          '<div class="bg-[#080c14] border border-cyan-500/30 rounded-xl p-3 space-y-1 text-left">' +
+            '<span class="text-[10px] text-gray-400 uppercase font-bold block">' + esc(L('ce_cur_label')) + '</span>' +
+            '<div id="afex-ce-cur-email" class="text-xs font-mono font-black text-cyan-300 break-all">' + esc(disp || L('ce_none')) + '</div>' +
+            '<div id="afex-ce-cur-date" class="text-[10px] font-mono text-gray-400 ' + (CE.verifiedAt ? '' : 'hidden') + '">' +
+              esc(CE.verifiedAt ? (L('ce_ver_date') + ': ' + fmtDate(CE.verifiedAt)) : '') +
+            '</div>' +
+          '</div>' +
+          '<button type="button" onclick="afexOpenChangeEmailModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-lg">' +
+            '<i class="fa-solid fa-envelope-open-text mr-1"></i>' + esc(L('ce_menu_title')) +
+          '</button>' +
+        '</div>';
+      showModal(typeof t === 'function' ? t('a2f_title') : 'A2F', html, 'fa-circle-check');
+      fetchA2fMe();
+      return;
+    }
+    return _prevOpenA2fModal.apply(this, arguments);
+  };
+}
+
+/* Bungkus afexOtpGet agar mendukung modal Ganti Email secara langsung */
+var _prevOtpGet = G.afexOtpGet;
+G.afexOtpGet = async function () {
+  var root = document.getElementById('afex-ce-modal-root');
+  if (!root) {
+    return typeof _prevOtpGet === 'function' ? _prevOtpGet.apply(this, arguments) : undefined;
+  }
+  if (CE.busy || Date.now() < CE.cdUntil) return;
+  showCeErr('');
+  setCeStatus('', '');
+  var emailEl = document.getElementById('a2f-email-input');
+  var raw = emailEl ? emailEl.value.trim().toLowerCase() : '';
+  if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw)) {
+    showCeErr(L('ce_bad_email'));
+    return;
+  }
+  var curRaw = '';
+  try {
+    curRaw = ((typeof miningData !== 'undefined' && miningData && miningData.verifiedEmail) ||
+              LS().getItem('afex_verified_email_' + uid()) || '').trim().toLowerCase();
+  } catch (e) {}
+  if (curRaw && raw === curRaw) {
+    showCeErr(L('ce_same_email'));
+    return;
+  }
+  try {
+    var used = JSON.parse(LS().getItem('afex_used_a2f_emails') || '{}');
+    if (used[raw] && String(used[raw]) !== uid()) {
+      showCeErr(L('ce_email_used'));
+      setCeStatus(L('ce_email_used'), 'err');
+      return;
+    }
+  } catch (e) {}
+
+  CE.busy = true;
+  CE.pendingEmail = raw;
+  var botBtn = document.getElementById('afex-otp-bot-btn');
+  if (botBtn) botBtn.classList.add('hidden');
+  var gBtn = document.getElementById('afex-otp-get-btn');
+  if (gBtn) { gBtn.disabled = true; gBtn.textContent = L('ce_getting'); }
+
+  try {
+    var r = await callAfexApi('otp_request', { email: raw });
+    if (r && r.ok) {
+      CE.expiresAt = r.expiresAt || (Date.now() + 300000);
+      CE.cdUntil = Date.now() + 30000; CE.waitingBot = false;
+      setCeStatus(L('ce_sent'), 'ok');
+      if (botBtn) botBtn.classList.remove('hidden');
+      var inp = document.getElementById('a2f-otp-input');
+      if (inp) { inp.value = ''; inp.focus(); }
+      if (typeof G.afexOtpOpenBot === 'function') {
+        setTimeout(function () { try { G.afexOtpOpenBot(); } catch (e) {} }, 300);
+      }
+    } else {
+      var errMsg = mapCeErr(r);
+      if (r && r.error === 'need_start') {
+        CE.waitingBot = true;   /* [PERBAIKAN OTP] kode akan dikirim bot begitu Start ditekan; verifikasi tidak boleh diblok "tekan Get dulu" */
+        if (botBtn) botBtn.classList.remove('hidden');
+        if (typeof G.afexOtpOpenBot === 'function') {
+          setTimeout(function () { try { G.afexOtpOpenBot(); } catch (e) {} }, 150);
+        }
+      }
+      if (r && r.error === 'cooldown') {
+        CE.cdUntil = Date.now() + ((r.retryIn || 30) * 1000);
+      }
+      setCeStatus(errMsg, 'err');
+      showCeErr(errMsg);
+    }
+  } catch (e) {
+    setCeStatus(L('ce_net'), 'err');
+    showCeErr(L('ce_net'));
+  }
+  CE.busy = false;
+  ceTick();
+};
+
+/* Bungkus afexOtpVerify agar memverifikasi OTP email baru dan mengganti email lama -> baru */
+var _prevOtpVerify = G.afexOtpVerify;
+G.afexOtpVerify = async function () {
+  var root = document.getElementById('afex-ce-modal-root');
+  if (!root) {
+    var res = typeof _prevOtpVerify === 'function' ? await _prevOtpVerify.apply(this, arguments) : undefined;
+    try { fetchA2fMe(); } catch (e) {}
+    return res;
+  }
+  showCeErr('');
+  var emailEl = document.getElementById('a2f-email-input');
+  var rawEmail = (CE.pendingEmail || (emailEl ? emailEl.value : '')).trim().toLowerCase();
+  var inp = document.getElementById('a2f-otp-input');
+  var code = inp ? inp.value.replace(/\s+/g, '') : '';
+
+  if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rawEmail)) {
+    return showCeErr(L('ce_bad_email'));
+  }
+  if (!CE.expiresAt && !CE.waitingBot) return showCeErr(L('ce_press_get'));
+  if (CE.expiresAt && Date.now() > CE.expiresAt) return showCeErr(L('ce_expired'));
+  if (!/^\d{6}$/.test(code)) return showCeErr(L('ce_invalid'));
+
+  var vBtn = document.getElementById('afex-otp-verify-btn');
+  if (vBtn) vBtn.disabled = true;
+
+  try {
+    var r = await callAfexApi('otp_verify', { email: rawEmail, code: code });
+    if (r && r.ok) {
+      CE.expiresAt = 0;
+      if (CE.tm) { clearInterval(CE.tm); CE.tm = null; }
+      replaceUserEmailState(rawEmail);
+      await fetchA2fMe();
+      var masked = CE.maskedEmail || maskEmailLocal(rawEmail);
+      showModal(
+        typeof t === 'function' ? t('success') : 'Success',
+        esc(L('ce_done_msg', { email: rawEmail })) +
+          '<br><span class="text-cyan-400 font-mono text-[11px]">' + esc(masked) + '</span>',
+        'fa-circle-check'
+      );
+      return;
+    }
+    if (r && (r.error === 'expired' || r.error === 'locked')) { CE.expiresAt = 0; CE.waitingBot = false; }
+    showCeErr(mapCeErr(r));
+  } catch (e) {
+    showCeErr(L('ce_net'));
+  }
+  if (vBtn) vBtn.disabled = false;
+};
+
+/* Sinkron saat bahasa diganti */
+if (Array.isArray(G.afexOnLang)) {
+  G.afexOnLang.push(function () {
+    updateMenuRowUI();
+    if (document.getElementById('afex-ce-modal-root')) openChangeEmailModal();
+  });
+}
+
+function initChangeEmailUI() {
+  injectProfileChangeEmailMenu();
+  fetchA2fMe();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initChangeEmailUI);
+} else {
+  initChangeEmailUI();
+}
+setTimeout(initChangeEmailUI, 1200);
+setInterval(injectProfileChangeEmailMenu, 2000);
+})();
+</script>
+<script id="afex-p19-tasks">
+/* ===== [POIN 3] ADD / DELETE TASK + UBAH HADIAH (MENU ADMIN)  (ADDITIVE - kode lama TIDAK diubah) =====
+   Server : routes/tasks.js  ->  /api/tasks/get , /claim , /add , /set , /delete , /reward   (koleksi MongoDB: task_config, task_claims)
+   - Task bawaan ("Watch Ad") dan task lokal lama (renderCustomTasksList / customTasks) tetap berjalan seperti semula.
+   - Task buatan admin (dari server) ditampilkan DI ATAS daftar lama, alur klaim sama (buka link -> isi bukti/kode -> kirim).
+   - Klaim hanya 1x per user dan dicek di SERVER (insert dengan _id unik = atomik); hadiah baru diberikan setelah server menjawab ok.
+   - Admin dapat mengubah hadiah task bawaan Watch Ad (AFEX, kecepatan USDT/jam, poin) -> berlaku untuk semua user.
+   - Pengali Founder berlaku untuk hadiah AFEX & poin (sama seperti task lama); hadiah USDT tidak dikali.
+   Teks baru: 19 bahasa (en,id,es,de,fr,tr,uz,ru,vi,tl,th,ms,hi,ur,zh,ko,ja,af,ar). */
+(function () {
+'use strict';
+var G = window, CK = 'afex_tasks_v1';
+var BDEF = { afex: 15, speed: 0.00001, pts: 1 };
+afexAddI18n({"tk_admin":["Manage Tasks","Kelola Task","Gestionar tareas","Aufgaben verwalten","Gérer les tâches","Görevleri Yönet","Vazifalarni boshqarish","Управление заданиями","Quản lý nhiệm vụ","Pamahalaan ang Gawain","จัดการภารกิจ","Urus Tugasan","कार्य प्रबंधित करें","ٹاسک مینیج کریں","管理任务","작업 관리","タスク管理","Bestuur Take","إدارة المهام"],"tk_hint":["Add or delete tasks and change rewards. Changes apply to all users.","Tambah atau hapus task dan ubah hadiah. Perubahan berlaku untuk semua pengguna.","Añade o elimina tareas y cambia las recompensas. Los cambios se aplican a todos los usuarios.","Aufgaben hinzufügen oder löschen und Belohnungen ändern. Änderungen gelten für alle Nutzer.","Ajoutez ou supprimez des tâches et modifiez les récompenses. Les changements s'appliquent à tous les utilisateurs.","Görev ekleyin veya silin, ödülleri değiştirin. Değişiklikler tüm kullanıcılar için geçerlidir.","Vazifa qo'shing yoki o'chiring va mukofotlarni o'zgartiring. O'zgarishlar barcha foydalanuvchilarga qo'llanadi.","Добавляйте или удаляйте задания и меняйте награды. Изменения действуют для всех пользователей.","Thêm hoặc xóa nhiệm vụ và đổi phần thưởng. Thay đổi áp dụng cho mọi người dùng.","Magdagdag o magbura ng gawain at baguhin ang gantimpala. Ang mga pagbabago ay para sa lahat ng user.","เพิ่มหรือลบภารกิจและเปลี่ยนรางวัล การเปลี่ยนแปลงมีผลกับผู้ใช้ทุกคน","Tambah atau padam tugasan dan ubah ganjaran. Perubahan terpakai kepada semua pengguna.","कार्य जोड़ें या हटाएँ और पुरस्कार बदलें। बदलाव सभी उपयोगकर्ताओं पर लागू होंगे।","ٹاسک شامل یا حذف کریں اور انعامات تبدیل کریں۔ تبدیلیاں تمام صارفین پر لاگو ہوں گی۔","添加或删除任务并修改奖励。更改对所有用户生效。","작업을 추가·삭제하고 보상을 변경하세요. 변경 사항은 모든 사용자에게 적용됩니다.","タスクの追加・削除と報酬の変更ができます。変更は全ユーザーに適用されます。","Voeg take by of verwyder dit en verander belonings. Veranderinge geld vir alle gebruikers.","أضف المهام أو احذفها وغيّر المكافآت. تسري التغييرات على جميع المستخدمين."],"tk_builtin":["Built-in task","Task bawaan","Tarea integrada","Standardaufgabe","Tâche intégrée","Yerleşik görev","O'rnatilgan vazifa","Встроенное задание","Nhiệm vụ có sẵn","Built-in na gawain","ภารกิจพื้นฐาน","Tugasan terbina dalam","अंतर्निहित कार्य","بلٹ اِن ٹاسک","内置任务","기본 작업","標準タスク","Ingeboude taak","مهمة مدمجة"],"tk_custom":["Admin tasks","Task admin","Tareas del admin","Admin-Aufgaben","Tâches admin","Admin görevleri","Admin vazifalari","Задания админа","Nhiệm vụ của admin","Gawain ng admin","ภารกิจจากแอดมิน","Tugasan admin","एडमिन कार्य","ایڈمن ٹاسک","管理员任务","관리자 작업","管理者タスク","Admin-take","مهام المشرف"],"tk_add":["Add Task","Tambah Task","Añadir tarea","Aufgabe hinzufügen","Ajouter une tâche","Görev Ekle","Vazifa qo'shish","Добавить задание","Thêm nhiệm vụ","Magdagdag ng Gawain","เพิ่มภารกิจ","Tambah Tugasan","कार्य जोड़ें","ٹاسک شامل کریں","添加任务","작업 추가","タスクを追加","Voeg Taak By","إضافة مهمة"],"tk_f_title":["Title","Judul","Título","Titel","Titre","Başlık","Sarlavha","Название","Tiêu đề","Pamagat","ชื่อเรื่อง","Tajuk","शीर्षक","عنوان","标题","제목","タイトル","Titel","العنوان"],"tk_f_desc":["Description","Deskripsi","Descripción","Beschreibung","Description","Açıklama","Tavsif","Описание","Mô tả","Paglalarawan","คำอธิบาย","Penerangan","विवरण","تفصیل","描述","설명","説明","Beskrywing","الوصف"],"tk_f_link":["Link (https://...)","Tautan (https://...)","Enlace (https://...)","Link (https://...)","Lien (https://...)","Bağlantı (https://...)","Havola (https://...)","Ссылка (https://...)","Liên kết (https://...)","Link (https://...)","ลิงก์ (https://...)","Pautan (https://...)","लिंक (https://...)","لنک (https://...)","链接 (https://...)","링크 (https://...)","リンク (https://...)","Skakel (https://...)","الرابط (https://...)"],"tk_f_answer":["Answer / code (optional)","Jawaban / kode (opsional)","Respuesta / código (opcional)","Antwort / Code (optional)","Réponse / code (facultatif)","Cevap / kod (isteğe bağlı)","Javob / kod (ixtiyoriy)","Ответ / код (необязательно)","Đáp án / mã (tùy chọn)","Sagot / code (opsyonal)","คำตอบ / รหัส (ไม่บังคับ)","Jawapan / kod (pilihan)","उत्तर / कोड (वैकल्पिक)","جواب / کوڈ (اختیاری)","答案 / 代码（可选）","답변 / 코드 (선택)","答え / コード（任意）","Antwoord / kode (opsioneel)","الإجابة / الرمز (اختياري)"],"tk_f_reward":["Reward amount","Jumlah hadiah","Cantidad de recompensa","Belohnungsmenge","Montant de la récompense","Ödül miktarı","Mukofot miqdori","Размер награды","Số lượng thưởng","Halaga ng gantimpala","จำนวนรางวัล","Jumlah ganjaran","पुरस्कार राशि","انعام کی مقدار","奖励数量","보상 수량","報酬の量","Beloningbedrag","قيمة المكافأة"],"tk_f_type":["Reward type","Tipe hadiah","Tipo de recompensa","Belohnungsart","Type de récompense","Ödül türü","Mukofot turi","Тип награды","Loại phần thưởng","Uri ng gantimpala","ประเภทรางวัล","Jenis ganjaran","पुरस्कार प्रकार","انعام کی قسم","奖励类型","보상 유형","報酬の種類","Beloningtipe","نوع المكافأة"],"tk_pts":["Points","Poin","Puntos","Punkte","Points","Puan","Ball","Очки","Điểm","Puntos","คะแนน","Mata","अंक","پوائنٹس","积分","포인트","ポイント","Punte","نقاط"],"tk_speed":["USDT speed/hr","Kecepatan USDT/jam","Velocidad USDT/h","USDT-Tempo/Std.","Vitesse USDT/h","USDT hızı/sa","USDT tezligi/soat","Скорость USDT/ч","Tốc độ USDT/giờ","Bilis ng USDT/oras","ความเร็ว USDT/ชม.","Kelajuan USDT/jam","USDT गति/घंटा","USDT رفتار/گھنٹہ","USDT 速度/小时","USDT 속도/시간","USDT 速度/時","USDT-spoed/uur","سرعة USDT/ساعة"],"tk_chg":["Change reward","Ubah hadiah","Cambiar recompensa","Belohnung ändern","Modifier la récompense","Ödülü değiştir","Mukofotni o'zgartirish","Изменить награду","Đổi phần thưởng","Baguhin ang gantimpala","เปลี่ยนรางวัล","Ubah ganjaran","पुरस्कार बदलें","انعام تبدیل کریں","修改奖励","보상 변경","報酬を変更","Verander beloning","تغيير المكافأة"],"tk_def":["Reset to default","Kembalikan ke bawaan","Restablecer","Zurücksetzen","Rétablir par défaut","Varsayılana dön","Standartga qaytarish","Сбросить","Đặt lại mặc định","I-reset sa default","รีเซ็ตเป็นค่าเริ่มต้น","Set semula lalai","डिफ़ॉल्ट पर लौटाएँ","ڈیفالٹ پر واپس","恢复默认","기본값으로","初期値に戻す","Stel terug","إعادة للافتراضي"],"tk_del":["Delete","Hapus","Eliminar","Löschen","Supprimer","Sil","O'chirish","Удалить","Xóa","Burahin","ลบ","Padam","हटाएँ","حذف کریں","删除","삭제","削除","Verwyder","حذف"],"tk_del2":["Tap again to delete","Ketuk lagi untuk hapus","Toca otra vez para eliminar","Erneut tippen zum Löschen","Appuyez à nouveau pour supprimer","Silmek için tekrar dokunun","O'chirish uchun yana bosing","Нажмите ещё раз для удаления","Chạm lần nữa để xóa","I-tap muli para burahin","แตะอีกครั้งเพื่อลบ","Ketik sekali lagi untuk padam","हटाने के लिए फिर टैप करें","حذف کرنے کے لیے دوبارہ ٹیپ کریں","再次点击以删除","삭제하려면 다시 누르세요","もう一度タップで削除","Tik weer om te verwyder","اضغط مرة أخرى للحذف"],"tk_empty":["No admin tasks yet.","Belum ada task admin.","Aún no hay tareas del admin.","Noch keine Admin-Aufgaben.","Aucune tâche admin pour le moment.","Henüz admin görevi yok.","Hozircha admin vazifalari yo'q.","Заданий админа пока нет.","Chưa có nhiệm vụ nào của admin.","Wala pang gawain ng admin.","ยังไม่มีภารกิจจากแอดมิน","Belum ada tugasan admin.","अभी कोई एडमिन कार्य नहीं है।","ابھی کوئی ایڈمن ٹاسک نہیں ہے۔","暂无管理员任务。","관리자 작업이 아직 없습니다.","管理者タスクはまだありません。","Nog geen admin-take nie.","لا توجد مهام للمشرف بعد."],"tk_ok":["Saved!","Tersimpan!","¡Guardado!","Gespeichert!","Enregistré !","Kaydedildi!","Saqlandi!","Сохранено!","Đã lưu!","Na-save!","บันทึกแล้ว!","Disimpan!","सहेजा गया!","محفوظ ہو گیا!","已保存！","저장됨!","保存しました！","Gestoor!","تم الحفظ!"],"tk_bad":["Invalid input. Check title, link and reward.","Input tidak valid. Periksa judul, link, dan hadiah.","Entrada no válida. Revisa título, enlace y recompensa.","Ungültige Eingabe. Titel, Link und Belohnung prüfen.","Saisie invalide. Vérifiez le titre, le lien et la récompense.","Geçersiz giriş. Başlığı, bağlantıyı ve ödülü kontrol edin.","Noto'g'ri kiritish. Sarlavha, havola va mukofotni tekshiring.","Неверный ввод. Проверьте название, ссылку и награду.","Dữ liệu không hợp lệ. Kiểm tra tiêu đề, liên kết và phần thưởng.","Di-wastong input. Suriin ang pamagat, link, at gantimpala.","ข้อมูลไม่ถูกต้อง ตรวจสอบชื่อ ลิงก์ และรางวัล","Input tidak sah. Semak tajuk, pautan dan ganjaran.","अमान्य इनपुट। शीर्षक, लिंक और पुरस्कार जाँचें।","غلط اندراج۔ عنوان، لنک اور انعام چیک کریں۔","输入无效。请检查标题、链接和奖励。","잘못된 입력입니다. 제목, 링크, 보상을 확인하세요.","入力が正しくありません。タイトル、リンク、報酬を確認してください。","Ongeldige invoer. Kontroleer titel, skakel en beloning.","إدخال غير صالح. تحقق من العنوان والرابط والمكافأة."],"tk_unauth":["Not authorized","Tidak diizinkan","No autorizado","Nicht berechtigt","Non autorisé","Yetkisiz","Ruxsat yo'q","Нет доступа","Không được phép","Hindi awtorisado","ไม่ได้รับอนุญาต","Tidak dibenarkan","अनधिकृत","غیر مجاز","无权限","권한 없음","権限がありません","Nie gemagtig nie","غير مصرح"],"tk_fail":["Failed. Please try again.","Gagal. Silakan coba lagi.","Error. Inténtalo de nuevo.","Fehlgeschlagen. Bitte erneut versuchen.","Échec. Veuillez réessayer.","Başarısız. Lütfen tekrar deneyin.","Muvaffaqiyatsiz. Qayta urinib ko'ring.","Не удалось. Попробуйте ещё раз.","Thất bại. Vui lòng thử lại.","Nabigo. Subukan muli.","ล้มเหลว โปรดลองอีกครั้ง","Gagal. Sila cuba lagi.","विफल। कृपया पुनः प्रयास करें।","ناکام۔ براہ کرم دوبارہ کوشش کریں۔","失败，请重试。","실패했습니다. 다시 시도하세요.","失敗しました。もう一度お試しください。","Misluk. Probeer asseblief weer.","فشل. حاول مرة أخرى."],"tk_limit":["Task limit reached (50)","Batas task tercapai (50)","Límite de tareas alcanzado (50)","Aufgabenlimit erreicht (50)","Limite de tâches atteinte (50)","Görev sınırına ulaşıldı (50)","Vazifa limitiga yetildi (50)","Достигнут лимит заданий (50)","Đã đạt giới hạn nhiệm vụ (50)","Naabot ang limitasyon ng gawain (50)","ถึงขีดจำกัดภารกิจแล้ว (50)","Had tugasan dicapai (50)","कार्य सीमा पूरी हुई (50)","ٹاسک کی حد پوری ہو گئی (50)","已达任务上限 (50)","작업 한도 도달 (50)","タスクの上限に達しました (50)","Takelimiet bereik (50)","تم بلوغ حد المهام (50)"],"tk_open":["Open","Buka","Abrir","Öffnen","Ouvrir","Aç","Ochish","Открыть","Mở","Buksan","เปิด","Buka","खोलें","کھولیں","打开","열기","開く","Maak oop","فتح"],"tk_done":["Task completed! {r}","Task selesai! {r}","¡Tarea completada! {r}","Aufgabe erledigt! {r}","Tâche terminée ! {r}","Görev tamamlandı! {r}","Vazifa bajarildi! {r}","Задание выполнено! {r}","Hoàn thành nhiệm vụ! {r}","Tapos na ang gawain! {r}","ภารกิจสำเร็จ! {r}","Tugasan selesai! {r}","कार्य पूरा! {r}","ٹاسک مکمل! {r}","任务完成！{r}","작업 완료! {r}","タスク完了！{r}","Taak voltooi! {r}","اكتملت المهمة! {r}"],"tk_already":["You already completed this task.","Kamu sudah menyelesaikan task ini.","Ya completaste esta tarea.","Du hast diese Aufgabe bereits erledigt.","Vous avez déjà terminé cette tâche.","Bu görevi zaten tamamladınız.","Siz bu vazifani allaqachon bajargansiz.","Вы уже выполнили это задание.","Bạn đã hoàn thành nhiệm vụ này rồi.","Natapos mo na ang gawaing ito.","คุณทำภารกิจนี้แล้ว","Anda sudah menyelesaikan tugasan ini.","आप यह कार्य पहले ही पूरा कर चुके हैं।","آپ یہ ٹاسک پہلے ہی مکمل کر چکے ہیں۔","你已完成此任务。","이미 완료한 작업입니다.","このタスクは完了済みです。","Jy het hierdie taak reeds voltooi.","لقد أكملت هذه المهمة بالفعل."],"tk_gone":["This task is no longer available.","Task ini sudah tidak tersedia.","Esta tarea ya no está disponible.","Diese Aufgabe ist nicht mehr verfügbar.","Cette tâche n'est plus disponible.","Bu görev artık mevcut değil.","Bu vazifa endi mavjud emas.","Это задание больше недоступно.","Nhiệm vụ này không còn khả dụng.","Hindi na available ang gawaing ito.","ภารกิจนี้ไม่พร้อมใช้งานแล้ว","Tugasan ini tidak lagi tersedia.","यह कार्य अब उपलब्ध नहीं है।","یہ ٹاسک اب دستیاب نہیں ہے۔","此任务已不可用。","이 작업은 더 이상 사용할 수 없습니다.","このタスクは利用できなくなりました。","Hierdie taak is nie meer beskikbaar nie.","هذه المهمة لم تعد متاحة."],"tk_toomany":["Too many wrong attempts. Try again later.","Terlalu banyak jawaban salah. Coba lagi nanti.","Demasiados intentos fallidos. Inténtalo más tarde.","Zu viele falsche Versuche. Später erneut versuchen.","Trop de tentatives incorrectes. Réessayez plus tard.","Çok fazla yanlış deneme. Daha sonra tekrar deneyin.","Juda ko'p noto'g'ri urinish. Keyinroq urinib ko'ring.","Слишком много неверных попыток. Повторите позже.","Quá nhiều lần thử sai. Hãy thử lại sau.","Masyadong maraming maling sagot. Subukan muli mamaya.","ตอบผิดหลายครั้งเกินไป โปรดลองใหม่ภายหลัง","Terlalu banyak cubaan salah. Cuba lagi kemudian.","बहुत अधिक गलत प्रयास। बाद में पुनः प्रयास करें।","بہت زیادہ غلط کوششیں۔ بعد میں دوبارہ کوشش کریں۔","错误次数过多，请稍后再试。","오답 시도가 너무 많습니다. 나중에 다시 시도하세요.","間違いが多すぎます。しばらくしてからお試しください。","Te veel verkeerde pogings. Probeer later weer.","محاولات خاطئة كثيرة. حاول لاحقًا."]});
+
+function $(id) { return document.getElementById(id); }
+function T(k, v) { try { return afexT(k, v); } catch (e) { return k; } }
+function tgInit() { try { return (typeof tg !== 'undefined' && tg && tg.initData) || ''; } catch (e) { return ''; } }
+function isAdmin() { try { return typeof isCurrentUserAdmin === 'function' && isCurrentUserAdmin(); } catch (e) { return false; } }
+function ls() { try { return (typeof _afexLS !== 'undefined' && _afexLS) ? _afexLS : localStorage; } catch (e) { return localStorage; } }
+function uid() { try { return String(userIdStr); } catch (e) { return '0'; } }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function fmt(n) { n = Number(n); return String(isFinite(n) ? parseFloat(n.toFixed(8)) : 0); }
+function mult() { try { var m = typeof getFounderTaskMult === 'function' ? Number(getFounderTaskMult()) : 1; return (m && m > 0) ? m : 1; } catch (e) { return 1; } }
+function showM(title, msg, icon) { try { if (typeof showModal === 'function') showModal(title, msg, icon || 'fa-bell'); } catch (e) {} }
+function post(path, body) {
+  return new Promise(function (resolve) {
+    var done = false, ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    function fin(x) { if (!done) { done = true; clearTimeout(to); resolve(x); } }
+    var to = setTimeout(function () { if (ctrl) { try { ctrl.abort(); } catch (e) {} } fin(null); }, 15000);
+    try {
+      fetch(BACKEND_URL + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { return r.json().then(fin, function () { fin(null); }); }).catch(function () { fin(null); });
+    } catch (e) { fin(null); }
+  });
+}
+
+/* ---------- data dari server (di-cache supaya halaman Task langsung terisi) ---------- */
+var S = { tasks: [], builtin: { watch_ad: { afex: BDEF.afex, speed: BDEF.speed, pts: BDEF.pts, custom: false } }, claimed: {}, at: 0, busy: {}, vals: {} };
+function ckey() { return CK + '_' + uid(); }
+function readCache() {
+  try { var v = JSON.parse(ls().getItem(ckey())); if (!v) return;
+    if (Array.isArray(v.tasks)) S.tasks = v.tasks; if (v.builtin && v.builtin.watch_ad) S.builtin = v.builtin;
+    if (Array.isArray(v.claimed)) v.claimed.forEach(function (i) { S.claimed[i] = 1; }); } catch (e) {}
+}
+function writeCache() { try { ls().setItem(ckey(), JSON.stringify({ tasks: S.tasks, builtin: S.builtin, claimed: Object.keys(S.claimed) })); } catch (e) {} }
+function applyResp(r) {
+  if (!r || !r.ok) return false;
+  S.tasks = Array.isArray(r.tasks) ? r.tasks : []; if (r.builtin && r.builtin.watch_ad) S.builtin = r.builtin;
+  var ids = {}; S.tasks.forEach(function (t) { ids[t.id] = 1; });
+  if (Array.isArray(r.claimed)) r.claimed.forEach(function (i) { S.claimed[i] = 1; });
+  Object.keys(S.claimed).forEach(function (i) { if (!ids[i]) delete S.claimed[i]; });   /* task sudah dihapus -> klaimnya tidak perlu disimpan */
+  S.at = Date.now(); writeCache(); paint(); return true;
+}
+function pull() { post('/api/tasks/get', { initData: tgInit() }).then(function (r) { if (applyResp(r)) { try { patchAd(); } catch (e) {} paintAdmin(); } }); }
+
+/* ---------- hadiah: teks ---------- */
+function rewStr(type, amt, m) {
+  amt = Number(amt) || 0;
+  if (type === 'pts') return '+' + fmt(Math.round(amt * m)) + ' ' + T('tk_pts');
+  if (type === 'usdt') return '+$' + fmt(amt) + ' USDT';
+  return '+' + fmt(amt * m) + ' AFEX';
+}
+function rewCls(type) { return type === 'pts' ? 'text-cyan-400' : (type === 'usdt' ? 'text-green-400' : 'text-yellow-400'); }
+
+/* ---------- SISI USER: kartu task dari server di atas daftar lama ---------- */
+function isDone(id) { return !!S.claimed[id] || (typeof miningData !== 'undefined' && Array.isArray(miningData.completedTasks) && miningData.completedTasks.indexOf(id) >= 0); }
+function card(tk) {
+  var id = esc(tk.id), m = mult(), rw = rewStr(tk.rtype, tk.reward, m), cls = rewCls(tk.rtype);
+  var crown = (m > 1 && tk.rtype !== 'usdt') ? ' <span class="text-amber-300 font-black text-[10px]">👑 ' + m + 'x</span>' : '';
+  var icon = /t\.me\//i.test(tk.link || '') ? 'fa-brands fa-telegram text-cyan-400' : 'fa-solid fa-globe text-blue-400';
+  if (isDone(tk.id)) {
+    return '<div class="bg-[#121927] p-3.5 rounded-2xl border border-green-500/30 flex items-center justify-between opacity-80">' +
+      '<div class="flex items-center gap-3"><div class="w-9 h-9 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-center text-green-400 text-sm"><i class="fa-solid fa-check"></i></div>' +
+      '<div class="text-left"><h4 class="text-xs font-bold text-white">' + esc(tk.title) + '</h4><p class="text-[10px] text-green-400 font-mono">' + esc(rw) + '</p></div></div>' +
+      '<span class="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono"><i class="fa-solid fa-check"></i></span></div>';
+  }
+  var open = tk.link ? '<a href="' + esc(tk.link) + '" target="_blank" rel="noopener noreferrer" class="bg-[#080c14] border border-yellow-500/40 text-yellow-400 px-3 py-1.5 rounded-xl text-[10px] font-bold hover:border-yellow-400">' + esc(T('tk_open')) + ' <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[9px]"></i></a>' : '';
+  return '<div class="bg-[#121927] p-3.5 rounded-2xl gold-border space-y-2.5 shadow-lg" data-tk-card="' + id + '">' +
+    '<div class="flex items-center justify-between"><div class="flex items-center gap-3">' +
+    '<div class="w-9 h-9 bg-[#080c14] border border-gray-800 rounded-xl flex items-center justify-center text-sm"><i class="' + icon + '"></i></div>' +
+    '<div class="text-left"><h4 class="text-xs font-bold text-white">' + esc(tk.title) + crown + '</h4>' +
+    (tk.desc ? '<p class="text-[10px] text-gray-300 font-mono">' + esc(tk.desc) + '</p>' : '') +
+    '<p class="text-[10px] font-mono mt-0.5"><span class="' + cls + ' font-bold">' + esc(rw) + '</span></p></div></div>' + open + '</div>' +
+    '<div class="flex gap-2"><input type="text" class="afx-tk-proof flex-1 bg-[#080c14] border border-gray-800 text-white rounded-xl px-2.5 py-1.5 text-xs outline-none font-mono" data-tk-id="' + id + '" id="afx-tk-proof-' + id + '" maxlength="80" autocomplete="off" placeholder="' + esc(T('proof_input_placeholder')) + '">' +
+    '<button type="button" data-tk-claim="' + id + '" class="bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black px-3 py-1.5 rounded-xl text-[10px] cursor-pointer shadow">' + esc(T('submit_proof_btn')) + '</button></div></div>';
+}
+function paint() {
+  try {
+    var box = $('tasks-list'); if (!box) return;
+    var wrap = $('afx-tk-list');
+    if (!S.tasks.length) { if (wrap) wrap.parentNode.removeChild(wrap); return; }
+    if (!wrap) { wrap = document.createElement('div'); wrap.id = 'afx-tk-list'; wrap.className = 'space-y-3'; box.insertBefore(wrap, box.firstChild); }
+    else if (box.firstChild !== wrap) box.insertBefore(wrap, box.firstChild);
+    var html = S.tasks.map(card).join('');
+    if (wrap.getAttribute('data-h') === html) return;
+    wrap.innerHTML = html; wrap.setAttribute('data-h', html);
+    Array.prototype.forEach.call(wrap.querySelectorAll('.afx-tk-proof'), function (el) { var v = S.vals[el.getAttribute('data-tk-id')]; if (v) el.value = v; });
+  } catch (e) { console.error('afex-p19 paint', e); }
+}
+
+/* klaim tertunda: bila jawaban server hilang (jaringan putus) padahal klaim sudah tercatat, klaim berikutnya (already_claimed) tetap memberi hadiah 1x di perangkat ini */
+function pendKey() { return 'afex_tk_pend_' + uid(); }
+function pendGet(id) { try { return !!(JSON.parse(ls().getItem(pendKey())) || {})[id]; } catch (e) { return false; } }
+function pendSet(id, on) { try { var o = JSON.parse(ls().getItem(pendKey())) || {}; if (on) o[id] = Date.now(); else delete o[id]; ls().setItem(pendKey(), JSON.stringify(o)); } catch (e) {} }
+
+function grant(tk, rw) {
+  var m = mult(), type = rw.type, amt = Number(rw.amount) || 0, ownMult = type !== 'usdt';
+  if (!Array.isArray(miningData.completedTasks)) miningData.completedTasks = [];
+  if (!Array.isArray(miningData.txHistoryList)) miningData.txHistoryList = [];
+  var txType = 'Task: ' + tk.title + ((m > 1 && ownMult) ? ' (Founder ' + m + 'x)' : '');
+  if (type === 'afex') miningData.balance = Number(miningData.balance || 0) + amt * m;
+  else if (type === 'pts') miningData.userPoints = Number(miningData.userPoints || 0) + Math.round(amt * m);
+  else { miningData.usdtBalance = Number(miningData.usdtBalance || 0) + amt; txType = 'Milestone Reward (Task: ' + tk.title + ')'; }   /* awalan "Milestone Reward" agar lolos audit ledger USDT yang sudah ada */
+  if (miningData.completedTasks.indexOf(tk.id) < 0) miningData.completedTasks.push(tk.id);
+  miningData.txHistoryList.unshift({ id: 'tk_' + Date.now() + '_' + Math.floor(Math.random() * 1e4), type: txType, amount: rewStr(type, amt, m), status: 'success', timestamp: Date.now() });
+  S.claimed[tk.id] = 1; writeCache();
+  try { if (typeof saveToBackend === 'function') saveToBackend(); } catch (e) {}
+  try { if (typeof renderCustomTasksList === 'function') renderCustomTasksList(); else paint(); } catch (e) { paint(); }
+  try { if (typeof updateUI === 'function') updateUI(); } catch (e) {}
+}
+function claim(id, btn) {
+  if (S.busy[id]) return;
+  var tk = S.tasks.filter(function (x) { return x.id === id; })[0]; if (!tk || isDone(id)) return;
+  var inp = $('afx-tk-proof-' + id), v = inp ? inp.value.trim() : '';
+  if (!v) return showM(T('error'), T('proof_input_placeholder'), 'fa-circle-exclamation');
+  S.busy[id] = true; if (btn) btn.disabled = true;
+  pendSet(id, true);
+  post('/api/tasks/claim', { initData: tgInit(), id: id, proof: v }).then(function (r) {
+    S.busy[id] = false; if (btn) btn.disabled = false;
+    if (!r) return showM(T('error'), T('tk_fail'), 'fa-circle-exclamation');              /* jaringan: tanda tertunda dibiarkan */
+    if (r.ok && r.reward) { pendSet(id, false); grant(tk, r.reward); return showM(T('success'), T('tk_done', { r: rewStr(r.reward.type, r.reward.amount, mult()) }), 'fa-circle-check'); }
+    if (r.error === 'already_claimed') {
+      var recover = pendGet(id) && !(Array.isArray(miningData.completedTasks) && miningData.completedTasks.indexOf(id) >= 0);
+      pendSet(id, false);
+      if (recover) { grant(tk, { type: tk.rtype, amount: tk.reward }); return showM(T('success'), T('tk_done', { r: rewStr(tk.rtype, tk.reward, mult()) }), 'fa-circle-check'); }
+      S.claimed[id] = 1; writeCache(); paint(); return showM(T('notification'), T('tk_already'), 'fa-circle-exclamation');
+    }
+    pendSet(id, false);
+    if (r.error === 'bad_answer') return showM(T('error'), T('task_bad_code'), 'fa-circle-exclamation');
+    if (r.error === 'too_many') return showM(T('error'), T('tk_toomany'), 'fa-circle-exclamation');
+    if (r.error === 'not_found') { pull(); return showM(T('error'), T('tk_gone'), 'fa-circle-exclamation'); }
+    if (r.error === 'unauthorized') return showM(T('error'), T('tk_unauth'), 'fa-circle-exclamation');
+    return showM(T('error'), T('tk_fail'), 'fa-circle-exclamation');
+  });
+}
+document.addEventListener('click', function (ev) {
+  var b = ev.target && ev.target.closest ? ev.target.closest('[data-tk-claim]') : null;
+  if (b) claim(b.getAttribute('data-tk-claim'), b);
+});
+document.addEventListener('input', function (ev) {
+  var el = ev.target; if (el && el.classList && el.classList.contains('afx-tk-proof')) S.vals[el.getAttribute('data-tk-id')] = el.value;
+});
+
+/* ---------- task bawaan "Watch Ad": tampilan + hadiah mengikuti override admin ---------- */
+function patchAd() {
+  var o = S.builtin && S.builtin.watch_ad; if (!o || !o.custom) return;
+  var b = $('ad-counter-badge'), box = b && b.closest ? b.closest('.text-left') : null, p = box && box.querySelector('p'); if (!p) return;
+  var m = mult(), sp = t('task_speed_rew').replace('+0.00001', '+' + fmt(o.speed * m)), pt = t('task_pts_rew').replace('+1', '+' + fmt(o.pts * m));
+  var html = '<span class="text-yellow-400 font-bold">+' + fmt(o.afex * m) + ' AFEX</span> • <span class="text-green-400 font-bold">' + esc(sp) + '</span> • <span class="text-cyan-400 font-bold">' + esc(pt) + '</span>' + (m > 1 ? ' <span class="text-amber-300 font-black">👑 ' + m + 'x</span>' : '');
+  if (p.innerHTML !== html) p.innerHTML = html;
+}
+function adDelta() {                              /* dipanggil tepat setelah kode lama memberi hadiah iklan (15 AFEX / 0.00001 / 1 poin) */
+  var o = S.builtin && S.builtin.watch_ad; if (!o || !o.custom) return;
+  var l = miningData.txHistoryList, e = l && l[0];
+  if (!e || e.type !== 'Watch Ad Task' || e.afxTk || Date.now() - Number(e.timestamp || 0) > 20000) return;
+  e.afxTk = 1;
+  var m = mult(), dA = (o.afex - BDEF.afex) * m, dP = (o.pts - BDEF.pts) * m, dS = (o.speed - BDEF.speed) * m;
+  miningData.balance = Number(miningData.balance || 0) + dA;
+  miningData.userPoints = Number(miningData.userPoints || 0) + dP;
+  miningData.usdtSpeedBoost = +(Number(miningData.usdtSpeedBoost || 0) + dS).toFixed(8);
+  e.amount = '+' + fmt(o.afex * m) + ' AFEX / +' + fmt(o.speed * m) + ' USDT/hr / +' + fmt(o.pts * m) + ' Pts' + (m > 1 ? ' (Founder ' + m + 'x)' : '');
+  try { if (typeof updateUI === 'function') updateUI(); } catch (x) {}
+}
+(function hooks() {
+  var r0 = G.renderCustomTasksList;
+  if (typeof r0 === 'function' && !r0.__afxTk) {
+    var w = function () { var r = r0.apply(this, arguments); try { paint(); patchAd(); if (Date.now() - S.at > 30000) pull(); } catch (e) {} return r; };
+    w.__afxTk = true; G.renderCustomTasksList = w;
+  }
+  var u0 = G.updateAdTaskUI;
+  if (typeof u0 === 'function' && !u0.__afxTk) {
+    var w2 = function () { try { adDelta(); } catch (e) { console.error('afex-p19', e); } return u0.apply(this, arguments); };
+    w2.__afxTk = true; G.updateAdTaskUI = w2;
+  }
+})();
+
+/* ---------- SISI ADMIN: halaman "Kelola Task" ---------- */
+var A = { busy: false, edit: null, del: null, ct: null, add: false };
+(function css() {
+  if ($('afx-tk-css')) return;
+  var st = document.createElement('style'); st.id = 'afx-tk-css';
+  st.textContent =
+  '#afx-tk-page{position:fixed;left:0;top:0;right:0;bottom:0;z-index:3500;background:#080c14;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}' +
+  '#afx-tk-page.on{display:block;animation:afxPushIn .38s cubic-bezier(.32,.72,0,1) both}' +
+  '.afx-tk-in{max-width:560px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}' +
+  '.afx-tk-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;background:#080c14;padding:8px 0;border-bottom:1px solid #1f2937}' +
+  '.afx-tk-back{background:#121927;border:1px solid rgba(250,204,21,.5);color:#facc15;padding:8px 12px;border-radius:12px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}' +
+  '.afx-tk-title{color:#facc15;font-weight:900;font-size:13px}' +
+  '.afx-tk-hint{color:#9ca3af;font-size:10.5px;line-height:1.5;background:#121927;border:1px solid #1f2937;border-radius:12px;padding:8px 10px}' +
+  '.afx-tk-card{background:#121927;border:1px solid #1f2937;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}' +
+  '.afx-tk-h{color:#facc15;font-weight:900;font-size:12px}' +
+  '.afx-tk-g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.afx-tk-g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}' +
+  '.afx-tk-lb{color:#9ca3af;font-size:9.5px;font-weight:700;margin-bottom:3px}' +
+  '.afx-tk-card input,.afx-tk-card select{width:100%;box-sizing:border-box;background:#080c14;border:1px solid #374151;color:#fff;border-radius:8px;padding:8px;font-size:12px;outline:none}' +
+  '.afx-tk-card input:focus,.afx-tk-card select:focus{border-color:#facc15}' +
+  '.afx-tk-btn{width:100%;min-height:42px;border-radius:12px;font-weight:900;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px}' +
+  '.afx-tk-btn[disabled]{opacity:.55}' +
+  '.afx-tk-gold{background:linear-gradient(90deg,#eab308,#d97706);border:0;color:#000}' +
+  '.afx-tk-ghost{background:#121927;border:1px dashed rgba(250,204,21,.55);color:#facc15}' +
+  '.afx-tk-red{background:#7f1d1d;border:1px solid #ef4444;color:#fff}' +
+  '.afx-tk-mini{min-height:36px;font-size:11px}' +
+  '.afx-tk-item{background:#0d1420;border:1px solid #1f2937;border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:7px}' +
+  '.afx-tk-it b{color:#fff;font-size:12px;display:block;word-break:break-word}.afx-tk-it span{display:block;color:#9ca3af;font-size:10.5px;word-break:break-word}' +
+  '.afx-tk-it .rw{color:#facc15;font-weight:800;font-family:monospace}' +
+  '.afx-tk-msg{min-height:16px;font-size:11px;font-weight:800;line-height:1.4}';
+  document.head.appendChild(st);
+})();
+function pageHtml() {
+  return '<div class="afx-tk-in">' +
+    '<div class="afx-tk-head"><button type="button" class="afx-tk-back" data-act="back"><i class="fa-solid fa-arrow-left"></i> <span data-tktx="ap_back"></span></button><span class="afx-tk-title" data-tktx="tk_admin"></span></div>' +
+    '<div class="afx-tk-hint"><i class="fa-solid fa-list-check" style="color:#facc15;margin-right:6px"></i><span data-tktx="tk_hint"></span></div>' +
+    '<div class="afx-tk-card"><div class="afx-tk-h"><span data-tktx="tk_builtin"></span>: <span data-tktx="task_watch_ad"></span></div><div class="afx-tk-g3">' +
+      '<div><div class="afx-tk-lb">AFEX</div><input id="afx-tk-b-afex" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_speed"></div><input id="afx-tk-b-speed" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_pts"></div><input id="afx-tk-b-pts" type="text" inputmode="numeric" autocomplete="off"></div></div>' +
+      '<button type="button" class="afx-tk-btn afx-tk-gold afx-tk-mini" data-act="bsave"><i class="fa-solid fa-pen"></i><span data-tktx="tk_chg"></span></button>' +
+      '<button type="button" class="afx-tk-btn afx-tk-ghost afx-tk-mini" data-act="breset"><i class="fa-solid fa-rotate-left"></i><span data-tktx="tk_def"></span></button></div>' +
+    '<button type="button" class="afx-tk-btn afx-tk-ghost" data-act="toggleadd"><i class="fa-solid fa-plus"></i><span data-tktx="tk_add"></span></button>' +
+    '<div class="afx-tk-card" id="afx-tk-form" style="display:none">' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_f_title"></div><input id="afx-tk-f-title" type="text" maxlength="60" autocomplete="off"></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_f_desc"></div><input id="afx-tk-f-desc" type="text" maxlength="200" autocomplete="off"></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_f_link"></div><input id="afx-tk-f-link" type="text" maxlength="300" autocomplete="off" autocapitalize="off" placeholder="https://t.me/..."></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_f_answer"></div><input id="afx-tk-f-answer" type="text" maxlength="60" autocomplete="off"></div>' +
+      '<div class="afx-tk-g2"><div><div class="afx-tk-lb" data-tktx="tk_f_reward"></div><input id="afx-tk-f-reward" type="text" inputmode="decimal" autocomplete="off"></div>' +
+      '<div><div class="afx-tk-lb" data-tktx="tk_f_type"></div><select id="afx-tk-f-type"><option value="afex">AFEX</option><option value="pts"></option><option value="usdt">USDT</option></select></div></div>' +
+      '<button type="button" class="afx-tk-btn afx-tk-gold" data-act="add"><i class="fa-solid fa-floppy-disk"></i><span data-tktx="tm_save"></span></button></div>' +
+    '<div class="afx-tk-card"><div class="afx-tk-h"><span data-tktx="tk_custom"></span> <span id="afx-tk-count" style="opacity:.7"></span></div><div id="afx-tk-items" style="display:flex;flex-direction:column;gap:8px"></div></div>' +
+    '<div id="afx-tk-msg" class="afx-tk-msg"></div></div>';
+}
+function ensurePage() {
+  var p = $('afx-tk-page'); if (p) return p;
+  p = document.createElement('div'); p.id = 'afx-tk-page'; p.innerHTML = pageHtml(); document.body.appendChild(p);
+  p.addEventListener('click', onClick); return p;
+}
+function texts() {
+  var p = $('afx-tk-page');
+  if (p) {
+    Array.prototype.forEach.call(p.querySelectorAll('[data-tktx]'), function (el) { var v = T(el.getAttribute('data-tktx')); if (el.textContent !== v) el.textContent = v; });
+    var o = p.querySelector('#afx-tk-f-type option[value="pts"]'); if (o) o.textContent = T('tk_pts');
+  }
+  var b = $('afx-tk-open'), sp = b && b.querySelector('span'); if (sp) { var tv = T('tk_admin'); if (sp.textContent !== tv) sp.textContent = tv; }
+}
+function setMsg(t, good) { var m = $('afx-tk-msg'); if (!m) return; m.textContent = t || ''; m.style.color = good === true ? '#4ade80' : (good === false ? '#f87171' : '#9ca3af'); }
+function errMsg(r) {
+  var e = r && r.error;
+  return e === 'unauthorized' ? T('tk_unauth') : e === 'bad_input' ? T('tk_bad') : e === 'limit' ? T('tk_limit') : e === 'not_found' ? T('tk_gone') : T('tk_fail');
+}
+function num(s) { return parseFloat(String(s).replace(',', '.')); }
+function paintBuiltin() {
+  var o = (S.builtin && S.builtin.watch_ad) || BDEF;
+  if (!$('afx-tk-b-afex')) return;
+  $('afx-tk-b-afex').value = o.afex; $('afx-tk-b-speed').value = o.speed; $('afx-tk-b-pts').value = o.pts;
+}
+function paintAdmin() {
+  var box = $('afx-tk-items'); if (!box) return;
+  var cnt = $('afx-tk-count'); if (cnt) cnt.textContent = '(' + S.tasks.length + ')';
+  if (!S.tasks.length) { box.innerHTML = '<div class="afx-tk-hint">' + esc(T('tk_empty')) + '</div>'; return; }
+  box.innerHTML = S.tasks.map(function (tk) {
+    var id = esc(tk.id), ed = A.edit === tk.id, dl = A.del === tk.id;
+    return '<div class="afx-tk-item" data-id="' + id + '"><div class="afx-tk-it"><b>' + esc(tk.title) + '</b>' + (tk.desc ? '<span>' + esc(tk.desc) + '</span>' : '') +
+      (tk.link ? '<span>' + esc(tk.link) + '</span>' : '') + (tk.answer ? '<span>🔑 ' + esc(tk.answer) + '</span>' : '') +
+      '<span class="rw">' + esc(rewStr(tk.rtype, tk.reward, 1)) + '</span></div>' +
+      (ed ? '<div class="afx-tk-g2"><div><div class="afx-tk-lb">' + esc(T('tk_f_reward')) + '</div><input data-f="reward" type="text" inputmode="decimal" autocomplete="off" value="' + esc(tk.reward) + '"></div>' +
+        '<div><div class="afx-tk-lb">' + esc(T('tk_f_type')) + '</div><select data-f="rtype"><option value="afex"' + (tk.rtype === 'afex' ? ' selected' : '') + '>AFEX</option><option value="pts"' + (tk.rtype === 'pts' ? ' selected' : '') + '>' + esc(T('tk_pts')) + '</option><option value="usdt"' + (tk.rtype === 'usdt' ? ' selected' : '') + '>USDT</option></select></div></div>' +
+        '<button type="button" class="afx-tk-btn afx-tk-gold afx-tk-mini" data-act="rsave"><i class="fa-solid fa-floppy-disk"></i>' + esc(T('tm_save')) + '</button>' : '') +
+      '<div class="afx-tk-g2"><button type="button" class="afx-tk-btn afx-tk-ghost afx-tk-mini" data-act="redit"><i class="fa-solid fa-pen"></i>' + esc(T('tk_chg')) + '</button>' +
+      '<button type="button" class="afx-tk-btn afx-tk-red afx-tk-mini" data-act="del"><i class="fa-solid fa-trash"></i>' + esc(dl ? T('tk_del2') : T('tk_del')) + '</button></div></div>';
+  }).join('');
+}
+function adm(path, body, after) {
+  if (A.busy) return; A.busy = true; setMsg('...', null);
+  body.initData = tgInit();
+  post(path, body).then(function (r) {
+    A.busy = false;
+    if (r && r.ok) { applyResp(r); try { patchAd(); } catch (e) {} A.edit = null; A.del = null; paintBuiltin(); paintAdmin(); setMsg(T('tk_ok'), true); if (after) after(r); }
+    else setMsg(errMsg(r), false);
+  });
+}
+function onClick(ev) {
+  var b = ev.target.closest && ev.target.closest('[data-act]'); if (!b || b.disabled) return;
+  var act = b.getAttribute('data-act'), row = b.closest('[data-id]'), id = row ? row.getAttribute('data-id') : null;
+  if (act === 'back') return close();
+  if (act === 'toggleadd') { A.add = !A.add; $('afx-tk-form').style.display = A.add ? 'flex' : 'none'; return; }
+  if (act === 'bsave') {
+    var a = num($('afx-tk-b-afex').value), s = num($('afx-tk-b-speed').value), p = num($('afx-tk-b-pts').value);
+    if (!isFinite(a) || !isFinite(s) || !isFinite(p) || a < 0 || s < 0 || p < 0 || a > 1000000 || s > 1000 || p > 100000) return setMsg(T('tk_bad'), false);
+    return adm('/api/tasks/reward', { id: 'watch_ad', afex: a, speed: s, pts: Math.round(p) });
+  }
+  if (act === 'breset') return adm('/api/tasks/reward', { id: 'watch_ad', reset: true });
+  if (act === 'add') {
+    var title = $('afx-tk-f-title').value.trim(), rw = num($('afx-tk-f-reward').value);
+    if (!title || !isFinite(rw) || rw <= 0) return setMsg(T('tk_bad'), false);
+    return adm('/api/tasks/add', { title: title, desc: $('afx-tk-f-desc').value.trim(), link: $('afx-tk-f-link').value.trim(), answer: $('afx-tk-f-answer').value.trim(), rtype: $('afx-tk-f-type').value, reward: rw }, function () {
+      ['title', 'desc', 'link', 'answer', 'reward'].forEach(function (k) { $('afx-tk-f-' + k).value = ''; });
+    });
+  }
+  if (act === 'redit') { A.edit = (A.edit === id) ? null : id; A.del = null; return paintAdmin(); }
+  if (act === 'rsave' && id) {
+    var rv = num(row.querySelector('[data-f="reward"]').value);
+    if (!isFinite(rv) || rv <= 0) return setMsg(T('tk_bad'), false);
+    return adm('/api/tasks/reward', { id: id, rtype: row.querySelector('[data-f="rtype"]').value, reward: rv });
+  }
+  if (act === 'del' && id) {
+    if (A.del !== id) { A.del = id; clearTimeout(A.ct); A.ct = setTimeout(function () { A.del = null; paintAdmin(); }, 3500); return paintAdmin(); }
+    clearTimeout(A.ct); return adm('/api/tasks/delete', { id: id });
+  }
+}
+function open() {
+  var p = ensurePage(); A.edit = null; A.del = null; A.busy = false; paintBuiltin(); paintAdmin(); texts(); setMsg('');
+  p.classList.add('on'); p.scrollTop = 0; pull();
+}
+function close() { var p = $('afx-tk-page'); if (p) p.classList.remove('on'); }
+function inject() {
+  if (!isAdmin()) return;
+  var home = $('afx-ap-home'); if (!home || $('afx-tk-open')) return;
+  var anchor = $('afx-rf-open') || $('afx-tm-open') || home.querySelector('[data-ap-go="lock"]'); if (!anchor) return;
+  var b = document.createElement('button'); b.type = 'button'; b.id = 'afx-tk-open'; b.className = 'afx-ap-own afx-ap-wide';
+  b.innerHTML = '<i class="fa-solid fa-list-check"></i><span></span>';
+  anchor.insertAdjacentElement('afterend', b); texts(); b.addEventListener('click', open);
+}
+function guard() {
+  var p = $('afx-tk-page'); if (!p || !p.classList.contains('on')) return;
+  var m = $('custom-modal'); if (!m || m.classList.contains('hidden') || !$('afx-ap-root')) close();
+}
+var tmr = null;
+function boot() {
+  readCache(); paint();
+  setTimeout(pull, 1200); setInterval(pull, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) pull(); });
+  var body = $('modal-body');
+  if (body) new MutationObserver(function () { if (tmr) return; tmr = setTimeout(function () { tmr = null; try { inject(); } catch (e) {} }, 90); }).observe(body, { childList: true, subtree: true });
+  setInterval(guard, 1000);
+  (G.afexOnLang = G.afexOnLang || []).push(function () { texts(); paint(); try { patchAd(); } catch (e) {} paintAdmin(); });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+G.AFEXTasks = { open: open, close: close, pull: pull };
+})();
+</script>
 </body>
 </html>

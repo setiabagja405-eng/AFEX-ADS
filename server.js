@@ -6,6 +6,13 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Blokir akun: tolak SEMUA API user dari akun yang diblokir admin (status disimpan di MongoDB oleh routes/afexface.js).
+// Harus dipasang SEBELUM route lain. Jika file belum ada / error, server tetap hidup.
+try {
+    const _afexRoute = require('./routes/afexface');
+    if (typeof _afexRoute.blockGuard === 'function') { app.use('/api', _afexRoute.blockGuard); console.log('Guard blokir akun aktif'); }
+} catch (e) { console.error('GAGAL memasang guard blokir -> ' + e.message); }
+
 // 1. Rute Sambutan Utama
 app.get('/', (req, res) => {
     res.send('AFEX Backend API is Running Successfully!');
@@ -205,6 +212,9 @@ mountRoute('/api', './routes/users');
 
 // 6e2. Pengaturan hadiah REFERRAL & MILESTONE (admin)  ->  /api/refcfg/get , /api/refcfg/set , /api/refcfg/reset
 mountRoute('/api', './routes/refcfg');
+
+// 6e3. Task buatan admin (tambah / hapus / ubah hadiah) + override hadiah task bawaan  ->  /api/tasks/get , /api/tasks/claim , /api/tasks/add , /api/tasks/set , /api/tasks/delete , /api/tasks/reward
+mountRoute('/api', './routes/tasks');
 
 // 6f. Daftar TIM (nama + jabatan) di menu About, diatur admin dari Panel Admin  ->  /api/team/get , /api/team/set , /api/team/reset
 mountRoute('/api', './routes/team');
