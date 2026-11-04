@@ -23947,7 +23947,8 @@ setInterval(function () {
    - Tombol/menu "Ganti Email" di menu profil/pengaturan user (#tab-profile) & pada modal status A2F.
    - Alur: tampilkan email saat ini (disamarkan) + tanggal verifikasi dari action server 'a2f_me',
      user isi email baru, tekan Get, bot OTP mengirim kode 6 digit, user verifikasi, email lama diganti baru.
-   - Email baru yang sudah dipakai akun lain (email_used) ditolak dengan pesan jelas di 19 bahasa. */
+   - Email baru yang sudah dipakai akun lain (email_used) ditolak dengan pesan jelas di 19 bahasa.
+   - Mendukung penuh 19 bahasa frontend: en, id, es, de, fr, tr, uz, ru, vi, tl, th, ms, hi, ur, zh, ko, ja, af, ar. */
 (function () {
 'use strict';
 var G = window;
@@ -23968,6 +23969,12 @@ var I18N_DICT = {
     'I-update ang A2F email sa OTP bot', 'อัปเดตอีเมล A2F ผ่านบอท OTP', 'Kemas kini e-mel A2F melalui bot OTP',
     'OTP बॉट द्वारा A2F ईमेल अपडेट करें', 'OTP بوٹ کے ذریعے A2F ای میل اپ ڈیٹ کریں', '通过 OTP 机器人更新 A2F 邮箱',
     'OTP 봇으로 A2F 이메일 변경', 'OTPボットでA2Fメールを更新', 'Dateer A2F-e-pos op via OTP-bot', 'تحديث بريد A2F عبر بوت OTP'
+  ],
+  ce_a2f_badge: [
+    'A2F Email', 'Email A2F', 'Correo A2F', 'A2F-E-Mail', 'E-mail A2F',
+    'A2F E-posta', 'A2F Email', 'Email A2F', 'Email A2F', 'A2F Email',
+    'อีเมล A2F', 'E-mel A2F', 'A2F ईमेल', 'A2F ای میل', 'A2F 邮箱',
+    'A2F 이메일', 'A2F メール', 'A2F-e-pos', 'بريد A2F'
   ],
   ce_cur_label: [
     'Current Email', 'Email Saat Ini', 'Correo actual', 'Aktuelle E-Mail', 'E-mail actuel',
@@ -24028,8 +24035,10 @@ var I18N_DICT = {
     'أدخل بريدك الجديد واضغط Get. سيرسل بوت OTP رمزاً من 6 أرقام إلى حسابك في Telegram (صالح لمدة 5 دقائق).'
   ],
   ce_get: [
-    'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get',
-    'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get', 'Get'
+    'Get OTP', 'Minta OTP (Get)', 'Obtener OTP (Get)', 'OTP anfordern (Get)', 'Obtenir l’OTP (Get)',
+    'OTP Al (Get)', 'OTP olish (Get)', 'Получить OTP (Get)', 'Lấy OTP (Get)', 'Kunin ang OTP (Get)',
+    'รับ OTP (Get)', 'Dapatkan OTP (Get)', 'OTP प्राप्त करें (Get)', 'OTP حاصل کریں (Get)', '获取 OTP (Get)',
+    'OTP 받기 (Get)', 'OTPを取得 (Get)', 'Kry OTP (Get)', 'احصل على OTP (Get)'
   ],
   ce_getting: [
     'Requesting...', 'Meminta kode...', 'Solicitando...', 'Wird angefordert...', 'Demande en cours...',
@@ -24124,7 +24133,7 @@ var I18N_DICT = {
   ce_open_bot: [
     'Open OTP Bot', 'Buka Bot OTP', 'Abrir bot OTP', 'OTP-Bot öffnen', 'Ouvrir le bot OTP',
     'OTP Botunu Aç', 'OTP botni ochish', 'Открыть OTP-бота', 'Mở Bot OTP', 'Buksan ang OTP Bot',
-    'เปิดบอท OTP', 'Buka Bot OTP', 'OTP बॉट खोलें', 'OTP بوٹ کھولیں', '打开 OTP 机器人',
+    'เปิดบอท OTP', 'Buka Bot OTP', 'OTP बॉट खोलें', 'OTP بوٹ کھولें', '打开 OTP 机器人',
     'OTP 봇 열기', 'OTPボットを開く', 'Maak OTP-bot oop', 'فتح بوت OTP'
   ],
   ce_cooldown: [
@@ -24283,19 +24292,142 @@ var I18N_DICT = {
     'メールアドレスを {email} に変更しました。',
     'Jou e-pos is suksesvol opgedateer na {email}.',
     'تم تحديث بريدك الإلكتروني بنجاح إلى {email}.'
+  ],
+  cm_a2f_head: [
+    'A2F (Email OTP) - reset to unverified',
+    'A2F (OTP email) - status kembali belum verifikasi',
+    'A2F (OTP de correo) - restablecer a no verificado',
+    'A2F (E-Mail-OTP) - auf nicht verifiziert zurücksetzen',
+    'A2F (OTP e-mail) - réinitialiser en non vérifié',
+    'A2F (E-posta OTP) - doğrulanmamış duruma sıfırla',
+    'A2F (Email OTP) - tasdiqlanmagan holatga qaytarish',
+    'A2F (Email OTP) - сбросить статус верификации',
+    'A2F (OTP email) - đặt lại về chưa xác minh',
+    'A2F (Email OTP) - ibalik sa hindi pa verified',
+    'A2F (OTP อีเมล) - รีเซ็ตเป็นยังไม่ยืนยัน',
+    'A2F (OTP e-mel) - tetapkan semula ke belum disahkan',
+    'A2F (ईमेल OTP) - असत्यापित स्थिति में रीसेट करें',
+    'A2F (ای میل OTP) - غیر تصدیق شدہ حالت پرواپس لائیں',
+    'A2F（邮箱 OTP）- 重置为未验证状态',
+    'A2F (이메일 OTP) - 미인증 상태로 초기화',
+    'A2F（メールOTP）- 未認証状態にリセット',
+    'A2F (E-pos OTP) - stel terug na ongeverifieer',
+    'A2F (OTP البريد) - إعادة الحالة إلى غير موثق'
+  ],
+  cm_a2f_btn: [
+    'Cancel A2F (UID above)',
+    'Batalkan A2F (UID di kolom atas)',
+    'Cancelar A2F (UID arriba)',
+    'A2F widerrufen (UID oben)',
+    'Annuler A2F (UID ci-dessus)',
+    'A2F İptal Et (yukarıdaki UID)',
+    'A2F bekor qilish (yuqoridagi UID)',
+    'Отменить A2F (UID выше)',
+    'Hủy A2F (UID ở trên)',
+    'Kanselahin ang A2F (UID sa itaas)',
+    'ยกเลิก A2F (UID ด้านบน)',
+    'Batalkan A2F (UID di ruang atas)',
+    'A2F रद्द करें (ऊपर दिया गया UID)',
+    'A2F منسوخ کریں (اوپر والا UID)',
+    '取消 A2F（上方 UID）',
+    'A2F 취소 (위 입력란의 UID)',
+    'A2Fを取り消す（上のUID）',
+    'Kanselleer A2F (UID hierbo)',
+    'إلغاء A2F (معرف UID أعلاه)'
+  ],
+  cm_a2f_search: [
+    'Search UID / email...',
+    'Cari UID / email...',
+    'Buscar UID / correo...',
+    'UID / E-Mail suchen...',
+    'Rechercher UID / e-mail...',
+    'UID / e-posta ara...',
+    'UID / email qidirish...',
+    'Поиск UID / email...',
+    'Tìm UID / email...',
+    'Hanapin ang UID / email...',
+    'ค้นหา UID / อีเมล...',
+    'Cari UID / e-mel...',
+    'UID / ईमेल खोजें...',
+    'UID / ای میل تلاش کریں...',
+    '搜索 UID / 邮箱...',
+    'UID / 이메일 검색...',
+    'UID / メールを検索...',
+    'Soek UID / e-pos...',
+    'ابحث عن UID / البريد...'
+  ],
+  cm_a2f_row_btn: [
+    'Revoke A2F', 'Batal A2F', 'Cancelar A2F', 'A2F widerrufen', 'Annuler A2F',
+    'A2F İptal', 'A2F bekor', 'Сброс A2F', 'Hủy A2F', 'Bawiin A2F',
+    'ยกเลิก A2F', 'Batal A2F', 'A2F रद्द', 'A2F منسوخ', '取消 A2F',
+    'A2F 취소', 'A2F取消', 'Kanselleer A2F', 'إلغاء A2F'
   ]
 };
 
-if (typeof G.afexAddI18n === 'function') {
-  try { G.afexAddI18n(I18N_DICT); } catch (e) {}
+function syncI18nAll() {
+  if (typeof G.afexAddI18n === 'function') {
+    try { G.afexAddI18n(I18N_DICT); } catch (e) {}
+  }
+  try {
+    var U = G.UNLOCK_MENU_I18N_19;
+    Object.keys(I18N_DICT).forEach(function (k) {
+      var arr = I18N_DICT[k];
+      LANGS.forEach(function (lc, idx) {
+        var val = arr[idx] || arr[0];
+        if (typeof i18n !== 'undefined' && i18n) {
+          if (!i18n[lc]) i18n[lc] = {};
+          i18n[lc][k] = val;
+        }
+        if (U) {
+          if (!U[lc]) U[lc] = {};
+          U[lc][k] = val;
+        }
+      });
+    });
+  } catch (e) {}
 }
+syncI18nAll();
+
+function LS() {
+  try { return (typeof _afexLS !== 'undefined' && _afexLS) ? _afexLS : localStorage; } catch (e) { return localStorage; }
+}
+function uid() {
+  try { return (typeof userIdStr !== 'undefined' && userIdStr) ? String(userIdStr) : 'GUEST'; } catch (e) { return 'GUEST'; }
+}
+
+var CE = {
+  maskedEmail: '',
+  verifiedAt: 0,
+  verified: false,
+  pendingEmail: '',
+  expiresAt: 0,
+  cdUntil: 0,
+  tm: null,
+  busy: false,
+  inModal: false,
+  waitingBot: false,
+  lastStatusKey: '',
+  lastStatusKind: '',
+  lastErrKey: '',
+  lastErrLeft: undefined,
+  activeLang: ''
+};
 
 function curLang() {
   try {
-    if (typeof G.afexLang === 'function') return G.afexLang();
-    if (typeof G.afexCurrentLang === 'function') return G.afexCurrentLang();
     var el = document.getElementById('lang-select');
     if (el && el.value && LANGS.indexOf(el.value) >= 0) return el.value;
+    if (CE.activeLang && LANGS.indexOf(CE.activeLang) >= 0) return CE.activeLang;
+    var saved = LS().getItem('afex_lang_' + uid());
+    if (saved && LANGS.indexOf(saved) >= 0) return saved;
+    if (typeof G.afexLang === 'function') {
+      var al = G.afexLang();
+      if (al && LANGS.indexOf(al) >= 0) return al;
+    }
+    if (typeof G.afexCurrentLang === 'function') {
+      var cl = G.afexCurrentLang();
+      if (cl && LANGS.indexOf(cl) >= 0) return cl;
+    }
   } catch (e) {}
   return 'en';
 }
@@ -24322,12 +24454,6 @@ function esc(s) {
   });
 }
 
-function LS() {
-  try { return (typeof _afexLS !== 'undefined' && _afexLS) ? _afexLS : localStorage; } catch (e) { return localStorage; }
-}
-function uid() {
-  try { return (typeof userIdStr !== 'undefined' && userIdStr) ? String(userIdStr) : 'GUEST'; } catch (e) { return 'GUEST'; }
-}
 function tgInit() {
   try { return (G.Telegram && G.Telegram.WebApp && G.Telegram.WebApp.initData) || ''; } catch (e) { return ''; }
 }
@@ -24351,21 +24477,9 @@ function fmtDate(ts) {
   }
 }
 
-var CE = {
-  maskedEmail: '',
-  verifiedAt: 0,
-  verified: false,
-  pendingEmail: '',
-  expiresAt: 0,
-  cdUntil: 0,
-  tm: null,
-  busy: false,
-  inModal: false
-};
-
 async function callAfexApi(action, extra) {
   var cfg = G.AFEX_OTP_CFG || { endpoint: 'https://afex-backend.onrender.com/api/afex', botUsername: 'afexotpbot' };
-  var body = Object.assign({ action: action, initData: tgInit(), uid: uid(), username: tgName() }, extra || {});
+  var body = Object.assign({ action: action, initData: tgInit(), uid: uid(), username: tgName(), lang: curLang() }, extra || {});
   var res = await fetch(cfg.endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -24385,7 +24499,7 @@ async function fetchA2fMe() {
     if (r && r.ok) {
       CE.verified = !!r.verified;
       CE.maskedEmail = r.email || r.maskedEmail || (CE.verified && localRaw ? maskEmailLocal(localRaw) : '');
-      CE.verifiedAt = Number(r.at) || 0;
+      CE.verifiedAt = Number(r.at || r.verifiedAt) || 0;
       updateMenuRowUI();
       updateCurrentEmailBoxUI();
       return r;
@@ -24412,21 +24526,29 @@ function updateMenuRowUI() {
       var dt = fmtDate(CE.verifiedAt);
       subEl.textContent = CE.maskedEmail + (dt ? ' • ' + dt : '');
       subEl.className = 'text-[10px] text-green-400 font-mono font-bold';
+      subEl.removeAttribute('data-i18n');
     } else {
       subEl.textContent = L('ce_menu_sub');
       subEl.className = 'text-[10px] text-cyan-400 font-mono';
+      subEl.setAttribute('data-i18n', 'ce_menu_sub');
     }
   }
 }
 
 function updateCurrentEmailBoxUI() {
+  var curLblEl = document.getElementById('afex-ce-cur-label-txt');
+  var curBadgeEl = document.getElementById('afex-ce-cur-badge');
   var curValEl = document.getElementById('afex-ce-cur-email');
   var curDateEl = document.getElementById('afex-ce-cur-date');
+  if (curLblEl) curLblEl.textContent = L('ce_cur_label');
+  if (curBadgeEl) curBadgeEl.textContent = L('ce_a2f_badge');
   if (curValEl) {
     curValEl.textContent = CE.maskedEmail ? CE.maskedEmail : L('ce_none');
     curValEl.className = CE.maskedEmail
       ? 'text-xs font-mono font-black text-cyan-300 break-all'
       : 'text-xs font-mono text-gray-400 italic';
+    if (CE.maskedEmail) curValEl.removeAttribute('data-i18n');
+    else curValEl.setAttribute('data-i18n', 'ce_none');
   }
   if (curDateEl) {
     if (CE.maskedEmail && CE.verifiedAt > 0) {
@@ -24436,6 +24558,74 @@ function updateCurrentEmailBoxUI() {
       curDateEl.textContent = '';
       curDateEl.classList.add('hidden');
     }
+  }
+}
+
+function translateModalInPlace() {
+  syncI18nAll();
+  updateMenuRowUI();
+  updateCurrentEmailBoxUI();
+
+  var ceRoot = document.getElementById('afex-ce-modal-root');
+  if (ceRoot) {
+    var mTitle = document.getElementById('modal-title');
+    if (mTitle) mTitle.textContent = L('ce_menu_title');
+    var newLbl = document.getElementById('afex-ce-new-label');
+    if (newLbl) newLbl.textContent = L('ce_new_label');
+    var emInp = document.getElementById('a2f-email-input');
+    if (emInp) emInp.setAttribute('placeholder', L('ce_new_ph'));
+    var infoEl = document.getElementById('afex-ce-info');
+    if (infoEl) infoEl.textContent = L('ce_info');
+    var botBtnTxt = document.getElementById('afex-otp-bot-btn-txt');
+    if (botBtnTxt) botBtnTxt.textContent = L('ce_open_bot');
+    var otpInp = document.getElementById('a2f-otp-input');
+    if (otpInp) otpInp.setAttribute('placeholder', L('ce_otp_ph'));
+    var verBtnTxt = document.getElementById('afex-otp-verify-btn-txt');
+    if (verBtnTxt) verBtnTxt.textContent = L('ce_verify_btn');
+    var gBtn = document.getElementById('afex-otp-get-btn');
+    if (gBtn && CE.busy) {
+      gBtn.textContent = L('ce_getting');
+    }
+    if (CE.lastStatusKey) {
+      var stEl = document.getElementById('afex-otp-status');
+      if (stEl && !stEl.classList.contains('hidden')) {
+        stEl.textContent = CE.lastStatusKey === '__map__'
+          ? mapCeErr({ error: CE.lastErrKey, left: CE.lastErrLeft })
+          : L(CE.lastStatusKey);
+      }
+    }
+    if (CE.lastErrKey) {
+      var erEl = document.getElementById('a2f-otp-error');
+      if (erEl && !erEl.classList.contains('hidden')) {
+        erEl.textContent = CE.lastErrKey.indexOf('ce_') === 0
+          ? L(CE.lastErrKey)
+          : mapCeErr({ error: CE.lastErrKey, left: CE.lastErrLeft });
+      }
+    }
+    ceTick();
+  }
+
+  var verRoot = document.getElementById('afex-a2f-verified-modal-root');
+  if (verRoot) {
+    var mTitle2 = document.getElementById('modal-title');
+    if (mTitle2 && typeof t === 'function') mTitle2.textContent = t('a2f_title');
+    var verSt = document.getElementById('afex-a2f-ver-status');
+    if (verSt && typeof t === 'function') verSt.textContent = t('status_verified');
+    var verBtn = document.getElementById('afex-a2f-ver-ce-btn-txt');
+    if (verBtn) verBtn.textContent = L('ce_menu_title');
+  }
+
+  var cmBox = document.getElementById('afex-cm-a2f');
+  if (cmBox) {
+    var cmHead = cmBox.querySelector('span.text-emerald-300');
+    if (cmHead) cmHead.innerHTML = '<i class="fa-solid fa-envelope-circle-check mr-1"></i>' + esc(L('cm_a2f_head'));
+    var cmBtn = document.getElementById('afex-cm-a2f-btn');
+    if (cmBtn) cmBtn.textContent = L('cm_a2f_btn');
+    var cmFlt = document.getElementById('afex-cm-a2f-filter');
+    if (cmFlt) cmFlt.setAttribute('placeholder', L('cm_a2f_search'));
+    Array.prototype.forEach.call(cmBox.querySelectorAll('button[data-a2f-uid]'), function (b) {
+      b.textContent = L('cm_a2f_row_btn');
+    });
   }
 }
 
@@ -24505,18 +24695,22 @@ function ceTick() {
     var wait = CE.cdUntil - now;
     gBtn.disabled = wait > 0;
     gBtn.style.opacity = wait > 0 ? '0.55' : '1';
-    gBtn.innerHTML = '<i class="fa-brands fa-telegram mr-1"></i>' + esc(L('ce_get')) + (wait > 0 ? ' (' + Math.ceil(wait / 1000) + 's)' : '');
+    gBtn.innerHTML = '<i class="fa-brands fa-telegram mr-1"></i><span id="afex-otp-get-btn-txt" data-i18n="ce_get">' + esc(L('ce_get')) + '</span>' + (wait > 0 ? ' (' + Math.ceil(wait / 1000) + 's)' : '');
   }
 }
 
-function setCeStatus(text, kind) {
+function setCeStatus(text, kind, key) {
   var el = document.getElementById('afex-otp-status');
+  CE.lastStatusKey = text ? (key || '') : '';
+  CE.lastStatusKind = kind || '';
   if (!el) return;
   el.textContent = text || '';
   el.className = 'text-[11px] font-bold ' + (kind === 'ok' ? 'text-green-400' : (kind === 'err' ? 'text-red-400' : 'text-yellow-400')) + (text ? '' : ' hidden');
 }
-function showCeErr(text) {
+function showCeErr(text, key, left) {
   var el = document.getElementById('a2f-otp-error');
+  CE.lastErrKey = text ? (key || '') : '';
+  CE.lastErrLeft = left;
   if (!el) return;
   el.textContent = text || '';
   if (text) el.classList.remove('hidden'); else el.classList.add('hidden');
@@ -24582,9 +24776,11 @@ function replaceUserEmailState(newEmail) {
 
 function openChangeEmailModal() {
   try { if (typeof closeKycCameraModal === 'function') closeKycCameraModal(); } catch (e) {}
+  syncI18nAll();
   CE.inModal = true;
   CE.pendingEmail = '';
   CE.expiresAt = 0; CE.waitingBot = false;
+  CE.lastStatusKey = ''; CE.lastErrKey = ''; CE.lastErrLeft = undefined;
 
   var localRaw = '';
   try {
@@ -24600,10 +24796,10 @@ function openChangeEmailModal() {
     '<div id="afex-ce-modal-root" class="space-y-3 text-left text-xs">' +
       '<div id="afex-ce-cur-box" class="bg-[#080c14] border border-cyan-500/30 rounded-xl p-3 space-y-1">' +
         '<div class="flex items-center justify-between">' +
-          '<span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-envelope-circle-check text-cyan-400 mr-1"></i>' + esc(L('ce_cur_label')) + '</span>' +
-          '<span class="text-[9px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full">A2F</span>' +
+          '<span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-envelope-circle-check text-cyan-400 mr-1"></i><span id="afex-ce-cur-label-txt" data-i18n="ce_cur_label">' + esc(L('ce_cur_label')) + '</span></span>' +
+          '<span id="afex-ce-cur-badge" class="text-[9px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full" data-i18n="ce_a2f_badge">' + esc(L('ce_a2f_badge')) + '</span>' +
         '</div>' +
-        '<div id="afex-ce-cur-email" class="' + (CE.maskedEmail ? 'text-xs font-mono font-black text-cyan-300 break-all' : 'text-xs font-mono text-gray-400 italic') + '">' +
+        '<div id="afex-ce-cur-email" ' + (CE.maskedEmail ? '' : 'data-i18n="ce_none" ') + 'class="' + (CE.maskedEmail ? 'text-xs font-mono font-black text-cyan-300 break-all' : 'text-xs font-mono text-gray-400 italic') + '">' +
           esc(CE.maskedEmail || L('ce_none')) +
         '</div>' +
         '<div id="afex-ce-cur-date" class="text-[10px] font-mono text-gray-400 ' + (CE.maskedEmail && CE.verifiedAt ? '' : 'hidden') + '">' +
@@ -24612,29 +24808,29 @@ function openChangeEmailModal() {
       '</div>' +
 
       '<div class="space-y-1.5">' +
-        '<label class="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">' + esc(L('ce_new_label')) + '</label>' +
-        '<input type="email" id="a2f-email-input" placeholder="' + esc(L('ce_new_ph')) + '" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:border-yellow-400">' +
+        '<label id="afex-ce-new-label" data-i18n="ce_new_label" class="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">' + esc(L('ce_new_label')) + '</label>' +
+        '<input type="email" id="a2f-email-input" data-i18n-placeholder="ce_new_ph" placeholder="' + esc(L('ce_new_ph')) + '" class="w-full bg-[#080c14] gold-border text-white rounded-xl px-3 py-2.5 text-xs outline-none font-mono focus:border-yellow-400">' +
       '</div>' +
 
-      '<p class="text-[11px] text-yellow-400 leading-relaxed">' + esc(L('ce_info')) + '</p>' +
+      '<p id="afex-ce-info" data-i18n="ce_info" class="text-[11px] text-yellow-400 leading-relaxed">' + esc(L('ce_info')) + '</p>' +
 
       '<button type="button" id="afex-otp-get-btn" onclick="afexOtpGet()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl cursor-pointer">' +
-        '<i class="fa-brands fa-telegram mr-1"></i>' + esc(L('ce_get')) +
+        '<i class="fa-brands fa-telegram mr-1"></i><span id="afex-otp-get-btn-txt" data-i18n="ce_get">' + esc(L('ce_get')) + '</span>' +
       '</button>' +
 
       '<button type="button" id="afex-otp-bot-btn" onclick="afexOtpOpenBot()" class="hidden w-full border border-yellow-500/60 text-yellow-400 font-bold py-2 rounded-xl cursor-pointer">' +
-        '<i class="fa-solid fa-robot mr-1"></i>' + esc(L('ce_open_bot')) +
+        '<i class="fa-solid fa-robot mr-1"></i><span id="afex-otp-bot-btn-txt" data-i18n="ce_open_bot">' + esc(L('ce_open_bot')) + '</span>' +
       '</button>' +
 
       '<div id="afex-otp-status" class="hidden text-[11px] font-bold"></div>' +
       '<div id="afex-otp-timer" class="text-[11px] font-mono font-black text-yellow-400"></div>' +
 
-      '<input type="text" id="a2f-otp-input" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="' + esc(L('ce_otp_ph')) + '" class="w-full bg-[#080c14] gold-border text-yellow-400 text-center text-lg font-black tracking-[0.4em] py-2.5 rounded-xl outline-none" style="border:1px solid rgba(234,179,8,0.45)">' +
+      '<input type="text" id="a2f-otp-input" maxlength="6" inputmode="numeric" autocomplete="one-time-code" data-i18n-placeholder="ce_otp_ph" placeholder="' + esc(L('ce_otp_ph')) + '" class="w-full bg-[#080c14] gold-border text-yellow-400 text-center text-lg font-black tracking-[0.4em] py-2.5 rounded-xl outline-none" style="border:1px solid rgba(234,179,8,0.45)">' +
 
       '<div id="a2f-otp-error" class="hidden bg-red-500/15 border border-red-500/40 text-red-400 px-3 py-2 rounded-xl text-[11px] font-bold"></div>' +
 
       '<button type="button" id="afex-otp-verify-btn" onclick="afexOtpVerify()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl cursor-pointer">' +
-        '<i class="fa-solid fa-circle-check mr-1"></i>' + esc(L('ce_verify_btn')) +
+        '<i class="fa-solid fa-circle-check mr-1"></i><span id="afex-otp-verify-btn-txt" data-i18n="ce_verify_btn">' + esc(L('ce_verify_btn')) + '</span>' +
       '</button>' +
     '</div>';
 
@@ -24651,32 +24847,54 @@ G.afexOtpChangeEmail = function () {
   openChangeEmailModal();
 };
 
+function renderVerifiedA2fModal() {
+  var localRaw = (typeof miningData !== 'undefined' && miningData && miningData.verifiedEmail) || LS().getItem('afex_verified_email_' + uid()) || '';
+  var disp = CE.maskedEmail || (localRaw ? maskEmailLocal(localRaw) : '');
+  var html =
+    '<div id="afex-a2f-verified-modal-root" class="space-y-3 text-center">' +
+      '<p id="afex-a2f-ver-status" data-i18n="status_verified" class="text-xs text-green-400 font-bold">' + esc(typeof t === 'function' ? t('status_verified') : 'Verified') + '</p>' +
+      '<div class="bg-[#080c14] border border-cyan-500/30 rounded-xl p-3 space-y-1 text-left">' +
+        '<div class="flex items-center justify-between">' +
+          '<span id="afex-ce-cur-label-txt" data-i18n="ce_cur_label" class="text-[10px] text-gray-400 uppercase font-bold block">' + esc(L('ce_cur_label')) + '</span>' +
+          '<span id="afex-ce-cur-badge" data-i18n="ce_a2f_badge" class="text-[9px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full">' + esc(L('ce_a2f_badge')) + '</span>' +
+        '</div>' +
+        '<div id="afex-ce-cur-email" class="text-xs font-mono font-black text-cyan-300 break-all">' + esc(disp || L('ce_none')) + '</div>' +
+        '<div id="afex-ce-cur-date" class="text-[10px] font-mono text-gray-400 ' + (CE.verifiedAt ? '' : 'hidden') + '">' +
+          esc(CE.verifiedAt ? (L('ce_ver_date') + ': ' + fmtDate(CE.verifiedAt)) : '') +
+        '</div>' +
+      '</div>' +
+      '<button type="button" onclick="afexOpenChangeEmailModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-lg">' +
+        '<i class="fa-solid fa-envelope-open-text mr-1"></i><span id="afex-a2f-ver-ce-btn-txt" data-i18n="ce_menu_title">' + esc(L('ce_menu_title')) + '</span>' +
+      '</button>' +
+    '</div>';
+  showModal(typeof t === 'function' ? t('a2f_title') : L('ce_a2f_badge'), html, 'fa-circle-check');
+  fetchA2fMe();
+}
+
 /* Bungkus openA2fEmailOtpModal: jika A2F sudah verified, tampilkan email tersamar + tanggal verifikasi + tombol Ganti Email */
 var _prevOpenA2fModal = G.openA2fEmailOtpModal;
 if (typeof _prevOpenA2fModal === 'function') {
   G.openA2fEmailOtpModal = function (forceEmailStep) {
     if (!forceEmailStep && typeof miningData !== 'undefined' && miningData && miningData.kycStatus && miningData.kycStatus.a2f === 'verified') {
-      var localRaw = miningData.verifiedEmail || LS().getItem('afex_verified_email_' + uid()) || '';
-      var disp = CE.maskedEmail || (localRaw ? maskEmailLocal(localRaw) : '');
-      var html =
-        '<div class="space-y-3 text-center">' +
-          '<p class="text-xs text-green-400 font-bold">' + esc(typeof t === 'function' ? t('status_verified') : 'Verified') + '</p>' +
-          '<div class="bg-[#080c14] border border-cyan-500/30 rounded-xl p-3 space-y-1 text-left">' +
-            '<span class="text-[10px] text-gray-400 uppercase font-bold block">' + esc(L('ce_cur_label')) + '</span>' +
-            '<div id="afex-ce-cur-email" class="text-xs font-mono font-black text-cyan-300 break-all">' + esc(disp || L('ce_none')) + '</div>' +
-            '<div id="afex-ce-cur-date" class="text-[10px] font-mono text-gray-400 ' + (CE.verifiedAt ? '' : 'hidden') + '">' +
-              esc(CE.verifiedAt ? (L('ce_ver_date') + ': ' + fmtDate(CE.verifiedAt)) : '') +
-            '</div>' +
-          '</div>' +
-          '<button type="button" onclick="afexOpenChangeEmailModal()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black py-2.5 rounded-xl text-xs cursor-pointer shadow-lg">' +
-            '<i class="fa-solid fa-envelope-open-text mr-1"></i>' + esc(L('ce_menu_title')) +
-          '</button>' +
-        '</div>';
-      showModal(typeof t === 'function' ? t('a2f_title') : 'A2F', html, 'fa-circle-check');
-      fetchA2fMe();
+      renderVerifiedA2fModal();
       return;
     }
     return _prevOpenA2fModal.apply(this, arguments);
+  };
+}
+
+/* Bungkus openLockedFeature agar klik baris A2F saat sudah verified memanggil G.openA2fEmailOtpModal (dengan tombol Ganti Email 19 bahasa) */
+var _prevOpenLocked = G.openLockedFeature;
+if (typeof _prevOpenLocked === 'function') {
+  G.openLockedFeature = function (type) {
+    if (type === 'a2f' && typeof miningData !== 'undefined' && miningData && miningData.kycStatus && miningData.kycStatus.a2f === 'verified') {
+      var isLocked = Boolean(typeof featureLockState !== 'undefined' && featureLockState && featureLockState.a2f && typeof targetDates !== 'undefined' && targetDates && targetDates.a2f > Date.now());
+      var admUnlocked = Boolean(typeof isAdminSessionUnlocked !== 'undefined' && isAdminSessionUnlocked);
+      if (!isLocked || admUnlocked) {
+        return G.openA2fEmailOtpModal(false);
+      }
+    }
+    return _prevOpenLocked.apply(this, arguments);
   };
 }
 
@@ -24693,7 +24911,7 @@ G.afexOtpGet = async function () {
   var emailEl = document.getElementById('a2f-email-input');
   var raw = emailEl ? emailEl.value.trim().toLowerCase() : '';
   if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw)) {
-    showCeErr(L('ce_bad_email'));
+    showCeErr(L('ce_bad_email'), 'ce_bad_email');
     return;
   }
   var curRaw = '';
@@ -24702,14 +24920,14 @@ G.afexOtpGet = async function () {
               LS().getItem('afex_verified_email_' + uid()) || '').trim().toLowerCase();
   } catch (e) {}
   if (curRaw && raw === curRaw) {
-    showCeErr(L('ce_same_email'));
+    showCeErr(L('ce_same_email'), 'ce_same_email');
     return;
   }
   try {
     var used = JSON.parse(LS().getItem('afex_used_a2f_emails') || '{}');
     if (used[raw] && String(used[raw]) !== uid()) {
-      showCeErr(L('ce_email_used'));
-      setCeStatus(L('ce_email_used'), 'err');
+      showCeErr(L('ce_email_used'), 'ce_email_used');
+      setCeStatus(L('ce_email_used'), 'err', 'ce_email_used');
       return;
     }
   } catch (e) {}
@@ -24726,7 +24944,7 @@ G.afexOtpGet = async function () {
     if (r && r.ok) {
       CE.expiresAt = r.expiresAt || (Date.now() + 300000);
       CE.cdUntil = Date.now() + 30000; CE.waitingBot = false;
-      setCeStatus(L('ce_sent'), 'ok');
+      setCeStatus(L('ce_sent'), 'ok', 'ce_sent');
       if (botBtn) botBtn.classList.remove('hidden');
       var inp = document.getElementById('a2f-otp-input');
       if (inp) { inp.value = ''; inp.focus(); }
@@ -24735,6 +24953,7 @@ G.afexOtpGet = async function () {
       }
     } else {
       var errMsg = mapCeErr(r);
+      var errKey = (r && r.error) || 'net';
       if (r && r.error === 'need_start') {
         CE.waitingBot = true;   /* [PERBAIKAN OTP] kode akan dikirim bot begitu Start ditekan; verifikasi tidak boleh diblok "tekan Get dulu" */
         if (botBtn) botBtn.classList.remove('hidden');
@@ -24745,12 +24964,13 @@ G.afexOtpGet = async function () {
       if (r && r.error === 'cooldown') {
         CE.cdUntil = Date.now() + ((r.retryIn || 30) * 1000);
       }
-      setCeStatus(errMsg, 'err');
-      showCeErr(errMsg);
+      CE.lastErrKey = errKey; CE.lastErrLeft = r && r.left;
+      setCeStatus(errMsg, 'err', '__map__');
+      showCeErr(errMsg, errKey, r && r.left);
     }
   } catch (e) {
-    setCeStatus(L('ce_net'), 'err');
-    showCeErr(L('ce_net'));
+    setCeStatus(L('ce_net'), 'err', 'ce_net');
+    showCeErr(L('ce_net'), 'ce_net');
   }
   CE.busy = false;
   ceTick();
@@ -24772,11 +24992,11 @@ G.afexOtpVerify = async function () {
   var code = inp ? inp.value.replace(/\s+/g, '') : '';
 
   if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rawEmail)) {
-    return showCeErr(L('ce_bad_email'));
+    return showCeErr(L('ce_bad_email'), 'ce_bad_email');
   }
-  if (!CE.expiresAt && !CE.waitingBot) return showCeErr(L('ce_press_get'));
-  if (CE.expiresAt && Date.now() > CE.expiresAt) return showCeErr(L('ce_expired'));
-  if (!/^\d{6}$/.test(code)) return showCeErr(L('ce_invalid'));
+  if (!CE.expiresAt && !CE.waitingBot) return showCeErr(L('ce_press_get'), 'ce_press_get');
+  if (CE.expiresAt && Date.now() > CE.expiresAt) return showCeErr(L('ce_expired'), 'ce_expired');
+  if (!/^\d{6}$/.test(code)) return showCeErr(L('ce_invalid'), 'ce_invalid');
 
   var vBtn = document.getElementById('afex-otp-verify-btn');
   if (vBtn) vBtn.disabled = true;
@@ -24798,23 +25018,40 @@ G.afexOtpVerify = async function () {
       return;
     }
     if (r && (r.error === 'expired' || r.error === 'locked')) { CE.expiresAt = 0; CE.waitingBot = false; }
-    showCeErr(mapCeErr(r));
+    showCeErr(mapCeErr(r), (r && r.error) || 'net', r && r.left);
   } catch (e) {
-    showCeErr(L('ce_net'));
+    showCeErr(L('ce_net'), 'ce_net');
   }
   if (vBtn) vBtn.disabled = false;
 };
 
-/* Sinkron saat bahasa diganti */
-if (Array.isArray(G.afexOnLang)) {
-  G.afexOnLang.push(function () {
-    updateMenuRowUI();
-    if (document.getElementById('afex-ce-modal-root')) openChangeEmailModal();
-  });
+/* Sinkron saat bahasa diganti (baik lewat dropdown #lang-select maupun panggilan langsung changeLanguage) */
+(G.afexOnLang = G.afexOnLang || []).push(function () {
+  translateModalInPlace();
+});
+
+var _prevChangeLangCE = G.changeLanguage;
+if (typeof _prevChangeLangCE === 'function' && !_prevChangeLangCE.__afexCE) {
+  var wrappedChangeLangCE = function (langCode) {
+    if (langCode && LANGS.indexOf(langCode) >= 0) {
+      CE.activeLang = langCode;
+      var sel = document.getElementById('lang-select');
+      if (sel && sel.value !== langCode) sel.value = langCode;
+    }
+    syncI18nAll();
+    var res = _prevChangeLangCE.apply(this, arguments);
+    translateModalInPlace();
+    return res;
+  };
+  wrappedChangeLangCE.__afexCE = true;
+  wrappedChangeLangCE.__afexP0 = true;
+  G.changeLanguage = wrappedChangeLangCE;
 }
 
 function initChangeEmailUI() {
+  syncI18nAll();
   injectProfileChangeEmailMenu();
+  translateModalInPlace();
   fetchA2fMe();
 }
 if (document.readyState === 'loading') {
@@ -24823,9 +25060,11 @@ if (document.readyState === 'loading') {
   initChangeEmailUI();
 }
 setTimeout(initChangeEmailUI, 1200);
-setInterval(injectProfileChangeEmailMenu, 2000);
-})();
-</script>
+setInterval(function () {
+  injectProfileChangeEmailMenu();
+  translateModalInPlace();
+}, 2000);
+})();</script>
 <script id="afex-p19-tasks">
 /* ===== [POIN 3] ADD / DELETE TASK + UBAH HADIAH (MENU ADMIN)  (ADDITIVE - kode lama TIDAK diubah) =====
    Server : routes/tasks.js  ->  /api/tasks/get , /claim , /add , /set , /delete , /reward   (koleksi MongoDB: task_config, task_claims)
